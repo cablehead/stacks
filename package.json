@@ -1,0 +1,9 @@
+{
+  "dependencies": {
+    "@preact/signals": "^1.1.3",
+    "preact": "^10.13.2"
+  },
+  "alias": {
+    "preact/jsx-dev-runtime": "preact/jsx-runtime"
+  }
+}

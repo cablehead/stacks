@@ -2,47 +2,18 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="stylesheet" href="styles.css" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Tauri App</title>
-    <script type="module" src="/main.js" defer></script>
-    <style>
-      .logo.vanilla:hover {
-        filter: drop-shadow(0 0 2em #ffe21c);
-      }
-    </style>
+    <title>stacks</title>
+    <link href="https://cdn.skypack.dev/sanitize.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/forms.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/assets.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/typography.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/reduce-motion.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/system-ui.css" rel="stylesheet" />
+    <link href="https://unpkg.com/sanitize.css/ui-monospace.css" rel="stylesheet" />
+    <link rel="stylesheet" href="/styles.css" />
   </head>
-
   <body>
-    <div class="container">
-      <h1>Welcome to Tauri!</h1>
-
-      <div class="row">
-        <a href="https://tauri.app" target="_blank">
-          <img src="/assets/tauri.svg" class="logo tauri" alt="Tauri logo" />
-        </a>
-        <a
-          href="https://developer.mozilla.org/en-US/docs/Web/JavaScript"
-          target="_blank"
-        >
-          <img
-            src="/assets/javascript.svg"
-            class="logo vanilla"
-            alt="JavaScript logo"
-          />
-        </a>
-      </div>
-
-      <p>Click on the Tauri logo to learn more about the framework</p>
-
-      <div class="row">
-        <div>
-          <input id="greet-input" placeholder="Enter a name..." />
-          <button id="greet-button" type="button">Greet</button>
-        </div>
-      </div>
-
-      <p id="greet-msg"></p>
-    </div>
+    <script type="module" src="/app.js"></script>
   </body>
 </html>
