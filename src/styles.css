@@ -80,6 +80,6 @@ input {
 }
 
 .results > div:hover {
-  background-color: var(--alt-highlight-color);
+  background-color: var(--alt-secondary-color);
   color: var(--alt-text-color);
 }
