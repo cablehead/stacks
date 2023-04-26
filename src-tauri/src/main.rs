@@ -1,21 +1,30 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
-use tauri::{GlobalShortcutManager, Manager};
+use tauri::GlobalShortcutManager;
+use tauri::Manager;
 
 fn main() {
     tauri::Builder::default()
+        .on_window_event(|event| match event.event() {
+            tauri::WindowEvent::Focused(focused) => {
+                if !focused {
+                    event.window().hide().unwrap();
+                }
+            }
+            _ => {}
+        })
         .setup(|app| {
-            let main_window = app.get_window("main").unwrap();
+            let win = app.get_window("main").unwrap();
 
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {
-                    if main_window.is_visible().unwrap() {
-                        main_window.hide().unwrap();
+                    if win.is_visible().unwrap() {
+                        win.hide().unwrap();
                     } else {
-                        main_window.show().unwrap();
-                        main_window.set_focus().unwrap();
+                        win.show().unwrap();
+                        win.set_focus().unwrap();
                     }
                 })
                 .unwrap_or_else(|err| println!("{:?}", err));
