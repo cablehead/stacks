@@ -18,6 +18,7 @@ const options = signal([
   "Option 2",
   "Option 3",
   "Option 4",
+  "Option Duck Goose 2",
 ]);
 
 function App() {

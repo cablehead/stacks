@@ -10,9 +10,55 @@ fn js_log(message: String) {
     println!("[JS]: {}", message);
 }
 
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+
+use lazy_static::lazy_static;
+use std::collections::HashMap;
+
+lazy_static! {
+    static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
+        std::sync::Mutex::new(HashMap::new());
+}
+
 #[tauri::command]
 fn init_process(window: Window) {
+
+    let label = window.label().to_string();
+    println!("WINDOW: {:?}", label);
+
+    // If there's an existing process for this window, stop it
+    let mut process_map = PROCESS_MAP.lock().unwrap();
+
+    if let Some(should_continue) = process_map.get(&label) {
+        should_continue.store(false, Ordering::SeqCst);
+    }
+
+    let should_continue = Arc::new(AtomicBool::new(true));
+    process_map.insert(label.clone(), should_continue.clone());
+    drop(process_map);  // Explicitly drop the lock
+
+
+    // let should_continue = Arc::clone(&should_continue);
+
+    window.on_window_event(
+        /*
+        match event {
+         WindowEvent::CloseRequested { .. } | WindowEvent::Destroyed => {
+             window_is_open_clone.store(false, Ordering::SeqCst);
+         }
+         _ => {}
+        }
+         */
+        move |event| println!("EVENT: {:?}", event),
+    );
+
     std::thread::spawn(move || loop {
+        if !should_continue.load(Ordering::SeqCst) {
+            println!("Window closed, ending thread.");
+            break;
+        }
+
         window
             .emit(
                 "event-name",
@@ -46,6 +92,21 @@ fn main() {
             _ => {}
         })
         .setup(|app| {
+            match app.get_cli_matches() {
+                Ok(matches) => {
+                    if let Some(arg_data) = matches.args.get("PATH") {
+                        println!("PATH argument: {:?}", arg_data.value);
+                    }
+                }
+                Err(e) => match e {
+                    tauri::Error::FailedToExecuteApi(error_message) => {
+                        println!("{}", error_message);
+                        std::process::exit(1);
+                    }
+                    _ => panic!("{:?}", e),
+                },
+            }
+
             app.emit_all(
                 "event-name",
                 Payload {
