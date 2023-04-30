@@ -107,15 +107,6 @@ fn main() {
                 },
             }
 
-            app.emit_all(
-                "event-name",
-                Payload {
-                    message: "Tauri is awesome!".into(),
-                },
-            )
-            .unwrap();
-            println!("setup");
-
             let win = app.get_window("main").unwrap();
             let mut shortcut = app.global_shortcut_manager();
             shortcut
