@@ -1,5 +1,17 @@
 import { render } from "preact";
 import { signal } from "@preact/signals";
+import { useEffect } from "preact/hooks";
+
+const { listen } = require("@tauri-apps/api/event");
+const { invoke } = require("@tauri-apps/api/tauri");
+
+async function rustLog(message) {
+  try {
+    await invoke("js_log", { message });
+  } catch (error) {
+    console.error("Error logging message in Rust:", error);
+  }
+}
 
 const options = signal([
   "Option 1",
@@ -9,6 +21,23 @@ const options = signal([
 ]);
 
 function App() {
+  useEffect(() => {
+    rustLog("Hello from JavaScript!");
+
+    function handleDataFromRust(event) {
+			rustLog("got event");
+      console.log("Data pushed from Rust:", event);
+    }
+
+    listen("event-name", handleDataFromRust);
+
+		invoke("init_process");
+
+    return () => {
+      rustLog("Component is unmounted!");
+    };
+  }, []);
+
   return (
     <main>
       <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #333" }}>

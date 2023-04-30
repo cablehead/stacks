@@ -3,9 +3,40 @@
 
 use tauri::GlobalShortcutManager;
 use tauri::Manager;
+use tauri::Window;
+
+#[tauri::command]
+fn js_log(message: String) {
+    println!("[JS]: {}", message);
+}
+
+#[tauri::command]
+fn init_process(window: Window) {
+    std::thread::spawn(move || loop {
+        window
+            .emit(
+                "event-name",
+                Payload {
+                    message: "Tauri is awesome!".into(),
+                },
+            )
+            .unwrap();
+
+        std::thread::sleep(std::time::Duration::from_secs(1));
+    });
+}
+
+#[derive(Clone, serde::Serialize)]
+struct Payload {
+    message: String,
+}
+
+// Next:
+// https://betterprogramming.pub/front-end-back-end-communication-in-tauri-implementing-progress-bars-and-interrupt-buttons-2a4efd967059
 
 fn main() {
     tauri::Builder::default()
+        .invoke_handler(tauri::generate_handler![js_log, init_process])
         .on_window_event(|event| match event.event() {
             tauri::WindowEvent::Focused(focused) => {
                 if !focused {
@@ -15,8 +46,16 @@ fn main() {
             _ => {}
         })
         .setup(|app| {
-            let win = app.get_window("main").unwrap();
+            app.emit_all(
+                "event-name",
+                Payload {
+                    message: "Tauri is awesome!".into(),
+                },
+            )
+            .unwrap();
+            println!("setup");
 
+            let win = app.get_window("main").unwrap();
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {

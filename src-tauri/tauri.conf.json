@@ -41,7 +41,7 @@
         "fullscreen": false,
         "resizable": false,
         "alwaysOnTop": true,
-        "visible": true,
+        "visible": false,
         "decorations": false,
         "title": "stacks",
         "width": 600,
