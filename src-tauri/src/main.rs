@@ -186,12 +186,14 @@ mod tests {
         // Check that the initial data is empty (since the producer hasn't sent anything yet)
         assert!(initial_data.is_empty());
 
+        // Data to send
         let data_to_send = vec!["Hello, World!", "Another string", "And another one"];
         let data_to_send: Vec<String> = data_to_send.into_iter().map(|s| s.to_string()).collect();
 
+        let data_to_send_clone = data_to_send.clone();
         // Start a new thread for the producer to run the command
         let producer_thread = std::thread::spawn(move || {
-            producer.run(data_to_send.into_iter());
+            producer.run(data_to_send_clone.into_iter());
         });
 
         // Check that the receiver receives the correct data
