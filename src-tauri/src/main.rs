@@ -129,8 +129,6 @@ mod tests {
 
     use flume::{unbounded, Receiver, Sender};
     use std::collections::VecDeque;
-    use std::io::{BufRead, BufReader};
-    use std::process::{Command, Stdio};
     use std::sync::{Arc, Mutex};
 
     struct Producer {
@@ -161,60 +159,49 @@ mod tests {
             (data, receiver)
         }
 
-        fn run(&mut self, command: &str) {
-            let output = Command::new(command)
-                .stdout(Stdio::piped())
-                .spawn()
-                .expect("Failed to start process")
-                .stdout
-                .expect("Failed to capture stdout");
+        fn run<I>(&mut self, iterator: I)
+        where
+            I: IntoIterator<Item = String>,
+        {
+            for line in iterator {
+                self.data.lock().unwrap().push_front(line.clone());
 
-            let reader = BufReader::new(output);
-
-            for line in reader.lines() {
-                if let Ok(line) = line {
-                    self.data.lock().unwrap().push_front(line.clone());
-
-                    let senders = self.senders.lock().unwrap();
-                    for sender in senders.iter() {
-                        sender
-                            .send(line.clone())
-                            .expect("Failed to send data to consumer");
-                    }
+                let senders = self.senders.lock().unwrap();
+                for sender in senders.iter() {
+                    sender
+                        .send(line.clone())
+                        .expect("Failed to send data to consumer");
                 }
             }
         }
     }
 
-    #[cfg(test)]
-    mod tests {
-        use super::*;
+    #[test]
+    fn test_data_sent_to_consumer() {
+        let mut producer = Producer::new();
 
-        #[test]
-        fn test_data_sent_to_consumer() {
-            let mut producer = Producer::new();
+        // Add a consumer
+        let (initial_data, receiver) = producer.add_consumer();
 
-            // Add a consumer
-            let (initial_data, receiver) = producer.add_consumer();
+        // Check that the initial data is empty (since the producer hasn't sent anything yet)
+        assert!(initial_data.is_empty());
 
-            // Check that the initial data is empty (since the producer hasn't sent anything yet)
-            assert!(initial_data.is_empty());
+        let data_to_send = vec!["Hello, World!", "Another string", "And another one"];
+        let data_to_send: Vec<String> = data_to_send.into_iter().map(|s| s.to_string()).collect();
 
-            let data_to_send = "Hello, World!";
-            let command = format!("echo {}", data_to_send);
+        // Start a new thread for the producer to run the command
+        let producer_thread = std::thread::spawn(move || {
+            producer.run(data_to_send.into_iter());
+        });
 
-            // Start a new thread for the producer to run the command
-            let producer_thread = std::thread::spawn(move || {
-                producer.run(&command);
-            });
-
-            // Check that the receiver receives the correct data
+        // Check that the receiver receives the correct data
+        for expected in data_to_send.iter().rev() {
             match receiver.recv() {
-                Ok(data) => assert_eq!(data, data_to_send),
+                Ok(data) => assert_eq!(data, *expected),
                 Err(_) => panic!("Failed to receive data"),
             }
-
-            producer_thread.join().unwrap();
         }
+
+        producer_thread.join().unwrap();
     }
 }
