@@ -17,6 +17,7 @@ tauri = { version = "1.2", features = ["cli", "global-shortcut", "shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 lazy_static = "1.4.0"
+flume = "0.10.14"
 
 [features]
 # this feature is used for production builds or when `devPath` points to the filesystem

@@ -23,7 +23,6 @@ lazy_static! {
 
 #[tauri::command]
 fn init_process(window: Window) {
-
     let label = window.label().to_string();
     println!("WINDOW: {:?}", label);
 
@@ -36,8 +35,7 @@ fn init_process(window: Window) {
 
     let should_continue = Arc::new(AtomicBool::new(true));
     process_map.insert(label.clone(), should_continue.clone());
-    drop(process_map);  // Explicitly drop the lock
-
+    drop(process_map); // Explicitly drop the lock
 
     // let should_continue = Arc::clone(&should_continue);
 
@@ -124,4 +122,99 @@ fn main() {
         })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
+}
+
+#[cfg(test)]
+mod tests {
+
+    use flume::{unbounded, Receiver, Sender};
+    use std::collections::VecDeque;
+    use std::io::{BufRead, BufReader};
+    use std::process::{Command, Stdio};
+    use std::sync::{Arc, Mutex};
+
+    struct Producer {
+        data: Arc<Mutex<VecDeque<String>>>,
+        senders: Arc<Mutex<Vec<Sender<String>>>>,
+    }
+
+    impl Producer {
+        fn new() -> Self {
+            Producer {
+                data: Arc::new(Mutex::new(VecDeque::new())),
+                senders: Arc::new(Mutex::new(Vec::new())),
+            }
+        }
+
+        fn add_consumer(&mut self) -> (Vec<String>, Receiver<String>) {
+            let receiver = {
+                let (sender, receiver) = unbounded();
+                self.senders.lock().unwrap().push(sender);
+                receiver
+            };
+
+            let data = {
+                let data = self.data.lock().unwrap();
+                data.iter().rev().cloned().collect()
+            };
+
+            (data, receiver)
+        }
+
+        fn run(&mut self, command: &str) {
+            let output = Command::new(command)
+                .stdout(Stdio::piped())
+                .spawn()
+                .expect("Failed to start process")
+                .stdout
+                .expect("Failed to capture stdout");
+
+            let reader = BufReader::new(output);
+
+            for line in reader.lines() {
+                if let Ok(line) = line {
+                    self.data.lock().unwrap().push_front(line.clone());
+
+                    let senders = self.senders.lock().unwrap();
+                    for sender in senders.iter() {
+                        sender
+                            .send(line.clone())
+                            .expect("Failed to send data to consumer");
+                    }
+                }
+            }
+        }
+    }
+
+    #[cfg(test)]
+    mod tests {
+        use super::*;
+
+        #[test]
+        fn test_data_sent_to_consumer() {
+            let mut producer = Producer::new();
+
+            // Add a consumer
+            let (initial_data, receiver) = producer.add_consumer();
+
+            // Check that the initial data is empty (since the producer hasn't sent anything yet)
+            assert!(initial_data.is_empty());
+
+            let data_to_send = "Hello, World!";
+            let command = format!("echo {}", data_to_send);
+
+            // Start a new thread for the producer to run the command
+            let producer_thread = std::thread::spawn(move || {
+                producer.run(&command);
+            });
+
+            // Check that the receiver receives the correct data
+            match receiver.recv() {
+                Ok(data) => assert_eq!(data, data_to_send),
+                Err(_) => panic!("Failed to receive data"),
+            }
+
+            producer_thread.join().unwrap();
+        }
+    }
 }
