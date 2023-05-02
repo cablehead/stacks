@@ -1,8 +1,8 @@
-use std::sync::{Arc, Mutex};
+use std::sync::{mpsc, Arc, Mutex};
 
 struct Producer {
     data: Mutex<Vec<String>>,
-    senders: Mutex<Vec<flume::Sender<String>>>,
+    senders: Mutex<Vec<mpsc::Sender<String>>>,
 }
 
 impl Producer {
@@ -13,9 +13,9 @@ impl Producer {
         }
     }
 
-    fn add_consumer(&self) -> (Vec<String>, flume::Receiver<String>) {
+    fn add_consumer(&self) -> (Vec<String>, mpsc::Receiver<String>) {
         let consumer = {
-            let (sender, consumer) = flume::unbounded();
+            let (sender, consumer) = mpsc::channel();
             let mut senders = self.senders.lock().unwrap();
             senders.push(sender);
             consumer
@@ -40,14 +40,7 @@ impl Producer {
         let mut senders = self.senders.lock().unwrap();
         // Remove disconnected senders and send data to connected ones
         senders.retain(|sender| {
-            if sender.is_disconnected() {
-                false
-            } else {
-                sender
-                    .send(item.clone())
-                    .expect("Failed to send data to consumer");
-                true
-            }
+            !sender.send(item.clone()).is_err()
         });
     }
 
@@ -76,7 +69,7 @@ mod tests {
         assert!(initial_data.is_empty());
 
         // Start the producer
-        let (sender, recver) = flume::unbounded();
+        let (sender, recver) = mpsc::channel();
         let producer_thread = {
             let producer = producer.clone();
             std::thread::spawn(move || {
