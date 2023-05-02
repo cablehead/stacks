@@ -36,8 +36,8 @@ impl Producer {
         senders.len()
     }
 
-    fn send_data(&self, line: String) {
-        self.data.lock().unwrap().push(line.clone());
+    fn send_data(&self, item: String) {
+        self.data.lock().unwrap().push(item.clone());
 
         // Get a copy of the current senders
         let mut senders = self.senders.lock().unwrap();
@@ -48,7 +48,7 @@ impl Producer {
                 false
             } else {
                 sender
-                    .send(line.clone())
+                    .send(item.clone())
                     .expect("Failed to send data to consumer");
                 true
             }
@@ -59,8 +59,8 @@ impl Producer {
     where
         I: IntoIterator<Item = String>,
     {
-        for line in iterator {
-            self.send_data(line);
+        for item in iterator {
+            self.send_data(item);
         }
         let mut senders = self.senders.lock().unwrap();
         senders.clear();
