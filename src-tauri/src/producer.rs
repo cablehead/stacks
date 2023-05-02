@@ -31,17 +31,28 @@ impl Producer {
         (data, receiver)
     }
 
+    fn consumer_count(&self) -> usize {
+        let senders = self.senders.lock().unwrap();
+        senders.len()
+    }
+
     fn send_data(&self, line: String) {
         self.data.lock().unwrap().push(line.clone());
 
         // Get a copy of the current senders
-        let senders = self.senders.lock().unwrap().clone();
+        let mut senders = self.senders.lock().unwrap();
 
-        for sender in &senders {
-            sender
-                .send(line.clone())
-                .expect("Failed to send data to consumer");
-        }
+        // Remove disconnected senders and send data to connected ones
+        senders.retain(|sender| {
+            if sender.is_disconnected() {
+                false
+            } else {
+                sender
+                    .send(line.clone())
+                    .expect("Failed to send data to consumer");
+                true
+            }
+        });
     }
 
     fn run<I>(&self, iterator: I)
@@ -115,14 +126,27 @@ mod tests {
             }
         }
 
+        assert_eq!(producer.consumer_count(), 2);
+
+        // Drop receiver1 (simulate consumer leaving)
+        drop(receiver);
+
+        // Send two more items
+        sender.send("Extra item 1".to_string()).unwrap();
+        sender.send("Extra item 2".to_string()).unwrap();
+
+        // Check that receiver2 receives the correct data
+        for _ in 0..2 {
+            match receiver2.recv() {
+                Ok(data) => assert!(["Extra item 1", "Extra item 2"].contains(&data.as_str())),
+                Err(_) => panic!("Failed to receive data"),
+            }
+        }
+
+        assert_eq!(producer.consumer_count(), 1);
+
         drop(sender);
         producer_thread.join().unwrap();
-
-        // Check for RecvError (producer stopped)
-        match receiver.recv() {
-            Err(_) => {}
-            _ => panic!("Expected RecvError"),
-        }
 
         match receiver2.recv() {
             Err(_) => {}
