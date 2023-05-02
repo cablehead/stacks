@@ -1,23 +1,21 @@
 use std::sync::{Arc, Mutex};
 
-use flume::{unbounded, Receiver, Sender};
-
 struct Producer {
-    data: Arc<Mutex<Vec<String>>>,
-    senders: Arc<Mutex<Vec<Sender<String>>>>,
+    data: Mutex<Vec<String>>,
+    senders: Mutex<Vec<flume::Sender<String>>>,
 }
 
 impl Producer {
     fn new() -> Self {
         Producer {
-            data: Arc::new(Mutex::new(Vec::new())),
-            senders: Arc::new(Mutex::new(Vec::new())),
+            data: Mutex::new(Vec::new()),
+            senders: Mutex::new(Vec::new()),
         }
     }
 
-    fn add_consumer(&self) -> (Vec<String>, Receiver<String>) {
+    fn add_consumer(&self) -> (Vec<String>, flume::Receiver<String>) {
         let receiver = {
-            let (sender, receiver) = unbounded();
+            let (sender, receiver) = flume::unbounded();
             let mut senders = self.senders.lock().unwrap();
             senders.push(sender);
             receiver
@@ -80,7 +78,7 @@ mod tests {
         assert!(initial_data.is_empty());
 
         // Data to send
-        let (sender, iterator_receiver) = unbounded();
+        let (sender, iterator_receiver) = flume::unbounded();
 
         // Start a new thread for the producer to run the command
         let producer_thread = {
