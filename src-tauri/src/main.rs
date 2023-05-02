@@ -128,82 +128,132 @@ fn main() {
 mod tests {
 
     use flume::{unbounded, Receiver, Sender};
-    use std::collections::VecDeque;
     use std::sync::{Arc, Mutex};
 
     struct Producer {
-        data: Arc<Mutex<VecDeque<String>>>,
+        data: Arc<Mutex<Vec<String>>>,
         senders: Arc<Mutex<Vec<Sender<String>>>>,
     }
 
     impl Producer {
         fn new() -> Self {
             Producer {
-                data: Arc::new(Mutex::new(VecDeque::new())),
+                data: Arc::new(Mutex::new(Vec::new())),
                 senders: Arc::new(Mutex::new(Vec::new())),
             }
         }
 
-        fn add_consumer(&mut self) -> (Vec<String>, Receiver<String>) {
+        fn add_consumer(&self) -> (Vec<String>, Receiver<String>) {
             let receiver = {
                 let (sender, receiver) = unbounded();
-                self.senders.lock().unwrap().push(sender);
+                let mut senders = self.senders.lock().unwrap();
+                senders.push(sender);
                 receiver
             };
 
             let data = {
                 let data = self.data.lock().unwrap();
-                data.iter().rev().cloned().collect()
+                data.clone()
             };
 
             (data, receiver)
         }
 
-        fn run<I>(&mut self, iterator: I)
+        fn send_data(&self, line: String) {
+            self.data.lock().unwrap().push(line.clone());
+
+            // Get a copy of the current senders
+            let senders = self.senders.lock().unwrap().clone();
+
+            for sender in &senders {
+                sender
+                    .send(line.clone())
+                    .expect("Failed to send data to consumer");
+            }
+        }
+
+        fn run<I>(&self, iterator: I)
         where
             I: IntoIterator<Item = String>,
         {
             for line in iterator {
-                self.data.lock().unwrap().push_front(line.clone());
-
-                let senders = self.senders.lock().unwrap();
-                for sender in senders.iter() {
-                    sender
-                        .send(line.clone())
-                        .expect("Failed to send data to consumer");
-                }
+                self.send_data(line);
             }
+            let mut senders = self.senders.lock().unwrap();
+            senders.clear();
         }
     }
 
     #[test]
     fn test_data_sent_to_consumer() {
-        let mut producer = Producer::new();
+        let producer = Arc::new(Producer::new());
 
-        // Add a consumer
         let (initial_data, receiver) = producer.add_consumer();
 
         // Check that the initial data is empty (since the producer hasn't sent anything yet)
         assert!(initial_data.is_empty());
 
         // Data to send
-        let data_to_send = vec!["Hello, World!", "Another string", "And another one"];
-        let data_to_send: Vec<String> = data_to_send.into_iter().map(|s| s.to_string()).collect();
+        let (sender, iterator_receiver) = unbounded();
 
-        let data_to_send_clone = data_to_send.clone();
+        let producer_clone = Arc::clone(&producer);
         // Start a new thread for the producer to run the command
         let producer_thread = std::thread::spawn(move || {
-            producer.run(data_to_send_clone.into_iter());
+            producer_clone.run(iterator_receiver.into_iter());
         });
 
+        // Send the first two data
+        sender.send("Hello, World!".to_string()).unwrap();
+        sender.send("Another string".to_string()).unwrap();
+
         // Check that the receiver receives the correct data
-        for expected in data_to_send.iter().rev() {
+        for _ in 0..2 {
             match receiver.recv() {
-                Ok(data) => assert_eq!(data, *expected),
+                Ok(data) => assert!(["Hello, World!", "Another string"].contains(&data.as_str())),
                 Err(_) => panic!("Failed to receive data"),
             }
         }
 
+        // Add another consumer
+
+        let (initial_data, receiver2) = producer.add_consumer();
+
+        // Check that the initial data contains the first two data
+        assert_eq!(
+            initial_data,
+            vec!["Hello, World!".to_string(), "Another string".to_string(),]
+        );
+
+        // Send the next two data
+        sender.send("And another one".to_string()).unwrap();
+        sender.send("Final string".to_string()).unwrap();
+
+        // Check that both receivers receive the correct data
+        for _ in 0..2 {
+            match receiver.recv() {
+                Ok(data) => assert!(["And another one", "Final string"].contains(&data.as_str())),
+                Err(_) => panic!("Failed to receive data"),
+            }
+
+            match receiver2.recv() {
+                Ok(data) => assert!(["And another one", "Final string"].contains(&data.as_str())),
+                Err(_) => panic!("Failed to receive data"),
+            }
+        }
+
+        drop(sender);
+
         producer_thread.join().unwrap();
+
+        // Check for RecvError (producer stopped)
+        match receiver.recv() {
+            Err(_) => {}
+            _ => panic!("Expected RecvError"),
+        }
+
+        match receiver2.recv() {
+            Err(_) => {}
+            _ => panic!("Expected RecvError"),
+        }
     }
 }
