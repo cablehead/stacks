@@ -83,10 +83,12 @@ mod tests {
         let (sender, iterator_receiver) = unbounded();
 
         // Start a new thread for the producer to run the command
-        let producer_clone = Arc::clone(&producer);
-        let producer_thread = std::thread::spawn(move || {
-            producer_clone.run(iterator_receiver.into_iter());
-        });
+        let producer_thread = {
+            let producer = producer.clone();
+            std::thread::spawn(move || {
+                producer.run(iterator_receiver.into_iter());
+            })
+        };
 
         // Send the first two data
         sender.send("Hello, World!".to_string()).unwrap();
