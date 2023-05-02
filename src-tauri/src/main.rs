@@ -126,9 +126,9 @@ fn main() {
 
 #[cfg(test)]
 mod tests {
+    use std::sync::{Arc, Mutex};
 
     use flume::{unbounded, Receiver, Sender};
-    use std::sync::{Arc, Mutex};
 
     struct Producer {
         data: Arc<Mutex<Vec<String>>>,
@@ -189,15 +189,14 @@ mod tests {
         let producer = Arc::new(Producer::new());
 
         let (initial_data, receiver) = producer.add_consumer();
-
         // Check that the initial data is empty (since the producer hasn't sent anything yet)
         assert!(initial_data.is_empty());
 
         // Data to send
         let (sender, iterator_receiver) = unbounded();
 
-        let producer_clone = Arc::clone(&producer);
         // Start a new thread for the producer to run the command
+        let producer_clone = Arc::clone(&producer);
         let producer_thread = std::thread::spawn(move || {
             producer_clone.run(iterator_receiver.into_iter());
         });
@@ -215,7 +214,6 @@ mod tests {
         }
 
         // Add another consumer
-
         let (initial_data, receiver2) = producer.add_consumer();
 
         // Check that the initial data contains the first two data
@@ -242,7 +240,6 @@ mod tests {
         }
 
         drop(sender);
-
         producer_thread.join().unwrap();
 
         // Check for RecvError (producer stopped)
