@@ -59,8 +59,16 @@ function App() {
     if (event.ctrlKey && event.key === "n") {
       selected.value = (selected.value + 1) % items.value.length;
     } else if (event.ctrlKey && event.key === "p") {
-      selected.value = selected.value === 0 ? items.value.length - 1 : selected.value - 1;
+      selected.value = selected.value === 0
+        ? items.value.length - 1
+        : selected.value - 1;
     }
+
+    // Scroll the selected item into view
+    const selectedItem = mainRef.current.querySelector(
+      `.results > div:nth-child(${selected.value + 1})`,
+    );
+    selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
   return (
