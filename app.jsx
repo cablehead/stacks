@@ -71,6 +71,10 @@ function App() {
     selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
 
+  function handleItemClick(index) {
+    selected.value = index;
+  }
+
   return (
     <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
       <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #333" }}>
@@ -87,6 +91,7 @@ function App() {
               overflow: "hidden",
               whiteSpace: "nowrap",
             }}
+            onClick={() => handleItemClick(index)}
           >
             {JSON.parse(item.data).change}
           </div>
