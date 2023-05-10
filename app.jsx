@@ -23,19 +23,20 @@ async function rustLog(message) {
   }
 }
 
-const options = signal([]);
+const items = signal([]);
+const selected = signal(0);
 
 function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
-      options.value = [...options.value, JSON.parse(event.payload.message)];
+      items.value = [...items.value, JSON.parse(event.payload.message)];
     }
 
     async function fetchData() {
       try {
         const initialData = await invoke("init_process");
-        options.value = initialData.map(JSON.parse);
+        items.value = initialData.map(JSON.parse);
       } catch (error) {
         console.error("Error in init_process:", error);
       }
@@ -58,7 +59,7 @@ function App() {
         </div>
       </div>
       <div class="results">
-        {options.value.sort((a, b) => cmp(b.id, a.id)).map((option) => (
+        {items.value.sort((a, b) => cmp(b.id, a.id)).map((item) => (
           <div
             style={{
               maxHeight: "3rem",
@@ -66,7 +67,7 @@ function App() {
               whiteSpace: "nowrap",
             }}
           >
-            {JSON.parse(option.data).change}
+            {JSON.parse(item.data).change}
           </div>
         ))}
       </div>
