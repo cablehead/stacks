@@ -13,7 +13,8 @@ edition = "2021"
 tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
-tauri = { version = "1.2", features = ["cli", "global-shortcut", "shell-open"] }
+clap = { version = "4.1.4", features = ["derive", "wrap_help"] }
+tauri = { version = "1.2", features = ["global-shortcut", "shell-open"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 lazy_static = "1.4.0"

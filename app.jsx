@@ -19,13 +19,13 @@ function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
-      options.value = [...options.value, event];
+      options.value = [...options.value, JSON.parse(event)];
     }
 
     async function fetchData() {
       try {
         const initialData = await invoke("init_process");
-        options.value = initialData;
+        options.value = initialData.map(JSON.parse);
       } catch (error) {
         console.error("Error in init_process:", error);
       }
@@ -48,7 +48,7 @@ function App() {
         </div>
       </div>
       <div class="results">
-        {options.value.map((option) => (
+        {options.value.sort((a, b) => b.id - a.id).map((option) => (
           <div
             style={{
               maxHeight: "3rem",
@@ -56,7 +56,7 @@ function App() {
               whiteSpace: "nowrap",
             }}
           >
-            {option}
+            {option.data}
           </div>
         ))}
       </div>

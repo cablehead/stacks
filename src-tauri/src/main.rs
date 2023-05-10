@@ -6,6 +6,9 @@ use tauri::Manager;
 use tauri::Window;
 
 use std::io::{self, BufRead};
+use std::path::PathBuf;
+
+use clap::Parser;
 
 mod producer;
 
@@ -29,10 +32,10 @@ lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
 }
 
-fn start_child_process() {
+fn start_child_process(path: PathBuf) {
     std::thread::spawn(|| {
         let mut child = std::process::Command::new("xs")
-            .arg("../stream")
+            .arg(path)
             .arg("cat")
             .arg("-f")
             .stdout(std::process::Stdio::piped())
@@ -91,8 +94,18 @@ struct Payload {
     message: String,
 }
 
+#[derive(Parser, Debug, Clone)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Path to stream
+    #[clap(value_parser)]
+    path: PathBuf,
+}
+
 fn main() {
-    start_child_process();
+    let args = Args::parse();
+    println!("args: {:?}", args.path);
+    start_child_process(args.path);
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![js_log, init_process])
@@ -105,21 +118,6 @@ fn main() {
             _ => {}
         })
         .setup(|app| {
-            match app.get_cli_matches() {
-                Ok(matches) => {
-                    if let Some(arg_data) = matches.args.get("PATH") {
-                        println!("PATH argument: {:?}", arg_data.value);
-                    }
-                }
-                Err(e) => match e {
-                    tauri::Error::FailedToExecuteApi(error_message) => {
-                        println!("{}", error_message);
-                        std::process::exit(1);
-                    }
-                    _ => panic!("{:?}", e),
-                },
-            }
-
             let win = app.get_window("main").unwrap();
             // win.open_devtools();
             // win.close_devtools();

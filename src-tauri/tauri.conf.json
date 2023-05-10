@@ -41,24 +41,12 @@
         "fullscreen": false,
         "resizable": false,
         "alwaysOnTop": true,
-        "visible": false,
+        "visible": true,
         "decorations": false,
         "title": "stacks",
         "width": 600,
         "height": 200
       }
-    ],
-    "cli": {
-      "description": "A CLI for the Stacks application",
-      "longDescription": "This CLI allows you to interact with the Stacks application from the command line",
-      "args": [
-        {
-          "name": "PATH",
-          "index": 1,
-          "required": true,
-          "takesValue": true
-        }
-      ]
-    }
+    ]
   }
 }
