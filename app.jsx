@@ -96,25 +96,31 @@ function App() {
           <input type="text" placeholder="Type a command..." />
         </div>
       </div>
-      <div class="results">
-        {items.value
-          .sort((a, b) => cmp(b.id, a.id))
-          .map((item, index) => {
-            let date = scru128ToDate(item.id);
-            return (
-              <div
-                className={index === selected.value ? "selected" : ""}
-                style={{
-                  maxHeight: "3rem",
-                  overflow: "hidden",
-                  whiteSpace: "nowrap",
-                }}
-                onClick={() => handleItemClick(index)}
-              >
-                {JSON.parse(item.data).change}
-              </div>
-            );
-          })}
+      <div class="container">
+        <div class="left-pane">
+          <div class="results">
+            {items.value
+              .sort((a, b) => cmp(b.id, a.id))
+              .map((item, index) => {
+                let date = scru128ToDate(item.id);
+                return (
+                  <div
+                    className={index === selected.value ? "selected" : ""}
+                    style={{
+                      maxHeight: "3rem",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                    }}
+                    onClick={() => handleItemClick(index)}
+                  >
+                    {JSON.parse(item.data).source}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        <div class="right-pane"><pre>{selected.value >= 0 && items.value.length > 0 &&
+      JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}</pre></div>
       </div>
     </main>
   );

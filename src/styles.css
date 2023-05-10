@@ -88,3 +88,26 @@ input {
   background-color: var(--alt-highlight-color);
   color: var(--alt-text-color);
 }
+
+.container {
+  display: flex;
+  height: 100%;
+	overflow: hidden;
+}
+
+.left-pane {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.right-pane {
+  flex: 1;
+  padding: 1rem;
+  background-color: #f0f0f0;
+  overflow-y: auto;
+}
+
+pre {
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
