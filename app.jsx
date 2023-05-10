@@ -1,6 +1,6 @@
 import { render } from "preact";
 import { signal } from "@preact/signals";
-import { useEffect } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
@@ -27,6 +27,8 @@ const items = signal([]);
 const selected = signal(0);
 
 function App() {
+  const mainRef = useRef(null);
+
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
@@ -46,6 +48,8 @@ function App() {
 
     fetchData();
 
+    mainRef.current.focus();
+
     return () => {
       rustLog("Component is unmounted!");
     };
@@ -54,11 +58,13 @@ function App() {
   function handleKeyDown(event) {
     if (event.ctrlKey && event.key === "n") {
       selected.value = (selected.value + 1) % items.value.length;
+    } else if (event.ctrlKey && event.key === "p") {
+      selected.value = selected.value === 0 ? items.value.length - 1 : selected.value - 1;
     }
   }
 
   return (
-    <main onKeyDown={handleKeyDown} tabIndex="0">
+    <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
       <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #333" }}>
         <div>
           <input type="text" placeholder="Type a command..." />
