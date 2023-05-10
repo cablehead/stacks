@@ -1,19 +1,19 @@
-use std::sync::{mpsc, Arc, Mutex};
+use std::sync::{mpsc, Mutex};
 
-struct Producer {
+pub struct Producer {
     data: Mutex<Vec<String>>,
     senders: Mutex<Vec<mpsc::Sender<String>>>,
 }
 
 impl Producer {
-    fn new() -> Self {
+    pub fn new() -> Self {
         Producer {
             data: Mutex::new(Vec::new()),
             senders: Mutex::new(Vec::new()),
         }
     }
 
-    fn add_consumer(&self) -> (Vec<String>, mpsc::Receiver<String>) {
+    pub fn add_consumer(&self) -> (Vec<String>, mpsc::Receiver<String>) {
         let consumer = {
             let (sender, consumer) = mpsc::channel();
             let mut senders = self.senders.lock().unwrap();

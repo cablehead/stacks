@@ -5,6 +5,10 @@ use tauri::GlobalShortcutManager;
 use tauri::Manager;
 use tauri::Window;
 
+use std::io::{self, BufRead};
+
+mod producer;
+
 #[tauri::command]
 fn js_log(message: String) {
     println!("[JS]: {}", message);
@@ -21,7 +25,9 @@ lazy_static! {
         std::sync::Mutex::new(HashMap::new());
 }
 
-mod producer;
+lazy_static! {
+    static ref PRODUCER: producer::Producer = producer::Producer::new();
+}
 
 #[tauri::command]
 fn init_process(window: Window) {
@@ -39,36 +45,24 @@ fn init_process(window: Window) {
     process_map.insert(label.clone(), should_continue.clone());
     drop(process_map); // Explicitly drop the lock
 
-    // let should_continue = Arc::clone(&should_continue);
+    window.on_window_event(move |event| println!("EVENT: {:?}", event));
 
-    window.on_window_event(
-        /*
-        match event {
-         WindowEvent::CloseRequested { .. } | WindowEvent::Destroyed => {
-             window_is_open_clone.store(false, Ordering::SeqCst);
-         }
-         _ => {}
+    let (_initial_data, _consumer) = PRODUCER.add_consumer();
+
+    std::thread::spawn(move || {
+        // Read lines from stdin and emit events
+        let stdin = io::stdin();
+        for line in stdin.lock().lines() {
+            if !should_continue.load(Ordering::SeqCst) {
+                println!("Window closed, ending thread.");
+                break;
+            }
+
+            let line = line.unwrap();
+            window
+                .emit("event-name", Payload { message: line })
+                .unwrap();
         }
-         */
-        move |event| println!("EVENT: {:?}", event),
-    );
-
-    std::thread::spawn(move || loop {
-        if !should_continue.load(Ordering::SeqCst) {
-            println!("Window closed, ending thread.");
-            break;
-        }
-
-        window
-            .emit(
-                "event-name",
-                Payload {
-                    message: "Tauri is awesome!".into(),
-                },
-            )
-            .unwrap();
-
-        std::thread::sleep(std::time::Duration::from_secs(1));
     });
 }
 
@@ -108,6 +102,8 @@ fn main() {
             }
 
             let win = app.get_window("main").unwrap();
+            win.open_devtools();
+            win.close_devtools();
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {

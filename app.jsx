@@ -23,16 +23,13 @@ const options = signal([
 
 function App() {
   useEffect(() => {
-    rustLog("Hello from JavaScript!");
-
     function handleDataFromRust(event) {
-			rustLog("got event");
       console.log("Data pushed from Rust:", event);
     }
 
-    listen("event-name", handleDataFromRust);
+    listen("item", handleDataFromRust);
 
-		invoke("init_process");
+    invoke("init_process");
 
     return () => {
       rustLog("Component is unmounted!");
