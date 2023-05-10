@@ -51,16 +51,23 @@ function App() {
     };
   }, []);
 
+  function handleKeyDown(event) {
+    if (event.ctrlKey && event.key === "n") {
+      selected.value = (selected.value + 1) % items.value.length;
+    }
+  }
+
   return (
-    <main>
+    <main onKeyDown={handleKeyDown} tabIndex="0">
       <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #333" }}>
         <div>
           <input type="text" placeholder="Type a command..." />
         </div>
       </div>
       <div class="results">
-        {items.value.sort((a, b) => cmp(b.id, a.id)).map((item) => (
+        {items.value.sort((a, b) => cmp(b.id, a.id)).map((item, index) => (
           <div
+            className={index === selected.value ? "selected" : ""}
             style={{
               maxHeight: "3rem",
               overflow: "hidden",

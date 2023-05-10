@@ -83,3 +83,8 @@ input {
   background-color: var(--alt-secondary-color);
   color: var(--alt-text-color);
 }
+
+.results > div.selected {
+  background-color: var(--alt-highlight-color);
+  color: var(--alt-text-color);
+}
