@@ -2,10 +2,11 @@ import { render } from "preact";
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-const { getCurrent } = require("@tauri-apps/api/window");
-
 const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
+const { getCurrent } = require("@tauri-apps/api/window");
+
+import { Scru128Id } from "scru128";
 
 function cmp(a, b) {
   if (a < b) {
@@ -15,6 +16,14 @@ function cmp(a, b) {
   } else {
     return 0;
   }
+}
+
+function scru128ToDate(id) {
+  const scruId = Scru128Id.fromString(id);
+  const timestampMillis = scruId.timestamp;
+  const date = new Date(timestampMillis);
+  console.log(date);
+  return date;
 }
 
 async function rustLog(message) {
@@ -88,19 +97,24 @@ function App() {
         </div>
       </div>
       <div class="results">
-        {items.value.sort((a, b) => cmp(b.id, a.id)).map((item, index) => (
-          <div
-            className={index === selected.value ? "selected" : ""}
-            style={{
-              maxHeight: "3rem",
-              overflow: "hidden",
-              whiteSpace: "nowrap",
-            }}
-            onClick={() => handleItemClick(index)}
-          >
-            {JSON.parse(item.data).change}
-          </div>
-        ))}
+        {items.value
+          .sort((a, b) => cmp(b.id, a.id))
+          .map((item, index) => {
+            let date = scru128ToDate(item.id);
+            return (
+              <div
+                className={index === selected.value ? "selected" : ""}
+                style={{
+                  maxHeight: "3rem",
+                  overflow: "hidden",
+                  whiteSpace: "nowrap",
+                }}
+                onClick={() => handleItemClick(index)}
+              >
+                {JSON.parse(item.data).change}
+              </div>
+            );
+          })}
       </div>
     </main>
   );
