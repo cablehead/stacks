@@ -100,6 +100,10 @@ struct Args {
     /// Path to stream
     #[clap(value_parser)]
     path: PathBuf,
+
+    /// Enable debug mode
+    #[clap(short, long)]
+    debug: bool,
 }
 
 fn main() {
@@ -117,10 +121,12 @@ fn main() {
             }
             _ => {}
         })
-        .setup(|app| {
+        .setup(move |app| {
             let win = app.get_window("main").unwrap();
-            // win.open_devtools();
-            // win.close_devtools();
+            if args.debug {
+                win.open_devtools();
+                win.close_devtools();
+            }
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {

@@ -5,6 +5,16 @@ import { useEffect } from "preact/hooks";
 const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
 
+function cmp(a, b) {
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
+}
+
 async function rustLog(message) {
   try {
     await invoke("js_log", { message });
@@ -19,7 +29,7 @@ function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
-      options.value = [...options.value, JSON.parse(event)];
+      options.value = [...options.value, JSON.parse(event.payload.message)];
     }
 
     async function fetchData() {
@@ -48,7 +58,7 @@ function App() {
         </div>
       </div>
       <div class="results">
-        {options.value.sort((a, b) => b.id - a.id).map((option) => (
+        {options.value.sort((a, b) => cmp(b.id, a.id)).map((option) => (
           <div
             style={{
               maxHeight: "3rem",
@@ -56,7 +66,7 @@ function App() {
               whiteSpace: "nowrap",
             }}
           >
-            {option.data}
+            {JSON.parse(option.data).change}
           </div>
         ))}
       </div>
