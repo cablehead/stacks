@@ -60,7 +60,7 @@ fn init_process(window: Window) {
 
             let line = line.unwrap();
             window
-                .emit("event-name", Payload { message: line })
+                .emit("item", Payload { message: line })
                 .unwrap();
         }
     });
