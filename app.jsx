@@ -115,6 +115,8 @@ function App() {
                       maxHeight: "3rem",
                       overflow: "hidden",
                       whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      width: "100%",
                     }}
                     onClick={() => handleItemClick(index)}
                   >
