@@ -22,7 +22,6 @@ function scru128ToDate(id) {
   const scruId = Scru128Id.fromString(id);
   const timestampMillis = scruId.timestamp;
   const date = new Date(timestampMillis);
-  console.log(date);
   return date;
 }
 
@@ -103,6 +102,12 @@ function App() {
               .sort((a, b) => cmp(b.id, a.id))
               .map((item, index) => {
                 let date = scru128ToDate(item.id);
+                let itemData = JSON.parse(item.data);
+
+                let displayText = "public.utf8-plain-text" in itemData.types
+                  ? atob(itemData.types["public.utf8-plain-text"])
+                  : itemData.source;
+
                 return (
                   <div
                     className={index === selected.value ? "selected" : ""}
@@ -113,14 +118,16 @@ function App() {
                     }}
                     onClick={() => handleItemClick(index)}
                   >
-                    {JSON.parse(item.data).source}
+                    {displayText}
                   </div>
                 );
               })}
           </div>
         </div>
-        <div class="right-pane"><pre>{selected.value >= 0 && items.value.length > 0 &&
-      JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}</pre></div>
+        <div class="right-pane">
+          <pre>{selected.value >= 0 && items.value.length > 0 &&
+      JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}</pre>
+        </div>
       </div>
     </main>
   );

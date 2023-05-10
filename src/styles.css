@@ -75,7 +75,6 @@ input {
 .results > div {
   padding: 8px 12px;
   border-radius: 6px;
-  margin-bottom: 8px;
   cursor: pointer;
 }
 
