@@ -13,23 +13,27 @@ async function rustLog(message) {
   }
 }
 
-const options = signal([
-  "Option 1",
-  "Option 2",
-  "Option 3",
-  "Option 4",
-  "Option Duck Goose 2",
-]);
+const options = signal([]);
 
 function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
+      options.value = [...options.value, event];
+    }
+
+    async function fetchData() {
+      try {
+        const initialData = await invoke("init_process");
+        options.value = initialData;
+      } catch (error) {
+        console.error("Error in init_process:", error);
+      }
     }
 
     listen("item", handleDataFromRust);
 
-    invoke("init_process");
+    fetchData();
 
     return () => {
       rustLog("Component is unmounted!");
@@ -44,7 +48,17 @@ function App() {
         </div>
       </div>
       <div class="results">
-        {options.value.map((option) => <div>{option}</div>)}
+        {options.value.map((option) => (
+          <div
+            style={{
+              maxHeight: "3rem",
+              overflow: "hidden",
+              whiteSpace: "nowrap",
+            }}
+          >
+            {option}
+          </div>
+        ))}
       </div>
     </main>
   );

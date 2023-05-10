@@ -53,7 +53,7 @@ fn start_child_process() {
 }
 
 #[tauri::command]
-fn init_process(window: Window) {
+fn init_process(window: Window) -> Result<Vec<String>, String> {
     let label = window.label().to_string();
     println!("WINDOW: {:?}", label);
 
@@ -70,7 +70,7 @@ fn init_process(window: Window) {
 
     window.on_window_event(move |event| println!("EVENT: {:?}", event));
 
-    let (_initial_data, consumer) = PRODUCER.add_consumer();
+    let (initial_data, consumer) = PRODUCER.add_consumer();
 
     std::thread::spawn(move || {
         for line in consumer.iter() {
@@ -82,6 +82,8 @@ fn init_process(window: Window) {
             window.emit("item", Payload { message: line }).unwrap();
         }
     });
+
+    Ok(initial_data)
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -119,8 +121,8 @@ fn main() {
             }
 
             let win = app.get_window("main").unwrap();
-            win.open_devtools();
-            win.close_devtools();
+            // win.open_devtools();
+            // win.close_devtools();
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {
