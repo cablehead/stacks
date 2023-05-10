@@ -29,6 +29,29 @@ lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
 }
 
+fn start_child_process() {
+    std::thread::spawn(|| {
+        let mut child = std::process::Command::new("xs")
+            .arg("../stream")
+            .arg("cat")
+            .arg("-f")
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("Failed to execute command");
+
+        if let Some(ref mut stdout) = child.stdout {
+            let reader = io::BufReader::new(stdout);
+            for line in reader.lines() {
+                let line = line.unwrap();
+                PRODUCER.send_data(line);
+            }
+        }
+
+        // Wait for the subprocess to finish
+        let _ = child.wait();
+    });
+}
+
 #[tauri::command]
 fn init_process(window: Window) {
     let label = window.label().to_string();
@@ -47,32 +70,17 @@ fn init_process(window: Window) {
 
     window.on_window_event(move |event| println!("EVENT: {:?}", event));
 
-    let (_initial_data, _consumer) = PRODUCER.add_consumer();
+    let (_initial_data, consumer) = PRODUCER.add_consumer();
 
     std::thread::spawn(move || {
-        let mut child = std::process::Command::new("xs")
-            .arg("../stream")
-            .arg("cat")
-            .arg("-f")
-            .stdout(std::process::Stdio::piped())
-            .spawn()
-            .expect("Failed to execute command");
-
-        if let Some(ref mut stdout) = child.stdout {
-            let reader = io::BufReader::new(stdout);
-            for line in reader.lines() {
-                if !should_continue.load(Ordering::SeqCst) {
-                    println!("Window closed, ending thread.");
-                    break;
-                }
-
-                let line = line.unwrap();
-                window.emit("item", Payload { message: line }).unwrap();
+        for line in consumer.iter() {
+            if !should_continue.load(Ordering::SeqCst) {
+                println!("Window closed, ending thread.");
+                break;
             }
-        }
 
-        // Wait for the subprocess to finish
-        let _ = child.wait();
+            window.emit("item", Payload { message: line }).unwrap();
+        }
     });
 }
 
@@ -81,10 +89,9 @@ struct Payload {
     message: String,
 }
 
-// Next:
-// https://betterprogramming.pub/front-end-back-end-communication-in-tauri-implementing-progress-bars-and-interrupt-buttons-2a4efd967059
-
 fn main() {
+    start_child_process();
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![js_log, init_process])
         .on_window_event(|event| match event.event() {

@@ -34,7 +34,7 @@ impl Producer {
         senders.len()
     }
 
-    fn send_data(&self, item: String) {
+    pub fn send_data(&self, item: String) {
         self.data.lock().unwrap().push(item.clone());
 
         let mut senders = self.senders.lock().unwrap();
