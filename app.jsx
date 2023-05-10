@@ -2,6 +2,8 @@ import { render } from "preact";
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
+const { getCurrent } = require("@tauri-apps/api/window");
+
 const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
 
@@ -62,6 +64,9 @@ function App() {
       selected.value = selected.value === 0
         ? items.value.length - 1
         : selected.value - 1;
+    } else if (event.key === "Escape") {
+      const currentWindow = getCurrent();
+      currentWindow.hide();
     }
 
     // Scroll the selected item into view
