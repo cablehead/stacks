@@ -50,19 +50,29 @@ fn init_process(window: Window) {
     let (_initial_data, _consumer) = PRODUCER.add_consumer();
 
     std::thread::spawn(move || {
-        // Read lines from stdin and emit events
-        let stdin = io::stdin();
-        for line in stdin.lock().lines() {
-            if !should_continue.load(Ordering::SeqCst) {
-                println!("Window closed, ending thread.");
-                break;
-            }
+        let mut child = std::process::Command::new("xs")
+            .arg("../stream")
+            .arg("cat")
+            .arg("-f")
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("Failed to execute command");
 
-            let line = line.unwrap();
-            window
-                .emit("item", Payload { message: line })
-                .unwrap();
+        if let Some(ref mut stdout) = child.stdout {
+            let reader = io::BufReader::new(stdout);
+            for line in reader.lines() {
+                if !should_continue.load(Ordering::SeqCst) {
+                    println!("Window closed, ending thread.");
+                    break;
+                }
+
+                let line = line.unwrap();
+                window.emit("item", Payload { message: line }).unwrap();
+            }
         }
+
+        // Wait for the subprocess to finish
+        let _ = child.wait();
     });
 }
 
