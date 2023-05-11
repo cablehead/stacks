@@ -47,7 +47,7 @@ function NewItemUI({ onSubmit }) {
 
   return (
     <form onSubmit={onSubmit}>
-      <input
+      <textarea
         ref={inputRef}
         type="text"
         name="item"
@@ -75,9 +75,9 @@ function App() {
       } catch (error) {
         console.error("Error in init_process:", error);
       }
-    }
 
-    listen("item", handleDataFromRust);
+      listen("item", handleDataFromRust);
+    }
 
     fetchData();
 
@@ -89,21 +89,28 @@ function App() {
   }, []);
 
   function handleKeyDown(event) {
-    if (event.ctrlKey && event.key === "n") {
-      selected.value = (selected.value + 1) % items.value.length;
-    } else if (event.ctrlKey && event.key === "p") {
-      selected.value = selected.value === 0
-        ? items.value.length - 1
-        : selected.value - 1;
-    } else if (event.metaKey && event.key === "n") {
-      mode.value = "new-item";
-      return;
-    } else if (event.key === "Escape") {
-      const currentWindow = getCurrent();
-      currentWindow.hide();
-      return;
-    } else {
-      return;
+    switch (true) {
+      case event.ctrlKey && event.key === "n":
+        selected.value = (selected.value + 1) % items.value.length;
+        break;
+
+      case event.ctrlKey && event.key === "p":
+        selected.value = selected.value === 0
+          ? items.value.length - 1
+          : selected.value - 1;
+        break;
+
+      case event.metaKey && event.key === "n":
+        mode.value = "new-item";
+        return;
+
+      case event.key === "Escape":
+        const currentWindow = getCurrent();
+        currentWindow.hide();
+        return;
+
+      default:
+        return;
     }
 
     // Scroll the selected item into view
@@ -128,7 +135,7 @@ function App() {
       try {
         await invoke("add_item", { item: inputValue });
         mode.value = "list";
-    mainRef.current.focus();
+        mainRef.current.focus();
       } catch (error) {
         console.error("Error adding item:", error);
       }
