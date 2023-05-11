@@ -22,6 +22,33 @@ fn add_item(item: String) {
     // Add your logic to add the new item
     // For example, you can send the new item to the child process
     println!("New item: {}", item);
+
+    // Get the path from the ARGS
+    let path = &ARGS.path;
+
+    // Run the child process: xs <path> put --topic dn
+    let mut child = std::process::Command::new("xs")
+        .arg(path)
+        .arg("put")
+        .arg("--topic")
+        .arg("dn")
+        .stdin(std::process::Stdio::piped())
+        .spawn()
+        .expect("Failed to execute command");
+
+    // Write the item to the child process's stdin
+    if let Some(ref mut stdin) = child.stdin {
+        use std::io::Write;
+        stdin
+            .write_all(item.as_bytes())
+            .expect("Failed to write to stdin");
+        stdin.flush().expect("Failed to flush stdin");
+    }
+
+    // Wait for the child process to finish
+    let output = child.wait_with_output().expect("Failed to wait on child");
+
+    println!("Output: {:?}", output);
 }
 
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -33,6 +60,10 @@ use std::collections::HashMap;
 lazy_static! {
     static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
         std::sync::Mutex::new(HashMap::new());
+}
+
+lazy_static! {
+    static ref ARGS: Args = Args::parse();
 }
 
 lazy_static! {
