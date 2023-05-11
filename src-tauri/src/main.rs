@@ -98,13 +98,14 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
 
     if let Some(should_continue) = process_map.get(&label) {
         should_continue.store(false, Ordering::SeqCst);
+    } else {
+        // only setup an event listener the first time we see this window
+        window.on_window_event(move |event| println!("EVENT: {:?}", event));
     }
 
     let should_continue = Arc::new(AtomicBool::new(true));
     process_map.insert(label.clone(), should_continue.clone());
     drop(process_map); // Explicitly drop the lock
-
-    window.on_window_event(move |event| println!("EVENT: {:?}", event));
 
     let (initial_data, consumer) = PRODUCER.add_consumer();
 
