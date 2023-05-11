@@ -105,8 +105,6 @@ function App() {
             {items.value
               .sort((a, b) => cmp(b.id, a.id))
               .map((item, index) => {
-                let date = scru128ToDate(item.id);
-
                 let displayText = item.data;
 
                 return (
@@ -135,8 +133,30 @@ function App() {
               {items.value[selected.value].data}
                 </pre>
               </div>
-              <div style="font-size: 0.8rem; font-weight: 500; flex:1; overflow-y: auto; padding:1ch;">
-                ID: {items.value[selected.value].id}
+              <div style="font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; gap: 1ch; overflow-y: auto; padding:1ch;">
+                <div>
+                  ID
+                </div>
+                <div>
+                  {items.value[selected.value].id}
+                </div>
+                <div>
+                  Created
+                </div>
+                <div>
+                  {scru128ToDate(items.value[selected.value].id).toLocaleString(
+                    "en-US",
+                    {
+                      weekday: "short",
+                      year: "numeric",
+                      month: "short",
+                      day: "numeric",
+                      hour: "numeric",
+                      minute: "numeric",
+                      hour12: true,
+                    },
+                  )}
+                </div>
               </div>
             </>
           )}
