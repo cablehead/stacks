@@ -106,11 +106,8 @@ function App() {
               .sort((a, b) => cmp(b.id, a.id))
               .map((item, index) => {
                 let date = scru128ToDate(item.id);
-                let itemData = JSON.parse(item.data);
 
-                let displayText = "public.utf8-plain-text" in itemData.types
-                  ? atob(itemData.types["public.utf8-plain-text"])
-                  : itemData.source;
+                let displayText = item.data;
 
                 return (
                   <div
@@ -133,21 +130,13 @@ function App() {
         <div class="right-pane">
           {selected.value >= 0 && items.value.length > 0 && (
             <>
-              {"public.utf8-plain-text" in
-                  JSON.parse(items.value[selected.value].data).types && (
-                <div style="padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-                  <pre>
-          {atob(
-            JSON.parse(items.value[selected.value].data).types["public.utf8-plain-text"]
-          )}
-                  </pre>
-                </div>
-              )}
-              <div style="font-size: 0.8rem; font-weight: 500; flex:1; overflow-y: auto;">
-                <p>Raw JSON</p>
-                <pre style="max-height: 5lh; overflow: auto;">
-        {JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}
+              <div style="padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+                <pre>
+              {items.value[selected.value].data}
                 </pre>
+              </div>
+              <div style="font-size: 0.8rem; font-weight: 500; flex:1; overflow-y: auto; padding:1ch;">
+                ID: {items.value[selected.value].id}
               </div>
             </>
           )}
