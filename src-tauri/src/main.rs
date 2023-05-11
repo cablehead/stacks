@@ -123,9 +123,12 @@ fn main() {
         })
         .setup(move |app| {
             let win = app.get_window("main").unwrap();
-            if args.debug {
-                win.open_devtools();
-                win.close_devtools();
+            #[cfg(debug_assertions)]
+            {
+                if args.debug {
+                    win.open_devtools();
+                    win.close_devtools();
+                }
             }
             let mut shortcut = app.global_shortcut_manager();
             shortcut
