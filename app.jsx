@@ -88,29 +88,10 @@ function App() {
     };
   }, []);
 
-  function handleKeyDown(event) {
-    switch (true) {
-      case event.ctrlKey && event.key === "n":
-        selected.value = (selected.value + 1) % items.value.length;
-        break;
-
-      case event.ctrlKey && event.key === "p":
-        selected.value = selected.value === 0
-          ? items.value.length - 1
-          : selected.value - 1;
-        break;
-
-      case event.metaKey && event.key === "n":
-        mode.value = "new-item";
-        return;
-
-      case event.key === "Escape":
-        const currentWindow = getCurrent();
-        currentWindow.hide();
-        return;
-
-      default:
-        return;
+  function updateSelected(n) {
+    selected.value = (selected.value + n) % items.value.length;
+    if (selected.value < 0) {
+      selected.value = items.value.length + selected.value;
     }
 
     // Scroll the selected item into view
@@ -118,6 +99,27 @@ function App() {
       `.results > div:nth-child(${selected.value + 1})`,
     );
     selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+  }
+
+  function handleKeyDown(event) {
+    switch (true) {
+      case event.ctrlKey && event.key === "n":
+        updateSelected(1);
+        break;
+
+      case event.ctrlKey && event.key === "p":
+        updateSelected(-1);
+        break;
+
+      case event.metaKey && event.key === "n":
+        mode.value = "new-item";
+        break;
+
+      case event.key === "Escape":
+        const currentWindow = getCurrent();
+        currentWindow.hide();
+        break;
+    }
   }
 
   function handleItemClick(index) {
@@ -134,12 +136,12 @@ function App() {
       // Send the new item to the Rust backend
       try {
         await invoke("add_item", { item: inputValue });
-        mode.value = "list";
         mainRef.current.focus();
       } catch (error) {
         console.error("Error adding item:", error);
       }
     }
+    mode.value = "list";
   }
 
   return (
