@@ -35,6 +35,28 @@ async function rustLog(message) {
 
 const items = signal([]);
 const selected = signal(0);
+const mode = signal("list");
+
+function NewItemUI({ onSubmit }) {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    // Set focus on the input field when the component is mounted
+    inputRef.current.focus();
+  }, []);
+
+  return (
+    <form onSubmit={onSubmit}>
+      <input
+        ref={inputRef}
+        type="text"
+        name="item"
+        value=""
+        placeholder="Type a new item..."
+      />
+    </form>
+  );
+}
 
 function App() {
   const mainRef = useRef(null);
@@ -73,9 +95,15 @@ function App() {
       selected.value = selected.value === 0
         ? items.value.length - 1
         : selected.value - 1;
+    } else if (event.metaKey && event.key === "n") {
+      mode.value = "new-item";
+      return;
     } else if (event.key === "Escape") {
       const currentWindow = getCurrent();
       currentWindow.hide();
+      return;
+    } else {
+      return;
     }
 
     // Scroll the selected item into view
@@ -89,86 +117,104 @@ function App() {
     selected.value = index;
   }
 
+  async function handleFormSubmit(event) {
+    event.preventDefault();
+    console.log(event.target);
+    const formData = new FormData(event.target);
+    const inputValue = formData.get("item");
+    console.log(inputValue);
+    if (inputValue.trim() !== "") {
+      // Send the new item to the Rust backend
+      try {
+        await invoke("add_item", { item: inputValue });
+        mode.value = "list";
+      } catch (error) {
+        console.error("Error adding item:", error);
+      }
+    }
+  }
+
   return (
     <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
-      {
-        /*
-      <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #aaa" }}>
-        <div>
-          <input type="text" placeholder="Type a command..." />
-        </div>
-      </div>
-          */
-      }
-      <div class="container">
-        <div class="left-pane">
-          <div class="results">
-            {items.value
-              .sort((a, b) => cmp(b.id, a.id))
-              .map((item, index) => {
-                let displayText = item.data;
+      {mode.value == "list" &&
+        (
+          <div class="container">
+            <div class="left-pane">
+              <div class="results">
+                {items.value
+                  .sort((a, b) => cmp(b.id, a.id))
+                  .map((item, index) => {
+                    let displayText = item.data;
 
-                return (
-                  <div
-                    className={index === selected.value ? "selected" : ""}
-                    style={{
-                      maxHeight: "3rem",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
-                      width: "100%",
-                    }}
-                    onClick={() => handleItemClick(index)}
-                  >
-                    {displayText}
-                  </div>
-                );
-              })}
-          </div>
-        </div>
-        <div class="right-pane">
-          {selected.value >= 0 && items.value.length > 0 && (
-            <>
-              <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-                <pre>
+                    return (
+                      <div
+                        className={index === selected.value ? "selected" : ""}
+                        style={{
+                          maxHeight: "3rem",
+                          overflow: "hidden",
+                          whiteSpace: "nowrap",
+                          textOverflow: "ellipsis",
+                          width: "100%",
+                        }}
+                        onClick={() => handleItemClick(index)}
+                      >
+                        {displayText}
+                      </div>
+                    );
+                  })}
+              </div>
+            </div>
+            <div class="right-pane">
+              {selected.value >= 0 && items.value.length > 0 && (
+                <>
+                  <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+                    <pre>
               {items.value[selected.value].data}
-                </pre>
-              </div>
-              <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
-                <div>
-                  ID
-                </div>
-                <div>
-                  {items.value[selected.value].id}
-                </div>
-                <div>
-                  Created
-                </div>
-                <div>
-                  {scru128ToDate(items.value[selected.value].id).toLocaleString(
-                    "en-US",
-                    {
-                      weekday: "short",
-                      year: "numeric",
-                      month: "short",
-                      day: "numeric",
-                      hour: "numeric",
-                      minute: "numeric",
-                      hour12: true,
-                    },
-                  )}
-                </div>
-                <div>
-                  Topic
-                </div>
-                <div>
-                  {items.value[selected.value].topic}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-      </div>
+                    </pre>
+                  </div>
+                  <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
+                    <div>
+                      ID
+                    </div>
+                    <div>
+                      {items.value[selected.value].id}
+                    </div>
+                    <div>
+                      Created
+                    </div>
+                    <div>
+                      {scru128ToDate(items.value[selected.value].id)
+                        .toLocaleString(
+                          "en-US",
+                          {
+                            weekday: "short",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
+                            hour: "numeric",
+                            minute: "numeric",
+                            hour12: true,
+                          },
+                        )}
+                    </div>
+                    <div>
+                      Topic
+                    </div>
+                    <div>
+                      {items.value[selected.value].topic}
+                    </div>
+                  </div>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
+      {mode.value === "new-item" && (
+        <NewItemUI
+          onSubmit={handleFormSubmit}
+        />
+      )}
     </main>
   );
 }

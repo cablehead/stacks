@@ -17,6 +17,13 @@ fn js_log(message: String) {
     println!("[JS]: {}", message);
 }
 
+#[tauri::command]
+fn add_item(item: String) {
+    // Add your logic to add the new item
+    // For example, you can send the new item to the child process
+    println!("New item: {}", item);
+}
+
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 
@@ -112,7 +119,7 @@ fn main() {
     start_child_process(args.path);
 
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![js_log, init_process])
+        .invoke_handler(tauri::generate_handler![js_log, init_process, add_item])
         .on_window_event(|event| match event.event() {
             tauri::WindowEvent::Focused(focused) => {
                 if !focused {
