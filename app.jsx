@@ -90,33 +90,40 @@ function App() {
 
   return (
     <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
+      {
+        /*
+      <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #aaa" }}>
+        <div>
+          <input type="text" placeholder="Type a command..." />
+        </div>
+      </div>
+          */
+      }
       <div class="container">
         <div class="left-pane">
-          <table class="results">
-            <tbody>
-              {items.value
-                .sort((a, b) => cmp(b.id, a.id))
-                .map((item, index) => {
-                  return (
-                    <tr
-                      className={index === selected.value ? "selected" : ""}
-                      onClick={() => handleItemClick(index)}
-                    >
-                      <td>{item.topic}</td>
-                      <td
-                        style={{
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          width: "100%",
-                        }}
-                      >
-                        {item.data}
-                      </td>
-                    </tr>
-                  );
-                })}
-            </tbody>
-          </table>
+          <div class="results">
+            {items.value
+              .sort((a, b) => cmp(b.id, a.id))
+              .map((item, index) => {
+                let displayText = item.data;
+
+                return (
+                  <div
+                    className={index === selected.value ? "selected" : ""}
+                    style={{
+                      maxHeight: "3rem",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      width: "100%",
+                    }}
+                    onClick={() => handleItemClick(index)}
+                  >
+                    {displayText}
+                  </div>
+                );
+              })}
+          </div>
         </div>
         <div class="right-pane">
           {selected.value >= 0 && items.value.length > 0 && (
@@ -149,6 +156,12 @@ function App() {
                       hour12: true,
                     },
                   )}
+                </div>
+                <div>
+                  Topic
+                </div>
+                <div>
+                  {items.value[selected.value].topic}
                 </div>
               </div>
             </>

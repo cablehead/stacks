@@ -67,42 +67,25 @@ input {
 }
 
 .results {
+  width: 100%;
+  height: 100%;
   padding-top: 0.5rem;
-  border-spacing: 0;
-  border-collapse: separate;
 }
 
-.results td {
+.results > div {
   padding: 8px 12px;
+  border-radius: 6px;
   cursor: pointer;
 }
 
-.results tr {
-  background-color: transparent;
-}
-
-.results tr:hover td:first-child {
+.results > div:hover {
   background-color: var(--alt-secondary-color);
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
+  color: var(--alt-text-color);
 }
 
-.results tr:hover td:last-child {
-  background-color: var(--alt-secondary-color);
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
-}
-
-.results tr.selected td:first-child {
+.results > div.selected {
   background-color: var(--alt-highlight-color);
-  border-top-left-radius: 6px;
-  border-bottom-left-radius: 6px;
-}
-
-.results tr.selected td:last-child {
-  background-color: var(--alt-highlight-color);
-  border-top-right-radius: 6px;
-  border-bottom-right-radius: 6px;
+  color: var(--alt-text-color);
 }
 
 .container {
