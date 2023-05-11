@@ -60,17 +60,12 @@ use std::collections::HashMap;
 lazy_static! {
     static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
         std::sync::Mutex::new(HashMap::new());
-}
-
-lazy_static! {
     static ref ARGS: Args = Args::parse();
-}
-
-lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
 }
 
-fn start_child_process(path: PathBuf) {
+fn start_child_process(path: &PathBuf) {
+    let path = path.clone();
     std::thread::spawn(|| {
         let mut child = std::process::Command::new("xs")
             .arg(path)
@@ -138,16 +133,10 @@ struct Args {
     /// Path to stream
     #[clap(value_parser)]
     path: PathBuf,
-
-    /// Enable debug mode
-    #[clap(short, long)]
-    debug: bool,
 }
 
 fn main() {
-    let args = Args::parse();
-    println!("args: {:?}", args.path);
-    start_child_process(args.path);
+    start_child_process(&ARGS.path);
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![js_log, init_process, add_item])
@@ -162,12 +151,6 @@ fn main() {
         .setup(move |app| {
             let win = app.get_window("main").unwrap();
             #[cfg(debug_assertions)]
-            {
-                if args.debug {
-                    win.open_devtools();
-                    win.close_devtools();
-                }
-            }
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {
