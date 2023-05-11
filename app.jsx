@@ -104,12 +104,13 @@ function ListView() {
   }
 
   function handleKeys(event) {
+    event.preventDefault();
     switch (true) {
-      case event.ctrlKey && event.key === "n":
+      case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
         updateSelected(1);
         break;
 
-      case event.ctrlKey && event.key === "p":
+      case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
         updateSelected(-1);
         break;
 
