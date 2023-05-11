@@ -90,11 +90,15 @@ function App() {
 
   return (
     <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
+      {
+        /*
       <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #aaa" }}>
         <div>
           <input type="text" placeholder="Type a command..." />
         </div>
       </div>
+          */
+      }
       <div class="container">
         <div class="left-pane">
           <div class="results">
