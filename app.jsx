@@ -37,7 +37,7 @@ const items = signal([]);
 const selected = signal(0);
 const mode = signal("list");
 
-function NewItemUI({ onSubmit }) {
+function NewItemView({ onSubmit }) {
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -45,17 +45,34 @@ function NewItemUI({ onSubmit }) {
     inputRef.current.focus();
   }, []);
 
+  function handleKeys(event) {
+    switch (true) {
+      case event.key === "Escape":
+        mode.value = "list";
+        break;
+    }
+  }
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeys);
+    return () => {
+      window.removeEventListener("keydown", handleKeys);
+    };
+  }, []);
+
   return (
-    <form style="height:100%" onSubmit={onSubmit}>
-      <textarea
-        style="width: 100%; height: 100%;"
-        ref={inputRef}
-        type="text"
-        name="item"
-        value=""
-        placeholder="Type a new item..."
-      />
-    </form>
+    <main>
+      <form style="height:100%" onSubmit={onSubmit}>
+        <textarea
+          style="width: 100%; height: 100%;"
+          ref={inputRef}
+          type="text"
+          name="item"
+          value=""
+          placeholder="Type a new item..."
+        />
+      </form>
+    </main>
   );
 }
 
@@ -74,6 +91,7 @@ function ListView() {
     );
     selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
+
   function handleKeys(event) {
     switch (true) {
       case event.ctrlKey && event.key === "n":
@@ -226,7 +244,7 @@ function App() {
     <>
       {mode.value == "list" && <ListView />}
       {mode.value === "new-item" && (
-        <NewItemUI
+        <NewItemView
           onSubmit={handleFormSubmit}
         />
       )}
