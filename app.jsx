@@ -121,12 +121,12 @@ function App() {
         <div class="right-pane">
           {selected.value >= 0 && items.value.length > 0 && (
             <>
-              <div style="padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+              <div style="flex: 2; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
                 <pre>
               {items.value[selected.value].data}
                 </pre>
               </div>
-              <div style="font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; gap: 1ch; overflow-y: auto; padding:1ch;">
+              <div style="flex: 1; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; gap: 1ch; overflow-y: auto; padding:1ch; align-content: start;">
                 <div>
                   ID
                 </div>
