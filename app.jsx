@@ -139,9 +139,9 @@ function App() {
                   </pre>
                 </div>
               )}
-              <div style="font-size: 0.7rem; font-weight: 500; color: #666; flex:1; overflow-y: auto;">
+              <div style="font-size: 0.8rem; font-weight: 500; flex:1; overflow-y: auto;">
                 <p>Raw JSON</p>
-                <pre>
+                <pre style="max-height: 5lh; overflow: auto;">
         {JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}
                 </pre>
               </div>
