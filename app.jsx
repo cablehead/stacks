@@ -128,6 +128,7 @@ function App() {
       try {
         await invoke("add_item", { item: inputValue });
         mode.value = "list";
+    mainRef.current.focus();
       } catch (error) {
         console.error("Error adding item:", error);
       }
