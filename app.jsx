@@ -43,6 +43,7 @@ function App() {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
       items.value = [...items.value, JSON.parse(event.payload.message)];
+      if (selected.value > 0) selected.value += 1;
     }
 
     async function fetchData() {
