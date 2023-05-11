@@ -3,7 +3,7 @@
 ## How to run
 
 ```
-cargo tauri dev -- -- ./stream
+cargo tauri dev -- -- $(realpath ./s)
 parcel watch app.jsx --no-hmr --dist-dir ./src
 ```
 

@@ -31,7 +31,7 @@
 }
 
 body {
-  font-family: "Helvetica Neue", Helvetica, Arial, sans-serif;
+  font-family: ui-monospace;
   background-color: var(--background-color);
   color: var(--text-color);
   display: flex;
@@ -66,6 +66,22 @@ input {
   outline: none;
 }
 
+textarea {
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+textarea:hover {
+  border-color: #999;
+}
+
+textarea:focus {
+  outline: none;
+  border-color: #aaa;
+  box-shadow: 0 0 2px #aaa;
+}
+
 .results {
   padding-top: 0.5rem;
 }
@@ -90,7 +106,6 @@ input {
   display: flex;
   height: 100%;
   overflow: hidden;
-  font-family: ui-monospace;
 }
 
 .left-pane {

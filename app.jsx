@@ -46,8 +46,9 @@ function NewItemUI({ onSubmit }) {
   }, []);
 
   return (
-    <form onSubmit={onSubmit}>
+    <form style="height:100%" onSubmit={onSubmit}>
       <textarea
+        style="width: 100%; height: 100%;"
         ref={inputRef}
         type="text"
         name="item"
