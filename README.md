@@ -1,5 +1,7 @@
 # Tauri + Vanilla
 
+## How to run
+
 ```
 cargo tauri dev -- -- ./stream
 parcel watch app.jsx --no-hmr --dist-dir ./src
@@ -12,3 +14,8 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 - [ ] show the last time copied
 - [ ] deduplicate items
     - show number of times copied
+
+## Leads
+
+- https://github.com/ast-grep/ast-grep
+
