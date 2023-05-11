@@ -95,10 +95,6 @@ function ListView() {
     }
   }
 
-  function handleItemClick(index) {
-    selected.value = index;
-  }
-
   useEffect(() => {
     window.addEventListener("keydown", handleKeys);
     return () => {
@@ -126,7 +122,7 @@ function ListView() {
                       textOverflow: "ellipsis",
                       width: "100%",
                     }}
-                    onClick={() => handleItemClick(index)}
+                    onClick={() => selected.value = index}
                   >
                     {displayText}
                   </div>
