@@ -37,7 +37,7 @@ const items = signal([]);
 const selected = signal(0);
 const mode = signal("list");
 
-function NewItemView({ onSubmit }) {
+function NewItemView() {
   const inputRef = useRef(null);
 
   useEffect(() => {
@@ -45,9 +45,22 @@ function NewItemView({ onSubmit }) {
     inputRef.current.focus();
   }, []);
 
-  function handleKeys(event) {
+  async function handleKeys(event) {
     switch (true) {
       case event.key === "Escape":
+        mode.value = "list";
+        break;
+
+      case event.metaKey && event.key === "Enter":
+        const inputValue = inputRef.current.value;
+        if (inputValue.trim() !== "") {
+          // Send the new item to the Rust backend
+          try {
+            await invoke("add_item", { item: inputValue });
+          } catch (error) {
+            console.error("Error adding item:", error);
+          }
+        }
         mode.value = "list";
         break;
     }
@@ -62,16 +75,14 @@ function NewItemView({ onSubmit }) {
 
   return (
     <main>
-      <form style="height:100%" onSubmit={onSubmit}>
-        <textarea
-          style="width: 100%; height: 100%;"
-          ref={inputRef}
-          type="text"
-          name="item"
-          value=""
-          placeholder="Type a new item..."
-        />
-      </form>
+      <textarea
+        style="width: 100%; height: 100%;"
+        ref={inputRef}
+        type="text"
+        name="item"
+        value=""
+        placeholder="Type a new item..."
+      />
     </main>
   );
 }
@@ -222,32 +233,10 @@ function App() {
     };
   }, []);
 
-  async function handleFormSubmit(event) {
-    event.preventDefault();
-    console.log(event.target);
-    const formData = new FormData(event.target);
-    const inputValue = formData.get("item");
-    console.log(inputValue);
-    if (inputValue.trim() !== "") {
-      // Send the new item to the Rust backend
-      try {
-        await invoke("add_item", { item: inputValue });
-        mainRef.current.focus();
-      } catch (error) {
-        console.error("Error adding item:", error);
-      }
-    }
-    mode.value = "list";
-  }
-
   return (
     <>
-      {mode.value == "list" && <ListView />}
-      {mode.value === "new-item" && (
-        <NewItemView
-          onSubmit={handleFormSubmit}
-        />
-      )}
+      {mode.value === "list" && <ListView />}
+      {mode.value === "new-item" && <NewItemView />}
     </>
   );
 }
