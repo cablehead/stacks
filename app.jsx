@@ -90,7 +90,7 @@ function App() {
 
   return (
     <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
-      <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #333" }}>
+      <div style={{ paddingBottom: "0.5rem", borderBottom: "solid 1px #aaa" }}>
         <div>
           <input type="text" placeholder="Type a command..." />
         </div>
@@ -127,8 +127,26 @@ function App() {
           </div>
         </div>
         <div class="right-pane">
-          <pre>{selected.value >= 0 && items.value.length > 0 &&
-      JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}</pre>
+          {selected.value >= 0 && items.value.length > 0 && (
+            <>
+              {"public.utf8-plain-text" in
+                  JSON.parse(items.value[selected.value].data).types && (
+                <div style="padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+                  <pre>
+          {atob(
+            JSON.parse(items.value[selected.value].data).types["public.utf8-plain-text"]
+          )}
+                  </pre>
+                </div>
+              )}
+              <div style="font-size: 0.7rem; font-weight: 500; color: #666; flex:1; overflow-y: auto;">
+                <p>Raw JSON</p>
+                <pre>
+        {JSON.stringify(JSON.parse(items.value[selected.value].data), null, 2)}
+                </pre>
+              </div>
+            </>
+          )}
         </div>
       </div>
     </main>

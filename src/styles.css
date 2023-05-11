@@ -40,6 +40,7 @@ body {
 
 html,
 body {
+	font-size: 14px;
   height: 100%;
   overflow: hidden;
 }
@@ -66,10 +67,9 @@ input {
 }
 
 .results {
-  overflow: auto;
   width: 100%;
   height: 100%;
-	padding-top: 0.5em;
+	padding-top: 0.5rem;
 }
 
 .results > div {
@@ -92,17 +92,26 @@ input {
   display: flex;
   height: 100%;
 	overflow: hidden;
+	font-family: ui-monospace;
 }
 
 .left-pane {
   flex: 1;
   overflow-y: auto;
+	border-right: 1px solid #aaa;
+	padding-right: 0.5rem;
 }
 
 .right-pane {
   flex: 2;
-  background-color: #f0f0f0;
   overflow-y: auto;
+	display: flex;
+  flex-direction: column;
+}
+
+.right-pane * {
+	padding-left: 0.5rem;
+	padding-right: 0.5rem;
 }
 
 pre {
