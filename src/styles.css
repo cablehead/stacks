@@ -67,9 +67,10 @@ input {
 }
 
 textarea {
-  padding: 10px;
+  padding: 1ch;
   border: 1px solid #ccc;
-  border-radius: 5px;
+  border-radius: 0.5ch;
+  resize: none;
 }
 
 textarea:hover {

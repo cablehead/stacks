@@ -59,35 +59,8 @@ function NewItemUI({ onSubmit }) {
   );
 }
 
-function App() {
+function ListView() {
   const mainRef = useRef(null);
-
-  useEffect(() => {
-    function handleDataFromRust(event) {
-      console.log("Data pushed from Rust:", event);
-      items.value = [...items.value, JSON.parse(event.payload.message)];
-      if (selected.value > 0) selected.value += 1;
-    }
-
-    async function fetchData() {
-      try {
-        const initialData = await invoke("init_process");
-        items.value = initialData.map(JSON.parse);
-      } catch (error) {
-        console.error("Error in init_process:", error);
-      }
-
-      listen("item", handleDataFromRust);
-    }
-
-    fetchData();
-
-    mainRef.current.focus();
-
-    return () => {
-      rustLog("Component is unmounted!");
-    };
-  }, []);
 
   function updateSelected(n) {
     selected.value = (selected.value + n) % items.value.length;
@@ -101,8 +74,7 @@ function App() {
     );
     selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }
-
-  function handleKeyDown(event) {
+  function handleKeys(event) {
     switch (true) {
       case event.ctrlKey && event.key === "n":
         updateSelected(1);
@@ -127,6 +99,115 @@ function App() {
     selected.value = index;
   }
 
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeys);
+    return () => {
+      window.removeEventListener("keydown", handleKeys);
+    };
+  }, []);
+
+  return (
+    <main ref={mainRef}>
+      <div class="container">
+        <div class="left-pane">
+          <div class="results">
+            {items.value
+              .sort((a, b) => cmp(b.id, a.id))
+              .map((item, index) => {
+                let displayText = item.data;
+
+                return (
+                  <div
+                    className={index === selected.value ? "selected" : ""}
+                    style={{
+                      maxHeight: "3rem",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      width: "100%",
+                    }}
+                    onClick={() => handleItemClick(index)}
+                  >
+                    {displayText}
+                  </div>
+                );
+              })}
+          </div>
+        </div>
+        <div class="right-pane">
+          {selected.value >= 0 && items.value.length > 0 && (
+            <>
+              <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+                <pre>
+              {items.value[selected.value].data}
+                </pre>
+              </div>
+              <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
+                <div>
+                  ID
+                </div>
+                <div>
+                  {items.value[selected.value].id}
+                </div>
+                <div>
+                  Created
+                </div>
+                <div>
+                  {scru128ToDate(items.value[selected.value].id)
+                    .toLocaleString(
+                      "en-US",
+                      {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        hour12: true,
+                      },
+                    )}
+                </div>
+                <div>
+                  Topic
+                </div>
+                <div>
+                  {items.value[selected.value].topic}
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </div>
+    </main>
+  );
+}
+
+function App() {
+  useEffect(() => {
+    function handleDataFromRust(event) {
+      console.log("Data pushed from Rust:", event);
+      items.value = [...items.value, JSON.parse(event.payload.message)];
+      if (selected.value > 0) selected.value += 1;
+    }
+
+    async function fetchData() {
+      try {
+        const initialData = await invoke("init_process");
+        items.value = initialData.map(JSON.parse);
+      } catch (error) {
+        console.error("Error in init_process:", error);
+      }
+
+      listen("item", handleDataFromRust);
+    }
+
+    fetchData();
+
+    return () => {
+      rustLog("Component is unmounted!");
+    };
+  }, []);
+
   async function handleFormSubmit(event) {
     event.preventDefault();
     console.log(event.target);
@@ -146,87 +227,14 @@ function App() {
   }
 
   return (
-    <main ref={mainRef} onKeyDown={handleKeyDown} tabIndex="0">
-      {mode.value == "list" &&
-        (
-          <div class="container">
-            <div class="left-pane">
-              <div class="results">
-                {items.value
-                  .sort((a, b) => cmp(b.id, a.id))
-                  .map((item, index) => {
-                    let displayText = item.data;
-
-                    return (
-                      <div
-                        className={index === selected.value ? "selected" : ""}
-                        style={{
-                          maxHeight: "3rem",
-                          overflow: "hidden",
-                          whiteSpace: "nowrap",
-                          textOverflow: "ellipsis",
-                          width: "100%",
-                        }}
-                        onClick={() => handleItemClick(index)}
-                      >
-                        {displayText}
-                      </div>
-                    );
-                  })}
-              </div>
-            </div>
-            <div class="right-pane">
-              {selected.value >= 0 && items.value.length > 0 && (
-                <>
-                  <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-                    <pre>
-              {items.value[selected.value].data}
-                    </pre>
-                  </div>
-                  <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
-                    <div>
-                      ID
-                    </div>
-                    <div>
-                      {items.value[selected.value].id}
-                    </div>
-                    <div>
-                      Created
-                    </div>
-                    <div>
-                      {scru128ToDate(items.value[selected.value].id)
-                        .toLocaleString(
-                          "en-US",
-                          {
-                            weekday: "short",
-                            year: "numeric",
-                            month: "short",
-                            day: "numeric",
-                            hour: "numeric",
-                            minute: "numeric",
-                            hour12: true,
-                          },
-                        )}
-                    </div>
-                    <div>
-                      Topic
-                    </div>
-                    <div>
-                      {items.value[selected.value].topic}
-                    </div>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        )}
-
+    <>
+      {mode.value == "list" && <ListView />}
       {mode.value === "new-item" && (
         <NewItemUI
           onSubmit={handleFormSubmit}
         />
       )}
-    </main>
+    </>
   );
 }
 
