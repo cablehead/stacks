@@ -132,12 +132,19 @@ struct Payload {
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// Path to stream
-    #[clap(value_parser)]
-    path: PathBuf,
+    #[clap(default_value_t = ("~/.config/stacks/stream".to_string()))]
+    path: String,
 }
 
 fn main() {
-    start_child_process(&ARGS.path);
+    let path_string = shellexpand::tilde(&ARGS.path).into_owned();
+    let path = PathBuf::from(path_string);
+
+    if !path.exists() {
+        std::fs::create_dir_all(&path).expect("Failed to create directory");
+    }
+
+    start_child_process(&path);
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![js_log, init_process, add_item])
@@ -151,7 +158,6 @@ fn main() {
         })
         .setup(move |app| {
             let win = app.get_window("main").unwrap();
-            #[cfg(debug_assertions)]
             let mut shortcut = app.global_shortcut_manager();
             shortcut
                 .register("Cmd+Shift+G", move || {
