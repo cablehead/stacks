@@ -23,12 +23,9 @@ fn add_item(item: String) {
     // For example, you can send the new item to the child process
     println!("New item: {}", item);
 
-    // Get the path from the ARGS
-    let path = &ARGS.path;
-
     // Run the child process: xs <path> put --topic dn
     let mut child = std::process::Command::new("xs")
-        .arg(path)
+        .arg(&ARGS.path)
         .arg("put")
         .arg("--topic")
         .arg("dn")
@@ -58,9 +55,9 @@ use lazy_static::lazy_static;
 use std::collections::HashMap;
 
 lazy_static! {
+    static ref ARGS: Args = Args::parse();
     static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
         std::sync::Mutex::new(HashMap::new());
-    static ref ARGS: Args = Args::parse();
     static ref PRODUCER: producer::Producer = producer::Producer::new();
 }
 
@@ -128,23 +125,28 @@ struct Payload {
     message: String,
 }
 
+fn validate_and_create_path(s: &str) -> Result<PathBuf, String> {
+    let path_string = shellexpand::tilde(s).into_owned();
+    let path = PathBuf::from(&path_string);
+
+    if !path.exists() {
+        std::fs::create_dir_all(&path)
+            .map_err(|_| format!("Failed to create directory at `{}`", s))?;
+    }
+
+    Ok(path)
+}
+
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
 struct Args {
     /// Path to stream
-    #[clap(default_value_t = ("~/.config/stacks/stream".to_string()))]
-    path: String,
+    #[clap(default_value = "~/.config/stacks/stream", value_parser = validate_and_create_path)]
+    path: PathBuf,
 }
 
 fn main() {
-    let path_string = shellexpand::tilde(&ARGS.path).into_owned();
-    let path = PathBuf::from(path_string);
-
-    if !path.exists() {
-        std::fs::create_dir_all(&path).expect("Failed to create directory");
-    }
-
-    start_child_process(&path);
+    start_child_process(&ARGS.path);
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![js_log, init_process, add_item])
