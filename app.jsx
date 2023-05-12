@@ -25,6 +25,8 @@ function cmp(a, b) {
   }
 }
 
+const items = signal([]);
+
 function ListView() {
   const mainRef = useRef(null);
 
@@ -49,7 +51,9 @@ function ListView() {
               break;
 
             case event.key === "Enter":
-              console.log(scru128String(), inputElement.value);
+              const item = { id: scru128String(), command: inputElement.value };
+              console.log(item);
+              items.value = [...items.value, item];
               inputElement.value = "";
               break;
           }
@@ -68,7 +72,25 @@ function ListView() {
     <main ref={mainRef}>
       <div class="container">
         <div class="left-pane">
-          <div class="results"></div>
+          <div class="results">
+            {items.value
+              .map((item, index) => {
+                let displayText = item.command;
+                return (
+                  <div
+                    style={{
+                      maxHeight: "3rem",
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      width: "100%",
+                    }}
+                  >
+                    {displayText}
+                  </div>
+                );
+              })}
+          </div>
         </div>
         <div class="right-pane"></div>
       </div>
