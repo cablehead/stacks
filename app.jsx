@@ -6,13 +6,23 @@ const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
 const { getCurrent } = require("@tauri-apps/api/window");
 
-import { Scru128Id } from "scru128";
+import { Scru128Id, scru128String } from "scru128";
 
 function scru128ToDate(id) {
   const scruId = Scru128Id.fromString(id);
   const timestampMillis = scruId.timestamp;
   const date = new Date(timestampMillis);
   return date;
+}
+
+function cmp(a, b) {
+  if (a < b) {
+    return -1;
+  } else if (a > b) {
+    return 1;
+  } else {
+    return 0;
+  }
 }
 
 function ListView() {
@@ -39,7 +49,7 @@ function ListView() {
               break;
 
             case event.key === "Enter":
-              console.log(inputElement.value);
+              console.log(scru128String(), inputElement.value);
               inputElement.value = "";
               break;
           }
