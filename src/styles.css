@@ -40,7 +40,7 @@ body {
 
 html,
 body {
-  font-size: 14px;
+  font-size: 12px;
   height: 100%;
   overflow: hidden;
 }
@@ -117,8 +117,8 @@ textarea:focus {
 }
 
 .right-pane {
-  flex: 2;
-  overflow-y: auto;
+  flex: 3;
+  overflow: auto;
   display: flex;
   flex-direction: column;
 }
@@ -126,9 +126,4 @@ textarea:focus {
 .right-pane * {
   padding-left: 0.5rem;
   padding-right: 0.5rem;
-}
-
-pre {
-  white-space: pre-wrap;
-  word-wrap: break-word;
 }

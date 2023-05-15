@@ -50,11 +50,16 @@ function ListView() {
             selected.value = items.value.length + selected.value;
           }
 
-          // Scroll the selected item into view
-          const selectedItem = mainRef.current.querySelector(
-            `.results > div:nth-child(${selected.value + 1})`,
-          );
-          selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+          setTimeout(() => {
+            // Scroll the selected item into view
+            const selectedItem = mainRef.current.querySelector(
+              `.results > div:nth-child(${selected.value + 1})`,
+            );
+            selectedItem.scrollIntoView({
+              behavior: "smooth",
+              block: "nearest",
+            });
+          }, 0);
         }
 
         async function handleKeys(event) {
@@ -70,14 +75,11 @@ function ListView() {
                   id: scru128String(),
                   command: inputElement.value,
                 };
-                  console.log(items.value.length);
-                items.value = [...items.value, item];
-                  console.log(items.value.length);
-                inputElement.value = "";
                 item.output = await invoke("run_command", {
                   command: item.command,
                 });
-                console.log(item);
+                items.value = [...items.value, item];
+                inputElement.value = "";
                 selected.value = items.value.length - 1;
                 updateSelected(0);
               }
@@ -129,7 +131,15 @@ function ListView() {
               })}
           </div>
         </div>
-        <div class="right-pane"></div>
+        <div class="right-pane">
+          {selected.value >= 0 && items.value.length > 0 && (
+            <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+              <pre>
+              {items.value[selected.value].output.stdout}
+              </pre>
+            </div>
+          )}
+        </div>
       </div>
       <div style={{ paddingTop: "0.5rem", borderTop: "solid 1px #aaa" }}>
         <div>
