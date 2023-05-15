@@ -25,6 +25,7 @@ function cmp(a, b) {
   }
 }
 
+const selected = signal(0);
 const items = signal([]);
 
 function ListView() {
@@ -43,6 +44,19 @@ function ListView() {
         };
         inputElement.addEventListener("blur", handleBlur);
 
+        function updateSelected(n) {
+          selected.value = (selected.value + n) % items.value.length;
+          if (selected.value < 0) {
+            selected.value = items.value.length + selected.value;
+          }
+
+          // Scroll the selected item into view
+          const selectedItem = mainRef.current.querySelector(
+            `.results > div:nth-child(${selected.value + 1})`,
+          );
+          selectedItem.scrollIntoView({ behavior: "smooth", block: "nearest" });
+        }
+
         async function handleKeys(event) {
           switch (true) {
             case event.key === "Escape":
@@ -51,11 +65,31 @@ function ListView() {
               break;
 
             case event.key === "Enter":
-              const item = { id: scru128String(), command: inputElement.value };
-              items.value = [...items.value, item];
-              inputElement.value = "";
-              item.output = await invoke("run_command", { command: item.command });
-              console.log(item);
+              if (inputElement.value.trim() !== "") {
+                const item = {
+                  id: scru128String(),
+                  command: inputElement.value,
+                };
+                  console.log(items.value.length);
+                items.value = [...items.value, item];
+                  console.log(items.value.length);
+                inputElement.value = "";
+                item.output = await invoke("run_command", {
+                  command: item.command,
+                });
+                console.log(item);
+                selected.value = items.value.length - 1;
+                updateSelected(0);
+              }
+              break;
+
+            case (event.ctrlKey && event.key === "n") ||
+              event.key === "ArrowDown":
+              updateSelected(1);
+              break;
+
+            case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+              updateSelected(-1);
               break;
           }
         }
@@ -79,6 +113,8 @@ function ListView() {
                 let displayText = item.command;
                 return (
                   <div
+                    className={index === selected.value ? "selected" : ""}
+                    onClick={() => selected.value = index}
                     style={{
                       maxHeight: "3rem",
                       overflow: "hidden",
