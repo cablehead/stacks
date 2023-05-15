@@ -133,11 +133,45 @@ function ListView() {
         </div>
         <div class="right-pane">
           {selected.value >= 0 && items.value.length > 0 && (
-            <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-              <pre>
+            <>
+              <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+                <pre>
               {items.value[selected.value].output.stdout}
-              </pre>
-            </div>
+                </pre>
+              </div>
+              <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
+                <div>
+                  ID
+                </div>
+                <div>
+                  {items.value[selected.value].id}
+                </div>
+                <div>
+                  Created
+                </div>
+                <div>
+                  {scru128ToDate(items.value[selected.value].id)
+                    .toLocaleString(
+                      "en-US",
+                      {
+                        weekday: "short",
+                        year: "numeric",
+                        month: "short",
+                        day: "numeric",
+                        hour: "numeric",
+                        minute: "numeric",
+                        hour12: true,
+                      },
+                    )}
+                </div>
+                <div>
+                  Topic
+                </div>
+                <div>
+                  {items.value[selected.value].topic}
+                </div>
+              </div>
+            </>
           )}
         </div>
       </div>
