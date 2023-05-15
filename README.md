@@ -9,6 +9,12 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ## Todo
 
+### Next
+
+- persist commands / output to `xs`
+- mix and match clipboard, notes and commands
+- show as much of surrounding items as possible
+
 ### Clipboard
 
 - [ ] show the last time copied

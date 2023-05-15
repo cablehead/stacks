@@ -111,6 +111,7 @@ textarea:focus {
 
 .left-pane {
   flex: 1;
+  max-width: 20ch;
   overflow-y: auto;
   border-right: 1px solid #aaa;
   padding-right: 0.5rem;
