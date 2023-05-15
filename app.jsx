@@ -43,7 +43,7 @@ function ListView() {
         };
         inputElement.addEventListener("blur", handleBlur);
 
-        function handleKeys(event) {
+        async function handleKeys(event) {
           switch (true) {
             case event.key === "Escape":
               const currentWindow = getCurrent();
@@ -52,9 +52,10 @@ function ListView() {
 
             case event.key === "Enter":
               const item = { id: scru128String(), command: inputElement.value };
-              console.log(item);
               items.value = [...items.value, item];
               inputElement.value = "";
+              item.output = await invoke("run_command", { command: item.command });
+              console.log(item);
               break;
           }
         }

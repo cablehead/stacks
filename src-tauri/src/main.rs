@@ -39,9 +39,40 @@ struct Args {
     path: PathBuf,
 }
 
+#[derive(Clone, serde::Serialize)]
+pub struct CommandOutput {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: i32,
+}
+
+#[tauri::command]
+fn run_command(command: &str) -> Result<CommandOutput, String> {
+    let parts = shlex::split(command).ok_or("Failed to parse command")?;
+    let program = parts.get(0).ok_or("No program specified")?;
+    let args = &parts[1..];
+
+    let output = std::process::Command::new(program)
+        .args(args)
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .output()
+        .map_err(|e| format!("Failed to execute command: {}", e))?;
+
+    let stdout = String::from_utf8(output.stdout).unwrap_or_else(|_| String::new());
+    let stderr = String::from_utf8(output.stderr).unwrap_or_else(|_| String::new());
+    let exit_code = output.status.code().unwrap_or(-1);
+
+    Ok(CommandOutput {
+        stdout,
+        stderr,
+        exit_code,
+    })
+}
+
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![run_command])
         .on_window_event(|event| match event.event() {
             tauri::WindowEvent::Focused(focused) => {
                 if !focused {
