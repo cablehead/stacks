@@ -56,7 +56,7 @@ main {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 1rem;
+  padding: 0.5rem;
 }
 
 input {
@@ -67,7 +67,7 @@ input {
 }
 
 textarea {
-  padding: 1ch;
+  padding: 0.5ch;
   border: 1px solid #ccc;
   border-radius: 0.5ch;
   resize: none;
@@ -88,7 +88,7 @@ textarea:focus {
 }
 
 .results > div {
-  padding: 8px 12px;
+  padding: 0.5ch 0.75ch;
   border-radius: 6px;
   cursor: pointer;
 }
