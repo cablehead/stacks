@@ -141,7 +141,7 @@ function ListView() {
           )}
         </div>
       </div>
-      <div style={{ paddingTop: "0.5rem", borderTop: "solid 1px #aaa" }}>
+      <div style={{ paddingTop: "0.5ch", borderTop: "solid 1px #aaa" }}>
         <div>
           <input
             type="text"
