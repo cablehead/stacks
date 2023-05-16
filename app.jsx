@@ -29,7 +29,10 @@ const selected = signal(0);
 const items = signal([]);
 
 function RightPane({ item }) {
-  if (!item) return <div />;
+  if (!item) {
+    return <div />;
+  }
+
   return (
     <div class="right-pane">
       <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
@@ -116,17 +119,10 @@ function ListView() {
 
             case event.key === "Enter":
               if (inputElement.value.trim() !== "") {
-                const item = {
-                  id: scru128String(),
+                await invoke("run_command", {
                   command: inputElement.value,
-                };
-                item.output = await invoke("run_command", {
-                  command: item.command,
                 });
-                items.value = [...items.value, item];
                 inputElement.value = "";
-                selected.value = items.value.length - 1;
-                updateSelected(0);
               }
               break;
 

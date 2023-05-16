@@ -1,11 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+use std::collections::HashMap;
+use std::io::BufRead;
+use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
-use std::collections::HashMap;
-use std::io::BufRead;
 
 use tauri::GlobalShortcutManager;
 use tauri::Manager;
@@ -108,11 +109,38 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
     let stderr = String::from_utf8(output.stderr).unwrap_or_else(|_| String::new());
     let exit_code = output.status.code().unwrap_or(-1);
 
-    Ok(CommandOutput {
+    let output = CommandOutput {
         stdout,
         stderr,
         exit_code,
-    })
+    };
+
+    let json_data = serde_json::json!({
+        "command": command,
+        "output": output
+    });
+
+    let json_string = json_data.to_string();
+
+    let mut child = std::process::Command::new("xs")
+        .arg(&ARGS.path)
+        .arg("put")
+        .arg("--topic")
+        .arg("command")
+        .stdin(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("Failed to execute xs command: {}", e))?;
+
+    if let Some(ref mut stdin) = child.stdin {
+        stdin
+            .write_all(json_string.as_bytes())
+            .map_err(|e| format!("Failed to write to xs stdin: {}", e))?;
+    }
+
+    // Wait for the subprocess to finish
+    let _ = child.wait();
+
+    Ok(output)
 }
 
 fn start_child_process(path: &PathBuf) {
