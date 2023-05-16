@@ -28,6 +28,22 @@ function cmp(a, b) {
 const selected = signal(0);
 const items = signal([]);
 
+function parseItem(raw) {
+  let item = JSON.parse(raw);
+  switch (item.topic) {
+    case "command":
+      item.o = JSON.parse(item.data);
+      item.terse = item.o.command;
+      item.preview = item.o.output.stdout;
+      break;
+
+    default:
+      item.terse = item.data;
+      item.preview = item.data;
+  }
+  return item;
+}
+
 function RightPane({ item }) {
   if (!item) {
     return <div />;
@@ -37,7 +53,7 @@ function RightPane({ item }) {
     <div class="right-pane">
       <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
         <pre>
-        {item.data}
+        {item.preview}
         </pre>
       </div>
       <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
@@ -153,7 +169,7 @@ function ListView() {
           <div class="results">
             {items.value
               .map((item, index) => {
-                let displayText = item.data;
+                let displayText = item.terse;
                 return (
                   <div
                     className={index === selected.value ? "selected" : ""}
@@ -190,14 +206,14 @@ function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
-      items.value = [...items.value, JSON.parse(event.payload.message)];
+      items.value = [...items.value, parseItem(event.payload.message)];
       if (selected.value > 0) selected.value += 1;
     }
 
     async function fetchData() {
       try {
         let initialData = await invoke("init_process");
-        initialData = initialData.map(JSON.parse);
+        initialData = initialData.map(parseItem);
         console.log(initialData);
         items.value = initialData;
       } catch (error) {
