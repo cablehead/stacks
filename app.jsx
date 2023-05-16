@@ -28,6 +28,51 @@ function cmp(a, b) {
 const selected = signal(0);
 const items = signal([]);
 
+function RightPane({ item }) {
+  if (!item) return <div />;
+  return (
+    <div class="right-pane">
+      <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
+        <pre>
+        {item.data}
+        </pre>
+      </div>
+      <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
+        <div>
+          ID
+        </div>
+        <div>
+          {item.id}
+        </div>
+        <div>
+          Created
+        </div>
+        <div>
+          {scru128ToDate(item.id)
+            .toLocaleString(
+              "en-US",
+              {
+                weekday: "short",
+                year: "numeric",
+                month: "short",
+                day: "numeric",
+                hour: "numeric",
+                minute: "numeric",
+                hour12: true,
+              },
+            )}
+        </div>
+        <div>
+          Topic
+        </div>
+        <div>
+          {item.topic}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ListView() {
   const mainRef = useRef(null);
 
@@ -112,7 +157,7 @@ function ListView() {
           <div class="results">
             {items.value
               .map((item, index) => {
-                let displayText = item.command;
+                let displayText = item.data;
                 return (
                   <div
                     className={index === selected.value ? "selected" : ""}
@@ -131,49 +176,7 @@ function ListView() {
               })}
           </div>
         </div>
-        <div class="right-pane">
-          {selected.value >= 0 && items.value.length > 0 && (
-            <>
-              <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-                <pre>
-              {items.value[selected.value].output.stdout}
-                </pre>
-              </div>
-              <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
-                <div>
-                  ID
-                </div>
-                <div>
-                  {items.value[selected.value].id}
-                </div>
-                <div>
-                  Created
-                </div>
-                <div>
-                  {scru128ToDate(items.value[selected.value].id)
-                    .toLocaleString(
-                      "en-US",
-                      {
-                        weekday: "short",
-                        year: "numeric",
-                        month: "short",
-                        day: "numeric",
-                        hour: "numeric",
-                        minute: "numeric",
-                        hour12: true,
-                      },
-                    )}
-                </div>
-                <div>
-                  Topic
-                </div>
-                <div>
-                  {items.value[selected.value].topic}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
+        <RightPane item={items.value[selected.value]} />
       </div>
       <div style={{ paddingTop: "0.5ch", borderTop: "solid 1px #aaa" }}>
         <div>
@@ -188,6 +191,29 @@ function ListView() {
 }
 
 function App() {
+  useEffect(() => {
+    function handleDataFromRust(event) {
+      console.log("Data pushed from Rust:", event);
+      items.value = [...items.value, JSON.parse(event.payload.message)];
+      if (selected.value > 0) selected.value += 1;
+    }
+
+    async function fetchData() {
+      try {
+        let initialData = await invoke("init_process");
+        initialData = initialData.map(JSON.parse);
+        console.log(initialData);
+        items.value = initialData;
+      } catch (error) {
+        console.error("Error in init_process:", error);
+      }
+
+      listen("item", handleDataFromRust);
+    }
+
+    fetchData();
+  }, []);
+
   return <ListView />;
 }
 

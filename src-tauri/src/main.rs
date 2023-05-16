@@ -5,6 +5,7 @@ use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::collections::HashMap;
+use std::io::BufRead;
 
 use tauri::GlobalShortcutManager;
 use tauri::Manager;
@@ -114,7 +115,32 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
     })
 }
 
+fn start_child_process(path: &PathBuf) {
+    let path = path.clone();
+    std::thread::spawn(|| {
+        let mut child = std::process::Command::new("xs")
+            .arg(path)
+            .arg("cat")
+            .arg("-f")
+            .stdout(std::process::Stdio::piped())
+            .spawn()
+            .expect("Failed to execute command");
+
+        if let Some(ref mut stdout) = child.stdout {
+            let reader = std::io::BufReader::new(stdout);
+            for line in reader.lines() {
+                let line = line.unwrap();
+                PRODUCER.send_data(line);
+            }
+        }
+
+        // Wait for the subprocess to finish
+        let _ = child.wait();
+    });
+}
+
 fn main() {
+    start_child_process(&ARGS.path);
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![init_process, run_command])
         .on_window_event(|event| match event.event() {
