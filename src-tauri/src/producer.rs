@@ -29,12 +29,14 @@ impl Producer {
         (data, consumer)
     }
 
+    #[cfg(test)]
     fn consumer_count(&self) -> usize {
         let senders = self.senders.lock().unwrap();
         senders.len()
     }
 
-    pub fn send_data(&self, item: String) {
+    #[cfg(test)]
+    fn send_data(&self, item: String) {
         self.data.lock().unwrap().push(item.clone());
 
         let mut senders = self.senders.lock().unwrap();
@@ -44,6 +46,7 @@ impl Producer {
         });
     }
 
+    #[cfg(test)]
     fn run<I>(&self, iterator: I)
     where
         I: IntoIterator<Item = String>,

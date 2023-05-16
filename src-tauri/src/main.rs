@@ -2,16 +2,25 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::path::PathBuf;
+use std::sync::atomic::{AtomicBool, Ordering};
+use std::sync::Arc;
+use std::collections::HashMap;
 
 use tauri::GlobalShortcutManager;
 use tauri::Manager;
+use tauri::Window;
 
 use clap::Parser;
 
 use lazy_static::lazy_static;
 
+mod producer;
+
 lazy_static! {
     static ref ARGS: Args = Args::parse();
+    static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
+        std::sync::Mutex::new(HashMap::new());
+    static ref PRODUCER: producer::Producer = producer::Producer::new();
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -47,6 +56,41 @@ pub struct CommandOutput {
 }
 
 #[tauri::command]
+fn init_process(window: Window) -> Result<Vec<String>, String> {
+    let label = window.label().to_string();
+    println!("WINDOW: {:?}", label);
+
+    // If there's an existing process for this window, stop it
+    let mut process_map = PROCESS_MAP.lock().unwrap();
+
+    if let Some(should_continue) = process_map.get(&label) {
+        should_continue.store(false, Ordering::SeqCst);
+    } else {
+        // only setup an event listener the first time we see this window
+        window.on_window_event(move |event| println!("EVENT: {:?}", event));
+    }
+
+    let should_continue = Arc::new(AtomicBool::new(true));
+    process_map.insert(label.clone(), should_continue.clone());
+    drop(process_map); // Explicitly drop the lock
+
+    let (initial_data, consumer) = PRODUCER.add_consumer();
+
+    std::thread::spawn(move || {
+        for line in consumer.iter() {
+            if !should_continue.load(Ordering::SeqCst) {
+                println!("Window closed, ending thread.");
+                break;
+            }
+
+            window.emit("item", Payload { message: line }).unwrap();
+        }
+    });
+
+    Ok(initial_data)
+}
+
+#[tauri::command]
 fn run_command(command: &str) -> Result<CommandOutput, String> {
     let parts = shlex::split(command).ok_or("Failed to parse command")?;
     let program = parts.get(0).ok_or("No program specified")?;
@@ -72,7 +116,7 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![run_command])
+        .invoke_handler(tauri::generate_handler![init_process, run_command])
         .on_window_event(|event| match event.event() {
             tauri::WindowEvent::Focused(focused) => {
                 if !focused {
