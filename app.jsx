@@ -75,8 +75,8 @@ function RightPane({ item }) {
 
   return (
     <div class="right-pane">
-      <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto; ">
-        <pre>
+      <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto;">
+        <pre style="margin: 0;">
         {item.preview}
         </pre>
       </div>
@@ -109,42 +109,32 @@ function ListView() {
 
   useEffect(() => {
     if (mainRef.current) {
-      const inputElement = mainRef.current.querySelector("input");
-      if (inputElement) {
-        inputElement.focus();
-
-        const handleBlur = () => {
-          setTimeout(() => {
-            inputElement.focus();
-          }, 0);
-        };
-        inputElement.addEventListener("blur", handleBlur);
-
-        function updateSelected(n) {
-          selected.value = (selected.value + n) % items.value.length;
-          if (selected.value < 0) {
-            selected.value = items.value.length + selected.value;
-          }
-
-          setTimeout(() => {
-            // Scroll the selected item into view
-            const selectedItem = mainRef.current.querySelector(
-              `.results > div:nth-child(${selected.value + 1})`,
-            );
-            selectedItem.scrollIntoView({
-              behavior: "smooth",
-              block: "nearest",
-            });
-          }, 0);
+      function updateSelected(n) {
+        selected.value = (selected.value + n) % items.value.length;
+        if (selected.value < 0) {
+          selected.value = items.value.length + selected.value;
         }
 
-        async function handleKeys(event) {
-          switch (true) {
-            case event.key === "Escape":
-              const currentWindow = getCurrent();
-              currentWindow.hide();
-              break;
+        setTimeout(() => {
+          // Scroll the selected item into view
+          const selectedItem = mainRef.current.querySelector(
+            `.results > div:nth-child(${selected.value + 1})`,
+          );
+          selectedItem.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }, 0);
+      }
 
+      async function handleKeys(event) {
+        switch (true) {
+          case event.key === "Escape":
+            const currentWindow = getCurrent();
+            currentWindow.hide();
+            break;
+
+            /*
             case event.key === "Enter":
               if (inputElement.value.trim() !== "") {
                 await invoke("run_command", {
@@ -153,24 +143,23 @@ function ListView() {
                 inputElement.value = "";
               }
               break;
+                  */
 
-            case (event.ctrlKey && event.key === "n") ||
-              event.key === "ArrowDown":
-              updateSelected(1);
-              break;
+          case (event.ctrlKey && event.key === "n") ||
+            event.key === "ArrowDown":
+            updateSelected(1);
+            break;
 
-            case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-              updateSelected(-1);
-              break;
-          }
+          case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+            updateSelected(-1);
+            break;
         }
-        inputElement.addEventListener("keydown", handleKeys);
-
-        return () => {
-          inputElement.removeEventListener("blur", handleBlur);
-          inputElement.removeEventListener("keydown", handleKeys);
-        };
       }
+      window.addEventListener("keydown", handleKeys);
+
+      return () => {
+        window.removeEventListener("keydown", handleKeys);
+      };
     }
   }, []);
 
@@ -220,14 +209,6 @@ function ListView() {
           </div>
         </div>
         <RightPane item={items.value[selected.value]} />
-      </div>
-      <div style={{ paddingTop: "0.5ch", borderTop: "solid 1px #aaa" }}>
-        <div>
-          <input
-            type="text"
-            placeholder="Type a command..."
-          />
-        </div>
       </div>
     </main>
   );
