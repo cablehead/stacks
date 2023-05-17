@@ -11,7 +11,6 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
-- show topic name in terse
 - mix and match clipboard, notes and commands
 - integrate clipboard
 - show as much of surrounding items as possible

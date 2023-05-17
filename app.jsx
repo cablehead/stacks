@@ -169,20 +169,39 @@ function ListView() {
           <div class="results">
             {items.value
               .map((item, index) => {
-                let displayText = item.terse;
                 return (
                   <div
                     className={index === selected.value ? "selected" : ""}
                     onClick={() => selected.value = index}
                     style={{
-                      maxHeight: "3rem",
-                      overflow: "hidden",
-                      whiteSpace: "nowrap",
-                      textOverflow: "ellipsis",
+                      display: "flex",
                       width: "100%",
+                      maxHeight: "3rem",
+                      gap: "0.5ch",
+                      overflow: "hidden",
                     }}
                   >
-                    {displayText}
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        width: "4.2ch",
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        borderRight: "solid #aaa 1px",
+                      }}
+                    >
+                      {item.topic}
+                    </div>
+                    <div
+                      style={{
+                        flexGrow: 1,
+                        whiteSpace: "nowrap",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                      }}
+                    >
+                      {item.terse}
+                    </div>
                   </div>
                 );
               })}
