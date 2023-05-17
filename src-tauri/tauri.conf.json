@@ -22,6 +22,9 @@
       }
     },
     "bundle": {
+      "externalBin": [
+        "bin/x-macos-pasteboard"
+      ],
       "active": true,
       "icon": [
         "icons/32x32.png",

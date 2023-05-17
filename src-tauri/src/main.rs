@@ -17,6 +17,7 @@ use clap::Parser;
 use lazy_static::lazy_static;
 
 mod producer;
+mod clipboard;
 
 lazy_static! {
     static ref ARGS: Args = Args::parse();

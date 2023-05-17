@@ -64,7 +64,7 @@ mod tests {
 
     #[test]
     fn test_producer() {
-        let producer = Arc::new(Producer::new());
+        let producer = std::sync::Arc::new(Producer::new());
 
         let (initial_data, consumer1) = producer.add_consumer();
         // Check that the initial data is empty (since the producer hasn't sent anything yet)
