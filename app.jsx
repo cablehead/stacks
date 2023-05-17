@@ -30,6 +30,19 @@ const items = signal([]);
 
 function parseItem(raw) {
   let item = JSON.parse(raw);
+  item.created_at = scru128ToDate(item.id)
+    .toLocaleString(
+      "en-US",
+      {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      },
+    );
   switch (item.topic) {
     case "command":
       item.o = JSON.parse(item.data);
@@ -78,19 +91,7 @@ function RightPane({ item }) {
           Created
         </div>
         <div>
-          {scru128ToDate(item.id)
-            .toLocaleString(
-              "en-US",
-              {
-                weekday: "short",
-                year: "numeric",
-                month: "short",
-                day: "numeric",
-                hour: "numeric",
-                minute: "numeric",
-                hour12: true,
-              },
-            )}
+          {item.created_at}
         </div>
         <div>
           Topic
