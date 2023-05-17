@@ -37,6 +37,17 @@ function parseItem(raw) {
       item.preview = item.o.output.stdout;
       break;
 
+    case "clipboard":
+      let data = JSON.parse(item.data);
+      if ("public.utf8-plain-text" in data.types) {
+        item.terse = atob(data.types["public.utf8-plain-text"]);
+        item.preview = item.terse;
+        break;
+      }
+      item.terse = data.source;
+      item.preview = item.data;
+      break;
+
     default:
       item.terse = item.data;
       item.preview = item.data;
