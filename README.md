@@ -11,9 +11,12 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
-- persist commands / output to `xs`
+- show topic name in terse
 - mix and match clipboard, notes and commands
+- integrate clipboard
 - show as much of surrounding items as possible
+- reduce dependencies
+    - i guess that means xs and x-pasteboard should be built-in
 
 ### Clipboard
 
