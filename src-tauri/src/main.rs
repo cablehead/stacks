@@ -169,7 +169,9 @@ fn start_child_process(path: &PathBuf) {
 }
 
 fn main() {
+    clipboard::start(&ARGS.path);
     start_child_process(&ARGS.path);
+
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![init_process, run_command])
         .on_window_event(|event| match event.event() {
