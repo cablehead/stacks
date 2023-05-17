@@ -237,20 +237,21 @@ function App() {
   useEffect(() => {
     function handleDataFromRust(event) {
       console.log("Data pushed from Rust:", event);
-      items.value = [...items.value, parseItem(event.payload.message)];
+      items.value = [
+        parseItem(event.payload.message),
+        ...items.value,
+      ];
       if (selected.value > 0) selected.value += 1;
     }
 
     async function fetchData() {
       try {
-        let initialData = await invoke("init_process");
-        initialData = initialData.map(parseItem);
-        console.log(initialData);
-        items.value = initialData;
+        let data = await invoke("init_process");
+        data = data.map(parseItem).reverse();
+        items.value = data;
       } catch (error) {
         console.error("Error in init_process:", error);
       }
-
       listen("item", handleDataFromRust);
     }
 
