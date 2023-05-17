@@ -185,14 +185,25 @@ function ListView() {
                     <div
                       style={{
                         flexShrink: 0,
-                        width: "4.2ch",
+                        width: "4ch",
                         whiteSpace: "nowrap",
                         overflow: "hidden",
-                        borderRight: "solid #aaa 1px",
                       }}
                     >
                       {item.topic}
                     </div>
+
+                    <div
+                      style={{
+                        flexShrink: 0,
+                        width: "0.5ch",
+                        overflow: "hidden",
+                        borderLeft: "solid #aaa 1px",
+                      }}
+                    >
+                      &nbsp;
+                    </div>
+
                     <div
                       style={{
                         flexGrow: 1,
