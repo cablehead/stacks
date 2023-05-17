@@ -11,15 +11,20 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
-- mix and match clipboard, notes and commands
-- integrate clipboard
-- show as much of surrounding items as possible
-- reduce dependencies
-    - i guess that means xs and x-pasteboard should be built-in
+- Take away command input
+- Enter copies
+- / opens fuzzy search input
+- meta-n opens choice: note / command
+- command open command input
+- note opens text area
+
+- Show symbol for item type
+
 
 ### Clipboard
 
 - [ ] show the last time copied
+- [ ] hide items with empty type
 - [ ] deduplicate items
     - show number of times copied
 
