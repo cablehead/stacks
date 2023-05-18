@@ -10,8 +10,11 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use tauri::Window;
+use tauri_plugin_log::LogTarget;
 
 use lazy_static::lazy_static;
+
+use log::{error, info};
 
 mod clipboard;
 mod producer;
@@ -37,7 +40,7 @@ pub struct CommandOutput {
 #[tauri::command]
 fn init_process(window: Window) -> Result<Vec<String>, String> {
     let label = window.label().to_string();
-    println!("WINDOW: {:?}", label);
+    info!("WINDOW: {:?}", label);
 
     // If there's an existing process for this window, stop it
     let mut process_map = PROCESS_MAP.lock().unwrap();
@@ -46,7 +49,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
         should_continue.store(false, Ordering::SeqCst);
     } else {
         // only setup an event listener the first time we see this window
-        window.on_window_event(move |event| println!("EVENT: {:?}", event));
+        window.on_window_event(move |event| info!("EVENT: {:?}", event));
     }
 
     let should_continue = Arc::new(AtomicBool::new(true));
@@ -58,7 +61,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
     std::thread::spawn(move || {
         for line in consumer.iter() {
             if !should_continue.load(Ordering::SeqCst) {
-                println!("Window closed, ending thread.");
+                info!("Window closed, ending thread.");
                 break;
             }
 
@@ -159,14 +162,20 @@ fn main() {
                 global_close_shortcut: Some(String::from("Escape")),
             },
         )))
+        .plugin(
+            tauri_plugin_log::Builder::default()
+                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .build(),
+        )
         .setup(|app| {
             let data_dir = app.path_resolver().app_data_dir().unwrap();
             let data_dir = data_dir.join("stream");
-            println!("PR: {:?}", data_dir);
+            info!("PR: {:?}", data_dir);
             let mut shared = DATADIR.lock().unwrap();
             *shared = data_dir;
             clipboard::start(&*shared);
             start_child_process(&*shared);
+            info!("BACK");
             Ok(())
         })
         .run(tauri::generate_context!())
