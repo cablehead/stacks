@@ -242,6 +242,42 @@ function ListView() {
     }
   }, []);
 
+  const TerseRow = ({ item, index }) => (
+    <div
+      className={index === selected.value ? "selected" : ""}
+      onClick={() => selected.value = index}
+      style={{
+        display: "flex",
+        width: "100%",
+        maxHeight: "3rem",
+        gap: "0.5ch",
+        overflow: "hidden",
+      }}
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          width: "2ch",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        {item.icon}
+      </div>
+
+      <div
+        style={{
+          flexGrow: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {item.terse}
+      </div>
+    </div>
+  );
+
   return (
     <main ref={mainRef}>
       <div class="container">
@@ -249,41 +285,7 @@ function ListView() {
           <div class="results">
             {items.value
               .map((item, index) => {
-                return (
-                  <div
-                    className={index === selected.value ? "selected" : ""}
-                    onClick={() => selected.value = index}
-                    style={{
-                      display: "flex",
-                      width: "100%",
-                      maxHeight: "3rem",
-                      gap: "0.5ch",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        flexShrink: 0,
-                        width: "2ch",
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                      }}
-                    >
-                      {item.icon}
-                    </div>
-
-                    <div
-                      style={{
-                        flexGrow: 1,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
-                      }}
-                    >
-                      {item.terse}
-                    </div>
-                  </div>
-                );
+                return <TerseRow item={item} index={index} />;
               })}
           </div>
         </div>
