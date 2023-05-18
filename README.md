@@ -20,9 +20,7 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
     - method to visualize colors
     - and try variations
 
-
 - rounded corners
-- spotlight / good behavior
 - customize key press
 
 - / opens fuzzy search input

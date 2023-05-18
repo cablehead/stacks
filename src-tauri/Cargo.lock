@@ -2437,6 +2437,7 @@ dependencies = [
  "shlex",
  "tauri",
  "tauri-build",
+ "tauri-plugin-spotlight",
 ]
 
 [[package]]
@@ -2694,6 +2695,18 @@ dependencies = [
  "syn 1.0.109",
  "tauri-codegen",
  "tauri-utils",
+]
+
+[[package]]
+name = "tauri-plugin-spotlight"
+version = "0.1.2"
+source = "git+https://github.com/zzzze/tauri-plugin-spotlight#f492b7a5c1eae05e952c0820954e724f23ebfd1d"
+dependencies = [
+ "cocoa",
+ "objc",
+ "serde",
+ "serde_json",
+ "tauri",
 ]
 
 [[package]]

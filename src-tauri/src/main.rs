@@ -16,8 +16,8 @@ use clap::Parser;
 
 use lazy_static::lazy_static;
 
-mod producer;
 mod clipboard;
+mod producer;
 
 lazy_static! {
     static ref ARGS: Args = Args::parse();
@@ -174,30 +174,16 @@ fn main() {
 
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![init_process, run_command])
-        .on_window_event(|event| match event.event() {
-            tauri::WindowEvent::Focused(focused) => {
-                if !focused {
-                    event.window().hide().unwrap();
-                }
-            }
-            _ => {}
-        })
-        .setup(move |app| {
-            let win = app.get_window("main").unwrap();
-            let mut shortcut = app.global_shortcut_manager();
-            shortcut
-                .register("Cmd+Shift+G", move || {
-                    if win.is_visible().unwrap() {
-                        win.hide().unwrap();
-                    } else {
-                        win.show().unwrap();
-                        win.set_focus().unwrap();
-                    }
-                })
-                .unwrap_or_else(|err| println!("{:?}", err));
-
-            Ok(())
-        })
+        .plugin(tauri_plugin_spotlight::init(Some(
+            tauri_plugin_spotlight::PluginConfig {
+                windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
+                    label: String::from("main"),
+                    shortcut: String::from("Control+Space"),
+                    macos_window_level: Some(20), // Default 24
+                }]),
+                global_close_shortcut: Some(String::from("Escape")),
+            },
+        )))
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
