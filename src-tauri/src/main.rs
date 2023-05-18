@@ -2,7 +2,6 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::collections::HashMap;
-use std::io::BufRead;
 use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
@@ -14,10 +13,11 @@ use tauri_plugin_log::LogTarget;
 
 use lazy_static::lazy_static;
 
-use log::{error, info};
+use log::info;
 
 mod clipboard;
 mod producer;
+mod xs;
 
 lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
@@ -127,25 +127,26 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
 
 fn start_child_process(path: &PathBuf) {
     let path = path.clone();
-    std::thread::spawn(|| {
-        let mut child = std::process::Command::new("xs")
-            .arg(path)
-            .arg("cat")
-            .arg("-f")
-            .stdout(std::process::Stdio::piped())
-            .spawn()
-            .expect("Failed to execute command");
+    std::thread::spawn(move || {
+        let mut signals =
+            signal_hook::iterator::Signals::new(signal_hook::consts::TERM_SIGNALS).unwrap();
 
-        if let Some(ref mut stdout) = child.stdout {
-            let reader = std::io::BufReader::new(stdout);
-            for line in reader.lines() {
-                let line = line.unwrap();
-                PRODUCER.send_data(line);
+        let env = xs::store_open(&path);
+        let mut last_id = None;
+
+        loop {
+            let frames = xs::store_cat(&env, last_id);
+            for frame in frames {
+                last_id = Some(frame.id);
+                let data = serde_json::to_string(&frame).unwrap();
+                PRODUCER.send_data(data);
+
+                std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
+                for _ in signals.pending() {
+                    return;
+                }
             }
         }
-
-        // Wait for the subprocess to finish
-        let _ = child.wait();
     });
 }
 
