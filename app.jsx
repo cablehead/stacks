@@ -22,7 +22,6 @@ function focusSelected(delay) {
     const selectedItem = document.querySelector(
       `.terserow.selected`,
     );
-    console.log(selectedItem);
     selectedItem.scrollIntoView({
       behavior: "smooth",
       block: "nearest",
