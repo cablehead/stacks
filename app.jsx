@@ -58,6 +58,42 @@ const IconClipboard = () => (
   </svg>
 );
 
+const IconReturnKey = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width="1em"
+    height="1em"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="feather feather-corner-down-left"
+  >
+    <polyline points="9 10 4 15 9 20"></polyline>
+    <path d="M20 4v7a4 4 0 0 1-4 4H4"></path>
+  </svg>
+);
+
+const IconCommandKey = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    width="24"
+    height="24"
+    viewBox="0 0 24 24"
+    fill="none"
+    stroke="currentColor"
+    stroke-width="1.5"
+    stroke-linecap="round"
+    stroke-linejoin="round"
+    class="feather feather-command"
+  >
+    <path d="M18 3a3 3 0 0 0-3 3v12a3 3 0 0 0 3 3 3 3 0 0 0 3-3 3 3 0 0 0-3-3H6a3 3 0 0 0-3 3 3 3 0 0 0 3 3 3 3 0 0 0 3-3V6a3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3h12a3 3 0 0 0 3-3 3 3 0 0 0-3-3z">
+    </path>
+  </svg>
+);
+
 const IconCommandLine = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -250,16 +286,20 @@ function RightPane({ item }) {
   );
 }
 
+async function triggerCopy() {
+  const item = items.value[selected.value];
+  if (item) {
+    await writeText(item.preview);
+    hide();
+  }
+}
+
 function ListView() {
   useEffect(() => {
     async function handleKeys(event) {
       switch (true) {
         case event.key === "Enter":
-          const item = items.value[selected.value];
-          if (item) {
-            await writeText(item.preview);
-            hide();
-          }
+          await triggerCopy();
           break;
 
         /*
@@ -292,11 +332,51 @@ function ListView() {
 
   return (
     <main>
+      <section style="
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            width: 100%;
+            overflow: hidden;
+            padding-top:1ch;
+            padding-left:1ch;
+            padding-right:1ch;
+        ">
+        <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+          <LeftPane />
+          <RightPane item={items.value[selected.value]} />
+        </div>
+      </section>
 
-      <div style=" display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-        <LeftPane />
-        <RightPane item={items.value[selected.value]} />
-      </div>
+      <footer style="
+        display: flex;
+        align-items: center;
+        height: 5ch;
+        box-shadow: 0 -2px 3px -1px rgba(0, 0, 0, 0.2);
+        font-size: 0.8rem;
+        background-color: var(--background-color);
+        padding:1ch;
+        padding-left:2ch;
+        padding-right:2ch;
+        justify-content: space-between;
+        ">
+        <div style="">
+          Clipboard
+        </div>
+        <div onClick={async (e) => await triggerCopy()} class="hoverable">
+          Copy&nbsp;
+          <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            background-color: #DDD;
+            border-radius: 5px;
+            ">
+            <IconReturnKey />
+          </span>
+        </div>
+      </footer>
     </main>
   );
 }

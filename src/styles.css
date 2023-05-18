@@ -1,6 +1,7 @@
 /*
 :root {
-  --background-color: #0f0e17E6;
+  --background-color: #0f0e17;
+  --background-color-transparent: #0f0e17E6;
   --header-color: #fffffe;
   --text-color: #a7a9be;
 
@@ -16,7 +17,8 @@
 */
 
 :root {
-  --background-color: #fffffeE6;
+  --background-color: #fffffe;
+  --background-color-transparent: #fffffee6;
   --header-color: #272343;
   --text-color: #2d334a;
 
@@ -45,16 +47,22 @@ body {
 }
 
 main {
-  background-color: var(--background-color);
+  background-color: var(--background-color-transparent);
   border-radius: 10px;
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
-
   width: 100%;
   height: 100%;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 1ch;
+}
+
+.hoverable {
+  border-radius: 4px;
+  padding: 4px;
+}
+.hoverable:hover {
+  background-color: #eee;
 }
 
 input {
