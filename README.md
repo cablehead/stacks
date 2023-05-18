@@ -13,7 +13,6 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 - add bar at bottom that has usage info
 
-- look and feel
 - night mode
     - add ability to switch
     - auto-detect system setting / change

@@ -54,7 +54,7 @@ main {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 10px;
+  padding: 1ch;
 }
 
 input {
