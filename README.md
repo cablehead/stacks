@@ -19,9 +19,17 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
     - method to visualize colors
     - and try variations
 
+- handle clipboard images
+    - in preview
+    - when the user hits enter
+
 - customize key press
 
 - / opens fuzzy search input
+
+- clean up meta panel
+
+
 - meta-n opens choice: note / command
 
 ### Clipboard
