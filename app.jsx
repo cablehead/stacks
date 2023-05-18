@@ -5,6 +5,7 @@ import { useEffect, useRef } from "preact/hooks";
 const { listen } = require("@tauri-apps/api/event");
 const { invoke } = require("@tauri-apps/api/tauri");
 const { getCurrent } = require("@tauri-apps/api/window");
+const { writeText } = require("@tauri-apps/api/clipboard");
 
 import { Scru128Id, scru128String } from "scru128";
 
@@ -268,7 +269,16 @@ function ListView() {
             currentWindow.hide();
             break;
 
-            /*
+          case event.key === "Enter":
+            const item = items.value[selected.value];
+            if (item) {
+              await writeText(item.preview);
+              const currentWindow = getCurrent();
+              currentWindow.hide();
+            }
+            break;
+
+          /*
             case event.key === "Enter":
               if (inputElement.value.trim() !== "") {
                 await invoke("run_command", {

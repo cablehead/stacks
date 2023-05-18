@@ -13,14 +13,15 @@
   "tauri": {
     "allowlist": {
       "all": false,
+      "clipboard": {
+        "writeText": true
+      },
       "window": {
         "hide": true
       },
       "shell": {
         "all": false,
-        "open": true,
-        "sidecar": true,
-        "scope": [{ "name": "bin/x-macos-pasteboard", "sidecar": true }]
+        "open": true
       }
     },
     "bundle": {

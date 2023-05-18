@@ -11,20 +11,21 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
+- add bar at bottom that has usage info
+
 - look and feel
 - night mode
     - add ability to switch
     - auto-detect system setting / change
     - method to visualize colors
     - and try variations
-- more space
 
 
 - rounded corners
 - spotlight / good behavior
 - customize key press
 
-- Enter copies
+- reset selection to 0 when focus is lost
 
 - / opens fuzzy search input
 
