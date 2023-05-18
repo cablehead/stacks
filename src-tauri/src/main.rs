@@ -7,10 +7,9 @@ use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
+use std::sync::Mutex;
 
 use tauri::Window;
-
-use clap::Parser;
 
 use lazy_static::lazy_static;
 
@@ -18,35 +17,14 @@ mod clipboard;
 mod producer;
 
 lazy_static! {
-    static ref ARGS: Args = Args::parse();
-    static ref PROCESS_MAP: std::sync::Mutex<HashMap<String, Arc<AtomicBool>>> =
-        std::sync::Mutex::new(HashMap::new());
     static ref PRODUCER: producer::Producer = producer::Producer::new();
+    static ref PROCESS_MAP: Mutex<HashMap<String, Arc<AtomicBool>>> = Mutex::new(HashMap::new());
+    static ref DATADIR: Mutex<PathBuf> = Mutex::new(PathBuf::new());
 }
 
 #[derive(Clone, serde::Serialize)]
 struct Payload {
     message: String,
-}
-
-fn validate_and_create_path(s: &str) -> Result<PathBuf, String> {
-    let path_string = shellexpand::tilde(s).into_owned();
-    let path = PathBuf::from(&path_string);
-
-    if !path.exists() {
-        std::fs::create_dir_all(&path)
-            .map_err(|_| format!("Failed to create directory at `{}`", s))?;
-    }
-
-    Ok(path)
-}
-
-#[derive(Parser, Debug, Clone)]
-#[clap(author, version, about, long_about = None)]
-struct Args {
-    /// Path to stream
-    #[clap(default_value = "~/.config/stacks/stream", value_parser = validate_and_create_path)]
-    path: PathBuf,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -121,8 +99,10 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
 
     let json_string = json_data.to_string();
 
+    let data_dir = DATADIR.lock().unwrap();
+
     let mut child = std::process::Command::new("xs")
-        .arg(&ARGS.path)
+        .arg(&*data_dir)
         .arg("put")
         .arg("--topic")
         .arg("command")
@@ -167,9 +147,6 @@ fn start_child_process(path: &PathBuf) {
 }
 
 fn main() {
-    clipboard::start(&ARGS.path);
-    start_child_process(&ARGS.path);
-
     tauri::Builder::default()
         .invoke_handler(tauri::generate_handler![init_process, run_command])
         .plugin(tauri_plugin_spotlight::init(Some(
@@ -182,6 +159,16 @@ fn main() {
                 global_close_shortcut: Some(String::from("Escape")),
             },
         )))
+        .setup(|app| {
+            let data_dir = app.path_resolver().app_data_dir().unwrap();
+            let data_dir = data_dir.join("stream");
+            println!("PR: {:?}", data_dir);
+            let mut shared = DATADIR.lock().unwrap();
+            *shared = data_dir;
+            clipboard::start(&*shared);
+            start_child_process(&*shared);
+            Ok(())
+        })
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
 }
