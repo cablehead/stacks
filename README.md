@@ -11,7 +11,6 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
-- Take away command input
 - Enter copies
 - / opens fuzzy search input
 - meta-n opens choice: note / command
