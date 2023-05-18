@@ -34,6 +34,7 @@ body {
   font-family: ui-monospace;
   color: var(--text-color);
   background-color: transparent;
+  padding: 10px;
 }
 
 html,
@@ -46,18 +47,14 @@ body {
 main {
   background-color: var(--background-color);
   border-radius: 15px;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
 
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  right: 0;
   width: 100%;
   height: 100%;
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 2ch;
+  padding: 10px;
 }
 
 input {
