@@ -28,6 +28,7 @@ function cmp(a, b) {
 const selected = signal(0);
 const items = signal([]);
 
+// https://heroicons.com
 const IconClipboard = () => (
   <svg
     xmlns="http://www.w3.org/2000/svg"
@@ -148,6 +149,60 @@ function parseItem(raw) {
   return item;
 }
 
+function LeftPane() {
+  const TerseRow = ({ item, index }) => (
+    <div
+      className={"terserow" + (index === selected.value ? " selected" : "")}
+      onClick={() => selected.value = index}
+      style="
+        display: flex;
+        width: 100%;
+        gap: 0.5ch;
+        overflow: hidden;
+        padding: 0.5ch 0.75ch;
+        border-radius: 6px;
+        cursor: pointer;
+        "
+    >
+      <div
+        style={{
+          flexShrink: 0,
+          width: "2ch",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        {item.icon}
+      </div>
+
+      <div
+        style={{
+          flexGrow: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {item.terse}
+      </div>
+    </div>
+  );
+  return (
+    <div style="
+      flex: 1;
+      max-width: 20ch;
+      overflow-y: auto;
+      border-right: 1px solid #aaa;
+      padding-right: 0.5rem;
+    ">
+      {items.value
+        .map((item, index) => {
+          return <TerseRow item={item} index={index} />;
+        })}
+    </div>
+  );
+}
+
 function RightPane({ item }) {
   if (!item) {
     return <div />;
@@ -168,8 +223,8 @@ function RightPane({ item }) {
   );
 
   return (
-    <div class="right-pane">
-      <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto;">
+    <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
+      <div style="padding-bottom: 0.5rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto;">
         <pre style="margin: 0;">
         {item.preview}
         </pre>
@@ -242,53 +297,10 @@ function ListView() {
     }
   }, []);
 
-  const TerseRow = ({ item, index }) => (
-    <div
-      className={"terserow" + (index === selected.value ? " selected" : "")}
-      onClick={() => selected.value = index}
-      style="
-        display: flex;
-        width: 100%;
-        gap: 0.5ch;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-    >
-      <div
-        style={{
-          flexShrink: 0,
-          width: "2ch",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-        }}
-      >
-        {item.icon}
-      </div>
-
-      <div
-        style={{
-          flexGrow: 1,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {item.terse}
-      </div>
-    </div>
-  );
-
   return (
     <main ref={mainRef}>
-      <div style=" display: flex; height: 100%; overflow: hidden;">
-        <div class="left-pane">
-          {items.value
-            .map((item, index) => {
-              return <TerseRow item={item} index={index} />;
-            })}
-        </div>
+      <div style=" display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+        <LeftPane />
         <RightPane item={items.value[selected.value]} />
       </div>
     </main>

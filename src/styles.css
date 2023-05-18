@@ -90,18 +90,3 @@ textarea:focus {
   background-color: var(--alt-highlight-color);
   color: var(--alt-text-color);
 }
-
-.left-pane {
-  flex: 1;
-  max-width: 20ch;
-  overflow-y: auto;
-  border-right: 1px solid #aaa;
-  padding-right: 0.5rem;
-}
-
-.right-pane {
-  flex: 3;
-  overflow: auto;
-  display: flex;
-  flex-direction: column;
-}
