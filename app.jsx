@@ -338,8 +338,19 @@ function App() {
       }
       listen("item", handleDataFromRust);
     }
-
     fetchData();
+
+    // set selection back to the top onBlur
+    const onBlur = () => {
+      selected.value = 0;
+    };
+
+    window.addEventListener("blur", onBlur);
+
+    // Return a cleanup function
+    return () => {
+      window.removeEventListener("blur", onBlur);
+    };
   }, []);
 
   return <ListView />;

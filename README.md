@@ -25,8 +25,6 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 - spotlight / good behavior
 - customize key press
 
-- reset selection to 0 when focus is lost
-
 - / opens fuzzy search input
 
 - meta-n opens choice: note / command
