@@ -98,6 +98,7 @@ const IconImage = () => (
 
 function parseItem(raw) {
   let item = JSON.parse(raw);
+
   item.created_at = scru128ToDate(item.id)
     .toLocaleString(
       "en-US",
@@ -111,6 +112,13 @@ function parseItem(raw) {
         hour12: true,
       },
     );
+
+  item.meta = [
+    { name: "ID", value: item.id },
+    { name: "Created", value: item.created_at },
+    { name: "Topic", value: item.topic },
+  ];
+
   switch (item.topic) {
     case "command":
       item.o = JSON.parse(item.data);
@@ -145,6 +153,20 @@ function RightPane({ item }) {
     return <div />;
   }
 
+  const MetaInfoRow = ({ name, value }) => (
+    <div style="display:flex;">
+      <div
+        style={{
+          flexShrink: 0,
+          width: "20ch",
+        }}
+      >
+        {name}
+      </div>
+      <div>{value}</div>
+    </div>
+  );
+
   return (
     <div class="right-pane">
       <div style="flex: 1; padding-bottom: 1rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto;">
@@ -152,25 +174,10 @@ function RightPane({ item }) {
         {item.preview}
         </pre>
       </div>
-      <div style="max-height: 5lh; font-size: 0.8rem; font-weight: 500; display: grid; grid-template-columns: min-content 1fr; overflow-y: auto; padding:1ch; align-content: start;">
-        <div>
-          ID
-        </div>
-        <div>
-          {item.id}
-        </div>
-        <div>
-          Created
-        </div>
-        <div>
-          {item.created_at}
-        </div>
-        <div>
-          Topic
-        </div>
-        <div>
-          {item.topic}
-        </div>
+      <div style="height: 5lh; ;  overflow-y: auto;">
+        {item.meta.map((info) => (
+          <MetaInfoRow name={info.name} value={info.value} />
+        ))}
       </div>
     </div>
   );
