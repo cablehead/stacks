@@ -292,6 +292,7 @@ function ListView() {
 
   return (
     <main>
+
       <div style=" display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
         <LeftPane />
         <RightPane item={items.value[selected.value]} />

@@ -43,6 +43,7 @@
     "updater": {
       "active": false
     },
+    "macOSPrivateApi": true,
     "windows": [
       {
         "fullscreen": false,
@@ -50,6 +51,7 @@
         "alwaysOnTop": true,
         "visible": false,
         "decorations": false,
+        "transparent": true,
         "title": "stacks",
         "width": 950,
         "height": 450

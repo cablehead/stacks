@@ -20,17 +20,10 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
     - method to visualize colors
     - and try variations
 
-- rounded corners
 - customize key press
 
 - / opens fuzzy search input
-
 - meta-n opens choice: note / command
-
-- command open command input
-
-- note opens text area
-
 
 ### Clipboard
 

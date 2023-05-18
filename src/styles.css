@@ -1,5 +1,5 @@
 :root {
-  --background-color: #0f0e17;
+  --background-color: #0f0e17E6;
   --header-color: #fffffe;
   --text-color: #a7a9be;
 
@@ -32,8 +32,8 @@
 
 body {
   font-family: ui-monospace;
-  background-color: var(--background-color);
   color: var(--text-color);
+  background-color: transparent;
 }
 
 html,
@@ -44,6 +44,9 @@ body {
 }
 
 main {
+  background-color: var(--background-color);
+  border-radius: 15px;
+
   position: absolute;
   top: 0;
   bottom: 0;
@@ -84,7 +87,6 @@ textarea:focus {
   background-color: var(--alt-secondary-color);
   color: var(--alt-text-color);
 }
-
 
 .terserow.selected {
   background-color: var(--alt-highlight-color);

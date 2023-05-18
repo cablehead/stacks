@@ -132,7 +132,6 @@ fn start_child_process(path: &PathBuf) {
             let frames = xs::store_cat(&env, last_id);
             for frame in frames {
                 last_id = Some(frame.id);
-                log::trace!("start_child_process: {:?}", last_id);
                 let data = serde_json::to_string(&frame).unwrap();
                 PRODUCER.send_data(data);
                 std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
@@ -160,13 +159,17 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
             let data_dir = app.path_resolver().app_data_dir().unwrap();
             let data_dir = data_dir.join("stream");
             log::info!("PR: {:?}", data_dir);
             let mut shared = DATADIR.lock().unwrap();
             *shared = data_dir;
+
             clipboard::start(&*shared);
             start_child_process(&*shared);
+
             Ok(())
         })
         .run(tauri::generate_context!())
