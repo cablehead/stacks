@@ -23,7 +23,6 @@ scru128 = { version = "2.2.0", features = ["serde"] }
 lazy_static = "1.4.0"
 shlex = "1.1.0"
 log = "^0.4"
-signal-hook = "0.3.14"
 
 [dev-dependencies]
 indoc = "1.0.7"

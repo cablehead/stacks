@@ -13,8 +13,6 @@ use tauri_plugin_log::LogTarget;
 
 use lazy_static::lazy_static;
 
-use log::info;
-
 mod clipboard;
 mod producer;
 mod xs;
@@ -40,7 +38,7 @@ pub struct CommandOutput {
 #[tauri::command]
 fn init_process(window: Window) -> Result<Vec<String>, String> {
     let label = window.label().to_string();
-    info!("WINDOW: {:?}", label);
+    log::info!("WINDOW: {:?}", label);
 
     // If there's an existing process for this window, stop it
     let mut process_map = PROCESS_MAP.lock().unwrap();
@@ -49,7 +47,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
         should_continue.store(false, Ordering::SeqCst);
     } else {
         // only setup an event listener the first time we see this window
-        window.on_window_event(move |event| info!("EVENT: {:?}", event));
+        window.on_window_event(move |event| log::info!("EVENT: {:?}", event));
     }
 
     let should_continue = Arc::new(AtomicBool::new(true));
@@ -61,7 +59,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
     std::thread::spawn(move || {
         for line in consumer.iter() {
             if !should_continue.load(Ordering::SeqCst) {
-                info!("Window closed, ending thread.");
+                log::info!("Window closed, ending thread.");
                 break;
             }
 
@@ -128,23 +126,16 @@ fn run_command(command: &str) -> Result<CommandOutput, String> {
 fn start_child_process(path: &PathBuf) {
     let path = path.clone();
     std::thread::spawn(move || {
-        let mut signals =
-            signal_hook::iterator::Signals::new(signal_hook::consts::TERM_SIGNALS).unwrap();
-
-        let env = xs::store_open(&path);
         let mut last_id = None;
-
         loop {
+            let env = xs::store_open(&path);
             let frames = xs::store_cat(&env, last_id);
             for frame in frames {
                 last_id = Some(frame.id);
+                log::trace!("start_child_process: {:?}", last_id);
                 let data = serde_json::to_string(&frame).unwrap();
                 PRODUCER.send_data(data);
-
                 std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
-                for _ in signals.pending() {
-                    return;
-                }
             }
         }
     });
@@ -171,12 +162,11 @@ fn main() {
         .setup(|app| {
             let data_dir = app.path_resolver().app_data_dir().unwrap();
             let data_dir = data_dir.join("stream");
-            info!("PR: {:?}", data_dir);
+            log::info!("PR: {:?}", data_dir);
             let mut shared = DATADIR.lock().unwrap();
             *shared = data_dir;
             clipboard::start(&*shared);
             start_child_process(&*shared);
-            info!("BACK");
             Ok(())
         })
         .run(tauri::generate_context!())
