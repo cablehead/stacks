@@ -1,3 +1,4 @@
+/*
 :root {
   --background-color: #0f0e17E6;
   --header-color: #fffffe;
@@ -12,10 +13,10 @@
   --alt-secondary-color: #f25f4c;
   --alt-tertiary-color: #e53170;
 }
+*/
 
-/*
 :root {
-  --background-color: #fffffe;
+  --background-color: #fffffeE6;
   --header-color: #272343;
   --text-color: #2d334a;
 
@@ -28,7 +29,6 @@
   --alt-secondary-color: #e3f6f5;
   --alt-tertiary-color: #bae8e8;
 }
-*/
 
 body {
   font-family: ui-monospace;
