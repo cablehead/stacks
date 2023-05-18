@@ -17,14 +17,20 @@ function scru128ToDate(id) {
   return date;
 }
 
-function cmp(a, b) {
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
+function updateSelected(n) {
+  selected.value = (selected.value + n) % items.value.length;
+  if (selected.value < 0) {
+    selected.value = items.value.length + selected.value;
   }
+  setTimeout(() => {
+    const selectedItem = document.querySelector(
+      `.terserow.selected`,
+    );
+    selectedItem.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, 0);
 }
 
 const selected = signal(0);
@@ -241,39 +247,18 @@ function RightPane({ item }) {
 }
 
 function ListView() {
-  const mainRef = useRef(null);
-
   useEffect(() => {
-    if (mainRef.current) {
-      function updateSelected(n) {
-        selected.value = (selected.value + n) % items.value.length;
-        if (selected.value < 0) {
-          selected.value = items.value.length + selected.value;
-        }
+    async function handleKeys(event) {
+      switch (true) {
+        case event.key === "Enter":
+          const item = items.value[selected.value];
+          if (item) {
+            await writeText(item.preview);
+            hide();
+          }
+          break;
 
-        setTimeout(() => {
-          // Scroll the selected item into view
-          const selectedItem = mainRef.current.querySelector(
-            `.terserow:nth-child(${selected.value + 1})`,
-          );
-          selectedItem.scrollIntoView({
-            behavior: "smooth",
-            block: "nearest",
-          });
-        }, 0);
-      }
-
-      async function handleKeys(event) {
-        switch (true) {
-          case event.key === "Enter":
-            const item = items.value[selected.value];
-            if (item) {
-              await writeText(item.preview);
-              hide();
-            }
-            break;
-
-          /*
+        /*
             case event.key === "Enter":
               if (inputElement.value.trim() !== "") {
                 await invoke("run_command", {
@@ -284,26 +269,25 @@ function ListView() {
               break;
                   */
 
-          case (event.ctrlKey && event.key === "n") ||
-            event.key === "ArrowDown":
-            updateSelected(1);
-            break;
+        case (event.ctrlKey && event.key === "n") ||
+          event.key === "ArrowDown":
+          updateSelected(1);
+          break;
 
-          case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-            updateSelected(-1);
-            break;
-        }
+        case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+          updateSelected(-1);
+          break;
       }
-      window.addEventListener("keydown", handleKeys);
-
-      return () => {
-        window.removeEventListener("keydown", handleKeys);
-      };
     }
+    window.addEventListener("keydown", handleKeys);
+
+    return () => {
+      window.removeEventListener("keydown", handleKeys);
+    };
   }, []);
 
   return (
-    <main ref={mainRef}>
+    <main>
       <div style=" display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
         <LeftPane />
         <RightPane item={items.value[selected.value]} />
