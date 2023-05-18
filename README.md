@@ -11,6 +11,8 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
+- / opens fuzzy search input
+
 - night mode
     - add ability to switch
     - auto-detect system setting / change
@@ -22,8 +24,6 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
     - when the user hits enter
 
 - customize key press
-
-- / opens fuzzy search input
 
 - clean up meta panel
 
