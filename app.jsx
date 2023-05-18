@@ -17,20 +17,25 @@ function scru128ToDate(id) {
   return date;
 }
 
+function focusSelected(delay) {
+  setTimeout(() => {
+    const selectedItem = document.querySelector(
+      `.terserow.selected`,
+    );
+    console.log(selectedItem);
+    selectedItem.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, delay);
+}
+
 function updateSelected(n) {
   selected.value = (selected.value + n) % items.value.length;
   if (selected.value < 0) {
     selected.value = items.value.length + selected.value;
   }
-  setTimeout(() => {
-    const selectedItem = document.querySelector(
-      `.terserow.selected`,
-    );
-    selectedItem.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
-  }, 0);
+  focusSelected(5);
 }
 
 const selected = signal(0);
@@ -323,12 +328,16 @@ function App() {
     const onBlur = () => {
       selected.value = 0;
     };
+    const onFocus = () => {
+      focusSelected(100);
+    };
 
     window.addEventListener("blur", onBlur);
+    window.addEventListener("focus", onFocus);
 
-    // Return a cleanup function
     return () => {
       window.removeEventListener("blur", onBlur);
+      window.removeEventListener("focus", onFocus);
     };
   }, []);
 
