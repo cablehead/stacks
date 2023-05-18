@@ -34,8 +34,6 @@ body {
   font-family: ui-monospace;
   background-color: var(--background-color);
   color: var(--text-color);
-  display: flex;
-  flex-direction: column;
 }
 
 html,
@@ -82,26 +80,15 @@ textarea:focus {
   box-shadow: 0 0 2px #aaa;
 }
 
-.results > div {
-  padding: 0.5ch 0.75ch;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.results > div:hover {
+.terserow:hover {
   background-color: var(--alt-secondary-color);
   color: var(--alt-text-color);
 }
 
-.results > div.selected {
+
+.terserow.selected {
   background-color: var(--alt-highlight-color);
   color: var(--alt-text-color);
-}
-
-.container {
-  display: flex;
-  height: 100%;
-  overflow: hidden;
 }
 
 .left-pane {

@@ -197,7 +197,7 @@ function ListView() {
         setTimeout(() => {
           // Scroll the selected item into view
           const selectedItem = mainRef.current.querySelector(
-            `.results > div:nth-child(${selected.value + 1})`,
+            `.terserow:nth-child(${selected.value + 1})`,
           );
           selectedItem.scrollIntoView({
             behavior: "smooth",
@@ -244,15 +244,17 @@ function ListView() {
 
   const TerseRow = ({ item, index }) => (
     <div
-      className={index === selected.value ? "selected" : ""}
+      className={"terserow" + (index === selected.value ? " selected" : "")}
       onClick={() => selected.value = index}
-      style={{
-        display: "flex",
-        width: "100%",
-        maxHeight: "3rem",
-        gap: "0.5ch",
-        overflow: "hidden",
-      }}
+      style="
+        display: flex;
+        width: 100%;
+        gap: 0.5ch;
+        overflow: hidden;
+        padding: 0.5ch 0.75ch;
+        border-radius: 6px;
+        cursor: pointer;
+        "
     >
       <div
         style={{
@@ -280,14 +282,12 @@ function ListView() {
 
   return (
     <main ref={mainRef}>
-      <div class="container">
+      <div style=" display: flex; height: 100%; overflow: hidden;">
         <div class="left-pane">
-          <div class="results">
-            {items.value
-              .map((item, index) => {
-                return <TerseRow item={item} index={index} />;
-              })}
-          </div>
+          {items.value
+            .map((item, index) => {
+              return <TerseRow item={item} index={index} />;
+            })}
         </div>
         <RightPane item={items.value[selected.value]} />
       </div>
