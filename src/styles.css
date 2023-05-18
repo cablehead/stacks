@@ -1,4 +1,3 @@
-/*
 :root {
   --background-color: #0f0e17;
   --header-color: #fffffe;
@@ -13,8 +12,8 @@
   --alt-secondary-color: #f25f4c;
   --alt-tertiary-color: #e53170;
 }
-*/
 
+/*
 :root {
   --background-color: #fffffe;
   --header-color: #272343;
@@ -29,6 +28,7 @@
   --alt-secondary-color: #e3f6f5;
   --alt-tertiary-color: #bae8e8;
 }
+*/
 
 body {
   font-family: ui-monospace;
@@ -40,7 +40,7 @@ body {
 
 html,
 body {
-  font-size: 14px;
+  font-size: 16px;
   height: 100%;
   overflow: hidden;
 }
@@ -56,7 +56,7 @@ main {
   overflow: auto;
   display: flex;
   flex-direction: column;
-  padding: 0.5rem;
+  padding: 2ch;
 }
 
 input {

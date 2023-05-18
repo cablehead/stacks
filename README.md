@@ -11,13 +11,28 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ### Next
 
-- Enter copies
-- / opens fuzzy search input
-- meta-n opens choice: note / command
-- command open command input
-- note opens text area
+- look and feel
+- night mode
+    - add ability to switch
+    - auto-detect system setting / change
+    - method to visualize colors
+    - and try variations
+- more space
 
-- Show symbol for item type
+
+- rounded corners
+- spotlight / good behavior
+- customize key press
+
+- Enter copies
+
+- / opens fuzzy search input
+
+- meta-n opens choice: note / command
+
+- command open command input
+
+- note opens text area
 
 
 ### Clipboard
