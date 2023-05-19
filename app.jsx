@@ -395,9 +395,9 @@ function ListView() {
         </div>
 
         <div style="display: flex">
-        <div onClick={async (e) => console.log(e)} class="hoverable">
-          Search&nbsp;
-          <span style="
+          <div onClick={async (e) => console.log(e)} class="hoverable">
+            Search&nbsp;
+            <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
@@ -405,12 +405,15 @@ function ListView() {
             background-color: #DDD;
             border-radius: 5px;
             ">
-            /
-          </span>
-        </div>
-        <div onClick={async (e) => await triggerCopy()} class="hoverable">
-          Copy&nbsp;
-          <span style="
+              /
+            </span>
+          </div>
+
+          <div style="...">partition</div>
+
+          <div onClick={async (e) => await triggerCopy()} class="hoverable">
+            Copy&nbsp;
+            <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
@@ -418,9 +421,9 @@ function ListView() {
             background-color: #DDD;
             border-radius: 5px;
             ">
-            <IconReturnKey />
-          </span>
-        </div>
+              <IconReturnKey />
+            </span>
+          </div>
         </div>
       </footer>
     </main>
