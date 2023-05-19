@@ -197,6 +197,35 @@ function parseItem(raw) {
   return item;
 }
 
+function FilterInput() {
+  const inputRef = useRef(null);
+
+  useEffect(() => {
+    inputRef.current.focus();
+  }, []);
+
+  return (
+    <div style="
+        border-bottom: solid 1px #aaa;
+        padding:1ch;
+        padding-left:2ch;
+        padding-right:2ch;
+        padding-bottom:0.5ch;
+        display: flex;
+        align-items: center;
+        ">
+      <div>/</div>
+      <div>
+        <input
+          type="text"
+          placeholder="Type a filter..."
+          ref={inputRef}
+        />
+      </div>
+    </div>
+  );
+}
+
 function LeftPane() {
   const TerseRow = ({ item, index }) => (
     <div
@@ -332,6 +361,7 @@ function ListView() {
 
   return (
     <main>
+      <FilterInput />
       <section style="
             display: flex;
             flex-direction: column;
@@ -363,6 +393,21 @@ function ListView() {
         <div style="">
           Clipboard
         </div>
+
+        <div style="display: flex">
+        <div onClick={async (e) => console.log(e)} class="hoverable">
+          Search&nbsp;
+          <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            background-color: #DDD;
+            border-radius: 5px;
+            ">
+            /
+          </span>
+        </div>
         <div onClick={async (e) => await triggerCopy()} class="hoverable">
           Copy&nbsp;
           <span style="
@@ -375,6 +420,7 @@ function ListView() {
             ">
             <IconReturnKey />
           </span>
+        </div>
         </div>
       </footer>
     </main>
