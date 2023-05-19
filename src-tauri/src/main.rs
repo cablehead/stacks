@@ -155,7 +155,7 @@ fn main() {
                     shortcut: String::from("Control+Space"),
                     macos_window_level: Some(20), // Default 24
                 }]),
-                global_close_shortcut: Some(String::from("Escape")),
+                global_close_shortcut: None,
             },
         )))
         .plugin(

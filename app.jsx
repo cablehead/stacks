@@ -234,10 +234,11 @@ function FilterInput() {
         padding-right:2ch;
         padding-bottom:0.5ch;
         display: flex;
+    width: 100%;
         align-items: center;
         ">
       <div>/</div>
-      <div>
+      <div style="width: 100%">
         <input
           type="text"
           placeholder="Type a filter..."
@@ -345,12 +346,18 @@ async function triggerCopy() {
   const item = availableItems.value[selected.value];
   if (item) {
     await writeText(item.preview);
-    hide();
   }
+  clearShowFilter();
+  hide();
 }
 
 function triggerShowFilter() {
   showFilter.value = true;
+}
+
+function clearShowFilter() {
+  currentFilter.value = "";
+  showFilter.value = false;
 }
 
 function ListView() {
@@ -360,6 +367,16 @@ function ListView() {
         case event.key === "Enter":
           await triggerCopy();
           break;
+
+        case event.key === "Escape":
+          event.preventDefault();
+
+          if (showFilter.value) {
+            clearShowFilter();
+            return;
+          }
+          hide();
+          return;
 
         /*
             case event.key === "Enter":
@@ -435,9 +452,11 @@ function ListView() {
         align-items: center;
     gap: 0.5ch;
     ">
-          <div onClick={async (e) => console.log(e)} class="hoverable">
-            Filter&nbsp;
-            <span style="
+          {!showFilter.value &&
+            (
+              <div onClick={triggerShowFilter} class="hoverable">
+                Filter&nbsp;
+                <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
@@ -445,9 +464,27 @@ function ListView() {
             background-color: #DDD;
             border-radius: 5px;
             ">
-              /
-            </span>
-          </div>
+                  /
+                </span>
+              </div>
+            )}
+
+          {showFilter.value &&
+            (
+              <div onClick={clearShowFilter} class="hoverable">
+                Clear Filter&nbsp;
+                <span style="
+            display: inline-block;
+            width: 4ch;
+            height: 1.5em;
+            text-align: center;
+            background-color: #DDD;
+            border-radius: 5px;
+            ">
+                  ESC
+                </span>
+              </div>
+            )}
 
           <div style="
             border-right: 1px solid #eee;
