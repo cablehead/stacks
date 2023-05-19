@@ -127,6 +127,7 @@ fn start_child_process(path: &PathBuf) {
     let path = path.clone();
     std::thread::spawn(move || {
         let mut last_id = None;
+        let mut counter = 0;
         loop {
             let env = xs::store_open(&path);
             let frames = xs::store_cat(&env, last_id);
@@ -134,8 +135,12 @@ fn start_child_process(path: &PathBuf) {
                 last_id = Some(frame.id);
                 let data = serde_json::to_string(&frame).unwrap();
                 PRODUCER.send_data(data);
-                std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
             }
+            if counter % 1000 == 0 {
+                log::info!("start_child_process::last_id: {:?}", last_id);
+            }
+            counter += 1;
+            std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
         }
     });
 }
@@ -156,6 +161,7 @@ fn main() {
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .level_for("tao", log::LevelFilter::Debug)
                 .build(),
         )
         .setup(|app| {
