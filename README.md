@@ -36,8 +36,3 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 - [ ] hide items with empty type
 - [ ] deduplicate items
     - show number of times copied
-
-## Leads
-
-- https://github.com/ast-grep/ast-grep
-
