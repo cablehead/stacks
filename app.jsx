@@ -368,9 +368,8 @@ function ListView() {
               break;
                   */
 
-        case (event.ctrlKey && event.key === "n") ||
+        case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
           event.preventDefault();
-          event.key === "ArrowDown":
           updateSelected(1);
           break;
 
