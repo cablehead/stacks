@@ -394,7 +394,11 @@ function ListView() {
           Clipboard
         </div>
 
-        <div style="display: flex">
+        <div style="
+    display: flex;
+        align-items: center;
+    gap: 0.5ch;
+    ">
           <div onClick={async (e) => console.log(e)} class="hoverable">
             Search&nbsp;
             <span style="
@@ -409,7 +413,12 @@ function ListView() {
             </span>
           </div>
 
-          <div style="...">partition</div>
+          <div style="
+            border-right: 1px solid #eee;
+            width: 1px;
+            height: 1.5em;
+            ">
+          </div>
 
           <div onClick={async (e) => await triggerCopy()} class="hoverable">
             Copy&nbsp;
