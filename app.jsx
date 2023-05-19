@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { signal } from "@preact/signals";
+import { computed, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 const { listen } = require("@tauri-apps/api/event");
@@ -17,28 +17,50 @@ function scru128ToDate(id) {
   return date;
 }
 
+let focusSelectedTimeout = null;
+
 function focusSelected(delay) {
-  setTimeout(() => {
+  if (availableItems.value.length === 0) return;
+  if (focusSelectedTimeout === null) {
+    clearTimeout(focusSelectedTimeout);
+    focusSelectedTimeout = null;
+  }
+  focusSelectedTimeout = setTimeout(() => {
+    focusSelectedTimeout = null;
     const selectedItem = document.querySelector(
       `.terserow.selected`,
     );
-    selectedItem.scrollIntoView({
-      behavior: "smooth",
-      block: "nearest",
-    });
+    if (selectedItem) {
+      selectedItem.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
   }, delay);
 }
 
 function updateSelected(n) {
-  selected.value = (selected.value + n) % items.value.length;
+  if (availableItems.value.length === 0) return;
+  selected.value = (selected.value + n) % availableItems.value.length;
   if (selected.value < 0) {
-    selected.value = items.value.length + selected.value;
+    selected.value = availableItems.value.length + selected.value;
   }
   focusSelected(5);
 }
 
 const selected = signal(0);
 const items = signal([]);
+
+const showFilter = signal(false);
+const currentFilter = signal("");
+
+const availableItems = computed(() =>
+  items.value.filter((item) => {
+    const filter = currentFilter.value.trim();
+    if (filter === "") return true;
+    return item.preview.includes(filter);
+  })
+);
 
 // https://heroicons.com
 const IconClipboard = () => (
@@ -220,6 +242,10 @@ function FilterInput() {
           type="text"
           placeholder="Type a filter..."
           ref={inputRef}
+          onInput={() => {
+            currentFilter.value = inputRef.current.value;
+            updateSelected(0);
+          }}
         />
       </div>
     </div>
@@ -272,7 +298,7 @@ function LeftPane() {
       border-right: 1px solid #aaa;
       padding-right: 0.5rem;
     ">
-      {items.value
+      {availableItems.value
         .map((item, index) => {
           return <TerseRow item={item} index={index} />;
         })}
@@ -316,7 +342,7 @@ function RightPane({ item }) {
 }
 
 async function triggerCopy() {
-  const item = items.value[selected.value];
+  const item = availableItems.value[selected.value];
   if (item) {
     await writeText(item.preview);
     hide();
@@ -343,11 +369,13 @@ function ListView() {
                   */
 
         case (event.ctrlKey && event.key === "n") ||
+          event.preventDefault();
           event.key === "ArrowDown":
           updateSelected(1);
           break;
 
         case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+          event.preventDefault();
           updateSelected(-1);
           break;
       }
@@ -374,7 +402,7 @@ function ListView() {
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <LeftPane />
-          <RightPane item={items.value[selected.value]} />
+          <RightPane item={availableItems.value[selected.value]} />
         </div>
       </section>
 
@@ -400,7 +428,7 @@ function ListView() {
     gap: 0.5ch;
     ">
           <div onClick={async (e) => console.log(e)} class="hoverable">
-            Search&nbsp;
+            Filter&nbsp;
             <span style="
             display: inline-block;
             width: 1.5em;
