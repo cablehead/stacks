@@ -349,6 +349,10 @@ async function triggerCopy() {
   }
 }
 
+function triggerShowFilter() {
+  showFilter.value = true;
+}
+
 function ListView() {
   useEffect(() => {
     async function handleKeys(event) {
@@ -367,6 +371,11 @@ function ListView() {
               }
               break;
                   */
+
+        case ((!showFilter.value) && event.key === "/"):
+          event.preventDefault();
+          triggerShowFilter();
+          break;
 
         case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
           event.preventDefault();
@@ -388,7 +397,7 @@ function ListView() {
 
   return (
     <main>
-      <FilterInput />
+      {showFilter.value && <FilterInput />}
       <section style="
             display: flex;
             flex-direction: column;
