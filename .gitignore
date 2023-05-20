@@ -25,3 +25,4 @@ dist-ssr
 .parcel-cache
 src/app.js
 src/app.js.map
+build.sh
