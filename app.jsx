@@ -58,7 +58,7 @@ const availableItems = computed(() =>
   items.value.filter((item) => {
     const filter = currentFilter.value.trim();
     if (filter === "") return true;
-    return item.preview.includes(filter);
+    return item.terse.includes(filter);
   })
 );
 
@@ -206,8 +206,16 @@ function parseItem(raw) {
         item.preview = item.terse;
         break;
       }
-      item.icon = <IconImage />;
-      item.terse = data.source;
+
+      if ("public.png" in data.types) {
+        item.icon = <IconImage />;
+        item.terse = data.source;
+        item.preview = <img src={"data:image/png;base64,"+data["types"]["public.png"]} />;
+        break;
+      }
+
+      item.icon = <IconBell />;
+      item.terse = item.data;
       item.preview = item.data;
       break;
 
@@ -328,8 +336,8 @@ function RightPane({ item }) {
 
   return (
     <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
-      <div style="padding-bottom: 0.5rem; border-bottom: 1px solid #aaa; flex:2; overflow-y: auto;">
-        <pre style="margin: 0;">
+      <div style="padding-bottom: 0.5rem; border-bottom: 1px solid #aaa; flex:2; overflow: auto;">
+        <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
         {item.preview}
         </pre>
       </div>
