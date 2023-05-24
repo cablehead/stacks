@@ -2,13 +2,13 @@
   "build": {
     "beforeDevCommand": "",
     "beforeBuildCommand": "",
-    "devPath": "../src",
-    "distDir": "../src",
+    "devPath": "../site",
+    "distDir": "../site",
     "withGlobalTauri": true
   },
   "package": {
     "productName": "Stacks",
-    "version": "0.2.0"
+    "version": "0.3.1"
   },
   "tauri": {
     "allowlist": {

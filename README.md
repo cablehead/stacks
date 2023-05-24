@@ -4,8 +4,11 @@
 ## How to run
 
 ```
-cargo tauri dev -- -- $(realpath ./s)
-parcel watch app.jsx --no-hmr --dist-dir ./src
+parcel watch src/index.html --no-hmr --dist-dir ./site
+cargo tauri dev
+
+# Type checking:
+./scripts/ts-check.sh
 ```
 
 ## Features
@@ -14,15 +17,21 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 ![filter screenshot](./docs/filter-screenshot.webp)
 
+### Dark Mode
+
+![dark mode](./docs/dark-mode.webp)
+
 ## Todo
 
 ### Next
 
-- night mode
-    - add ability to switch
-    - auto-detect system setting / change
-    - method to visualize colors
-    - and try variations
+- clean up focus handling
+    - reset to start state of 1 minute
+
+- clean up meta panel. add:
+    - image info
+
+- page init has become really slow
 
 - handle clipboard images
     - in preview
@@ -30,14 +39,7 @@ parcel watch app.jsx --no-hmr --dist-dir ./src
 
 - customize key press
 
-- clean up meta panel
-
-
 - meta-n opens choice: note / command
 
-### Clipboard
-
-- [ ] show the last time copied
-- [ ] hide items with empty type
-- [ ] deduplicate items
-    - show number of times copied
+- add filter: content type
+- add filter: number of times copied

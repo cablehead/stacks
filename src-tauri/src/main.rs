@@ -9,6 +9,7 @@ use std::sync::Arc;
 use std::sync::Mutex;
 
 use tauri::Window;
+use tauri::Manager;
 use tauri_plugin_log::LogTarget;
 
 use lazy_static::lazy_static;
@@ -165,6 +166,10 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
+            let _window = app.get_window("main").unwrap();
+            // window.open_devtools();
+            // window.close_devtools();
+
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let data_dir = app.path_resolver().app_data_dir().unwrap();

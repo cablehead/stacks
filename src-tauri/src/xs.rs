@@ -78,7 +78,12 @@ pub fn store_open(path: &std::path::Path) -> lmdb::Environment {
     let env = lmdb::Environment::new()
         .set_map_size(10 * 10485760)
         .open(path)
-        .unwrap();
+        .unwrap_or_else(|err| {
+            panic!(
+                "Failed to open LMDB environment at path: {:?}\nError: {:?}",
+                path, err
+            );
+        });
     return env;
 }
 
