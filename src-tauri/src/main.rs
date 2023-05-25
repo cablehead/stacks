@@ -2,6 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::collections::HashMap;
+use std::path::Path;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -50,7 +51,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
     }
 
     let should_continue = Arc::new(AtomicBool::new(true));
-    process_map.insert(label.clone(), should_continue.clone());
+    process_map.insert(label, should_continue.clone());
     drop(process_map); // Explicitly drop the lock
 
     let (initial_data, consumer) = PRODUCER.add_consumer();
@@ -74,8 +75,8 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
 // todo: investigate switching to: https://docs.rs/notify/latest/notify/
 const POLL_INTERVAL: u64 = 5;
 
-fn start_child_process(path: &PathBuf) {
-    let path = path.clone();
+fn start_child_process(path: &Path) {
+    let path = path.to_path_buf();
     std::thread::spawn(move || {
         let mut last_id = None;
         let mut counter = 0;
@@ -128,8 +129,8 @@ fn main() {
             let mut shared = DATADIR.lock().unwrap();
             *shared = data_dir;
 
-            clipboard::start(&*shared);
-            start_child_process(&*shared);
+            clipboard::start(&shared);
+            start_child_process(&shared);
 
             Ok(())
         })

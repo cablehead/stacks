@@ -40,9 +40,7 @@ impl Producer {
 
         let mut senders = self.senders.lock().unwrap();
         // Remove disconnected senders and send data to connected ones
-        senders.retain(|sender| {
-            !sender.send(item.clone()).is_err()
-        });
+        senders.retain(|sender| sender.send(item.clone()).is_ok());
     }
 
     #[cfg(test)]
