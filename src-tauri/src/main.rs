@@ -8,7 +8,9 @@ use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::sync::Mutex;
 
+use tauri::CustomMenuItem;
 use tauri::Manager;
+use tauri::SystemTrayMenu;
 use tauri::Window;
 use tauri_plugin_log::LogTarget;
 
@@ -98,7 +100,29 @@ fn start_child_process(path: &Path) {
 }
 
 fn main() {
+    let context = tauri::generate_context!();
+    let config = context.config();
+    let version = &config.package.version.clone().unwrap();
+
+    let menu = SystemTrayMenu::new()
+        .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
+        .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
+    let system_tray = tauri::SystemTray::new().with_menu(menu);
+
     tauri::Builder::default()
+        .system_tray(system_tray)
+        .on_system_tray_event(|_app, event| {
+            if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
+                match id.as_str() {
+                    "quit" => {
+                        std::process::exit(0);
+                    }
+                    _ => {}
+                }
+            }
+        })
         .invoke_handler(tauri::generate_handler![init_process])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
@@ -134,6 +158,6 @@ fn main() {
 
             Ok(())
         })
-        .run(tauri::generate_context!())
+        .run(context)
         .expect("error while running tauri application");
 }

@@ -8,9 +8,13 @@
   },
   "package": {
     "productName": "Stacks",
-    "version": "0.3.2"
+    "version": "0.3.3"
   },
   "tauri": {
+    "systemTray": {
+      "iconPath": "icons/system-tray-icon.png",
+      "iconAsTemplate": true
+    },
     "allowlist": {
       "all": false,
       "clipboard": {
