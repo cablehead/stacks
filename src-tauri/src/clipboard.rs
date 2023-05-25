@@ -2,8 +2,6 @@ use std::path::PathBuf;
 
 use tauri::api::process::{Command, CommandEvent};
 
-use crate::xs;
-
 pub fn start(path: &PathBuf) {
     let path = path.clone();
     let (mut rx, _child) = Command::new_sidecar("x-macos-pasteboard")
@@ -15,8 +13,8 @@ pub fn start(path: &PathBuf) {
         while let Some(event) = rx.recv().await {
             if let CommandEvent::Stdout(line) = event {
                 let path = path.clone();
-                let env = xs::store_open(&path);
-                log::info!("{}", xs::store_put(&env, Some("clipboard".into()), None, line));
+                let env = xs_lib::store_open(&path);
+                log::info!("{}", xs_lib::store_put(&env, Some("clipboard".into()), None, line));
             }
         }
     });

@@ -2,21 +2,19 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
 use std::collections::HashMap;
-use std::io::Write;
 use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::sync::Mutex;
 
-use tauri::Window;
 use tauri::Manager;
+use tauri::Window;
 use tauri_plugin_log::LogTarget;
 
 use lazy_static::lazy_static;
 
 mod clipboard;
 mod producer;
-mod xs;
 
 lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
@@ -71,58 +69,10 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
     Ok(initial_data)
 }
 
-#[tauri::command]
-fn run_command(command: &str) -> Result<CommandOutput, String> {
-    let parts = shlex::split(command).ok_or("Failed to parse command")?;
-    let program = parts.get(0).ok_or("No program specified")?;
-    let args = &parts[1..];
-
-    let output = std::process::Command::new(program)
-        .args(args)
-        .stdout(std::process::Stdio::piped())
-        .stderr(std::process::Stdio::piped())
-        .output()
-        .map_err(|e| format!("Failed to execute command: {}", e))?;
-
-    let stdout = String::from_utf8(output.stdout).unwrap_or_else(|_| String::new());
-    let stderr = String::from_utf8(output.stderr).unwrap_or_else(|_| String::new());
-    let exit_code = output.status.code().unwrap_or(-1);
-
-    let output = CommandOutput {
-        stdout,
-        stderr,
-        exit_code,
-    };
-
-    let json_data = serde_json::json!({
-        "command": command,
-        "output": output
-    });
-
-    let json_string = json_data.to_string();
-
-    let data_dir = DATADIR.lock().unwrap();
-
-    let mut child = std::process::Command::new("xs")
-        .arg(&*data_dir)
-        .arg("put")
-        .arg("--topic")
-        .arg("command")
-        .stdin(std::process::Stdio::piped())
-        .spawn()
-        .map_err(|e| format!("Failed to execute xs command: {}", e))?;
-
-    if let Some(ref mut stdin) = child.stdin {
-        stdin
-            .write_all(json_string.as_bytes())
-            .map_err(|e| format!("Failed to write to xs stdin: {}", e))?;
-    }
-
-    // Wait for the subprocess to finish
-    let _ = child.wait();
-
-    Ok(output)
-}
+// POLL_INTERVAL is the number of milliseconds to wait between polls when watching for
+// additions to the stream
+// todo: investigate switching to: https://docs.rs/notify/latest/notify/
+const POLL_INTERVAL: u64 = 5;
 
 fn start_child_process(path: &PathBuf) {
     let path = path.clone();
@@ -130,8 +80,8 @@ fn start_child_process(path: &PathBuf) {
         let mut last_id = None;
         let mut counter = 0;
         loop {
-            let env = xs::store_open(&path);
-            let frames = xs::store_cat(&env, last_id);
+            let env = xs_lib::store_open(&path);
+            let frames = xs_lib::store_cat(&env, last_id);
             for frame in frames {
                 last_id = Some(frame.id);
                 let data = serde_json::to_string(&frame).unwrap();
@@ -141,14 +91,14 @@ fn start_child_process(path: &PathBuf) {
                 log::info!("start_child_process::last_id: {:?}", last_id);
             }
             counter += 1;
-            std::thread::sleep(std::time::Duration::from_millis(xs::POLL_INTERVAL));
+            std::thread::sleep(std::time::Duration::from_millis(POLL_INTERVAL));
         }
     });
 }
 
 fn main() {
     tauri::Builder::default()
-        .invoke_handler(tauri::generate_handler![init_process, run_command])
+        .invoke_handler(tauri::generate_handler![init_process])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
