@@ -3,6 +3,10 @@ import { Signal } from "@preact/signals";
 
 const CryptoJS = require("crypto-js");
 
+function b64ToUtf8(str) {
+    return decodeURIComponent(escape(window.atob(str)));
+}
+
 export type Item = {
   id: string;
   topic: string;
@@ -45,7 +49,7 @@ function parseItem(raw: string): Item | false {
           return false;
         }
         item.icon = "IconClipboard";
-        item.terse = atob(data.types["public.utf8-plain-text"]);
+        item.terse = b64ToUtf8(data.types["public.utf8-plain-text"]);
         item.preview = item.terse;
         item.key = CryptoJS.MD5(item.preview).toString();
         break;
