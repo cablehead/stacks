@@ -5,7 +5,7 @@
   "platforms": {
     "darwin-aarch64": {
       "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE1qbUkwZ0JvWUlqeVFVR01iRWpPSWtrQnNSbTFZbXR3NzA5bStPZWRkQzVsUFczWXZtNWlKQ0VURXE2TFB6dkdBVmJqL0owOTBuNCtidmNRZG5RVWdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg1MTM1MTY5CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKMll1SmtZS1dYZWVhaXJjUDJ6aU5IVldEN0pBY0E1TWNxaGlCK05Edm44RlE4OWpnalJCZEVzVkVseXJVRVNpNmpWQXluVzdmWGJkdGx1djJOTjE0REE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/0.3.5/Stacks_0.3.5_aarch64.app.tar.gz"
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.3.5/Stacks_0.3.5_aarch64.app.tar.gz"
     }
   }
 }

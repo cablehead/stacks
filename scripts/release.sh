@@ -36,7 +36,7 @@ cat > .tauri-updater.json << EOF
   "platforms": {
     "darwin-aarch64": {
       "signature": "$sig_file_contents",
-      "url": "https://github.com/cablehead/stacks/releases/download/$version/Stacks_${version}_${arch}.app.tar.gz"
+      "url": "https://github.com/cablehead/stacks/releases/download/v$version/Stacks_${version}_${arch}.app.tar.gz"
     }
   }
 }
