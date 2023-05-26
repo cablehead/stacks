@@ -108,16 +108,25 @@ fn main() {
         .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
         .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
         .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new(
+            "check-updates".to_string(),
+            "Check for Updates...",
+        ))
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
         .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
     let system_tray = tauri::SystemTray::new().with_menu(menu);
 
     tauri::Builder::default()
         .system_tray(system_tray)
-        .on_system_tray_event(|_app, event| {
+        .on_system_tray_event(|app, event| {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
                 match id.as_str() {
+                    "check-updates" => {
+                        println!("update");
+                        app.trigger_global("tauri://update", None);
+                    }
                     "quit" => {
-                        std::process::exit(0);
+                        app.exit(0);
                     }
                     _ => {}
                 }

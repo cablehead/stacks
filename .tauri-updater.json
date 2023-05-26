@@ -1,0 +1,11 @@
+{
+  "version": "0.3.4",
+  "notes": "First version with Tauri's update enabled",
+  "pub_date": "2023-05-26T16:49:53-04:00",
+  "platforms": {
+    "darwin-aarch64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEtmb21NWjdzNFRkSUNOQlJmMXhlME5FOG1uVlEybWVyM2YvV0dFYVZlK1BWT0ovRWJ1SUpaTGxmTFZqeTVOQU5RQXdGK1lYSUE4RXdNUk9GSGRpR3drPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg1MTM0MTgxCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYWdORVNpMG1zb1FmV1lkODRzL2NFUnBab2x5VE9GNjRPYTd1eHhjbmRZc2pNazcwaFhjdXlWN3A0eEk1TVJqejVPOGphQUV3NzdBbjdLRDEyUndMQWc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/0.3.4/Stacks_0.3.4_aarch64.app.tar.gz"
+    }
+  }
+}
