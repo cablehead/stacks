@@ -34,14 +34,6 @@ function parseItem(raw: string): Item | false {
   item.meta = new Array();
 
   switch (item.topic) {
-    case "command":
-      item.o = JSON.parse(item.data);
-      item.icon = "IconCommandLine";
-      item.terse = item.o.command;
-      item.preview = item.o.output.stdout;
-      item.key = CryptoJS.MD5(item.preview).toString();
-      break;
-
     case "clipboard":
       let data = JSON.parse(item.data);
       if ("public.utf8-plain-text" in data.types) {

@@ -73,7 +73,7 @@ fn init_process(window: Window) -> Result<Vec<String>, String> {
 // POLL_INTERVAL is the number of milliseconds to wait between polls when watching for
 // additions to the stream
 // todo: investigate switching to: https://docs.rs/notify/latest/notify/
-const POLL_INTERVAL: u64 = 5;
+const POLL_INTERVAL: u64 = 10;
 
 fn start_child_process(path: &Path) {
     let path = path.to_path_buf();
