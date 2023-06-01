@@ -7,6 +7,7 @@ use base64::decode;
 use lazy_static::lazy_static;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
+use std::cmp::min;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
@@ -40,15 +41,17 @@ lazy_static! {
 
 struct Item {
     mime_type: String,
+    terse: String,
     content: Vec<u8>,
     hash: String,
 }
 
 impl Item {
-    fn new(mime_type: &str, content: &[u8]) -> Self {
+    fn new(mime_type: &str, terse: &str, content: &[u8]) -> Self {
         let hash = format!("{:x}", Sha256::digest(content));
         Self {
             mime_type: mime_type.to_string(),
+            terse: terse.to_string(),
             content: content.to_vec(),
             hash,
         }
@@ -57,26 +60,32 @@ impl Item {
     fn from_frame(frame: &xs_lib::Frame) -> Option<Self> {
         match &frame.topic {
             Some(topic) if topic == "clipboard" => {
-                let parsed_data: Value = serde_json::from_str(&frame.data).unwrap();
-                let types = parsed_data["types"].as_object().unwrap();
+                let clipped: Value = serde_json::from_str(&frame.data).unwrap();
+                let types = clipped["types"].as_object().unwrap();
 
                 if types.contains_key("public.utf8-plain-text") {
                     #[allow(deprecated)]
                     let content =
                         decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-                    Some(Item::new("text/plain", &content))
+                    let terse = &String::from_utf8(content.clone()).unwrap()[..min(content.len(), 100)];
+                    Some(Item::new("text/plain", &terse, &content))
                 } else if types.contains_key("public.png") {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
-                    Some(Item::new("image/png", &content))
+                    Some(Item::new(
+                        "image/png",
+                        clipped["source"].as_str().unwrap(),
+                        &content,
+                    ))
                 } else {
                     println!("types: {:?}", types);
                     None
                 }
             }
-            Some(_) => {
-                let content = frame.data.as_bytes();
-                Some(Item::new("text/plain", &content))
-            }
+            Some(_) => Some(Item::new(
+                "text/plain",
+                &frame.data[..min(frame.data.len(), 100)],
+                frame.data.as_bytes(),
+            )),
             None => None,
         }
     }
