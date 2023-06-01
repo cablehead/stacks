@@ -19,7 +19,12 @@ import {
   lightThemeClass,
 } from "./app.css.ts";
 
-import { addItem, Item } from "./items.tsx";
+interface Item {
+  mime_type: string;
+  hash: string;
+  last_copied: number;
+  terse: string;
+}
 
 let focusSelectedTimeout: number | undefined;
 
@@ -53,24 +58,16 @@ function updateSelected(n: number) {
 }
 
 const selected = signal(0);
-const items = signal(new Map());
+const items = signal<Item[]>([]);
 
 const showFilter = signal(false);
 const currentFilter = signal("");
 
 const themeMode = signal("light");
 
-function cmp(a: any, b: any) {
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
 const availableItems = computed(() => {
+  return items.value;
+  /*
   const ret = Array.from(items.value.values())
     .filter((item) => {
       const filter = currentFilter.value.trim().toLowerCase();
@@ -79,6 +76,7 @@ const availableItems = computed(() => {
     })
     .sort((a, b) => cmp(b.id, a.id));
   return ret;
+  */
 });
 
 function FilterInput() {
@@ -143,7 +141,13 @@ function LeftPane() {
           overflow: "hidden",
         }}
       >
-        <Icon name={item.icon} />
+        <Icon
+          name={
+            // item.icon
+            // todo
+            "IconClipboard"
+          }
+        />
       </div>
 
       <div
@@ -206,13 +210,21 @@ function RightPane({ item }: { item: Item }) {
 				"
       >
         <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-        {item.preview}
+        {
+            // item.preview
+            "todo"
+             }
+        // item.preview
+
         </pre>
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {item.meta.map((info) => (
-          <MetaInfoRow name={info.name} value={info.value} />
-        ))}
+        {
+          // item.meta todo
+          new Array().map((info) => (
+            <MetaInfoRow name={info.name} value={info.value} />
+          ))
+        }
       </div>
     </div>
   );
@@ -221,7 +233,7 @@ function RightPane({ item }: { item: Item }) {
 async function triggerCopy() {
   const item = availableItems.value[selected.value];
   if (item) {
-    await writeText(item.preview);
+    await writeText("todo"); // item.preview);
   }
   clearShowFilter();
   hide();
@@ -397,7 +409,7 @@ function Main() {
             text-align: center;
             border-radius: 5px;
             ">
-            # {items.value.size}
+              # {items.value.length}
             </span>
           </div>
         </div>
@@ -416,17 +428,11 @@ function App() {
 
     function handleDataFromRust(event: DataFromRustEvent) {
       console.log("Data pushed from Rust:", event);
-      addItem(
-        event.payload.message,
-        items,
-        availableItems,
-        selected,
-        focusSelected,
-        updateSelected,
-      );
+      items.value = JSON.parse(event.payload.message);
+      updateSelected(0);
     }
 
-      listen("item", handleDataFromRust);
+    listen("recent-items", handleDataFromRust);
 
     // set selection back to the top onBlur
     const onBlur = () => {

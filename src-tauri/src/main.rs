@@ -35,6 +35,15 @@ pub struct CommandOutput {
 // todo: investigate switching to: https://docs.rs/notify/latest/notify/
 const POLL_INTERVAL: u64 = 10;
 
+#[tauri::command]
+fn get_item_content(hash: String) -> Option<String> {
+    let items = ITEMS.lock().unwrap();
+    items.get(&hash).map(|item| {
+        let content = String::from_utf8(item.content.clone()).unwrap();
+        content
+    })
+}
+
 lazy_static! {
     static ref ITEMS: Mutex<HashMap<String, Item>> = Mutex::new(HashMap::new());
 }
@@ -74,8 +83,11 @@ impl Item {
                     #[allow(deprecated)]
                     let content =
                         decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-                    let terse =
-                        &String::from_utf8(content.clone()).unwrap()[..min(content.len(), 100)];
+                    let terse: String = String::from_utf8(content.clone())
+                        .unwrap()
+                        .chars()
+                        .take(100)
+                        .collect();
                     Some(Item::new("text/plain", &terse, &content, timestamp))
                 } else if types.contains_key("public.png") {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
@@ -155,15 +167,27 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
             let env = xs_lib::store_open(&path).unwrap();
             let frames = xs_lib::store_cat(&env, last_id).unwrap();
 
+            let mut updated = false;
+
             for frame in frames {
                 last_id = Some(frame.id);
                 let item = Item::from_frame(&frame);
                 if let Some(item) = item {
+                    updated = true;
                     merge_item(item);
                 }
             }
 
-            app.emit_all("recent-items", Payload { message: recent_items() }).unwrap();
+            if updated {
+                app.emit_all(
+                    "recent-items",
+                    Payload {
+                        message: recent_items(),
+                    },
+                )
+                .unwrap();
+            }
+
             if counter % 1000 == 0 {
                 log::info!("start_child_process::last_id: {:?}", last_id);
             }
@@ -207,7 +231,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![])
+        .invoke_handler(tauri::generate_handler![get_item_content])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
