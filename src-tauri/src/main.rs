@@ -3,7 +3,6 @@
 
 use std::collections::HashMap;
 use std::path::Path;
-use std::path::PathBuf;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
 use std::sync::Mutex;
@@ -22,7 +21,6 @@ mod producer;
 lazy_static! {
     static ref PRODUCER: producer::Producer = producer::Producer::new();
     static ref PROCESS_MAP: Mutex<HashMap<String, Arc<AtomicBool>>> = Mutex::new(HashMap::new());
-    static ref DATADIR: Mutex<PathBuf> = Mutex::new(PathBuf::new());
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -159,11 +157,9 @@ fn main() {
             let data_dir = app.path_resolver().app_data_dir().unwrap();
             let data_dir = data_dir.join("stream");
             log::info!("PR: {:?}", data_dir);
-            let mut shared = DATADIR.lock().unwrap();
-            *shared = data_dir;
 
-            clipboard::start(&shared);
-            start_child_process(&shared);
+            clipboard::start(&data_dir);
+            start_child_process(&data_dir);
 
             Ok(())
         })
