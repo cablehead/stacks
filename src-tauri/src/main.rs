@@ -7,7 +7,7 @@ use base64::decode;
 use lazy_static::lazy_static;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::cmp::min;
+use std::cmp::{max, min};
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
@@ -44,20 +44,27 @@ struct Item {
     terse: String,
     content: Vec<u8>,
     hash: String,
+    last_copied: u64,
+    first_copied: u64,
+    num: u32,
 }
 
 impl Item {
-    fn new(mime_type: &str, terse: &str, content: &[u8]) -> Self {
+    fn new(mime_type: &str, terse: &str, content: &[u8], timestamp: u64) -> Self {
         let hash = format!("{:x}", Sha256::digest(content));
         Self {
             mime_type: mime_type.to_string(),
             terse: terse.to_string(),
             content: content.to_vec(),
             hash,
+            last_copied: timestamp,
+            first_copied: timestamp,
+            num: 1,
         }
     }
 
     fn from_frame(frame: &xs_lib::Frame) -> Option<Self> {
+        let timestamp = frame.id.timestamp();
         match &frame.topic {
             Some(topic) if topic == "clipboard" => {
                 let clipped: Value = serde_json::from_str(&frame.data).unwrap();
@@ -67,14 +74,16 @@ impl Item {
                     #[allow(deprecated)]
                     let content =
                         decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-                    let terse = &String::from_utf8(content.clone()).unwrap()[..min(content.len(), 100)];
-                    Some(Item::new("text/plain", &terse, &content))
+                    let terse =
+                        &String::from_utf8(content.clone()).unwrap()[..min(content.len(), 100)];
+                    Some(Item::new("text/plain", &terse, &content, timestamp))
                 } else if types.contains_key("public.png") {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
                     Some(Item::new(
                         "image/png",
                         clipped["source"].as_str().unwrap(),
                         &content,
+                        timestamp,
                     ))
                 } else {
                     println!("types: {:?}", types);
@@ -85,10 +94,56 @@ impl Item {
                 "text/plain",
                 &frame.data[..min(frame.data.len(), 100)],
                 frame.data.as_bytes(),
+                timestamp,
             )),
             None => None,
         }
     }
+}
+
+fn merge_item(item: Item) {
+    let mut items = ITEMS.lock().unwrap();
+    match items.get_mut(&item.hash) {
+        Some(existing_item) => {
+            assert_eq!(
+                existing_item.mime_type, item.mime_type,
+                "Mime types don't match"
+            );
+            existing_item.num += 1;
+            existing_item.last_copied = max(existing_item.last_copied, item.last_copied);
+            existing_item.first_copied = min(existing_item.first_copied, item.first_copied);
+        }
+        None => {
+            items.insert(item.hash.clone(), item);
+        }
+    }
+}
+
+#[derive(serde::Serialize)]
+struct RecentItem {
+    mime_type: String,
+    hash: String,
+    last_copied: u64,
+    terse: String,
+}
+
+fn recent_items() -> String {
+    let items = ITEMS.lock().unwrap();
+    let mut recent_items: Vec<&Item> = items.values().collect();
+    recent_items.sort_unstable_by(|a, b| b.last_copied.cmp(&a.last_copied));
+    recent_items.truncate(400);
+
+    let recent_items: Vec<RecentItem> = recent_items
+        .iter()
+        .map(|item| RecentItem {
+            mime_type: item.mime_type.clone(),
+            hash: item.hash.clone(),
+            last_copied: item.last_copied,
+            terse: item.terse.clone(),
+        })
+        .collect();
+
+    serde_json::to_string(&recent_items).unwrap()
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
@@ -104,11 +159,11 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                 last_id = Some(frame.id);
                 let item = Item::from_frame(&frame);
                 if let Some(item) = item {
-                    ITEMS.lock().unwrap().insert(item.hash.clone(), item);
+                    merge_item(item);
                 }
             }
 
-            // app.emit_all("item", Payload { message: data }).unwrap();
+            app.emit_all("recent-items", Payload { message: recent_items() }).unwrap();
             if counter % 1000 == 0 {
                 log::info!("start_child_process::last_id: {:?}", last_id);
             }
