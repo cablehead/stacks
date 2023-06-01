@@ -197,11 +197,14 @@ function RightPane({ item }: { item: Item }) {
 
   return (
     <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
-      <div className={borderBottom} style="
+      <div
+        className={borderBottom}
+        style="
 				padding-bottom: 0.5rem;
 				flex:2;
 				overflow: auto;
-				">
+				"
+      >
         <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
         {item.preview}
         </pre>
@@ -375,6 +378,26 @@ function Main() {
               {themeMode.value == "light"
                 ? <Icon name="IconMoon" />
                 : <Icon name="IconSun" />}
+            </span>
+          </div>
+
+          <div
+            className={borderRight}
+            style={{
+              width: "1px",
+              height: "1.5em",
+            }}
+          />
+
+          <div>
+            <span style="
+            display: inline-block;
+            width: 8ch;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+            # {items.value.size}
             </span>
           </div>
         </div>

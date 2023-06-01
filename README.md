@@ -22,13 +22,16 @@ cargo tauri dev
 
 ## Todo
 
+- page init has become really slow
+- new clipboard items can stop updating
+
 - delete items
+
 - mark a source as don't track (for password managers, etc).
 - clean up focus handling
     - reset to start state of 1 minute
 - clean up meta panel. add:
     - image info
-- page init has become really slow
 - handle clipboard images
     - in preview
     - when the user hits enter

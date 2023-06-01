@@ -83,8 +83,8 @@ fn start_child_process(path: &Path) {
         let mut last_id = None;
         let mut counter = 0;
         loop {
-            let env = xs_lib::store_open(&path);
-            let frames = xs_lib::store_cat(&env, last_id);
+            let env = xs_lib::store_open(&path).unwrap();
+            let frames = xs_lib::store_cat(&env, last_id).unwrap();
             for frame in frames {
                 last_id = Some(frame.id);
                 let data = serde_json::to_string(&frame).unwrap();

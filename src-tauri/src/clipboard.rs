@@ -13,10 +13,10 @@ pub fn start(path: &Path) {
         while let Some(event) = rx.recv().await {
             if let CommandEvent::Stdout(line) = event {
                 let path = path.clone();
-                let env = xs_lib::store_open(&path);
+                let env = xs_lib::store_open(&path).unwrap();
                 log::info!(
                     "{}",
-                    xs_lib::store_put(&env, Some("clipboard".into()), None, line)
+                    xs_lib::store_put(&env, Some("clipboard".into()), None, line).unwrap()
                 );
             }
         }

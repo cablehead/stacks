@@ -4018,9 +4018,9 @@ dependencies = [
 
 [[package]]
 name = "xs-lib"
-version = "0.3.0"
+version = "0.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "540b3e445ab26ecf6638bf2fa8414bfbb4811270a53cb701d24d25a45b862776"
+checksum = "e8979ab0429f281f51d5c5b13de59de56b7b0d60414de211189c85e6ddd95650"
 dependencies = [
  "clap",
  "lmdb-rkv",
