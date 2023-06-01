@@ -426,25 +426,7 @@ function App() {
       );
     }
 
-    async function fetchData() {
-      try {
-        const data: string[] = await invoke("init_process");
-        data.forEach((raw) => {
-          addItem(
-            raw,
-            items,
-            availableItems,
-            selected,
-            focusSelected,
-            updateSelected,
-          );
-        });
-      } catch (error) {
-        console.error("Error in init_process:", error);
-      }
       listen("item", handleDataFromRust);
-    }
-    fetchData();
 
     // set selection back to the top onBlur
     const onBlur = () => {
