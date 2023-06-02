@@ -209,18 +209,14 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
         let mut counter = 0;
         loop {
             let env = xs_lib::store_open(&path).unwrap();
+
             let frames = xs_lib::store_cat(&env, last_id).unwrap();
-
-            let mut updated = false;
-
-            for frame in frames {
-                last_id = Some(frame.id);
-                let mut state = STATE.lock().unwrap();
-                state.add_frame(&frame);
-                updated = true;
-            }
-
-            if updated {
+            if frames.len() > 0 {
+                for frame in frames {
+                    last_id = Some(frame.id);
+                    let mut state = STATE.lock().unwrap();
+                    state.add_frame(&frame);
+                }
                 app.emit_all("recent-items", recent_items()).unwrap();
             }
 
