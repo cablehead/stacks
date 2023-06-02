@@ -164,6 +164,11 @@ fn recent_items() -> String {
                 value: Some(item.ids[0].to_string()),
                 timestamp: None,
             });
+            meta.push(MetaValue {
+                name: "Mime Type".to_string(),
+                value: Some(item.mime_type.clone()),
+                timestamp: None,
+            });
             if item.ids.len() == 1 {
                 meta.push(MetaValue {
                     name: "Copied".to_string(),

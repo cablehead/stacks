@@ -256,9 +256,18 @@ function RightPane({ item }: { item: ItemTerse }) {
 				overflow: auto;
 				"
       >
-        <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-            { showContent.value }
-        </pre>
+        {item.mime_type === "image/png"
+          ? (
+            <img
+              src={"data:image/png;base64," + showContent.value}
+              style={{ opacity: 0.6 }}
+            />
+          )
+          : (
+            <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { showContent.value }
+            </pre>
+          )}
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
         {item.meta.map((info) => <MetaInfoRow {...info} />)}
@@ -271,7 +280,7 @@ async function triggerCopy() {
   const item = availableItems.value[selected.value];
   if (item) {
     if (item.mime_type != "text/plain") {
-      alert(item.mime_type);
+      console.log("MIEM", item.mime_type);
     } else {
       let content = await getContent(item.hash);
       await writeText(content);
