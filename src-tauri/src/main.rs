@@ -40,7 +40,7 @@ async fn get_item_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
-fn init_window() -> Vec<ItemTerse> {
+fn init_window() -> Vec<Item> {
     recent_items()
 }
 
@@ -122,6 +122,7 @@ lazy_static! {
     static ref STATE: Mutex<State> = Mutex::new(State::new());
 }
 
+#[derive(Clone, serde::Serialize)]
 struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
@@ -146,12 +147,15 @@ struct MetaValue {
     timestamp: Option<u64>,
 }
 
-fn recent_items() -> Vec<ItemTerse> {
+fn recent_items() -> Vec<Item> {
     let items = &STATE.lock().unwrap().items;
-    let mut recent_items: Vec<&Item> = items.values().collect();
+    let mut recent_items: Vec<Item> = items.values().cloned().collect();
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
+    recent_items
+}
 
+        /*
     recent_items
         .iter()
         .map(|item| {
@@ -200,7 +204,7 @@ fn recent_items() -> Vec<ItemTerse> {
             }
         })
         .collect()
-}
+        */
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
     let path = path.to_path_buf();
