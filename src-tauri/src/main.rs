@@ -178,7 +178,7 @@ fn recent_items() -> String {
 
 fn format_scru128_date(id: scru128::Scru128Id) -> String {
     let timestamp = id.timestamp();
-    let datetime = Utc.timestamp(timestamp as i64, 0);
+    let datetime = Utc.timestamp_opt(timestamp as i64, 0).unwrap(); 
     datetime.format("%a %Y-%b-%d %I:%M %p").to_string()
 }
 
