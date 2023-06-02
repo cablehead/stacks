@@ -19,7 +19,7 @@ import {
   lightThemeClass,
 } from "./app.css.ts";
 
-interface Item {
+interface ItemTerse {
   mime_type: string;
   hash: string;
   last_copied: number;
@@ -30,7 +30,7 @@ interface Item {
 // Global State
 const themeMode = signal("light");
 
-const items = signal<Item[]>([]);
+const items = signal<ItemTerse[]>([]);
 const selected = signal(0);
 
 const availableItems = computed(() => {
@@ -126,7 +126,7 @@ function FilterInput() {
 }
 
 function LeftPane() {
-  const TerseRow = ({ item, index }: { item: Item; index: number }) => (
+  const TerseRow = ({ item, index }: { item: ItemTerse; index: number }) => (
     <div
       className={"terserow" + (index === selected.value ? " selected" : "")}
       onClick={() => selected.value = index}
@@ -187,7 +187,7 @@ function LeftPane() {
   );
 }
 
-function RightPane({ item }: { item: Item }) {
+function RightPane({ item }: { item: ItemTerse }) {
   if (!item) {
     return <div />;
   }
