@@ -7,7 +7,6 @@ use base64::decode;
 use lazy_static::lazy_static;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
-use std::cmp::min;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
@@ -34,10 +33,10 @@ const POLL_INTERVAL: u64 = 10;
 async fn get_item_content(hash: String) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
     let state = STATE.lock().unwrap();
-    state.items.get(&hash).map(|item| {
-        let content = String::from_utf8(item.content.clone()).unwrap();
-        content
-    })
+    state
+        .cas
+        .get(&hash)
+        .map(|content| String::from_utf8(content.clone()).unwrap())
 }
 
 #[tauri::command]
@@ -58,17 +57,62 @@ impl State {
         }
     }
 
-    fn merge_item(&mut self, item: Item) {
-        match self.items.get_mut(&item.hash) {
-            Some(curr) => {
-                assert_eq!(
-                    curr.mime_type, item.mime_type,
-                    "Mime types don't match"
-                );
-                curr.ids.extend(item.ids);
+    fn add_frame(&mut self, frame: &xs_lib::Frame) {
+        let result: Option<(&str, String, Vec<u8>)> = match &frame.topic {
+            Some(topic) if topic == "clipboard" => {
+                let clipped: Value = serde_json::from_str(&frame.data).unwrap();
+                let types = clipped["types"].as_object().unwrap();
+
+                if types.contains_key("public.utf8-plain-text") {
+                    #[allow(deprecated)]
+                    let content =
+                        decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
+                    Some((
+                        "text/plain",
+                        String::from_utf8(content.clone())
+                            .unwrap()
+                            .chars()
+                            .take(100)
+                            .collect(),
+                        content,
+                    ))
+                } else if types.contains_key("public.png") {
+                    let content = types["public.png"].as_str().unwrap().as_bytes();
+                    Some(("image/png", clipped["source"].to_string(), content.to_vec()))
+                } else {
+                    println!("add_frame TODO: types: {:?}", types);
+                    None
+                }
             }
-            None => {
-                self.items.insert(item.hash.clone(), item);
+
+            Some(_) => Some((
+                "text/plain",
+                frame.data.chars().take(100).collect(),
+                frame.data.as_bytes().to_vec(),
+            )),
+            None => None,
+        };
+
+        if let Some((mime_type, terse, content)) = result {
+            let hash = format!("{:x}", Sha256::digest(&content));
+
+            match self.items.get_mut(&hash) {
+                Some(curr) => {
+                    assert_eq!(curr.mime_type, mime_type, "Mime types don't match");
+                    curr.ids.push(frame.id);
+                }
+                None => {
+                    self.items.insert(
+                        hash.clone(),
+                        Item {
+                            hash: hash.clone(),
+                            ids: vec![frame.id],
+                            mime_type: mime_type.to_string(),
+                            terse,
+                        },
+                    );
+                    self.cas.insert(hash, content);
+                }
             }
         }
     }
@@ -79,63 +123,10 @@ lazy_static! {
 }
 
 struct Item {
-    mime_type: String,
-    terse: String,
-    content: Vec<u8>,
     hash: String,
     ids: Vec<scru128::Scru128Id>,
-}
-
-impl Item {
-    fn new(mime_type: &str, terse: &str, content: &[u8], id: scru128::Scru128Id) -> Self {
-        let hash = format!("{:x}", Sha256::digest(content));
-        Self {
-            mime_type: mime_type.to_string(),
-            terse: terse.to_string(),
-            content: content.to_vec(),
-            hash,
-            ids: vec![id],
-        }
-    }
-
-    fn from_frame(frame: &xs_lib::Frame) -> Option<Self> {
-        match &frame.topic {
-            Some(topic) if topic == "clipboard" => {
-                let clipped: Value = serde_json::from_str(&frame.data).unwrap();
-                let types = clipped["types"].as_object().unwrap();
-
-                if types.contains_key("public.utf8-plain-text") {
-                    #[allow(deprecated)]
-                    let content =
-                        decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-                    let terse: String = String::from_utf8(content.clone())
-                        .unwrap()
-                        .chars()
-                        .take(100)
-                        .collect();
-                    Some(Item::new("text/plain", &terse, &content, frame.id))
-                } else if types.contains_key("public.png") {
-                    let content = types["public.png"].as_str().unwrap().as_bytes();
-                    Some(Item::new(
-                        "image/png",
-                        clipped["source"].as_str().unwrap(),
-                        &content,
-                        frame.id,
-                    ))
-                } else {
-                    println!("types: {:?}", types);
-                    None
-                }
-            }
-            Some(_) => Some(Item::new(
-                "text/plain",
-                &frame.data[..min(frame.data.len(), 100)],
-                frame.data.as_bytes(),
-                frame.id,
-            )),
-            None => None,
-        }
-    }
+    mime_type: String,
+    terse: String,
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -224,12 +215,9 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
 
             for frame in frames {
                 last_id = Some(frame.id);
-                let item = Item::from_frame(&frame);
-                if let Some(item) = item {
-                    updated = true;
-                    let mut state = STATE.lock().unwrap();
-                    state.merge_item(item);
-                }
+                let mut state = STATE.lock().unwrap();
+                state.add_frame(&frame);
+                updated = true;
             }
 
             if updated {
