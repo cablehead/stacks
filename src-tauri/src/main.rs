@@ -37,10 +37,11 @@ const POLL_INTERVAL: u64 = 10;
 
 #[tauri::command]
 fn get_item_content(hash: String) -> Option<String> {
+    println!("CACHE MISS: {}", &hash);
     let items = ITEMS.lock().unwrap();
     items.get(&hash).map(|item| {
         let content = String::from_utf8(item.content.clone()).unwrap();
-        serde_json::to_string(&ItemContent { hash, content }).unwrap()
+        content
     })
 }
 
@@ -142,12 +143,6 @@ struct ItemTerse {
     hash: String,
     last_copied: u64,
     terse: String,
-}
-
-#[derive(serde::Serialize)]
-struct ItemContent {
-    hash: String,
-    content: String,
 }
 
 fn recent_items() -> String {

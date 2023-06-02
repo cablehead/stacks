@@ -23,14 +23,14 @@ cargo tauri dev
 ## Todo
 
 - page init has become really slow
-    - ItemContent is not needed
-    - Bring back cursor handling
-        - on new items
-        - on resume
     - use invoke on copy: do copy on Rust side
     - bring back metadata
     - bring back icon
+    - use invoke on filter: do filter on Rust side
     - bring back basic image support
+    - Bring back cursor handling
+        - on new items
+        - on resume
     - add some todos:
         - MRU on CAS
         - handle scrolling passed 400 items

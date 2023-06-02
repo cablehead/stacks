@@ -26,11 +26,6 @@ interface Item {
   terse: string;
 }
 
-interface ItemContent {
-  hash: string;
-  content: string;
-}
-
 //
 // Global State
 const themeMode = signal("light");
@@ -52,12 +47,8 @@ const availableItems = computed(() => {
   */
 });
 
-const CAS: Map<string, ItemContent> = new Map();
-
-const loadingContent = {
-  hash: "",
-  content: "loading...",
-};
+const CAS: Map<string, string> = new Map();
+const loadingContent = "loading...";
 
 const showFilter = signal(false);
 const currentFilter = signal("");
@@ -204,21 +195,21 @@ function RightPane({ item }: { item: Item }) {
   let showContent = useSignal(loadingContent);
 
   const cachedItem = CAS.get(item.hash);
-  console.log("RightPane", item, cachedItem);
 
-  if (!cachedItem) {
+  if (cachedItem == undefined) {
+    console.log("CACHE MISS", item);
     showContent.value = loadingContent;
     getContent(item.hash);
   } else {
-      showContent.value = cachedItem;
+    showContent.value = cachedItem;
   }
 
   async function getContent(hash: string) {
-    const ret: string = await invoke("get_item_content", { hash: hash });
-    const content = JSON.parse(ret);
+    const content: string = await invoke("get_item_content", { hash: hash });
     CAS.set(hash, content);
 
-    if (item.hash == content.hash) {
+    const selectedItem = items.value[selected.value];
+    if (selectedItem && selectedItem.hash == hash) {
       showContent.value = content;
     }
   }
@@ -248,7 +239,7 @@ function RightPane({ item }: { item: Item }) {
 				"
       >
         <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-            { showContent.value.content }
+            { showContent.value }
         </pre>
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
