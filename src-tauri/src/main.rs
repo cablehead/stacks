@@ -291,9 +291,10 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
+            #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
-            window.close_devtools();
+            // window.open_devtools();
+            // window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
