@@ -485,17 +485,16 @@ function Main() {
 
 function App() {
   useEffect(() => {
-    function handleDataFromRust(event: string) {
+    function handleDataFromRust(event: ItemTerse[]) {
       console.log("Data pushed from Rust:", event);
-      items.value = JSON.parse(event.payload);
+      items.value = event.payload;
       updateSelected(0);
     }
 
     listen("recent-items", handleDataFromRust);
 
     async function init() {
-      const recentItems = await invoke<string>("init_window");
-      items.value = JSON.parse(recentItems);
+      items.value = await invoke<ItemTerse[]>("init_window");
       updateSelected(0);
     }
     init();

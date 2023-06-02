@@ -41,7 +41,7 @@ async fn get_item_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
-fn init_window() -> String {
+fn init_window() -> Vec<ItemTerse> {
     recent_items()
 }
 
@@ -125,7 +125,7 @@ fn merge_item(item: Item) {
     }
 }
 
-#[derive(serde::Serialize)]
+#[derive(Clone, serde::Serialize)]
 struct ItemTerse {
     mime_type: String,
     hash: String,
@@ -142,13 +142,13 @@ struct MetaValue {
     timestamp: Option<u64>,
 }
 
-fn recent_items() -> String {
+fn recent_items() -> Vec<ItemTerse> {
     let items = ITEMS.lock().unwrap();
     let mut recent_items: Vec<&Item> = items.values().collect();
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
 
-    let recent_items: Vec<ItemTerse> = recent_items
+    recent_items
         .iter()
         .map(|item| {
             let created_at = item.ids[0].timestamp();
@@ -195,9 +195,7 @@ fn recent_items() -> String {
                 meta,
             }
         })
-        .collect();
-
-    serde_json::to_string(&recent_items).unwrap()
+        .collect()
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
