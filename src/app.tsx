@@ -104,8 +104,7 @@ let focusSelectedTimeout: number | undefined;
 
 function focusSelected(delay: number) {
   if (focusSelectedTimeout !== undefined) {
-    clearTimeout(focusSelectedTimeout);
-    focusSelectedTimeout = undefined;
+    return;
   }
 
   focusSelectedTimeout = window.setTimeout(() => {
