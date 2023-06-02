@@ -32,6 +32,8 @@ cargo tauri dev
         - handle scrolling passed 400 items
         - bring back incremental update
 
+- remove thread::sleep from the Rust side (using tokio::sleep instead)
+
 - new clipboard items can stop updating
 
 - delete items

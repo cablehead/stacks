@@ -36,7 +36,7 @@ pub struct CommandOutput {
 const POLL_INTERVAL: u64 = 10;
 
 #[tauri::command]
-fn get_item_content(hash: String) -> Option<String> {
+async fn get_item_content(hash: String) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
     let items = ITEMS.lock().unwrap();
     items.get(&hash).map(|item| {

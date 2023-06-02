@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { computed, signal, useSignal } from "@preact/signals";
+import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { listen } from "@tauri-apps/api/event";
@@ -34,6 +34,7 @@ interface ItemTerse {
 
 //
 // Global State
+
 const themeMode = signal("light");
 
 const items = signal<ItemTerse[]>([]);
@@ -53,8 +54,21 @@ const availableItems = computed(() => {
   */
 });
 
+const selectedItem = computed((): ItemTerse | undefined => {
+  return availableItems.value[selected.value];
+});
+
+const loadedContent: Signal<string> = signal("");
+const loadedHash: Signal<string> = signal("");
+
+const selectedContent = computed((): string | undefined => {
+  const item = selectedItem.value;
+  if (item === undefined) return undefined;
+  if (item.hash !== loadedHash.value) return undefined;
+  return loadedContent.value;
+});
+
 const CAS: Map<string, string> = new Map();
-const loadingContent = "loading...";
 
 async function getContent(hash: string): Promise<string> {
   const cachedItem = CAS.get(hash);
@@ -67,6 +81,19 @@ async function getContent(hash: string): Promise<string> {
   CAS.set(hash, content);
   return content;
 }
+
+async function updateLoaded(hash: string) {
+  loadedContent.value = await getContent(hash);
+  loadedHash.value = hash;
+}
+
+effect(() => {
+  const item = selectedItem.value;
+  if (item === undefined) return;
+  if (item.hash != loadedHash.value) {
+    updateLoaded(item.hash);
+  }
+});
 
 const showFilter = signal(false);
 const currentFilter = signal("");
@@ -95,7 +122,7 @@ function focusSelected(delay: number) {
   }, delay);
 }
 
-function updateSelected(n: number) {
+async function updateSelected(n: number) {
   if (availableItems.value.length === 0) return;
   selected.value = (selected.value + n) % availableItems.value.length;
   if (selected.value < 0) {
@@ -201,15 +228,15 @@ function LeftPane() {
   );
 }
 
-function RightPane({ item }: { item: ItemTerse }) {
+function RightPane(
+  { item, content }: {
+    item: ItemTerse | undefined;
+    content: string | undefined;
+  },
+) {
   if (!item) {
     return <div />;
   }
-
-  let showContent = useSignal(loadingContent);
-  (async () => {
-    showContent.value = await getContent(item.hash);
-  })();
 
   function MetaInfoRow(meta: MetaValue) {
     let displayValue: string;
@@ -252,16 +279,16 @@ function RightPane({ item }: { item: ItemTerse }) {
 				overflow: auto;
 				"
       >
-        {item.mime_type === "image/png"
+        {content !== undefined && item.mime_type === "image/png"
           ? (
             <img
-              src={"data:image/png;base64," + showContent.value}
+              src={"data:image/png;base64," + content}
               style={{ opacity: 0.95, borderRadius: "5px", maxHeight: "100%" }}
             />
           )
           : (
             <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { showContent.value }
+    { content !== undefined ? content : "loading..." }
             </pre>
           )}
       </div>
@@ -273,7 +300,7 @@ function RightPane({ item }: { item: ItemTerse }) {
 }
 
 async function triggerCopy() {
-  const item = availableItems.value[selected.value];
+  const item = selectedItem.value;
   if (item) {
     if (item.mime_type != "text/plain") {
       console.log("MIEM", item.mime_type);
@@ -295,44 +322,44 @@ function clearShowFilter() {
   showFilter.value = false;
 }
 
+async function globalKeyHandler(event: KeyboardEvent) {
+  switch (true) {
+    case event.key === "Enter":
+      await triggerCopy();
+      break;
+
+    case event.key === "Escape":
+      event.preventDefault();
+
+      if (showFilter.value) {
+        clearShowFilter();
+        return;
+      }
+      hide();
+      return;
+
+    case ((!showFilter.value) && event.key === "/"):
+      event.preventDefault();
+      triggerShowFilter();
+      break;
+
+    case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
+      event.preventDefault();
+      updateSelected(1);
+      break;
+
+    case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+      event.preventDefault();
+      updateSelected(-1);
+      break;
+  }
+}
+
 function Main() {
   useEffect(() => {
-    async function handleKeys(event: KeyboardEvent) {
-      switch (true) {
-        case event.key === "Enter":
-          await triggerCopy();
-          break;
-
-        case event.key === "Escape":
-          event.preventDefault();
-
-          if (showFilter.value) {
-            clearShowFilter();
-            return;
-          }
-          hide();
-          return;
-
-        case ((!showFilter.value) && event.key === "/"):
-          event.preventDefault();
-          triggerShowFilter();
-          break;
-
-        case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
-          event.preventDefault();
-          updateSelected(1);
-          break;
-
-        case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-          event.preventDefault();
-          updateSelected(-1);
-          break;
-      }
-    }
-    window.addEventListener("keydown", handleKeys);
-
+    window.addEventListener("keydown", globalKeyHandler);
     return () => {
-      window.removeEventListener("keydown", handleKeys);
+      window.removeEventListener("keydown", globalKeyHandler);
     };
   }, []);
 
@@ -353,7 +380,10 @@ function Main() {
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <LeftPane />
-          <RightPane item={availableItems.value[selected.value]} />
+          <RightPane
+            item={selectedItem.value}
+            content={selectedContent.value}
+          />
         </div>
       </section>
 
