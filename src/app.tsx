@@ -2,6 +2,8 @@ import { render } from "preact";
 import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
+import { Scru128Id } from "scru128";
+
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
@@ -33,7 +35,33 @@ interface Item {
 }
 
 const getMeta = (item: Item): MetaValue[] => {
-  return [];
+  const toTimestamp = (id: string) => {
+    return Scru128Id.fromString(id).timestamp;
+  };
+
+  if (item.ids.length === 0) return [];
+
+  let meta = [
+    { name: "ID", value: item.ids[0] },
+    { name: "Mime Type", value: item.mime_type },
+  ];
+
+  if (item.ids.length === 1) {
+    return [
+      ...meta,
+      { name: "Copied", timestamp: toTimestamp(item.ids[0]) },
+    ];
+  }
+
+  return [
+    ...meta,
+    { name: "Times copied", value: item.ids.length.toString() },
+    {
+      name: "Last Copied",
+      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
+    },
+    { name: "First Copied", timestamp: toTimestamp(item.ids[0]) },
+  ];
 };
 
 //

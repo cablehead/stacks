@@ -155,57 +155,6 @@ fn recent_items() -> Vec<Item> {
     recent_items
 }
 
-        /*
-    recent_items
-        .iter()
-        .map(|item| {
-            let created_at = item.ids[0].timestamp();
-            let updated_at = item.ids.last().unwrap().timestamp();
-            let mut meta = Vec::new();
-            meta.push(MetaValue {
-                name: "ID".to_string(),
-                value: Some(item.ids[0].to_string()),
-                timestamp: None,
-            });
-            meta.push(MetaValue {
-                name: "Mime Type".to_string(),
-                value: Some(item.mime_type.clone()),
-                timestamp: None,
-            });
-            if item.ids.len() == 1 {
-                meta.push(MetaValue {
-                    name: "Copied".to_string(),
-                    value: None,
-                    timestamp: Some(created_at),
-                });
-            } else {
-                meta.push(MetaValue {
-                    name: "Times copied".to_string(),
-                    value: Some(item.ids.len().to_string()),
-                    timestamp: None,
-                });
-                meta.push(MetaValue {
-                    name: "Last Copied".to_string(),
-                    value: None,
-                    timestamp: Some(updated_at),
-                });
-                meta.push(MetaValue {
-                    name: "First Copied".to_string(),
-                    value: None,
-                    timestamp: Some(created_at),
-                });
-            }
-
-            ItemTerse {
-                mime_type: item.mime_type.clone(),
-                hash: item.hash.clone(),
-                terse: item.terse.clone(),
-                meta,
-            }
-        })
-        .collect()
-        */
-
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
     let path = path.to_path_buf();
     std::thread::spawn(move || {
