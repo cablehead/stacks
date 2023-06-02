@@ -220,10 +220,10 @@ function RightPane({ item }: { item: ItemTerse }) {
     }
   }
 
-  function MetaInfoRow({ name, value, timestamp }: MetaValue) {
+  function MetaInfoRow(meta : MetaValue) {
     let displayValue: string;
-    if (timestamp !== undefined) {
-      displayValue = new Date(timestamp).toLocaleString("en-US", {
+    if (meta.timestamp !== undefined) {
+      displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
@@ -233,7 +233,7 @@ function RightPane({ item }: { item: ItemTerse }) {
         hour12: true,
       });
     } else {
-      displayValue = value || "";
+      displayValue = meta.value || "";
     }
 
     return (
@@ -244,7 +244,7 @@ function RightPane({ item }: { item: ItemTerse }) {
             width: "20ch",
           }}
         >
-          {name}
+          {meta.name}
         </div>
         <div>{displayValue}</div>
       </div>
@@ -267,7 +267,7 @@ function RightPane({ item }: { item: ItemTerse }) {
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
         {item.meta.map((info) => (
-          <MetaInfoRow name={info.name} value={info.value} />
+          <MetaInfoRow {...info} />
         ))}
       </div>
     </div>

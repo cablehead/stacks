@@ -4,9 +4,8 @@
 #[allow(deprecated)]
 use base64::decode;
 
-use chrono::{TimeZone, Utc};
 use lazy_static::lazy_static;
-use serde_json::{json, Value};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::cmp::min;
 use std::collections::HashMap;
@@ -199,17 +198,6 @@ fn recent_items() -> String {
         .collect();
 
     serde_json::to_string(&recent_items).unwrap()
-}
-
-fn format_scru128_date(id: scru128::Scru128Id) -> String {
-    let timestamp = id.timestamp();
-    let datetime = Utc
-        .timestamp_opt(
-            (timestamp / 1000) as i64,
-            ((timestamp % 1000) * 1_000_000) as u32,
-        )
-        .unwrap();
-    datetime.format("%b %d, %Y at %I:%M:%S %p").to_string()
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
