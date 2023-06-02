@@ -7,6 +7,7 @@ use base64::decode;
 use lazy_static::lazy_static;
 use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
+use chrono::{TimeZone, Utc};
 use std::cmp::min;
 use std::collections::HashMap;
 use std::path::Path;
@@ -75,7 +76,6 @@ impl Item {
     }
 
     fn from_frame(frame: &xs_lib::Frame) -> Option<Self> {
-        let timestamp = frame.id.timestamp();
         match &frame.topic {
             Some(topic) if topic == "clipboard" => {
                 let clipped: Value = serde_json::from_str(&frame.data).unwrap();
@@ -149,7 +149,7 @@ fn recent_items() -> String {
         .iter()
         .map(|item| {
             let created_at = format_scru128_date(item.ids[0]);
-            let updated_at = format_scru128_date(item.ids.last().unwrap());
+            let updated_at = format_scru128_date(*item.ids.last().unwrap());
             let meta = if item.ids.len() == 1 {
                 vec![
                     json!({ "name": "ID", "value": item.ids[0].to_string() }),
@@ -177,7 +177,8 @@ fn recent_items() -> String {
 }
 
 fn format_scru128_date(id: scru128::Scru128Id) -> String {
-    let datetime = scru128::id_to_datetime(id);
+    let timestamp = id.timestamp();
+    let datetime = Utc.timestamp(timestamp as i64, 0);
     datetime.format("%a %Y-%b-%d %I:%M %p").to_string()
 }
 
