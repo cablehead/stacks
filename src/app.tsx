@@ -22,8 +22,8 @@ import {
 interface ItemTerse {
   mime_type: string;
   hash: string;
-  last_copied: number;
   terse: string;
+  meta: Array<{ name: string; value: any }>;
 }
 
 //
@@ -244,8 +244,7 @@ function RightPane({ item }: { item: ItemTerse }) {
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
         {
-          // item.meta todo
-          new Array().map((info) => (
+          item.meta.map((info) => (
             <MetaInfoRow name={info.name} value={info.value} />
           ))
         }
