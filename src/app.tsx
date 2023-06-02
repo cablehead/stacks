@@ -256,7 +256,7 @@ function RightPane({ item }: { item: ItemTerse }) {
           ? (
             <img
               src={"data:image/png;base64," + showContent.value}
-              style={{ opacity: 0.8 }}
+              style={{ opacity: 0.95, borderRadius: "5px", maxHeight: "100%" }}
             />
           )
           : (
