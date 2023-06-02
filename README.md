@@ -24,7 +24,6 @@ cargo tauri dev
 
 - page init has become really slow
     - use invoke on filter: do filter on Rust side
-    - bring back icon
     - Bring back cursor handling
         - on new items
         - on resume

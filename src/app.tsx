@@ -167,11 +167,7 @@ function LeftPane() {
         }}
       >
         <Icon
-          name={
-            // item.icon
-            // todo
-            "IconClipboard"
-          }
+          name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
         />
       </div>
 
@@ -260,7 +256,7 @@ function RightPane({ item }: { item: ItemTerse }) {
           ? (
             <img
               src={"data:image/png;base64," + showContent.value}
-              style={{ opacity: 0.6 }}
+              style={{ opacity: 0.8 }}
             />
           )
           : (
