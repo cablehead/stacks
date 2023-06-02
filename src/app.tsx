@@ -2,7 +2,7 @@ import { render } from "preact";
 import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { listen } from "@tauri-apps/api/event";
+import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
 
@@ -25,19 +25,23 @@ interface MetaValue {
   timestamp?: number;
 }
 
-interface ItemTerse {
-  mime_type: string;
+interface Item {
   hash: string;
+  ids: string[];
+  mime_type: string;
   terse: string;
-  meta: MetaValue[];
 }
+
+const getMeta = (item: Item): MetaValue[] => {
+  return [];
+};
 
 //
 // Global State
 
 const themeMode = signal("light");
 
-const items = signal<ItemTerse[]>([]);
+const items = signal<Item[]>([]);
 const selected = signal(0);
 
 const availableItems = computed(() => {
@@ -54,7 +58,7 @@ const availableItems = computed(() => {
   */
 });
 
-const selectedItem = computed((): ItemTerse | undefined => {
+const selectedItem = computed((): Item | undefined => {
   return availableItems.value[selected.value];
 });
 
@@ -170,7 +174,7 @@ function FilterInput() {
 }
 
 function LeftPane() {
-  const TerseRow = ({ item, index }: { item: ItemTerse; index: number }) => (
+  const TerseRow = ({ item, index }: { item: Item; index: number }) => (
     <div
       className={"terserow" + (index === selected.value ? " selected" : "")}
       onClick={() => selected.value = index}
@@ -229,7 +233,7 @@ function LeftPane() {
 
 function RightPane(
   { item, content }: {
-    item: ItemTerse | undefined;
+    item: Item | undefined;
     content: string | undefined;
   },
 ) {
@@ -292,7 +296,7 @@ function RightPane(
           )}
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {item.meta.map((info) => <MetaInfoRow {...info} />)}
+        {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
       </div>
     </div>
   );
@@ -485,16 +489,14 @@ function Main() {
 
 function App() {
   useEffect(() => {
-    function handleDataFromRust(event: ItemTerse[]) {
+    listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
       items.value = event.payload;
       updateSelected(0);
-    }
-
-    listen("recent-items", handleDataFromRust);
+    });
 
     async function init() {
-      items.value = await invoke<ItemTerse[]>("init_window");
+      items.value = await invoke<Item[]>("init_window");
       updateSelected(0);
     }
     init();
