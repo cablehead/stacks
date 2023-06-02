@@ -148,21 +148,20 @@ fn recent_items() -> String {
     let recent_items: Vec<ItemTerse> = recent_items
         .iter()
         .map(|item| {
-            let created_at = format_scru128_date(item.ids[0]);
-            let updated_at = format_scru128_date(*item.ids.last().unwrap());
-            let meta = if item.ids.len() == 1 {
-                vec![
-                    json!({ "name": "ID", "value": item.ids[0].to_string() }),
-                    json!({ "name": "Copied", "value": created_at }),
-                ]
+            let created_at = item.ids[0].timestamp();
+            let updated_at = item.ids.last().unwrap().timestamp();
+            let mut meta = HashMap::new();
+            meta.insert("ID".to_string(), Value::String(item.ids[0].to_string()));
+            if item.ids.len() == 1 {
+                meta.insert("Copied".to_string(), Value::Number(created_at.into()));
             } else {
-                vec![
-                    json!({ "name": "ID", "value": item.ids[0].to_string() }),
-                    json!({ "name": "Times copied", "value": item.ids.len().to_string() }),
-                    json!({ "name": "Last Copied", "value": updated_at }),
-                    json!({ "name": "First Copied", "value": created_at }),
-                ]
-            };
+                meta.insert(
+                    "Times copied".to_string(),
+                    Value::String(item.ids.len().to_string()),
+                );
+                meta.insert("Last Copied".to_string(), Value::Number(updated_at.into()));
+                meta.insert("First Copied".to_string(), Value::Number(created_at.into()));
+            }
 
             ItemTerse {
                 mime_type: item.mime_type.clone(),

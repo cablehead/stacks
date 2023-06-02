@@ -23,7 +23,7 @@ interface ItemTerse {
   mime_type: string;
   hash: string;
   terse: string;
-  meta: Array<{ name: string; value: any }>;
+  meta: Map<string, number | string>;
 }
 
 //
@@ -214,19 +214,35 @@ function RightPane({ item }: { item: ItemTerse }) {
     }
   }
 
-  const MetaInfoRow = ({ name, value }: { name: string; value: any }) => (
-    <div style="display:flex;">
-      <div
-        style={{
-          flexShrink: 0,
-          width: "20ch",
-        }}
-      >
-        {name}
+  const MetaInfoRow = (
+    { name, value }: { name: string; value: number | string },
+  ) => {
+    if (typeof value === "number") {
+      value = new Date(value).toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    }
+
+    return (
+      <div style="display:flex;">
+        <div
+          style={{
+            flexShrink: 0,
+            width: "20ch",
+          }}
+        >
+          {name}
+        </div>
+        <div>{value}</div>
       </div>
-      <div>{value}</div>
-    </div>
-  );
+    );
+  };
 
   return (
     <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
@@ -243,11 +259,9 @@ function RightPane({ item }: { item: ItemTerse }) {
         </pre>
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {
-          item.meta.map((info) => (
-            <MetaInfoRow name={info.name} value={info.value} />
-          ))
-        }
+        {item.meta.map((info) => (
+          <MetaInfoRow name={info.name} value={info.value} />
+        ))}
       </div>
     </div>
   );
