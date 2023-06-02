@@ -19,11 +19,17 @@ import {
   lightThemeClass,
 } from "./app.css.ts";
 
+interface MetaValue {
+  name: string;
+  value?: string;
+  timestamp?: number;
+}
+
 interface ItemTerse {
   mime_type: string;
   hash: string;
   terse: string;
-  meta: Map<string, number | string>;
+  meta: MetaValue[];
 }
 
 //
@@ -214,11 +220,10 @@ function RightPane({ item }: { item: ItemTerse }) {
     }
   }
 
-  const MetaInfoRow = (
-    { name, value }: { name: string; value: number | string },
-  ) => {
-    if (typeof value === "number") {
-      value = new Date(value).toLocaleString("en-US", {
+  function MetaInfoRow({ name, value, timestamp }: MetaValue) {
+    let displayValue: string;
+    if (timestamp !== undefined) {
+      displayValue = new Date(timestamp).toLocaleString("en-US", {
         weekday: "short",
         year: "numeric",
         month: "short",
@@ -227,6 +232,8 @@ function RightPane({ item }: { item: ItemTerse }) {
         minute: "numeric",
         hour12: true,
       });
+    } else {
+      displayValue = value || "";
     }
 
     return (
@@ -239,10 +246,10 @@ function RightPane({ item }: { item: ItemTerse }) {
         >
           {name}
         </div>
-        <div>{value}</div>
+        <div>{displayValue}</div>
       </div>
     );
-  };
+  }
 
   return (
     <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">

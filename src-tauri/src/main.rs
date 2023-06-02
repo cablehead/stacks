@@ -136,7 +136,16 @@ struct ItemTerse {
     mime_type: String,
     hash: String,
     terse: String,
-    meta: Vec<Value>,
+    meta: Vec<MetaValue>,
+}
+
+#[derive(Clone, serde::Serialize)]
+struct MetaValue {
+    name: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    value: Option<String>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    timestamp: Option<u64>,
 }
 
 fn recent_items() -> String {
@@ -150,17 +159,34 @@ fn recent_items() -> String {
         .map(|item| {
             let created_at = item.ids[0].timestamp();
             let updated_at = item.ids.last().unwrap().timestamp();
-            let mut meta = HashMap::new();
-            meta.insert("ID".to_string(), Value::String(item.ids[0].to_string()));
+            let mut meta = Vec::new();
+            meta.push(MetaValue {
+                name: "ID".to_string(),
+                value: Some(item.ids[0].to_string()),
+                timestamp: None,
+            });
             if item.ids.len() == 1 {
-                meta.insert("Copied".to_string(), Value::Number(created_at.into()));
+                meta.push(MetaValue {
+                    name: "Copied".to_string(),
+                    value: None,
+                    timestamp: Some(created_at),
+                });
             } else {
-                meta.insert(
-                    "Times copied".to_string(),
-                    Value::String(item.ids.len().to_string()),
-                );
-                meta.insert("Last Copied".to_string(), Value::Number(updated_at.into()));
-                meta.insert("First Copied".to_string(), Value::Number(created_at.into()));
+                meta.push(MetaValue {
+                    name: "Times copied".to_string(),
+                    value: Some(item.ids.len().to_string()),
+                    timestamp: None,
+                });
+                meta.push(MetaValue {
+                    name: "Last Copied".to_string(),
+                    value: None,
+                    timestamp: Some(updated_at),
+                });
+                meta.push(MetaValue {
+                    name: "First Copied".to_string(),
+                    value: None,
+                    timestamp: Some(created_at),
+                });
             }
 
             ItemTerse {
