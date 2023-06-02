@@ -33,8 +33,8 @@ const POLL_INTERVAL: u64 = 10;
 #[tauri::command]
 async fn get_item_content(hash: String) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
-    let items = ITEMS.lock().unwrap();
-    items.get(&hash).map(|item| {
+    let state = STATE.lock().unwrap();
+    state.items.get(&hash).map(|item| {
         let content = String::from_utf8(item.content.clone()).unwrap();
         content
     })
@@ -45,8 +45,22 @@ fn init_window() -> Vec<ItemTerse> {
     recent_items()
 }
 
+struct State {
+    items: HashMap<String, Item>,
+    cas: HashMap<String, Vec<u8>>,
+}
+
+impl State {
+    fn new() -> Self {
+        Self {
+            items: HashMap::new(),
+            cas: HashMap::new(),
+        }
+    }
+}
+
 lazy_static! {
-    static ref ITEMS: Mutex<HashMap<String, Item>> = Mutex::new(HashMap::new());
+    static ref STATE: Mutex<State> = Mutex::new(State::new());
 }
 
 struct Item {
@@ -110,8 +124,8 @@ impl Item {
 }
 
 fn merge_item(item: Item) {
-    let mut items = ITEMS.lock().unwrap();
-    match items.get_mut(&item.hash) {
+    let mut state = STATE.lock().unwrap();
+    match state.items.get_mut(&item.hash) {
         Some(existing_item) => {
             assert_eq!(
                 existing_item.mime_type, item.mime_type,
@@ -120,7 +134,7 @@ fn merge_item(item: Item) {
             existing_item.ids.extend(item.ids);
         }
         None => {
-            items.insert(item.hash.clone(), item);
+            state.items.insert(item.hash.clone(), item);
         }
     }
 }
@@ -143,7 +157,7 @@ struct MetaValue {
 }
 
 fn recent_items() -> Vec<ItemTerse> {
-    let items = ITEMS.lock().unwrap();
+    let items = &STATE.lock().unwrap().items;
     let mut recent_items: Vec<&Item> = items.values().collect();
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
