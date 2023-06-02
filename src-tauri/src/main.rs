@@ -32,7 +32,7 @@ const POLL_INTERVAL: u64 = 10;
 #[tauri::command]
 async fn get_item_content(hash: String) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
-    let state = STATE.lock().unwrap();
+    let state = STORE.lock().unwrap();
     state
         .cas
         .get(&hash)
@@ -40,20 +40,31 @@ async fn get_item_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
+async fn store_set_filter(curr: String) -> Vec<Item> {
+    println!("FILTER : {}", &curr);
+    let mut state = STORE.lock().unwrap();
+    state.filter = if curr.len() == 0 { None } else { Some(curr) };
+    drop(state);
+    recent_items()
+}
+
+#[tauri::command]
 fn init_window() -> Vec<Item> {
     recent_items()
 }
 
-struct State {
+struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
+    filter: Option<String>,
 }
 
-impl State {
+impl Store {
     fn new() -> Self {
         Self {
             items: HashMap::new(),
             cas: HashMap::new(),
+            filter: None,
         }
     }
 
@@ -119,7 +130,7 @@ impl State {
 }
 
 lazy_static! {
-    static ref STATE: Mutex<State> = Mutex::new(State::new());
+    static ref STORE: Mutex<Store> = Mutex::new(Store::new());
 }
 
 #[derive(Clone, serde::Serialize)]
@@ -148,8 +159,20 @@ struct MetaValue {
 }
 
 fn recent_items() -> Vec<Item> {
-    let items = &STATE.lock().unwrap().items;
-    let mut recent_items: Vec<Item> = items.values().cloned().collect();
+    let store = &STORE.lock().unwrap();
+
+    let mut recent_items: Vec<Item> = store
+        .items
+        .values()
+        .filter(|item| {
+            if let Some(curr) = &store.filter {
+                item.mime_type == "text/plain" && item.terse.contains(&*curr)
+            } else {
+                true
+            }
+        })
+        .cloned()
+        .collect();
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
     recent_items
@@ -167,7 +190,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
             if frames.len() > 0 {
                 for frame in frames {
                     last_id = Some(frame.id);
-                    let mut state = STATE.lock().unwrap();
+                    let mut state = STORE.lock().unwrap();
                     state.add_frame(&frame);
                 }
                 app.emit_all("recent-items", recent_items()).unwrap();
@@ -216,7 +239,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![init_window, get_item_content])
+        .invoke_handler(tauri::generate_handler![init_window, store_set_filter, get_item_content])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {

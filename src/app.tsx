@@ -127,8 +127,19 @@ effect(() => {
   }
 });
 
+async function updateFilter(curr: string) {
+  console.log("FILTER", curr);
+  items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
+}
+
 const showFilter = signal(false);
 const currentFilter = signal("");
+
+effect(() => {
+  const curr = currentFilter.value;
+  console.log("FILTER", curr);
+  updateFilter(curr);
+});
 
 //
 
@@ -193,7 +204,7 @@ function FilterInput() {
           onInput={() => {
             if (inputRef.current == null) return;
             currentFilter.value = inputRef.current.value;
-            updateSelected(0);
+            // updateSelected(0);
           }}
         />
       </div>
