@@ -5,10 +5,9 @@
 use base64::decode;
 
 use lazy_static::lazy_static;
-use serde::hashmap;
-use serde_json::Value;
+use serde_json::{json, Value};
 use sha2::{Digest, Sha256};
-use std::cmp::{max, min};
+use std::cmp::min;
 use std::collections::HashMap;
 use std::path::Path;
 use std::sync::Mutex;
@@ -91,14 +90,14 @@ impl Item {
                         .chars()
                         .take(100)
                         .collect();
-                    Some(Item::new("text/plain", &terse, &content, timestamp))
+                    Some(Item::new("text/plain", &terse, &content, frame.id))
                 } else if types.contains_key("public.png") {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
                     Some(Item::new(
                         "image/png",
                         clipped["source"].as_str().unwrap(),
                         &content,
-                        timestamp,
+                        frame.id,
                     ))
                 } else {
                     println!("types: {:?}", types);
@@ -109,7 +108,7 @@ impl Item {
                 "text/plain",
                 &frame.data[..min(frame.data.len(), 100)],
                 frame.data.as_bytes(),
-                timestamp,
+                frame.id,
             )),
             None => None,
         }
@@ -137,7 +136,7 @@ struct ItemTerse {
     mime_type: String,
     hash: String,
     terse: String,
-    meta: Vec<HashMap<String, String>>,
+    meta: Vec<Value>,
 }
 
 fn recent_items() -> String {
@@ -153,15 +152,15 @@ fn recent_items() -> String {
             let updated_at = format_scru128_date(item.ids.last().unwrap());
             let meta = if item.ids.len() == 1 {
                 vec![
-                            hashmap! { "name".to_string() => "ID".to_string(), "value".to_string() => item.ids[0].to_string() },
-                    hashmap! { "name".to_string() => "Copied".to_string(), "value".to_string() => created_at },
+                    json!({ "name": "ID", "value": item.ids[0].to_string() }),
+                    json!({ "name": "Copied", "value": created_at }),
                 ]
             } else {
                 vec![
-                    hashmap! { "name".to_string() => "ID".to_string(), "value".to_string() => item.ids[0].to_string() },
-                    hashmap! { "name".to_string() => "Times copied".to_string(), "value".to_string() => item.ids.len().to_string() },
-                    hashmap! { "name".to_string() => "Last Copied".to_string(), "value".to_string() => updated_at },
-                    hashmap! { "name".to_string() => "First Copied".to_string(), "value".to_string() => created_at },
+                    json!({ "name": "ID", "value": item.ids[0].to_string() }),
+                    json!({ "name": "Times copied", "value": item.ids.len().to_string() }),
+                    json!({ "name": "Last Copied", "value": updated_at }),
+                    json!({ "name": "First Copied", "value": created_at }),
                 ]
             };
 
