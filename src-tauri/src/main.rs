@@ -19,11 +19,6 @@ use tauri_plugin_log::LogTarget;
 mod clipboard;
 
 #[derive(Clone, serde::Serialize)]
-struct Payload {
-    message: String,
-}
-
-#[derive(Clone, serde::Serialize)]
 pub struct CommandOutput {
     pub stdout: String,
     pub stderr: String,
@@ -226,13 +221,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
             }
 
             if updated {
-                app.emit_all(
-                    "recent-items",
-                    Payload {
-                        message: recent_items(),
-                    },
-                )
-                .unwrap();
+                app.emit_all("recent-items", recent_items()).unwrap();
             }
 
             if counter % 1000 == 0 {

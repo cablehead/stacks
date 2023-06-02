@@ -485,15 +485,9 @@ function Main() {
 
 function App() {
   useEffect(() => {
-    interface DataFromRustEvent {
-      payload: {
-        message: string;
-      };
-    }
-
-    function handleDataFromRust(event: DataFromRustEvent) {
+    function handleDataFromRust(event: string) {
       console.log("Data pushed from Rust:", event);
-      items.value = JSON.parse(event.payload.message);
+      items.value = JSON.parse(event.payload);
       updateSelected(0);
     }
 
