@@ -57,6 +57,21 @@ impl State {
             cas: HashMap::new(),
         }
     }
+
+    fn merge_item(&mut self, item: Item) {
+        match self.items.get_mut(&item.hash) {
+            Some(curr) => {
+                assert_eq!(
+                    curr.mime_type, item.mime_type,
+                    "Mime types don't match"
+                );
+                curr.ids.extend(item.ids);
+            }
+            None => {
+                self.items.insert(item.hash.clone(), item);
+            }
+        }
+    }
 }
 
 lazy_static! {
@@ -119,22 +134,6 @@ impl Item {
                 frame.id,
             )),
             None => None,
-        }
-    }
-}
-
-fn merge_item(item: Item) {
-    let mut state = STATE.lock().unwrap();
-    match state.items.get_mut(&item.hash) {
-        Some(existing_item) => {
-            assert_eq!(
-                existing_item.mime_type, item.mime_type,
-                "Mime types don't match"
-            );
-            existing_item.ids.extend(item.ids);
-        }
-        None => {
-            state.items.insert(item.hash.clone(), item);
         }
     }
 }
@@ -228,7 +227,8 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                 let item = Item::from_frame(&frame);
                 if let Some(item) = item {
                     updated = true;
-                    merge_item(item);
+                    let mut state = STATE.lock().unwrap();
+                    state.merge_item(item);
                 }
             }
 
