@@ -5,6 +5,7 @@
 use base64::decode;
 
 use lazy_static::lazy_static;
+use serde::hashmap;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::cmp::{max, min};
@@ -59,22 +60,18 @@ struct Item {
     terse: String,
     content: Vec<u8>,
     hash: String,
-    last_copied: u64,
-    first_copied: u64,
-    num: u32,
+    ids: Vec<scru128::Scru128Id>,
 }
 
 impl Item {
-    fn new(mime_type: &str, terse: &str, content: &[u8], timestamp: u64) -> Self {
+    fn new(mime_type: &str, terse: &str, content: &[u8], id: scru128::Scru128Id) -> Self {
         let hash = format!("{:x}", Sha256::digest(content));
         Self {
             mime_type: mime_type.to_string(),
             terse: terse.to_string(),
             content: content.to_vec(),
             hash,
-            last_copied: timestamp,
-            first_copied: timestamp,
-            num: 1,
+            ids: vec![id],
         }
     }
 
@@ -127,9 +124,7 @@ fn merge_item(item: Item) {
                 existing_item.mime_type, item.mime_type,
                 "Mime types don't match"
             );
-            existing_item.num += 1;
-            existing_item.last_copied = max(existing_item.last_copied, item.last_copied);
-            existing_item.first_copied = min(existing_item.first_copied, item.first_copied);
+            existing_item.ids.extend(item.ids);
         }
         None => {
             items.insert(item.hash.clone(), item);
@@ -141,27 +136,50 @@ fn merge_item(item: Item) {
 struct ItemTerse {
     mime_type: String,
     hash: String,
-    last_copied: u64,
     terse: String,
+    meta: Vec<HashMap<String, String>>,
 }
 
 fn recent_items() -> String {
     let items = ITEMS.lock().unwrap();
     let mut recent_items: Vec<&Item> = items.values().collect();
-    recent_items.sort_unstable_by(|a, b| b.last_copied.cmp(&a.last_copied));
+    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
 
     let recent_items: Vec<ItemTerse> = recent_items
         .iter()
-        .map(|item| ItemTerse {
-            mime_type: item.mime_type.clone(),
-            hash: item.hash.clone(),
-            last_copied: item.last_copied,
-            terse: item.terse.clone(),
+        .map(|item| {
+            let created_at = format_scru128_date(item.ids[0]);
+            let updated_at = format_scru128_date(item.ids.last().unwrap());
+            let meta = if item.ids.len() == 1 {
+                vec![
+                            hashmap! { "name".to_string() => "ID".to_string(), "value".to_string() => item.ids[0].to_string() },
+                    hashmap! { "name".to_string() => "Copied".to_string(), "value".to_string() => created_at },
+                ]
+            } else {
+                vec![
+                    hashmap! { "name".to_string() => "ID".to_string(), "value".to_string() => item.ids[0].to_string() },
+                    hashmap! { "name".to_string() => "Times copied".to_string(), "value".to_string() => item.ids.len().to_string() },
+                    hashmap! { "name".to_string() => "Last Copied".to_string(), "value".to_string() => updated_at },
+                    hashmap! { "name".to_string() => "First Copied".to_string(), "value".to_string() => created_at },
+                ]
+            };
+
+            ItemTerse {
+                mime_type: item.mime_type.clone(),
+                hash: item.hash.clone(),
+                terse: item.terse.clone(),
+                meta,
+            }
         })
         .collect();
 
     serde_json::to_string(&recent_items).unwrap()
+}
+
+fn format_scru128_date(id: scru128::Scru128Id) -> String {
+    let datetime = scru128::id_to_datetime(id);
+    datetime.format("%a %Y-%b-%d %I:%M %p").to_string()
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
