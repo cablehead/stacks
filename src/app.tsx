@@ -56,6 +56,18 @@ const availableItems = computed(() => {
 const CAS: Map<string, string> = new Map();
 const loadingContent = "loading...";
 
+async function getContent(hash: string): Promise<string> {
+  const cachedItem = CAS.get(hash);
+  if (cachedItem !== undefined) {
+    return cachedItem;
+  }
+
+  console.log("CACHE MISS", hash);
+  const content: string = await invoke("get_item_content", { hash: hash });
+  CAS.set(hash, content);
+  return content;
+}
+
 const showFilter = signal(false);
 const currentFilter = signal("");
 
@@ -199,28 +211,11 @@ function RightPane({ item }: { item: ItemTerse }) {
   }
 
   let showContent = useSignal(loadingContent);
+  (async () => {
+    showContent.value = await getContent(item.hash);
+  })();
 
-  const cachedItem = CAS.get(item.hash);
-
-  if (cachedItem == undefined) {
-    console.log("CACHE MISS", item);
-    showContent.value = loadingContent;
-    getContent(item.hash);
-  } else {
-    showContent.value = cachedItem;
-  }
-
-  async function getContent(hash: string) {
-    const content: string = await invoke("get_item_content", { hash: hash });
-    CAS.set(hash, content);
-
-    const selectedItem = items.value[selected.value];
-    if (selectedItem && selectedItem.hash == hash) {
-      showContent.value = content;
-    }
-  }
-
-  function MetaInfoRow(meta : MetaValue) {
+  function MetaInfoRow(meta: MetaValue) {
     let displayValue: string;
     if (meta.timestamp !== undefined) {
       displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
@@ -266,9 +261,7 @@ function RightPane({ item }: { item: ItemTerse }) {
         </pre>
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {item.meta.map((info) => (
-          <MetaInfoRow {...info} />
-        ))}
+        {item.meta.map((info) => <MetaInfoRow {...info} />)}
       </div>
     </div>
   );
