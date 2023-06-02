@@ -23,7 +23,6 @@ cargo tauri dev
 ## Todo
 
 - page init has become really slow
-    - use invoke on copy: do copy on Rust side
     - use invoke on filter: do filter on Rust side
     - bring back icon
     - bring back basic image support

@@ -270,7 +270,12 @@ function RightPane({ item }: { item: ItemTerse }) {
 async function triggerCopy() {
   const item = availableItems.value[selected.value];
   if (item) {
-    await writeText("todo"); // item.preview);
+    if (item.mime_type != "text/plain") {
+      alert(item.mime_type);
+    } else {
+      let content = await getContent(item.hash);
+      await writeText(content);
+    }
   }
   clearShowFilter();
   hide();
