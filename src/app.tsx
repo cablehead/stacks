@@ -1,5 +1,5 @@
 import { render } from "preact";
-import { computed, signal } from "@preact/signals";
+import { computed, signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { listen } from "@tauri-apps/api/event";
@@ -25,6 +25,44 @@ interface Item {
   last_copied: number;
   terse: string;
 }
+
+interface ItemContent {
+  hash: string;
+  content: string;
+}
+
+//
+// Global State
+const themeMode = signal("light");
+
+const items = signal<Item[]>([]);
+const selected = signal(0);
+
+const availableItems = computed(() => {
+  return items.value;
+  /*
+  const ret = Array.from(items.value.values())
+    .filter((item) => {
+      const filter = currentFilter.value.trim().toLowerCase();
+      if (filter === "") return true;
+      return item.terse.toLowerCase().includes(filter);
+    })
+    .sort((a, b) => cmp(b.id, a.id));
+  return ret;
+  */
+});
+
+const CAS: Map<string, ItemContent> = new Map();
+
+const loadingContent = {
+  hash: "",
+  content: "loading...",
+};
+
+const showFilter = signal(false);
+const currentFilter = signal("");
+
+//
 
 let focusSelectedTimeout: number | undefined;
 
@@ -56,28 +94,6 @@ function updateSelected(n: number) {
   }
   focusSelected(5);
 }
-
-const selected = signal(0);
-const items = signal<Item[]>([]);
-
-const showFilter = signal(false);
-const currentFilter = signal("");
-
-const themeMode = signal("light");
-
-const availableItems = computed(() => {
-  return items.value;
-  /*
-  const ret = Array.from(items.value.values())
-    .filter((item) => {
-      const filter = currentFilter.value.trim().toLowerCase();
-      if (filter === "") return true;
-      return item.terse.toLowerCase().includes(filter);
-    })
-    .sort((a, b) => cmp(b.id, a.id));
-  return ret;
-  */
-});
 
 function FilterInput() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -185,6 +201,28 @@ function RightPane({ item }: { item: Item }) {
     return <div />;
   }
 
+  let showContent = useSignal(loadingContent);
+
+  const cachedItem = CAS.get(item.hash);
+  console.log("RightPane", item, cachedItem);
+
+  if (!cachedItem) {
+    showContent.value = loadingContent;
+    getContent(item.hash);
+  } else {
+      showContent.value = cachedItem;
+  }
+
+  async function getContent(hash: string) {
+    const ret: string = await invoke("get_item_content", { hash: hash });
+    const content = JSON.parse(ret);
+    CAS.set(hash, content);
+
+    if (item.hash == content.hash) {
+      showContent.value = content;
+    }
+  }
+
   const MetaInfoRow = ({ name, value }: { name: string; value: any }) => (
     <div style="display:flex;">
       <div
@@ -210,12 +248,7 @@ function RightPane({ item }: { item: Item }) {
 				"
       >
         <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-        {
-            // item.preview
-            "todo"
-             }
-        // item.preview
-
+            { showContent.value.content }
         </pre>
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
@@ -265,17 +298,6 @@ function Main() {
           }
           hide();
           return;
-
-        /*
-            case event.key === "Enter":
-              if (inputElement.value.trim() !== "") {
-                await invoke("run_command", {
-                  command: inputElement.value,
-                });
-                inputElement.value = "";
-              }
-              break;
-                  */
 
         case ((!showFilter.value) && event.key === "/"):
           event.preventDefault();
@@ -433,6 +455,13 @@ function App() {
     }
 
     listen("recent-items", handleDataFromRust);
+
+    async function init() {
+      const recentItems = await invoke<string>("init_window");
+      items.value = JSON.parse(recentItems);
+      updateSelected(0);
+    }
+    init();
 
     // set selection back to the top onBlur
     const onBlur = () => {

@@ -40,8 +40,13 @@ fn get_item_content(hash: String) -> Option<String> {
     let items = ITEMS.lock().unwrap();
     items.get(&hash).map(|item| {
         let content = String::from_utf8(item.content.clone()).unwrap();
-        content
+        serde_json::to_string(&ItemContent { hash, content }).unwrap()
     })
+}
+
+#[tauri::command]
+fn init_window() -> String {
+    recent_items()
 }
 
 lazy_static! {
@@ -132,11 +137,17 @@ fn merge_item(item: Item) {
 }
 
 #[derive(serde::Serialize)]
-struct RecentItem {
+struct ItemTerse {
     mime_type: String,
     hash: String,
     last_copied: u64,
     terse: String,
+}
+
+#[derive(serde::Serialize)]
+struct ItemContent {
+    hash: String,
+    content: String,
 }
 
 fn recent_items() -> String {
@@ -145,9 +156,9 @@ fn recent_items() -> String {
     recent_items.sort_unstable_by(|a, b| b.last_copied.cmp(&a.last_copied));
     recent_items.truncate(400);
 
-    let recent_items: Vec<RecentItem> = recent_items
+    let recent_items: Vec<ItemTerse> = recent_items
         .iter()
-        .map(|item| RecentItem {
+        .map(|item| ItemTerse {
             mime_type: item.mime_type.clone(),
             hash: item.hash.clone(),
             last_copied: item.last_copied,
@@ -231,7 +242,7 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![get_item_content])
+        .invoke_handler(tauri::generate_handler![init_window, get_item_content])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
@@ -249,9 +260,9 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
-            let _window = app.get_window("main").unwrap();
-            // window.open_devtools();
-            // window.close_devtools();
+            let window = app.get_window("main").unwrap();
+            window.open_devtools();
+            window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
