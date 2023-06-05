@@ -1,8 +1,10 @@
 import { render } from "preact";
-import { computed, signal } from "@preact/signals";
+import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { listen } from "@tauri-apps/api/event";
+import { Scru128Id } from "scru128";
+
+import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
 
@@ -19,14 +21,134 @@ import {
   lightThemeClass,
 } from "./app.css.ts";
 
-import { addItem, Item } from "./items.tsx";
+interface MetaValue {
+  name: string;
+  value?: string;
+  timestamp?: number;
+}
+
+interface Item {
+  hash: string;
+  ids: string[];
+  mime_type: string;
+  terse: string;
+}
+
+const getMeta = (item: Item): MetaValue[] => {
+  const toTimestamp = (id: string) => {
+    return Scru128Id.fromString(id).timestamp;
+  };
+
+  if (item.ids.length === 0) return [];
+
+  let meta = [
+    { name: "ID", value: item.ids[0] },
+    { name: "Mime Type", value: item.mime_type },
+  ];
+
+  if (item.ids.length === 1) {
+    return [
+      ...meta,
+      { name: "Copied", timestamp: toTimestamp(item.ids[0]) },
+    ];
+  }
+
+  return [
+    ...meta,
+    { name: "Times copied", value: item.ids.length.toString() },
+    {
+      name: "Last Copied",
+      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
+    },
+    { name: "First Copied", timestamp: toTimestamp(item.ids[0]) },
+  ];
+};
+
+//
+// Global State
+
+const themeMode = signal("light");
+
+const items = signal<Item[]>([]);
+const selected = signal(0);
+
+const availableItems = computed(() => {
+  return items.value;
+  /*
+  const ret = Array.from(items.value.values())
+    .filter((item) => {
+      const filter = currentFilter.value.trim().toLowerCase();
+      if (filter === "") return true;
+      return item.terse.toLowerCase().includes(filter);
+    })
+    .sort((a, b) => cmp(b.id, a.id));
+  return ret;
+  */
+});
+
+const selectedItem = computed((): Item | undefined => {
+  return availableItems.value[selected.value];
+});
+
+const loadedContent: Signal<string> = signal("");
+const loadedHash: Signal<string> = signal("");
+
+const selectedContent = computed((): string | undefined => {
+  const item = selectedItem.value;
+  if (item === undefined) return undefined;
+  if (item.hash !== loadedHash.value) return undefined;
+  return loadedContent.value;
+});
+
+// TODO: cap size of CAS, with MRU eviction
+const CAS: Map<string, string> = new Map();
+
+async function getContent(hash: string): Promise<string> {
+  const cachedItem = CAS.get(hash);
+  if (cachedItem !== undefined) {
+    return cachedItem;
+  }
+
+  console.log("CACHE MISS", hash);
+  const content: string = await invoke("store_get_content", { hash: hash });
+  CAS.set(hash, content);
+  return content;
+}
+
+async function updateLoaded(hash: string) {
+  loadedContent.value = await getContent(hash);
+  loadedHash.value = hash;
+}
+
+effect(() => {
+  const item = selectedItem.value;
+  if (item === undefined) return;
+  if (item.hash != loadedHash.value) {
+    updateLoaded(item.hash);
+  }
+});
+
+async function updateFilter(curr: string) {
+  console.log("FILTER", curr);
+  items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
+}
+
+const showFilter = signal(false);
+const currentFilter = signal("");
+
+effect(() => {
+  const curr = currentFilter.value;
+  console.log("FILTER", curr);
+  updateFilter(curr);
+});
+
+//
 
 let focusSelectedTimeout: number | undefined;
 
 function focusSelected(delay: number) {
   if (focusSelectedTimeout !== undefined) {
-    clearTimeout(focusSelectedTimeout);
-    focusSelectedTimeout = undefined;
+    return;
   }
 
   focusSelectedTimeout = window.setTimeout(() => {
@@ -43,7 +165,7 @@ function focusSelected(delay: number) {
   }, delay);
 }
 
-function updateSelected(n: number) {
+async function updateSelected(n: number) {
   if (availableItems.value.length === 0) return;
   selected.value = (selected.value + n) % availableItems.value.length;
   if (selected.value < 0) {
@@ -51,35 +173,6 @@ function updateSelected(n: number) {
   }
   focusSelected(5);
 }
-
-const selected = signal(0);
-const items = signal(new Map());
-
-const showFilter = signal(false);
-const currentFilter = signal("");
-
-const themeMode = signal("light");
-
-function cmp(a: any, b: any) {
-  if (a < b) {
-    return -1;
-  } else if (a > b) {
-    return 1;
-  } else {
-    return 0;
-  }
-}
-
-const availableItems = computed(() => {
-  const ret = Array.from(items.value.values())
-    .filter((item) => {
-      const filter = currentFilter.value.trim().toLowerCase();
-      if (filter === "") return true;
-      return item.terse.toLowerCase().includes(filter);
-    })
-    .sort((a, b) => cmp(b.id, a.id));
-  return ret;
-});
 
 function FilterInput() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -112,7 +205,7 @@ function FilterInput() {
           onInput={() => {
             if (inputRef.current == null) return;
             currentFilter.value = inputRef.current.value;
-            updateSelected(0);
+            // updateSelected(0);
           }}
         />
       </div>
@@ -143,7 +236,9 @@ function LeftPane() {
           overflow: "hidden",
         }}
       >
-        <Icon name={item.icon} />
+        <Icon
+          name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
+        />
       </div>
 
       <div
@@ -176,49 +271,86 @@ function LeftPane() {
   );
 }
 
-function RightPane({ item }: { item: Item }) {
+function RightPane(
+  { item, content }: {
+    item: Item | undefined;
+    content: string | undefined;
+  },
+) {
   if (!item) {
     return <div />;
   }
 
-  const MetaInfoRow = ({ name, value }: { name: string; value: any }) => (
-    <div style="display:flex;">
-      <div
-        style={{
-          flexShrink: 0,
-          width: "20ch",
-        }}
-      >
-        {name}
+  function MetaInfoRow(meta: MetaValue) {
+    let displayValue: string;
+    if (meta.timestamp !== undefined) {
+      displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
+        weekday: "short",
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "numeric",
+        minute: "numeric",
+        hour12: true,
+      });
+    } else {
+      displayValue = meta.value || "";
+    }
+
+    return (
+      <div style="display:flex;">
+        <div
+          style={{
+            flexShrink: 0,
+            width: "20ch",
+          }}
+        >
+          {meta.name}
+        </div>
+        <div>{displayValue}</div>
       </div>
-      <div>{value}</div>
-    </div>
-  );
+    );
+  }
 
   return (
     <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
-      <div className={borderBottom} style="
+      <div
+        className={borderBottom}
+        style="
 				padding-bottom: 0.5rem;
 				flex:2;
 				overflow: auto;
-				">
-        <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-        {item.preview}
-        </pre>
+				"
+      >
+        {content !== undefined && item.mime_type === "image/png"
+          ? (
+            <img
+              src={"data:image/png;base64," + content}
+              style={{ opacity: 0.95, borderRadius: "5px", maxHeight: "100%" }}
+            />
+          )
+          : (
+            <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { content !== undefined ? content : "loading..." }
+            </pre>
+          )}
       </div>
       <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {item.meta.map((info) => (
-          <MetaInfoRow name={info.name} value={info.value} />
-        ))}
+        {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
       </div>
     </div>
   );
 }
 
 async function triggerCopy() {
-  const item = availableItems.value[selected.value];
+  const item = selectedItem.value;
   if (item) {
-    await writeText(item.preview);
+    if (item.mime_type != "text/plain") {
+      console.log("MIEM", item.mime_type);
+    } else {
+      let content = await getContent(item.hash);
+      await writeText(content);
+    }
   }
   clearShowFilter();
   hide();
@@ -233,55 +365,44 @@ function clearShowFilter() {
   showFilter.value = false;
 }
 
+async function globalKeyHandler(event: KeyboardEvent) {
+  switch (true) {
+    case event.key === "Enter":
+      await triggerCopy();
+      break;
+
+    case event.key === "Escape":
+      event.preventDefault();
+
+      if (showFilter.value) {
+        clearShowFilter();
+        return;
+      }
+      hide();
+      return;
+
+    case ((!showFilter.value) && event.key === "/"):
+      event.preventDefault();
+      triggerShowFilter();
+      break;
+
+    case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
+      event.preventDefault();
+      updateSelected(1);
+      break;
+
+    case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
+      event.preventDefault();
+      updateSelected(-1);
+      break;
+  }
+}
+
 function Main() {
   useEffect(() => {
-    async function handleKeys(event: KeyboardEvent) {
-      switch (true) {
-        case event.key === "Enter":
-          await triggerCopy();
-          break;
-
-        case event.key === "Escape":
-          event.preventDefault();
-
-          if (showFilter.value) {
-            clearShowFilter();
-            return;
-          }
-          hide();
-          return;
-
-        /*
-            case event.key === "Enter":
-              if (inputElement.value.trim() !== "") {
-                await invoke("run_command", {
-                  command: inputElement.value,
-                });
-                inputElement.value = "";
-              }
-              break;
-                  */
-
-        case ((!showFilter.value) && event.key === "/"):
-          event.preventDefault();
-          triggerShowFilter();
-          break;
-
-        case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
-          event.preventDefault();
-          updateSelected(1);
-          break;
-
-        case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-          event.preventDefault();
-          updateSelected(-1);
-          break;
-      }
-    }
-    window.addEventListener("keydown", handleKeys);
-
+    window.addEventListener("keydown", globalKeyHandler);
     return () => {
-      window.removeEventListener("keydown", handleKeys);
+      window.removeEventListener("keydown", globalKeyHandler);
     };
   }, []);
 
@@ -302,7 +423,10 @@ function Main() {
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <LeftPane />
-          <RightPane item={availableItems.value[selected.value]} />
+          <RightPane
+            item={selectedItem.value}
+            content={selectedContent.value}
+          />
         </div>
       </section>
 
@@ -377,6 +501,26 @@ function Main() {
                 : <Icon name="IconSun" />}
             </span>
           </div>
+
+          <div
+            className={borderRight}
+            style={{
+              width: "1px",
+              height: "1.5em",
+            }}
+          />
+
+          <div>
+            <span style="
+            display: inline-block;
+            width: 8ch;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+              # {items.value.length}
+            </span>
+          </div>
         </div>
       </footer>
     </main>
@@ -385,43 +529,17 @@ function Main() {
 
 function App() {
   useEffect(() => {
-    interface DataFromRustEvent {
-      payload: {
-        message: string;
-      };
-    }
-
-    function handleDataFromRust(event: DataFromRustEvent) {
+    listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
-      addItem(
-        event.payload.message,
-        items,
-        availableItems,
-        selected,
-        focusSelected,
-        updateSelected,
-      );
-    }
+      items.value = event.payload;
+      updateSelected(0);
+    });
 
-    async function fetchData() {
-      try {
-        const data: string[] = await invoke("init_process");
-        data.forEach((raw) => {
-          addItem(
-            raw,
-            items,
-            availableItems,
-            selected,
-            focusSelected,
-            updateSelected,
-          );
-        });
-      } catch (error) {
-        console.error("Error in init_process:", error);
-      }
-      listen("item", handleDataFromRust);
+    async function init() {
+      items.value = await invoke<Item[]>("init_window");
+      updateSelected(0);
     }
-    fetchData();
+    init();
 
     // set selection back to the top onBlur
     const onBlur = () => {

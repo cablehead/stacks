@@ -1,34 +1,21 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#[allow(deprecated)]
+use base64::decode;
+
+use lazy_static::lazy_static;
+use serde_json::Value;
+use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 use std::path::Path;
-use std::path::PathBuf;
-use std::sync::atomic::{AtomicBool, Ordering};
-use std::sync::Arc;
 use std::sync::Mutex;
-
 use tauri::CustomMenuItem;
 use tauri::Manager;
 use tauri::SystemTrayMenu;
-use tauri::Window;
 use tauri_plugin_log::LogTarget;
 
-use lazy_static::lazy_static;
-
 mod clipboard;
-mod producer;
-
-lazy_static! {
-    static ref PRODUCER: producer::Producer = producer::Producer::new();
-    static ref PROCESS_MAP: Mutex<HashMap<String, Arc<AtomicBool>>> = Mutex::new(HashMap::new());
-    static ref DATADIR: Mutex<PathBuf> = Mutex::new(PathBuf::new());
-}
-
-#[derive(Clone, serde::Serialize)]
-struct Payload {
-    message: String,
-}
 
 #[derive(Clone, serde::Serialize)]
 pub struct CommandOutput {
@@ -37,59 +24,161 @@ pub struct CommandOutput {
     pub exit_code: i32,
 }
 
-#[tauri::command]
-fn init_process(window: Window) -> Result<Vec<String>, String> {
-    let label = window.label().to_string();
-    log::info!("WINDOW: {:?}", label);
-
-    // If there's an existing process for this window, stop it
-    let mut process_map = PROCESS_MAP.lock().unwrap();
-
-    if let Some(should_continue) = process_map.get(&label) {
-        should_continue.store(false, Ordering::SeqCst);
-    } else {
-        // only setup an event listener the first time we see this window
-        window.on_window_event(move |event| log::info!("EVENT: {:?}", event));
-    }
-
-    let should_continue = Arc::new(AtomicBool::new(true));
-    process_map.insert(label, should_continue.clone());
-    drop(process_map); // Explicitly drop the lock
-
-    let (initial_data, consumer) = PRODUCER.add_consumer();
-
-    std::thread::spawn(move || {
-        for line in consumer.iter() {
-            if !should_continue.load(Ordering::SeqCst) {
-                log::info!("Window closed, ending thread.");
-                break;
-            }
-
-            window.emit("item", Payload { message: line }).unwrap();
-        }
-    });
-
-    Ok(initial_data)
-}
-
 // POLL_INTERVAL is the number of milliseconds to wait between polls when watching for
 // additions to the stream
 // todo: investigate switching to: https://docs.rs/notify/latest/notify/
-const POLL_INTERVAL: u64 = 5;
+const POLL_INTERVAL: u64 = 10;
 
-fn start_child_process(path: &Path) {
+#[tauri::command]
+async fn store_get_content(hash: String) -> Option<String> {
+    println!("CACHE MISS: {}", &hash);
+    let state = STORE.lock().unwrap();
+    state
+        .cas
+        .get(&hash)
+        .map(|content| String::from_utf8(content.clone()).unwrap())
+}
+
+#[tauri::command]
+async fn store_set_filter(curr: String) -> Vec<Item> {
+    println!("FILTER : {}", &curr);
+    let mut state = STORE.lock().unwrap();
+    state.filter = if curr.is_empty() { None } else { Some(curr) };
+    drop(state);
+    recent_items()
+}
+
+#[tauri::command]
+fn init_window() -> Vec<Item> {
+    recent_items()
+}
+
+struct Store {
+    items: HashMap<String, Item>,
+    cas: HashMap<String, Vec<u8>>,
+    filter: Option<String>,
+}
+
+impl Store {
+    fn new() -> Self {
+        Self {
+            items: HashMap::new(),
+            cas: HashMap::new(),
+            filter: None,
+        }
+    }
+
+    fn add_frame(&mut self, frame: &xs_lib::Frame) {
+        let result: Option<(&str, String, Vec<u8>)> = match &frame.topic {
+            Some(topic) if topic == "clipboard" => {
+                let clipped: Value = serde_json::from_str(&frame.data).unwrap();
+                let types = clipped["types"].as_object().unwrap();
+
+                if types.contains_key("public.utf8-plain-text") {
+                    #[allow(deprecated)]
+                    let content =
+                        decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
+                    Some((
+                        "text/plain",
+                        String::from_utf8(content.clone())
+                            .unwrap()
+                            .chars()
+                            .take(100)
+                            .collect(),
+                        content,
+                    ))
+                } else if types.contains_key("public.png") {
+                    let content = types["public.png"].as_str().unwrap().as_bytes();
+                    Some(("image/png", clipped["source"].to_string(), content.to_vec()))
+                } else {
+                    println!("add_frame TODO: types: {:?}", types);
+                    None
+                }
+            }
+
+            Some(_) => Some((
+                "text/plain",
+                frame.data.chars().take(100).collect(),
+                frame.data.as_bytes().to_vec(),
+            )),
+            None => None,
+        };
+
+        if let Some((mime_type, terse, content)) = result {
+            let hash = format!("{:x}", Sha256::digest(&content));
+
+            match self.items.get_mut(&hash) {
+                Some(curr) => {
+                    assert_eq!(curr.mime_type, mime_type, "Mime types don't match");
+                    curr.ids.push(frame.id);
+                }
+                None => {
+                    self.items.insert(
+                        hash.clone(),
+                        Item {
+                            hash: hash.clone(),
+                            ids: vec![frame.id],
+                            mime_type: mime_type.to_string(),
+                            terse,
+                        },
+                    );
+                    self.cas.insert(hash, content);
+                }
+            }
+        }
+    }
+}
+
+lazy_static! {
+    static ref STORE: Mutex<Store> = Mutex::new(Store::new());
+}
+
+#[derive(Clone, serde::Serialize)]
+struct Item {
+    hash: String,
+    ids: Vec<scru128::Scru128Id>,
+    mime_type: String,
+    terse: String,
+}
+
+fn recent_items() -> Vec<Item> {
+    let store = &STORE.lock().unwrap();
+
+    let mut recent_items: Vec<Item> = store
+        .items
+        .values()
+        .filter(|item| {
+            if let Some(curr) = &store.filter {
+                item.mime_type == "text/plain" && item.terse.contains(curr)
+            } else {
+                true
+            }
+        })
+        .cloned()
+        .collect();
+    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+    recent_items.truncate(400);
+    recent_items
+}
+
+fn start_child_process(app: tauri::AppHandle, path: &Path) {
     let path = path.to_path_buf();
     std::thread::spawn(move || {
         let mut last_id = None;
         let mut counter = 0;
         loop {
-            let env = xs_lib::store_open(&path);
-            let frames = xs_lib::store_cat(&env, last_id);
-            for frame in frames {
-                last_id = Some(frame.id);
-                let data = serde_json::to_string(&frame).unwrap();
-                PRODUCER.send_data(data);
+            let env = xs_lib::store_open(&path).unwrap();
+
+            let frames = xs_lib::store_cat(&env, last_id).unwrap();
+            if !frames.is_empty() {
+                for frame in frames {
+                    last_id = Some(frame.id);
+                    let mut state = STORE.lock().unwrap();
+                    state.add_frame(&frame);
+                }
+                app.emit_all("recent-items", recent_items()).unwrap();
             }
+
             if counter % 1000 == 0 {
                 log::info!("start_child_process::last_id: {:?}", last_id);
             }
@@ -117,6 +206,7 @@ fn main() {
     let system_tray = tauri::SystemTray::new().with_menu(menu);
 
     tauri::Builder::default()
+        .on_window_event(|event| log::info!("EVENT: {:?}", event.event()))
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
@@ -132,7 +222,11 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![init_process])
+        .invoke_handler(tauri::generate_handler![
+            init_window,
+            store_set_filter,
+            store_get_content,
+        ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
@@ -150,7 +244,8 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
-            let _window = app.get_window("main").unwrap();
+            #[allow(unused_variables)]
+            let window = app.get_window("main").unwrap();
             // window.open_devtools();
             // window.close_devtools();
 
@@ -159,11 +254,9 @@ fn main() {
             let data_dir = app.path_resolver().app_data_dir().unwrap();
             let data_dir = data_dir.join("stream");
             log::info!("PR: {:?}", data_dir);
-            let mut shared = DATADIR.lock().unwrap();
-            *shared = data_dir;
 
-            clipboard::start(&shared);
-            start_child_process(&shared);
+            clipboard::start(&data_dir);
+            start_child_process(app.handle(), &data_dir);
 
             Ok(())
         })
