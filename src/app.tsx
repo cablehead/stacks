@@ -501,26 +501,6 @@ function Main() {
                 : <Icon name="IconSun" />}
             </span>
           </div>
-
-          <div
-            className={borderRight}
-            style={{
-              width: "1px",
-              height: "1.5em",
-            }}
-          />
-
-          <div>
-            <span style="
-            display: inline-block;
-            width: 8ch;
-            height: 1.5em;
-            text-align: center;
-            border-radius: 5px;
-            ">
-              # {items.value.length}
-            </span>
-          </div>
         </div>
       </footer>
     </main>
