@@ -11,13 +11,12 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./icons.tsx";
+import { StatusBar } from "./statusbar.tsx";
 
 import {
   borderBottom,
   borderRight,
   darkThemeClass,
-  footer,
-  iconStyle,
   lightThemeClass,
 } from "./app.css.ts";
 
@@ -135,6 +134,10 @@ async function updateFilter(curr: string) {
 
 const showFilter = signal(false);
 const currentFilter = signal("");
+
+effect(() => {
+  if (!showFilter.value) currentFilter.value = "";
+});
 
 effect(() => {
   const curr = currentFilter.value;
@@ -352,17 +355,8 @@ async function triggerCopy() {
       await writeText(content);
     }
   }
-  clearShowFilter();
-  hide();
-}
-
-function triggerShowFilter() {
-  showFilter.value = true;
-}
-
-function clearShowFilter() {
-  currentFilter.value = "";
   showFilter.value = false;
+  hide();
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
@@ -375,7 +369,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       event.preventDefault();
 
       if (showFilter.value) {
-        clearShowFilter();
+        showFilter.value = false;
         return;
       }
       hide();
@@ -383,7 +377,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case ((!showFilter.value) && event.key === "/"):
       event.preventDefault();
-      triggerShowFilter();
+      showFilter.value = true;
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
@@ -429,80 +423,11 @@ function Main() {
           />
         </div>
       </section>
-
-      <footer className={footer}>
-        <div style="">
-          Clipboard
-        </div>
-
-        <div style="
-    display: flex;
-        align-items: center;
-    gap: 0.5ch;
-    ">
-          {!showFilter.value &&
-            (
-              <div onClick={triggerShowFilter} class="hoverable">
-                Filter&nbsp;
-                <span className={iconStyle}>
-                  /
-                </span>
-              </div>
-            )}
-
-          {showFilter.value &&
-            (
-              <div onClick={clearShowFilter} class="hoverable">
-                Clear Filter&nbsp;
-                <span className={iconStyle}>
-                  ESC
-                </span>
-              </div>
-            )}
-
-          <div
-            className={borderRight}
-            style={{
-              width: "1px",
-              height: "1.5em",
-            }}
-          />
-
-          <div onClick={async (e) => await triggerCopy()} class="hoverable">
-            Copy&nbsp;
-            <span className={iconStyle}>
-              <Icon name="IconReturnKey" />
-            </span>
-          </div>
-
-          <div
-            className={borderRight}
-            style={{
-              width: "1px",
-              height: "1.5em",
-            }}
-          />
-
-          <div
-            onClick={() => {
-              themeMode.value = themeMode.value === "light" ? "dark" : "light";
-            }}
-            class="hoverable"
-          >
-            <span style="
-            display: inline-block;
-            width: 1.5em;
-            height: 1.5em;
-            text-align: center;
-            border-radius: 5px;
-            ">
-              {themeMode.value == "light"
-                ? <Icon name="IconMoon" />
-                : <Icon name="IconSun" />}
-            </span>
-          </div>
-        </div>
-      </footer>
+      <StatusBar
+        themeMode={themeMode}
+        showFilter={showFilter}
+        triggerCopy={triggerCopy}
+      />
     </main>
   );
 }
