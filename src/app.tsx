@@ -100,6 +100,7 @@ const selectedContent = computed((): string | undefined => {
   return loadedContent.value;
 });
 
+// TODO: cap size of CAS, with MRU eviction
 const CAS: Map<string, string> = new Map();
 
 async function getContent(hash: string): Promise<string> {
