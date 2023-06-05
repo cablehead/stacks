@@ -2,11 +2,7 @@ import { Signal } from "@preact/signals";
 
 import { Icon } from "./icons.tsx";
 
-import {
-  borderRight,
-  footer,
-  iconStyle,
-} from "./app.css.ts";
+import { borderRight, footer, iconStyle } from "./app.css.ts";
 
 export function StatusBar(
   { themeMode, showFilter, triggerCopy }: {
@@ -22,37 +18,12 @@ export function StatusBar(
       </div>
 
       <div style="
-    display: flex;
+        display: flex;
         align-items: center;
-    gap: 0.5ch;
-    ">
-        {!showFilter.value &&
-          (
-            <div onClick={() => showFilter.value = true} class="hoverable">
-              Filter&nbsp;
-              <span className={iconStyle}>
-                /
-              </span>
-            </div>
-          )}
-
-        {showFilter.value &&
-          (
-            <div onClick={() => showFilter.value = false} class="hoverable">
-              Clear Filter&nbsp;
-              <span className={iconStyle}>
-                ESC
-              </span>
-            </div>
-          )}
-
-        <div
-          className={borderRight}
-          style={{
-            width: "1px",
-            height: "1.5em",
-          }}
-        />
+        gap: 0.5ch;
+      ">
+        <Filter showFilter={showFilter} />
+        <VertDiv />
 
         <div onClick={async (e) => await triggerCopy()} class="hoverable">
           Copy&nbsp;
@@ -60,34 +31,64 @@ export function StatusBar(
             <Icon name="IconReturnKey" />
           </span>
         </div>
+        <VertDiv />
 
-        <div
-          className={borderRight}
-          style={{
-            width: "1px",
-            height: "1.5em",
-          }}
-        />
+        <Theme themeMode={ themeMode } />
+      </div>
+    </footer>
+  );
+}
 
-        <div
-          onClick={() => {
-            themeMode.value = themeMode.value === "light" ? "dark" : "light";
-          }}
-          class="hoverable"
-        >
-          <span style="
+const VertDiv = () => (
+  <div
+    className={borderRight}
+    style={{
+      width: "1px",
+      height: "1.5em",
+    }}
+  />
+);
+
+const Filter = (
+  { showFilter }: {
+    showFilter: Signal<boolean>;
+  },
+) =>
+  !showFilter.value
+    ? (
+      <div onClick={() => showFilter.value = true} class="hoverable">
+        Filter&nbsp;
+        <span className={iconStyle}>
+          /
+        </span>
+      </div>
+    )
+    : (
+      <div onClick={() => showFilter.value = false} class="hoverable">
+        Clear Filter&nbsp;
+        <span className={iconStyle}>
+          ESC
+        </span>
+      </div>
+    );
+
+const Theme = ({ themeMode }: { themeMode: Signal<string> }) => (
+  <div
+    onClick={() => {
+      themeMode.value = themeMode.value === "light" ? "dark" : "light";
+    }}
+    class="hoverable"
+  >
+    <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
             text-align: center;
             border-radius: 5px;
             ">
-            {themeMode.value == "light"
-              ? <Icon name="IconMoon" />
-              : <Icon name="IconSun" />}
-          </span>
-        </div>
-      </div>
-    </footer>
-  );
-}
+      {themeMode.value == "light"
+        ? <Icon name="IconMoon" />
+        : <Icon name="IconSun" />}
+    </span>
+  </div>
+);
