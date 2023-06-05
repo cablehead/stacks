@@ -110,7 +110,7 @@ async function getContent(hash: string): Promise<string> {
   }
 
   console.log("CACHE MISS", hash);
-  const content: string = await invoke("get_item_content", { hash: hash });
+  const content: string = await invoke("store_get_content", { hash: hash });
   CAS.set(hash, content);
   return content;
 }

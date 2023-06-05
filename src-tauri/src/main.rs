@@ -30,7 +30,7 @@ pub struct CommandOutput {
 const POLL_INTERVAL: u64 = 10;
 
 #[tauri::command]
-async fn get_item_content(hash: String) -> Option<String> {
+async fn store_get_content(hash: String) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
     let state = STORE.lock().unwrap();
     state
@@ -43,7 +43,7 @@ async fn get_item_content(hash: String) -> Option<String> {
 async fn store_set_filter(curr: String) -> Vec<Item> {
     println!("FILTER : {}", &curr);
     let mut state = STORE.lock().unwrap();
-    state.filter = if curr.len() == 0 { None } else { Some(curr) };
+    state.filter = if curr.is_empty() { None } else { Some(curr) };
     drop(state);
     recent_items()
 }
@@ -141,23 +141,6 @@ struct Item {
     terse: String,
 }
 
-#[derive(Clone, serde::Serialize)]
-struct ItemTerse {
-    mime_type: String,
-    hash: String,
-    terse: String,
-    meta: Vec<MetaValue>,
-}
-
-#[derive(Clone, serde::Serialize)]
-struct MetaValue {
-    name: String,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    value: Option<String>,
-    #[serde(skip_serializing_if = "Option::is_none")]
-    timestamp: Option<u64>,
-}
-
 fn recent_items() -> Vec<Item> {
     let store = &STORE.lock().unwrap();
 
@@ -166,7 +149,7 @@ fn recent_items() -> Vec<Item> {
         .values()
         .filter(|item| {
             if let Some(curr) = &store.filter {
-                item.mime_type == "text/plain" && item.terse.contains(&*curr)
+                item.mime_type == "text/plain" && item.terse.contains(curr)
             } else {
                 true
             }
@@ -187,7 +170,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
             let env = xs_lib::store_open(&path).unwrap();
 
             let frames = xs_lib::store_cat(&env, last_id).unwrap();
-            if frames.len() > 0 {
+            if !frames.is_empty() {
                 for frame in frames {
                     last_id = Some(frame.id);
                     let mut state = STORE.lock().unwrap();
@@ -239,7 +222,11 @@ fn main() {
                 }
             }
         })
-        .invoke_handler(tauri::generate_handler![init_window, store_set_filter, get_item_content])
+        .invoke_handler(tauri::generate_handler![
+            init_window,
+            store_set_filter,
+            store_get_content,
+        ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
