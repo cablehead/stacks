@@ -329,7 +329,11 @@ function RightPane(
           ? (
             <img
               src={"data:image/png;base64," + content}
-              style={{ opacity: 0.95, borderRadius: "5px", maxHeight: "100%" }}
+              style={{
+                opacity: 0.95,
+                borderRadius: "5px",
+                maxHeight: "100%",
+              }}
             />
           )
           : (
