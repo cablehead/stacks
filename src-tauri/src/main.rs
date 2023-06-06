@@ -40,6 +40,14 @@ async fn store_get_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
+async fn store_delete(hash: String) {
+    println!("DEL: {}", &hash);
+    let mut state = STORE.lock().unwrap();
+    println!("item: {:?}", state.items.get(&hash).map(|item| &item.ids));
+    state.cas.remove(&hash);
+}
+
+#[tauri::command]
 async fn store_set_filter(curr: String) -> Vec<Item> {
     println!("FILTER : {}", &curr);
     let mut state = STORE.lock().unwrap();
@@ -133,7 +141,7 @@ lazy_static! {
     static ref STORE: Mutex<Store> = Mutex::new(Store::new());
 }
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize)]
 struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
@@ -232,6 +240,7 @@ fn main() {
             init_window,
             store_set_filter,
             store_get_content,
+            store_delete,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
