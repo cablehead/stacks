@@ -22,8 +22,6 @@ cargo tauri dev
 
 ## Todo
 
-- new clipboard items can stop updating
-
 - delete items
 
 - better cursor handling
@@ -42,6 +40,8 @@ cargo tauri dev
 - handle clipboard images
     - in preview: improve transparency
     - when the user hits enter
+
+- new clipboard items can stop updating
 
 - customize key press
 - meta-n opens choice: note / command

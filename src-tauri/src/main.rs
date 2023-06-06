@@ -167,16 +167,22 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
         let mut last_id = None;
         let mut counter = 0;
         loop {
-            let env = xs_lib::store_open(&path).unwrap();
-
-            let frames = xs_lib::store_cat(&env, last_id).unwrap();
-            if !frames.is_empty() {
-                for frame in frames {
-                    last_id = Some(frame.id);
-                    let mut state = STORE.lock().unwrap();
-                    state.add_frame(&frame);
+            let pump = (|| -> Result<(), Box<dyn std::error::Error>> {
+                let env = xs_lib::store_open(&path)?;
+                let frames = xs_lib::store_cat(&env, last_id)?;
+                if !frames.is_empty() {
+                    for frame in frames {
+                        last_id = Some(frame.id);
+                        let mut state = STORE.lock()?;
+                        state.add_frame(&frame);
+                    }
+                    app.emit_all("recent-items", recent_items())?;
                 }
-                app.emit_all("recent-items", recent_items()).unwrap();
+                Ok(())
+            })();
+
+            if let Err(e) = pump {
+                log::error!("Error processing frames: {}", e);
             }
 
             if counter % 1000 == 0 {
