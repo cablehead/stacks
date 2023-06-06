@@ -359,6 +359,13 @@ async function triggerCopy() {
   hide();
 }
 
+async function triggerDelete() {
+  const item = selectedItem.value;
+  if (item) {
+    console.log("DEL", item);
+  }
+}
+
 async function globalKeyHandler(event: KeyboardEvent) {
   switch (true) {
     case event.key === "Enter":
@@ -388,6 +395,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
       updateSelected(-1);
+      break;
+
+    case (event.ctrlKey && event.key === "Backspace"):
+      event.preventDefault();
+      await triggerDelete();
       break;
   }
 }
@@ -427,6 +439,7 @@ function Main() {
         themeMode={themeMode}
         showFilter={showFilter}
         triggerCopy={triggerCopy}
+        triggerDelete={triggerDelete}
       />
     </main>
   );

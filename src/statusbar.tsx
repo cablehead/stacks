@@ -5,10 +5,11 @@ import { Icon } from "./icons.tsx";
 import { borderRight, footer, iconStyle } from "./app.css.ts";
 
 export function StatusBar(
-  { themeMode, showFilter, triggerCopy }: {
+  { themeMode, showFilter, triggerCopy, triggerDelete }: {
     themeMode: Signal<string>;
     showFilter: Signal<boolean>;
     triggerCopy: () => void;
+    triggerDelete: () => void;
   },
 ) {
   return (
@@ -29,6 +30,14 @@ export function StatusBar(
           Copy&nbsp;
           <span className={iconStyle}>
             <Icon name="IconReturnKey" />
+          </span>
+        </div>
+        <VertDiv />
+
+        <div onClick={async (e) => await triggerDelete()} class="hoverable">
+          Delete&nbsp;
+          <span className={iconStyle}>
+            Ctrl + DEL
           </span>
         </div>
         <VertDiv />
