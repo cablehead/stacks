@@ -41,7 +41,7 @@ async fn store_get_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
-async fn store_delete(app: tauri::AppHandle, hash: String) {
+async fn store_delete(app: tauri::AppHandle, hash: String) -> Vec<Item> {
     println!("DEL: {}", &hash);
     let mut state = STORE.lock().unwrap();
     if let Some(item) = state.items.remove(&hash) {
@@ -52,6 +52,8 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
         xs_lib::store_delete(&env, item.ids).unwrap();
     }
     state.cas.remove(&hash);
+    drop(state);
+    recent_items()
 }
 
 #[tauri::command]

@@ -362,7 +362,7 @@ async function triggerCopy() {
 async function triggerDelete() {
   const item = selectedItem.value;
   if (item) {
-    await invoke<Item[]>("store_delete", { hash: item.hash });
+    items.value = await invoke<Item[]>("store_delete", { hash: item.hash });
   }
 }
 
