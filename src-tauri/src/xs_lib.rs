@@ -81,7 +81,10 @@ pub fn store_delete(
     ids: Vec<scru128::Scru128Id>,
 ) -> Result<(), Box<dyn std::error::Error>> {
     let db = env.open_db(None)?;
-    let txn = env.begin_rw_txn()?;
+    let mut txn = env.begin_rw_txn()?;
+    for id in ids {
+        txn.del(db, &id.to_u128().to_be_bytes(), None)?;
+    }
     txn.commit()?;
     Ok(())
 }

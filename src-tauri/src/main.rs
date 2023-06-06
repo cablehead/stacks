@@ -41,10 +41,16 @@ async fn store_get_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
-async fn store_delete(hash: String) {
+async fn store_delete(app: tauri::AppHandle, hash: String) {
     println!("DEL: {}", &hash);
     let mut state = STORE.lock().unwrap();
-    println!("item: {:?}", state.items.get(&hash).map(|item| &item.ids));
+    if let Some(item) = state.items.remove(&hash) {
+        println!("item: {:?}", item);
+        let data_dir = app.path_resolver().app_data_dir().unwrap();
+        let data_dir = data_dir.join("stream");
+        let env = xs_lib::store_open(&data_dir).unwrap();
+        xs_lib::store_delete(&env, item.ids).unwrap();
+    }
     state.cas.remove(&hash);
 }
 
