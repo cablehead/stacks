@@ -22,8 +22,6 @@ cargo tauri dev
 
 ## Todo
 
-- delete items
-
 - better cursor handling
     - dedicated focus handling when the filter changes
     - if the first item isn't selected and an item is added, move the cursor

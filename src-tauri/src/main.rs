@@ -16,6 +16,7 @@ use tauri::SystemTrayMenu;
 use tauri_plugin_log::LogTarget;
 
 mod clipboard;
+mod xs_lib;
 
 #[derive(Clone, serde::Serialize)]
 pub struct CommandOutput {
@@ -37,6 +38,22 @@ async fn store_get_content(hash: String) -> Option<String> {
         .cas
         .get(&hash)
         .map(|content| String::from_utf8(content.clone()).unwrap())
+}
+
+#[tauri::command]
+async fn store_delete(app: tauri::AppHandle, hash: String) -> Vec<Item> {
+    println!("DEL: {}", &hash);
+    let mut state = STORE.lock().unwrap();
+    if let Some(item) = state.items.remove(&hash) {
+        println!("item: {:?}", item);
+        let data_dir = app.path_resolver().app_data_dir().unwrap();
+        let data_dir = data_dir.join("stream");
+        let env = xs_lib::store_open(&data_dir).unwrap();
+        xs_lib::store_delete(&env, item.ids).unwrap();
+    }
+    state.cas.remove(&hash);
+    drop(state);
+    recent_items()
 }
 
 #[tauri::command]
@@ -133,7 +150,7 @@ lazy_static! {
     static ref STORE: Mutex<Store> = Mutex::new(Store::new());
 }
 
-#[derive(Clone, serde::Serialize)]
+#[derive(Debug, Clone, serde::Serialize)]
 struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
@@ -232,6 +249,7 @@ fn main() {
             init_window,
             store_set_filter,
             store_get_content,
+            store_delete,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
