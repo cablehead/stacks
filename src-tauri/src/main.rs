@@ -16,6 +16,7 @@ use tauri::SystemTrayMenu;
 use tauri_plugin_log::LogTarget;
 
 mod clipboard;
+mod xs_lib;
 
 #[derive(Clone, serde::Serialize)]
 pub struct CommandOutput {
@@ -261,8 +262,8 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
-            window.close_devtools();
+            // window.open_devtools();
+            // window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

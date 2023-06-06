@@ -2,6 +2,8 @@ use std::path::Path;
 
 use tauri::api::process::{Command, CommandEvent};
 
+use crate::xs_lib;
+
 pub fn start(path: &Path) {
     let path = path.to_path_buf();
     let (mut rx, _child) = Command::new_sidecar("x-macos-pasteboard")
