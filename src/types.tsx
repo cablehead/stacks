@@ -4,6 +4,7 @@ interface Link {
   screenshot: string;
   title: string;
   description: string;
+  url: string;
 }
 
 export interface Item {

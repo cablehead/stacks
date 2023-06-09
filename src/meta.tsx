@@ -2,9 +2,7 @@ import { Scru128Id } from "scru128";
 
 import { Item } from "./types.tsx";
 
-import {
-  overlay,
-} from "./app.css.ts";
+import { overlay } from "./app.css.ts";
 
 interface MetaValue {
   name: string;
@@ -21,8 +19,33 @@ const getMeta = (item: Item): MetaValue[] => {
 
   let meta = [
     { name: "ID", value: item.ids[0] },
-    { name: "Mime Type", value: item.mime_type },
   ];
+
+  if (item.link) {
+    meta.push(...[
+      { name: "Content Type", value: "Link" },
+      { name: "Url", value: item.link.url },
+      { name: "Title", value: item.link.title },
+      {
+        name: "Description",
+        value: (
+          <div
+            style={{
+              maxHeight: "3.2lh",
+              overflow: "auto",
+              textOverflow: "ellipsis",
+            }}
+          >
+            {item.link.description}
+          </div>
+        ),
+      },
+    ]);
+  } else {
+    meta.push(
+      { name: "Content Type", value: item.mime_type },
+    );
+  }
 
   if (item.ids.length === 1) {
     return [
@@ -73,14 +96,13 @@ function MetaInfoRow(meta: MetaValue) {
   );
 }
 
-export function MetaPanel({item} : { item: Item } ) {
+export function MetaPanel({ item }: { item: Item }) {
   return (
     <div
       className={overlay}
       style={{
         position: "absolute",
-        maxHeight: "3.5lh",
-        maxWidth: "50ch",
+        width: "50ch",
         overflow: "auto",
         bottom: "0",
         fontSize: "0.9rem",

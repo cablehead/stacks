@@ -262,32 +262,17 @@ function RightPane(
 
     if (item.link) {
       return (
-        <div
-          className={card}
-        >
-          <div style="height: 70%">
-            <img
-              src={item.link.screenshot}
-              style={{
-                opacity: 0.95,
-                maxHeight: "100%",
-                height: "auto",
-                width: "auto",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-          <div
-            style={{
-              padding: "1ch",
-            }}
-          >
-            <p>
-              {item.link.title}
-            </p>
-            <p>{item.link.description}</p>
-          </div>
-        </div>
+        <img
+          src={item.link.screenshot}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
       );
     }
 
@@ -300,16 +285,7 @@ function RightPane(
 
   return (
     <div style="flex: 3; overflow: auto; height: 100%">
-      <div
-        style={{
-          display: "flex",
-          flexDirection: "column",
-          overflow: "hidden",
-          height: "100%",
-        }}
-      >
-        <Preview item={item} content={content} />
-      </div>
+      <Preview item={item} content={content} />
     </div>
   );
 }
