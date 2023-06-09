@@ -130,11 +130,15 @@ impl Store {
                 let hash = format!("{:x}", Sha256::digest(&"https://microlink.io"));
                 let mut item = self.items.get_mut(&hash).unwrap();
 
+                let title = data["title"].as_str().unwrap();
+                let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
+                let title = ex.split(title).next().unwrap().trim();
+
                 item.link = Some(Link {
                     provider: "microlink".to_string(),
                     screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
-                    title: "".to_string(),
-                    description: "".to_string(),
+                    title: title.to_string(),
+                    description: data["description"].as_str().unwrap().to_string(),
                 });
 
                 println!("topic: {} {:?} {:?}", topic, hash, item);

@@ -2,8 +2,6 @@ import { render } from "preact";
 import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { Scru128Id } from "scru128";
-
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
@@ -12,65 +10,17 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./icons.tsx";
 import { StatusBar } from "./statusbar.tsx";
+import { MetaPanel } from "./meta.tsx";
+
+import { Item } from "./types.tsx";
 
 import {
   borderBottom,
   borderRight,
+  card,
   darkThemeClass,
   lightThemeClass,
-  overlay,
 } from "./app.css.ts";
-
-interface MetaValue {
-  name: string;
-  value?: string;
-  timestamp?: number;
-}
-
-interface Link {
-  provider: string;
-  screenshot: string;
-  title: string;
-  description: string;
-}
-
-interface Item {
-  hash: string;
-  ids: string[];
-  mime_type: string;
-  terse: string;
-  link?: Link;
-}
-
-const getMeta = (item: Item): MetaValue[] => {
-  const toTimestamp = (id: string) => {
-    return Scru128Id.fromString(id).timestamp;
-  };
-
-  if (item.ids.length === 0) return [];
-
-  let meta = [
-    { name: "ID", value: item.ids[0] },
-    { name: "Mime Type", value: item.mime_type },
-  ];
-
-  if (item.ids.length === 1) {
-    return [
-      ...meta,
-      { name: "Copied", timestamp: toTimestamp(item.ids[0]) },
-    ];
-  }
-
-  return [
-    ...meta,
-    { name: "Times copied", value: item.ids.length.toString() },
-    {
-      name: "Last Copied",
-      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
-    },
-    { name: "First Copied", timestamp: toTimestamp(item.ids[0]) },
-  ];
-};
 
 //
 // Global State
@@ -291,37 +241,6 @@ function RightPane(
     return <div />;
   }
 
-  function MetaInfoRow(meta: MetaValue) {
-    let displayValue: string;
-    if (meta.timestamp !== undefined) {
-      displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "2-digit",
-        hour: "2-digit",
-        minute: "2-digit",
-        hour12: true,
-      });
-    } else {
-      displayValue = meta.value || "";
-    }
-
-    return (
-      <div style="display:flex;">
-        <div
-          style={{
-            flexShrink: 0,
-            width: "16ch",
-          }}
-        >
-          {meta.name}
-        </div>
-        <div>{displayValue}</div>
-      </div>
-    );
-  }
-
   function Preview(
     { item, content }: { item: Item; content: string | undefined },
   ) {
@@ -343,17 +262,32 @@ function RightPane(
 
     if (item.link) {
       return (
-        <img
-          src={item.link.screenshot}
-          style={{
-            opacity: 0.95,
-            borderRadius: "1rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
+        <div
+          className={card}
+        >
+          <div style="height: 70%">
+            <img
+              src={item.link.screenshot}
+              style={{
+                opacity: 0.95,
+                maxHeight: "100%",
+                height: "auto",
+                width: "auto",
+                objectFit: "contain",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              padding: "1ch",
+            }}
+          >
+            <p>
+              {item.link.title}
+            </p>
+            <p>{item.link.description}</p>
+          </div>
+        </div>
       );
     }
 
@@ -365,11 +299,9 @@ function RightPane(
   }
 
   return (
-    <div style="flex: 3; overflow: auto; position: relative; height: 100%">
+    <div style="flex: 3; overflow: auto; height: 100%">
       <div
         style={{
-          paddingBottom: "0.5rem",
-          flex: 2,
           display: "flex",
           flexDirection: "column",
           overflow: "hidden",
@@ -377,22 +309,6 @@ function RightPane(
         }}
       >
         <Preview item={item} content={content} />
-
-        <div
-          className={overlay}
-          style={{
-            position: "absolute",
-            bottom: "0",
-            fontSize: "0.9rem",
-            right: "5px",
-            bottom: "0.5rem",
-            padding: "0.5rem",
-            borderRadius: "0.5rem",
-            zIndex: 100,
-          }}
-        >
-          {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
-        </div>
       </div>
     </div>
   );
@@ -484,6 +400,7 @@ function Main() {
             padding-top:1ch;
             padding-left:1ch;
             padding-right:1ch;
+            position: relative;
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <LeftPane />
@@ -492,6 +409,9 @@ function Main() {
             content={selectedContent.value}
           />
         </div>
+
+        {selectedItem.value &&
+          <MetaPanel item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}

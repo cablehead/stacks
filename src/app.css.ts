@@ -105,6 +105,15 @@ export const overlay = style({
   backgroundColor: vars.backgroundColorTransparent,
 });
 
+export const card = style({
+    backgroundColor: vars.backgroundColorTransparent,
+    height: "100%",
+    width: "auto",
+    display: "flex",
+    borderRadius: "1ch",
+    flexDirection: "column",
+});
+
 export const borderRight = style({
   borderRightWidth: "1px",
   borderRightStyle: "solid",
