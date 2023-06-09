@@ -17,7 +17,6 @@ import { Item } from "./types.tsx";
 import {
   borderBottom,
   borderRight,
-  card,
   darkThemeClass,
   lightThemeClass,
 } from "./app.css.ts";
@@ -196,9 +195,11 @@ function LeftPane() {
           overflow: "hidden",
         }}
       >
-        <Icon
-          name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
-        />
+        {item.link ? <img src={item.link.icon} /> : (
+          <Icon
+            name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
+          />
+        )}
       </div>
 
       <div

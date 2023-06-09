@@ -140,6 +140,7 @@ impl Store {
                     title: title.to_string(),
                     description: data["description"].as_str().unwrap().to_string(),
                     url: data["url"].as_str().unwrap().to_string(),
+                    icon: data["logo"]["url"].as_str().unwrap().to_string(),
                 });
 
                 println!("topic: {} {:?} {:?}", topic, hash, item);
@@ -194,6 +195,7 @@ struct Link {
     title: String,
     description: String,
     url: String,
+    icon: String,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
