@@ -18,6 +18,7 @@ import {
   borderRight,
   darkThemeClass,
   lightThemeClass,
+  overlay,
 } from "./app.css.ts";
 
 interface MetaValue {
@@ -26,11 +27,19 @@ interface MetaValue {
   timestamp?: number;
 }
 
+interface Link {
+  provider: string;
+  screenshot: string;
+  title: string;
+  description: string;
+}
+
 interface Item {
   hash: string;
   ids: string[];
   mime_type: string;
   terse: string;
+  link?: Link;
 }
 
 const getMeta = (item: Item): MetaValue[] => {
@@ -128,7 +137,6 @@ effect(() => {
 });
 
 async function updateFilter(curr: string) {
-  console.log("FILTER", curr);
   items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
 }
 
@@ -141,7 +149,6 @@ effect(() => {
 
 effect(() => {
   const curr = currentFilter.value;
-  console.log("FILTER", curr);
   updateFilter(curr);
 });
 
@@ -291,9 +298,9 @@ function RightPane(
         weekday: "short",
         year: "numeric",
         month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
         hour12: true,
       });
     } else {
@@ -305,7 +312,7 @@ function RightPane(
         <div
           style={{
             flexShrink: 0,
-            width: "20ch",
+            width: "16ch",
           }}
         >
           {meta.name}
@@ -315,35 +322,78 @@ function RightPane(
     );
   }
 
+  function Preview(
+    { item, content }: { item: Item; content: string | undefined },
+  ) {
+    if (content !== undefined && item.mime_type === "image/png") {
+      return (
+        <img
+          src={"data:image/png;base64," + content}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    if (item.link) {
+      return (
+        <img
+          src={item.link.screenshot}
+          style={{
+            opacity: 0.95,
+            borderRadius: "1rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    return (
+      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { content !== undefined ? content : "loading..." }
+      </pre>
+    );
+  }
+
   return (
-    <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
+    <div style="flex: 3; overflow: auto; position: relative; height: 100%">
       <div
         className={borderBottom}
-        style="
-				padding-bottom: 0.5rem;
-				flex:2;
-				overflow: auto;
-				"
+        style={{
+          paddingBottom: "0.5rem",
+          flex: 2,
+          display: "flex",
+          flexDirection: "column",
+          overflow: "hidden",
+          height: "100%",
+        }}
       >
-        {content !== undefined && item.mime_type === "image/png"
-          ? (
-            <img
-              src={"data:image/png;base64," + content}
-              style={{
-                opacity: 0.95,
-                borderRadius: "5px",
-                maxHeight: "100%",
-              }}
-            />
-          )
-          : (
-            <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
-            </pre>
-          )}
-      </div>
-      <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
+        <Preview item={item} content={content} />
+
+        <div
+          className={overlay}
+          style={{
+            position: "absolute",
+            bottom: "0",
+            fontSize: "0.9rem",
+            right: "0px",
+            bottom: "0.5rem",
+            padding: "0.5rem",
+            borderRadius: "0.5rem",
+            zIndex: 100,
+          }}
+        >
+          {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
+        </div>
       </div>
     </div>
   );
@@ -385,6 +435,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
       hide();
       return;
+
+    case event.key === "Tab":
+      event.preventDefault();
+      await invoke("open_docs");
+      break;
 
     case ((!showFilter.value) && event.key === "/"):
       event.preventDefault();

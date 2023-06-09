@@ -70,6 +70,17 @@ fn init_window() -> Vec<Item> {
     recent_items()
 }
 
+#[tauri::command]
+async fn open_docs(handle: tauri::AppHandle) {
+    let _ = tauri::WindowBuilder::new(
+        &handle,
+        "external", /* the unique window label */
+        tauri::WindowUrl::App("second.html".into()),
+    )
+    .build()
+    .unwrap();
+}
+
 struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
@@ -113,11 +124,31 @@ impl Store {
                 }
             }
 
-            Some(_) => Some((
-                "text/plain",
-                frame.data.chars().take(100).collect(),
-                frame.data.as_bytes().to_vec(),
-            )),
+            Some(topic) if topic == "microlink" => {
+                let data: Value = serde_json::from_str(&frame.data).unwrap();
+                let url = data["url"].as_str().unwrap();
+                let hash = format!("{:x}", Sha256::digest(&"https://microlink.io"));
+                let mut item = self.items.get_mut(&hash).unwrap();
+
+                item.link = Some(Link {
+                    provider: "microlink".to_string(),
+                    screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
+                    title: "".to_string(),
+                    description: "".to_string(),
+                });
+
+                println!("topic: {} {:?} {:?}", topic, hash, item);
+                None
+            }
+
+            Some(topic) => {
+                println!("topic: {}", topic);
+                Some((
+                    "text/plain",
+                    frame.data.chars().take(100).collect(),
+                    frame.data.as_bytes().to_vec(),
+                ))
+            }
             None => None,
         };
 
@@ -137,6 +168,7 @@ impl Store {
                             ids: vec![frame.id],
                             mime_type: mime_type.to_string(),
                             terse,
+                            link: None,
                         },
                     );
                     self.cas.insert(hash, content);
@@ -151,11 +183,20 @@ lazy_static! {
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
+struct Link {
+    provider: String,
+    screenshot: String,
+    title: String,
+    description: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
 struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
     mime_type: String,
     terse: String,
+    link: Option<Link>,
 }
 
 fn recent_items() -> Vec<Item> {
@@ -246,10 +287,11 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            init_window,
             store_set_filter,
             store_get_content,
             store_delete,
+            init_window,
+            open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
@@ -270,8 +312,8 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            // window.open_devtools();
-            // window.close_devtools();
+            window.open_devtools();
+            window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

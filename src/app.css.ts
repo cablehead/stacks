@@ -7,16 +7,16 @@ export const [darkThemeClass, vars] = createTheme({
   textColor: "#a7a9be",
   backgroundColor: "#1F1F1F",
   backgroundColorTransparent: "#1F1F1FEF",
-  backgroundColorSelected: "#3A3A3A",
-  backgroundColorButton: "#2A2A2A",
-  backgroundColorHover: "#2A2A2A",
+  backgroundColorSelected: "#4A4A4A",
+  backgroundColorButton: "#3A3A3A",
+  backgroundColorHover: "#3A3A3A",
   borderColor: "#333",
 });
 
 export const lightThemeClass = createTheme(vars, {
   textColor: "#2d334a",
-  backgroundColor: "#F0F0F0",
-  backgroundColorTransparent: "#F0F0F0EF",
+  backgroundColor: "#FFFFFF",
+  backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#E0E0E0",
   backgroundColorHover: "#E0E0E0",
@@ -28,7 +28,7 @@ globalStyle("html, body", {
   backgroundColor: "transparent",
   padding: "10px",
   letterSpacing: "-0.02ch",
-  fontSize: "16px",
+  fontSize: "14px",
   height: "100%",
   overflow: "hidden",
 });
@@ -90,12 +90,17 @@ export const footer = style({
   alignItems: "center",
   height: "5ch",
   boxShadow: "0 -1px 3px rgba(0, 0, 0, 0.1)",
-  fontSize: "0.8rem",
+  fontSize: "0.9rem",
   backgroundColor: vars.backgroundColor,
   padding: "1ch",
   paddingLeft: "2ch",
   paddingRight: "2ch",
   justifyContent: "space-between",
+});
+
+export const overlay = style({
+  boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
+  backgroundColor: vars.backgroundColorTransparent,
 });
 
 export const borderRight = style({
