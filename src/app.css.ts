@@ -8,9 +8,10 @@ export const [darkThemeClass, vars] = createTheme({
   backgroundColor: "#1F1F1F",
   backgroundColorTransparent: "#1F1F1FEF",
   backgroundColorSelected: "#4A4A4A",
-  backgroundColorButton: "#3A3A3A",
-  backgroundColorHover: "#3A3A3A",
+  backgroundColorButton: "#333333",
+  backgroundColorHover: "#333333",
   borderColor: "#333",
+  shadowColor: "rgba(100, 100, 100, 0.2)",
 });
 
 export const lightThemeClass = createTheme(vars, {
@@ -21,6 +22,7 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorButton: "#E0E0E0",
   backgroundColorHover: "#E0E0E0",
   borderColor: "#ddd",
+  shadowColor: "rgba(0, 0, 0, 0.1)",
 });
 
 globalStyle("html, body", {
@@ -89,7 +91,7 @@ export const footer = style({
   display: "flex",
   alignItems: "center",
   height: "5ch",
-  boxShadow: "0 -1px 3px rgba(0, 0, 0, 0.1)",
+  boxShadow: "0 -1px 3px " + vars.shadowColor,
   fontSize: "0.9rem",
   backgroundColor: vars.backgroundColor,
   padding: "1ch",
@@ -99,7 +101,7 @@ export const footer = style({
 });
 
 export const overlay = style({
-  boxShadow: "0 0 5px rgba(0, 0, 0, 0.1)",
+  boxShadow: "0 0 5px " + vars.shadowColor,
   backgroundColor: vars.backgroundColorTransparent,
 });
 

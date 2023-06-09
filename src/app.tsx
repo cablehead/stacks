@@ -367,7 +367,6 @@ function RightPane(
   return (
     <div style="flex: 3; overflow: auto; position: relative; height: 100%">
       <div
-        className={borderBottom}
         style={{
           paddingBottom: "0.5rem",
           flex: 2,
@@ -385,7 +384,7 @@ function RightPane(
             position: "absolute",
             bottom: "0",
             fontSize: "0.9rem",
-            right: "0px",
+            right: "5px",
             bottom: "0.5rem",
             padding: "0.5rem",
             borderRadius: "0.5rem",
