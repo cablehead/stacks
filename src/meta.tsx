@@ -1,3 +1,5 @@
+import { JSXInternal } from 'preact/src/jsx';
+
 import { Scru128Id } from "scru128";
 
 import { Item } from "./types.tsx";
@@ -6,7 +8,7 @@ import { overlay } from "./app.css.ts";
 
 interface MetaValue {
   name: string;
-  value?: string;
+  value?: string | JSXInternal.Element;
   timestamp?: number;
 }
 
@@ -17,7 +19,7 @@ const getMeta = (item: Item): MetaValue[] => {
 
   if (item.ids.length === 0) return [];
 
-  let meta = [
+  let meta: MetaValue[] = [
     { name: "ID", value: item.ids[0] },
   ];
 
@@ -66,7 +68,7 @@ const getMeta = (item: Item): MetaValue[] => {
 };
 
 function MetaInfoRow(meta: MetaValue) {
-  let displayValue: string;
+  let displayValue;
   if (meta.timestamp !== undefined) {
     displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
       weekday: "short",
@@ -104,14 +106,14 @@ export function MetaPanel({ item }: { item: Item }) {
         position: "absolute",
         width: "48ch",
         overflow: "auto",
-        bottom: "0",
+        top: "0",
         fontSize: "0.9rem",
         right: "0",
         paddingTop: "0.5lh",
         paddingRight: "2ch",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
-        borderRadius: "0.5rem 0 0 0",
+        borderRadius: "0 0 0 0.5rem",
         zIndex: 100,
       }}
     >
