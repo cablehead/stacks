@@ -24,16 +24,16 @@ export function StatusBar(
         gap: 0.5ch;
       ">
         <Filter showFilter={showFilter} />
-        <VertDiv />
 
+        <VertDiv />
         <div onClick={async (e) => await triggerCopy()} class="hoverable">
           Copy&nbsp;
           <span className={iconStyle}>
             <Icon name="IconReturnKey" />
           </span>
         </div>
-        <VertDiv />
 
+        <VertDiv />
         <div class="hoverable">
           Actions&nbsp;
           <span className={iconStyle} style="margin-right: 0.25ch;">
@@ -44,18 +44,7 @@ export function StatusBar(
           </span>
         </div>
 
-{
-    /*
-        <div onClick={async (e) => await triggerDelete()} class="hoverable">
-          Delete&nbsp;
-          <span className={iconStyle}>
-            Ctrl + DEL
-          </span>
-        </div>
-        */
-}
         <VertDiv />
-
         <Theme themeMode={ themeMode } />
       </div>
     </footer>

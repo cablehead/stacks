@@ -104,13 +104,12 @@ export function MetaPanel({ item }: { item: Item }) {
       className={overlay}
       style={{
         position: "absolute",
-        width: "48ch",
+        width: "47ch",
         overflow: "auto",
         top: "0",
         fontSize: "0.9rem",
         right: "0",
         paddingTop: "0.5lh",
-        paddingRight: "2ch",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
         borderRadius: "0 0 0 0.5rem",

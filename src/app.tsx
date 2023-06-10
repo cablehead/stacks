@@ -11,6 +11,7 @@ import { hide } from "tauri-plugin-spotlight-api";
 import { Icon } from "./icons.tsx";
 import { StatusBar } from "./statusbar.tsx";
 import { MetaPanel } from "./meta.tsx";
+import { Actions } from "./actions.tsx";
 
 import { Item } from "./types.tsx";
 
@@ -389,6 +390,8 @@ function Main() {
 
         {selectedItem.value &&
           <MetaPanel item={selectedItem.value} />}
+
+        <Actions />
       </section>
       <StatusBar
         themeMode={themeMode}

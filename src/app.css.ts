@@ -96,7 +96,7 @@ export const footer = style({
   backgroundColor: vars.backgroundColor,
   padding: "1ch",
   paddingLeft: "2ch",
-  paddingRight: "2ch",
+  paddingRight: "1ch",
   justifyContent: "space-between",
 });
 
