@@ -112,7 +112,7 @@ export function MetaPanel({ item }: { item: Item }) {
         paddingTop: "0.5lh",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
-        borderRadius: "0 0 0 0.5rem",
+        borderRadius: "0.5rem",
         zIndex: 100,
       }}
     >

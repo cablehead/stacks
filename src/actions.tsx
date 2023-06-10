@@ -1,4 +1,37 @@
-import { borderBottom, iconStyle, overlay, terserow } from "./app.css.ts";
+import { borderBottom, iconStyle, overlay } from "./app.css.ts";
+
+function ActionRow({ name, keys }: { name: string; keys?: string[] }) {
+  return (
+    <div
+      className={"terserow"}
+      style="
+        display: flex;
+        width: 100%;
+        overflow: hidden;
+        padding: 0.5ch 0.75ch;
+        justify-content: space-between;
+        border-radius: 6px;
+        cursor: pointer;
+        "
+    >
+      <div>
+        {name}
+      </div>
+      <div>
+        {keys
+          ? keys.map((key, index) => (
+            <span
+              className={iconStyle}
+              style={index !== keys.length - 1 ? { marginRight: "0.25ch" } : {}}
+            >
+              {key}
+            </span>
+          ))
+          : ""}
+      </div>
+    </div>
+  );
+}
 
 export function Actions() {
   return (
@@ -6,7 +39,7 @@ export function Actions() {
       className={overlay}
       style={{
         position: "absolute",
-        width: "30ch",
+        width: "40ch",
         overflow: "auto",
         bottom: "0.25lh",
         fontSize: "0.9rem",
@@ -35,30 +68,8 @@ export function Actions() {
       <div style="
         padding:1ch;
         ">
-        <div
-          className={"terserow"}
-          style="
-        display: flex;
-        width: 100%;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        justify-content: space-between;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-        >
-          <div>
-            Delete
-          </div>
-          <div>
-            <span className={iconStyle} style="margin-right: 0.25ch;">
-              Ctrl
-            </span>
-            <span className={iconStyle}>
-              DEL
-            </span>
-          </div>
-        </div>
+        <ActionRow name={"Delete"} keys={["Ctrl", "DEL"]} />
+        <ActionRow name={"Microlink Screenshot"} />
       </div>
     </div>
   );
