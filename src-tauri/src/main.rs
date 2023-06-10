@@ -126,11 +126,12 @@ impl Store {
 
             Some(topic) if topic == "microlink" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
-                // link is an Option
                 if let Some(link) = process_microlink_frame(&data) {
-                    let hash = format!("{:x}", Sha256::digest(&"https://microlink.io"));
+                    let hash = format!("{:x}", Sha256::digest(&link.url));
                     let mut item = self.items.get_mut(&hash).unwrap();
                     item.link = Some(link);
+                    item.ids.push(frame.id);
+                    item.content_type = "Link".to_string();
                 }
                 None
             }
@@ -163,6 +164,11 @@ impl Store {
                             mime_type: mime_type.to_string(),
                             terse,
                             link: None,
+                            content_type: if mime_type == "image/png" {
+                                "Image"
+                            } else {
+                                "Text"
+                            }.to_string(),
                         },
                     );
                     self.cas.insert(hash, content);
@@ -191,6 +197,7 @@ struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
     mime_type: String,
+    content_type: String,
     terse: String,
     link: Option<Link>,
 }

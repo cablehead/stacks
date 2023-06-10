@@ -12,6 +12,7 @@ export interface Item {
   hash: string;
   ids: string[];
   mime_type: string;
+  content_type: string;
   terse: string;
   link?: Link;
 }

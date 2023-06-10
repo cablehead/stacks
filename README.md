@@ -22,10 +22,8 @@ cargo tauri dev
 
 ## Todo
 
-- fix up data storage to link screenshot to urls
-- update content type for images and text
-- preference panel
 - add an action to perform screenshot scrape
+- preference panel
 
 - better cursor handling
     - dedicated focus handling when the filter changes

@@ -43,7 +43,7 @@ const getMeta = (item: Item): MetaValue[] => {
     ]);
   } else {
     meta.push(
-      { name: "Content Type", value: item.mime_type },
+      { name: "Content Type", value: item.content_type },
     );
   }
 
