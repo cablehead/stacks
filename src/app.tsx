@@ -330,7 +330,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab":
       event.preventDefault();
-      await invoke("open_docs");
+      // await invoke("open_docs");
       break;
 
     case ((!showFilter.value) && event.key === "/"):

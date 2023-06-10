@@ -34,12 +34,26 @@ export function StatusBar(
         </div>
         <VertDiv />
 
+        <div class="hoverable">
+          Actions&nbsp;
+          <span className={iconStyle} style="margin-right: 0.25ch;">
+            <Icon name="IconCommandKey" />
+          </span>
+          <span className={iconStyle}>
+            K
+          </span>
+        </div>
+
+{
+    /*
         <div onClick={async (e) => await triggerDelete()} class="hoverable">
           Delete&nbsp;
           <span className={iconStyle}>
             Ctrl + DEL
           </span>
         </div>
+        */
+}
         <VertDiv />
 
         <Theme themeMode={ themeMode } />

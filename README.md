@@ -22,6 +22,7 @@ cargo tauri dev
 
 ## Todo
 
+- add the Actions menu
 - add an action to perform screenshot scrape
 - preference panel
 
