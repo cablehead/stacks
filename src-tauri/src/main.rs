@@ -330,8 +330,6 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
     if !data["original_url"].is_string() {
         return None;
     }
-
-    let url = data["url"].as_str().unwrap();
     let title = data["title"].as_str().unwrap();
     let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
     let title = ex.split(title).next().unwrap().trim();
@@ -340,7 +338,7 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
         screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
         title: title.to_string(),
         description: data["description"].as_str().unwrap().to_string(),
-        url: data["url"].as_str().unwrap().to_string(),
+        url: data["original_url"].as_str().unwrap().to_string(),
         icon: data["logo"]["url"].as_str().unwrap().to_string(),
     })
 }
@@ -396,13 +394,12 @@ mod tests {
     fn test_process_microlink_frame_with_original_url() {
         let mut data = get_test_data();
         data["original_url"] = Value::String("https://microlink.io".to_string());
-
         let link = process_microlink_frame(&data).unwrap();
         assert_eq!(link.provider, "microlink");
         assert_eq!(link.screenshot, "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png");
         assert_eq!(link.title, "Turns websites into data");
         assert_eq!(link.description, "Enter a URL, receive information...");
-        assert_eq!(link.url, "https://microlink.io/");
+        assert_eq!(link.url, "https://microlink.io");
         assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
     }
 }
