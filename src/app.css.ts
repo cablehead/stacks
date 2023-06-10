@@ -20,7 +20,7 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
-  backgroundColorHover: "#E4E4E4",
+  backgroundColorHover: "#E2E2E2",
   borderColor: "#ddd",
   shadowColor: "rgba(0, 0, 0, 0.1)",
 });
