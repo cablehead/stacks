@@ -126,24 +126,12 @@ impl Store {
 
             Some(topic) if topic == "microlink" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
-                let url = data["url"].as_str().unwrap();
-                let hash = format!("{:x}", Sha256::digest(&"https://microlink.io"));
-                let mut item = self.items.get_mut(&hash).unwrap();
-
-                let title = data["title"].as_str().unwrap();
-                let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
-                let title = ex.split(title).next().unwrap().trim();
-
-                item.link = Some(Link {
-                    provider: "microlink".to_string(),
-                    screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
-                    title: title.to_string(),
-                    description: data["description"].as_str().unwrap().to_string(),
-                    url: data["url"].as_str().unwrap().to_string(),
-                    icon: data["logo"]["url"].as_str().unwrap().to_string(),
-                });
-
-                println!("topic: {} {:?} {:?}", topic, hash, item);
+                // link is an Option
+                if let Some(link) = process_microlink_frame(&data) {
+                    let hash = format!("{:x}", Sha256::digest(&"https://microlink.io"));
+                    let mut item = self.items.get_mut(&hash).unwrap();
+                    item.link = Some(link);
+                }
                 None
             }
 
@@ -188,7 +176,7 @@ lazy_static! {
     static ref STORE: Mutex<Store> = Mutex::new(Store::new());
 }
 
-#[derive(Debug, Clone, serde::Serialize)]
+#[derive(PartialEq, Debug, Clone, serde::Serialize)]
 struct Link {
     provider: String,
     screenshot: String,
@@ -320,8 +308,8 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
-            window.close_devtools();
+            // window.open_devtools();
+            // window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -336,4 +324,85 @@ fn main() {
         })
         .run(context)
         .expect("error while running tauri application");
+}
+
+fn process_microlink_frame(data: &Value) -> Option<Link> {
+    if !data["original_url"].is_string() {
+        return None;
+    }
+
+    let url = data["url"].as_str().unwrap();
+    let title = data["title"].as_str().unwrap();
+    let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
+    let title = ex.split(title).next().unwrap().trim();
+    Some(Link {
+        provider: "microlink".to_string(),
+        screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
+        title: title.to_string(),
+        description: data["description"].as_str().unwrap().to_string(),
+        url: data["url"].as_str().unwrap().to_string(),
+        icon: data["logo"]["url"].as_str().unwrap().to_string(),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn get_test_data() -> Value {
+        serde_json::json!({
+            "title": "Turns websites into data — Microlink",
+            "description": "Enter a URL, receive information...",
+            "lang": "en",
+            "author": "Microlink HQ",
+            "publisher": "Microlink",
+            "image": {
+                "url": "https://cdn.microlink.io/logo/banner.jpeg",
+                "type": "jpg",
+                "size": 70184,
+                "height": 1009,
+                "width": 1686,
+                "size_pretty": "70.2 kB"
+            },
+            "date": "2023-06-08T21:18:42.000Z",
+            "url": "https://microlink.io/",
+            "logo": {
+                "url": "https://cdn.microlink.io/logo/trim.png",
+                "type": "png",
+                "size": 5050,
+                "height": 500,
+                "width": 500,
+                "size_pretty": "5.05 kB"
+            },
+            "screenshot": {
+                "size_pretty": "564 kB",
+                "size": 563621,
+                "type": "png",
+                "url": "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png",
+                "width": 2560,
+                "height": 1600
+            }
+        })
+    }
+
+    #[test]
+    fn test_process_microlink_frame_without_original_url() {
+        let data = get_test_data();
+        let link = process_microlink_frame(&data);
+        assert_eq!(link, None);
+    }
+
+    #[test]
+    fn test_process_microlink_frame_with_original_url() {
+        let mut data = get_test_data();
+        data["original_url"] = Value::String("https://microlink.io".to_string());
+
+        let link = process_microlink_frame(&data).unwrap();
+        assert_eq!(link.provider, "microlink");
+        assert_eq!(link.screenshot, "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png");
+        assert_eq!(link.title, "Turns websites into data");
+        assert_eq!(link.description, "Enter a URL, receive information...");
+        assert_eq!(link.url, "https://microlink.io/");
+        assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
+    }
 }
