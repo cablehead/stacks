@@ -2588,6 +2588,7 @@ dependencies = [
  "tauri-plugin-log",
  "tauri-plugin-spotlight",
  "temp-dir",
+ "tokio",
 ]
 
 [[package]]
