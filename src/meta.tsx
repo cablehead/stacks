@@ -50,18 +50,18 @@ const getMeta = (item: Item): MetaValue[] => {
   if (item.ids.length === 1) {
     return [
       ...meta,
-      { name: "Copied", timestamp: toTimestamp(item.ids[0]) },
+      { name: "Touched", timestamp: toTimestamp(item.ids[0]) },
     ];
   }
 
   return [
     ...meta,
-    { name: "Times copied", value: item.ids.length.toString() },
+    { name: "Times Touched", value: item.ids.length.toString() },
     {
-      name: "Last Copied",
+      name: "Last Touched",
       timestamp: toTimestamp(item.ids[item.ids.length - 1]),
     },
-    { name: "First Copied", timestamp: toTimestamp(item.ids[0]) },
+    { name: "First Touched", timestamp: toTimestamp(item.ids[0]) },
   ];
 };
 
