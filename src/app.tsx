@@ -325,6 +325,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.key === "Escape":
       event.preventDefault();
 
+      if (showActions.value) {
+        showActions.value = false;
+        return;
+      }
+
       if (showFilter.value) {
         showFilter.value = false;
         return;
