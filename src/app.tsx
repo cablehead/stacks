@@ -316,7 +316,6 @@ async function triggerDelete() {
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
-    console.log(event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
@@ -406,7 +405,7 @@ function Main() {
           <MetaPanel item={selectedItem.value} />}
 
         {showActions.value &&
-          <Actions />}
+          <Actions showActions={showActions} />}
       </section>
       <StatusBar
         themeMode={themeMode}

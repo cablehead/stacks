@@ -1,3 +1,6 @@
+import { Signal } from "@preact/signals";
+import { useEffect, useRef } from "preact/hooks";
+
 import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
 function ActionRow({ name, keys }: { name: string; keys?: string[] }) {
@@ -33,7 +36,16 @@ function ActionRow({ name, keys }: { name: string; keys?: string[] }) {
   );
 }
 
-export function Actions() {
+export function Actions({ showActions }: {
+  showActions: Signal<boolean>;
+}) {
+  const inputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    if (inputRef.current != null) {
+      inputRef.current.focus();
+    }
+  }, []);
   return (
     <div
       className={overlay}
@@ -62,6 +74,8 @@ export function Actions() {
         <div style="width: 100%">
           <input
             type="text"
+            ref={inputRef}
+            onBlur={() => showActions.value = false}
             placeholder="Search..."
           />
         </div>
