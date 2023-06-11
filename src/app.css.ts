@@ -4,14 +4,14 @@
 import { createTheme, globalStyle, style } from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
-  textColor: "#a7a9be",
+  textColor: "#bebebe",
   backgroundColor: "#1F1F1F",
   backgroundColorTransparent: "#1F1F1FEF",
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
   backgroundColorHover: "#333333",
   borderColor: "#333",
-  shadowColor: "rgba(100, 100, 100, 0.2)",
+  shadowColor: "rgba(102, 102, 102, 0.4)",
 });
 
 export const lightThemeClass = createTheme(vars, {
@@ -22,7 +22,7 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorButton: "#D1D1D1",
   backgroundColorHover: "#E2E2E2",
   borderColor: "#ddd",
-  shadowColor: "rgba(0, 0, 0, 0.1)",
+  shadowColor: "rgba(0, 0, 0, 0.2)",
 });
 
 globalStyle("html, body", {
@@ -91,7 +91,7 @@ export const footer = style({
   display: "flex",
   alignItems: "center",
   height: "5ch",
-  boxShadow: "0 -1px 3px " + vars.shadowColor,
+  boxShadow: "0 0 4px " + vars.shadowColor,
   fontSize: "0.9rem",
   backgroundColor: vars.backgroundColor,
   padding: "1ch",
@@ -101,7 +101,7 @@ export const footer = style({
 });
 
 export const overlay = style({
-  boxShadow: "0 0 5px " + vars.shadowColor,
+  boxShadow: "0 0 6px " + vars.shadowColor,
   backgroundColor: vars.backgroundColorTransparent,
 });
 

@@ -25,7 +25,7 @@ import {
 //
 // Global State
 
-const themeMode = signal("light");
+const themeMode = signal("dark");
 
 const items = signal<Item[]>([]);
 const selected = signal(0);
@@ -101,6 +101,8 @@ effect(() => {
   const curr = currentFilter.value;
   updateFilter(curr);
 });
+
+const showActions = signal(true);
 
 //
 
@@ -314,6 +316,7 @@ async function triggerDelete() {
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
+    console.log(event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
@@ -328,6 +331,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
       hide();
       return;
+
+    case event.metaKey && event.key === "k":
+      event.preventDefault();
+      showActions.value = !showActions.value;
+      // await invoke("open_docs");
+      break;
 
     case event.key === "Tab":
       event.preventDefault();
@@ -391,11 +400,13 @@ function Main() {
         {selectedItem.value &&
           <MetaPanel item={selectedItem.value} />}
 
-        <Actions />
+        {showActions.value &&
+          <Actions />}
       </section>
       <StatusBar
         themeMode={themeMode}
         showFilter={showFilter}
+        showActions={showActions}
         triggerCopy={triggerCopy}
         triggerDelete={triggerDelete}
       />
@@ -420,6 +431,7 @@ function App() {
     // set selection back to the top onBlur
     const onBlur = () => {
       selected.value = 0;
+      showActions.value = false;
     };
     const onFocus = () => {
       focusSelected(100);

@@ -5,9 +5,10 @@ import { Icon } from "./icons.tsx";
 import { borderRight, footer, iconStyle } from "./app.css.ts";
 
 export function StatusBar(
-  { themeMode, showFilter, triggerCopy, triggerDelete }: {
+  { themeMode, showFilter, showActions, triggerCopy, triggerDelete }: {
     themeMode: Signal<string>;
     showFilter: Signal<boolean>;
+    showActions: Signal<boolean>;
     triggerCopy: () => void;
     triggerDelete: () => void;
   },
@@ -34,7 +35,7 @@ export function StatusBar(
         </div>
 
         <VertDiv />
-        <div class="hoverable">
+        <div class="hoverable" onClick={() => showActions.value = !showActions.value}>
           Actions&nbsp;
           <span className={iconStyle} style="margin-right: 0.25ch;">
             <Icon name="IconCommandKey" />

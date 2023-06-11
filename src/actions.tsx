@@ -41,10 +41,12 @@ export function Actions() {
         position: "absolute",
         width: "40ch",
         overflow: "auto",
-        bottom: "0.25lh",
+        //bottom: "0.25lh",
+        bottom: "0",
         fontSize: "0.9rem",
         right: "4ch",
-        borderRadius: "0.5rem",
+        // borderRadius: "0.5rem",
+        borderRadius: "0.5rem 0.5rem 0 0",
         zIndex: 100,
       }}
     >
