@@ -413,7 +413,6 @@ function Main() {
         showFilter={showFilter}
         showActions={showActions}
         triggerCopy={triggerCopy}
-        triggerDelete={triggerDelete}
       />
     </main>
   );

@@ -5,12 +5,11 @@ import { Icon } from "./icons.tsx";
 import { borderRight, footer, iconStyle } from "./app.css.ts";
 
 export function StatusBar(
-  { themeMode, showFilter, showActions, triggerCopy, triggerDelete }: {
+  { themeMode, showFilter, showActions, triggerCopy }: {
     themeMode: Signal<string>;
     showFilter: Signal<boolean>;
     showActions: Signal<boolean>;
     triggerCopy: () => void;
-    triggerDelete: () => void;
   },
 ) {
   return (
