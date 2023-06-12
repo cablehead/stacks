@@ -48,6 +48,7 @@ export function Actions({ showActions }: {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = useSignal(0);
+  const currFilter = useSignal("");
 
   useEffect(() => {
     selected.value = 0;
@@ -94,6 +95,10 @@ export function Actions({ showActions }: {
             ref={inputRef}
             onBlur={() => showActions.value = false}
             placeholder="Search..."
+            onInput={() => {
+              if (inputRef.current == null) return;
+              currFilter.value = inputRef.current.value;
+            }}
             onKeyDown={(event) => {
               event.stopPropagation();
               console.log("ACTIONS:", event);
@@ -128,13 +133,22 @@ export function Actions({ showActions }: {
       <div style="
         padding:1ch;
         ">
-        {actions.map((action, index) => (
-          <ActionRow
-            name={action.name}
-            keys={action.keys}
-            isSelected={Math.abs(selected.value % actions.length) == index}
-          />
-        ))}
+        {actions
+          .filter((action) => {
+            if (currFilter.value === "") {
+              return true;
+            }
+            return action.name.toLowerCase().includes(
+              currFilter.value.toLowerCase(),
+            );
+          })
+          .map((action, index) => (
+            <ActionRow
+              name={action.name}
+              keys={action.keys}
+              isSelected={Math.abs(selected.value % actions.length) == index}
+            />
+          ))}
       </div>
     </div>
   );

@@ -23,7 +23,6 @@ cargo tauri dev
 ## Todo
 
 - add the Actions menu
-    - search should filter available actions
     - Pass through triggers to be called by Actions menu
     - OR, surface triggers from Actions menu.. hmm
     - both enter and click should fire trigger
