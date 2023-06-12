@@ -25,6 +25,7 @@ const actions = [
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
+    trigger: () => console.log("DEEELLLETE"),
   },
 ];
 
