@@ -23,9 +23,7 @@ cargo tauri dev
 ## Todo
 
 - add the Actions menu
-    - Pass through triggers to be called by Actions menu
-    - OR, surface triggers from Actions menu.. hmm
-    - both enter and click should fire trigger
+    - add Edit feature
     - Only show Microlink action for Urls
     - Add icons to action menu (stretch)
 
