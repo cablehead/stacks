@@ -316,6 +316,7 @@ async function triggerDelete() {
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
+  console.log("globalKeyHandler:", event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();

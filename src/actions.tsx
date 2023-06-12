@@ -4,15 +4,15 @@ import { useEffect, useRef } from "preact/hooks";
 import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
 function ActionRow(
-  { name, keys, selected }: {
+  { name, keys, isSelected }: {
     name: string;
     keys?: string[];
-    selected: boolean;
+    isSelected: boolean;
   },
 ) {
   return (
     <div
-      className={"terserow" + (selected ? " selected" : "") }
+      className={"terserow" + (isSelected ? " selected" : "")}
       style="
         display: flex;
         width: 100%;
@@ -94,6 +94,16 @@ export function Actions({ showActions }: {
             ref={inputRef}
             onBlur={() => showActions.value = false}
             placeholder="Search..."
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              console.log("ACTIONS:", event);
+              switch (true) {
+                case event.metaKey && event.key === "k":
+                  event.preventDefault();
+                  showActions.value = !showActions.value;
+                  break;
+              }
+            }}
           />
         </div>
       </div>
@@ -102,7 +112,11 @@ export function Actions({ showActions }: {
         padding:1ch;
         ">
         {actions.map((action, index) => (
-          <ActionRow name={action.name} keys={action.keys} selected={selected.value == index} />
+          <ActionRow
+            name={action.name}
+            keys={action.keys}
+            isSelected={selected.value == index}
+          />
         ))}
       </div>
     </div>
