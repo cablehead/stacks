@@ -35,7 +35,12 @@ export function StatusBar(
         </div>
 
         <VertDiv />
-        <div class="hoverable" onClick={() => showActions.value = !showActions.value}>
+        <div
+          class="hoverable"
+          onMouseDown={() => {
+            showActions.value = !showActions.value;
+          }}
+        >
           Actions&nbsp;
           <span className={iconStyle} style="margin-right: 0.25ch;">
             <Icon name="IconCommandKey" />
@@ -46,7 +51,7 @@ export function StatusBar(
         </div>
 
         <VertDiv />
-        <Theme themeMode={ themeMode } />
+        <Theme themeMode={themeMode} />
       </div>
     </footer>
   );
