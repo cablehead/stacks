@@ -34,20 +34,32 @@ const actions = [
 
 async function triggerDelete() {
   const item = selectedItem.value;
+      // await triggerDelete();
   if (item) {
     await invoke<Item[]>("store_delete", { hash: item.hash });
   }
 }
       */
 
-export const attemptAction = (event: KeyboardEvent, item: Item): void => {
+const trigger = (name: string, item: Item): void => {
+  const action = actions.filter((action) => action.name === name)[0];
+  if (action.trigger) action.trigger(item);
+};
+
+export const attemptAction = (event: KeyboardEvent, item: Item): boolean => {
   switch (true) {
     case (event.ctrlKey && event.key === "Backspace"):
       event.preventDefault();
-      console.log("LET's DELETE!");
-      // await triggerDelete();
-      break;
+      trigger("Delete", item);
+      return true;
+
+    case (event.metaKey && event.key === "e"):
+      event.preventDefault();
+      trigger("Edit", item);
+      return true;
   }
+
+  return false;
 };
 
 function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
@@ -201,7 +213,7 @@ export function Actions({ showActions, item }: {
                   break;
 
                 default:
-                  attemptAction(event, item);
+                  if (attemptAction(event, item)) showActions.value = false;
               }
             }}
           />
