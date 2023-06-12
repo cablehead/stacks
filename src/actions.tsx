@@ -1,4 +1,4 @@
-import { Signal, useSignal } from "@preact/signals";
+import { Signal, useComputed, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { borderBottom, iconStyle, overlay } from "./app.css.ts";
@@ -63,6 +63,18 @@ export function Actions({ showActions }: {
   }, {
     name: "Microlink Screenshot",
   }];
+
+  const actionsAvailable = useComputed(() => {
+    return actions
+      .filter((action) => {
+        if (currFilter.value === "") {
+          return true;
+        }
+        return action.name.toLowerCase().includes(
+          currFilter.value.toLowerCase(),
+        );
+      });
+  });
 
   return (
     <div
@@ -133,20 +145,12 @@ export function Actions({ showActions }: {
       <div style="
         padding:1ch;
         ">
-        {actions
-          .filter((action) => {
-            if (currFilter.value === "") {
-              return true;
-            }
-            return action.name.toLowerCase().includes(
-              currFilter.value.toLowerCase(),
-            );
-          })
+        {actionsAvailable.value
           .map((action, index) => (
             <ActionRow
               name={action.name}
               keys={action.keys}
-              isSelected={Math.abs(selected.value % actions.length) == index}
+              isSelected={Math.abs(selected.value % actionsAvailable.value.length) == index}
             />
           ))}
       </div>
