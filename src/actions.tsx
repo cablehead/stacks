@@ -98,9 +98,26 @@ export function Actions({ showActions }: {
               event.stopPropagation();
               console.log("ACTIONS:", event);
               switch (true) {
+                case event.key === "Escape":
+                  event.preventDefault();
+                  showActions.value = false;
+                  break;
+
                 case event.metaKey && event.key === "k":
                   event.preventDefault();
                   showActions.value = !showActions.value;
+                  break;
+
+                case (event.ctrlKey && event.key === "n") ||
+                  event.key === "ArrowDown":
+                  event.preventDefault();
+                  selected.value += 1;
+                  break;
+
+                case event.ctrlKey && event.key === "p" ||
+                  event.key === "ArrowUp":
+                  event.preventDefault();
+                  selected.value -= 1;
                   break;
               }
             }}
