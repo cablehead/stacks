@@ -8,7 +8,7 @@ import { JSXInternal } from "preact/src/jsx";
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
-export interface Action {
+interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
   trigger?: (item: Item) => void;
@@ -29,6 +29,26 @@ const actions = [
     trigger: (item: Item) => console.log("DEEELLLETE", item),
   },
 ];
+
+/*
+
+async function triggerDelete() {
+  const item = selectedItem.value;
+  if (item) {
+    await invoke<Item[]>("store_delete", { hash: item.hash });
+  }
+}
+      */
+
+export const attemptAction = (event: KeyboardEvent, item: Item): void => {
+  switch (true) {
+    case (event.ctrlKey && event.key === "Backspace"):
+      event.preventDefault();
+      console.log("LET's DELETE!");
+      // await triggerDelete();
+      break;
+  }
+};
 
 function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
   return (
@@ -157,7 +177,8 @@ export function Actions({ showActions, item }: {
                 case event.key === "Enter":
                   event.preventDefault();
                   showActions.value = false;
-                  const action = actionsAvailable.value[normalizedSelected.value];
+                  const action =
+                    actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
                   action.trigger(item);
                   break;
@@ -178,6 +199,9 @@ export function Actions({ showActions, item }: {
                   event.preventDefault();
                   selected.value -= 1;
                   break;
+
+                default:
+                  attemptAction(event, item);
               }
             }}
           />

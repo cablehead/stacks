@@ -11,7 +11,7 @@ import { hide } from "tauri-plugin-spotlight-api";
 import { Icon } from "./icons.tsx";
 import { StatusBar } from "./statusbar.tsx";
 import { MetaPanel } from "./meta.tsx";
-import { Actions } from "./actions.tsx";
+import { Actions, attemptAction } from "./actions.tsx";
 
 import { Item } from "./types.tsx";
 
@@ -308,13 +308,6 @@ async function triggerCopy() {
   hide();
 }
 
-async function triggerDelete() {
-  const item = selectedItem.value;
-  if (item) {
-    await invoke<Item[]>("store_delete", { hash: item.hash });
-  }
-}
-
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("globalKeyHandler:", event);
   switch (true) {
@@ -363,10 +356,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       updateSelected(-1);
       break;
 
-    case (event.ctrlKey && event.key === "Backspace"):
-      event.preventDefault();
-      await triggerDelete();
-      break;
+    default:
+      if (selectedItem.value) attemptAction(event, selectedItem.value);
   }
 }
 
