@@ -3,10 +3,14 @@ import { useEffect, useRef } from "preact/hooks";
 
 import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
+import { JSXInternal } from "preact/src/jsx";
+
+import { Icon } from "./icons.tsx";
+
 function ActionRow(
   { name, keys, isSelected }: {
     name: string;
-    keys?: string[];
+    keys?: (string | JSXInternal.Element)[];
     isSelected: boolean;
   },
 ) {
@@ -57,12 +61,19 @@ export function Actions({ showActions }: {
     }
   }, []);
 
-  const actions = [{
-    name: "Delete",
-    keys: ["Ctrl", "DEL"],
-  }, {
-    name: "Microlink Screenshot",
-  }];
+  const actions = [
+    {
+      name: "Edit",
+      keys: [<Icon name="IconCommandKey" />, "E"],
+    },
+    {
+      name: "Delete",
+      keys: ["Ctrl", "DEL"],
+    },
+    {
+      name: "Microlink Screenshot",
+    },
+  ];
 
   const actionsAvailable = useComputed(() => {
     return actions
@@ -150,7 +161,9 @@ export function Actions({ showActions }: {
             <ActionRow
               name={action.name}
               keys={action.keys}
-              isSelected={Math.abs(selected.value % actionsAvailable.value.length) == index}
+              isSelected={Math.abs(
+                selected.value % actionsAvailable.value.length,
+              ) == index}
             />
           ))}
       </div>
