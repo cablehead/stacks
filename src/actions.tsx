@@ -1,12 +1,18 @@
-import { Signal } from "@preact/signals";
+import { Signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
-function ActionRow({ name, keys }: { name: string; keys?: string[] }) {
+function ActionRow(
+  { name, keys, selected }: {
+    name: string;
+    keys?: string[];
+    selected: boolean;
+  },
+) {
   return (
     <div
-      className={"terserow"}
+      className={"terserow" + (selected ? " selected" : "") }
       style="
         display: flex;
         width: 100%;
@@ -41,11 +47,22 @@ export function Actions({ showActions }: {
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const selected = useSignal(0);
+
   useEffect(() => {
+    selected.value = 0;
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
   }, []);
+
+  const actions = [{
+    name: "Delete",
+    keys: ["Ctrl", "DEL"],
+  }, {
+    name: "Microlink Screenshot",
+  }];
+
   return (
     <div
       className={overlay}
@@ -84,8 +101,9 @@ export function Actions({ showActions }: {
       <div style="
         padding:1ch;
         ">
-        <ActionRow name={"Delete"} keys={["Ctrl", "DEL"]} />
-        <ActionRow name={"Microlink Screenshot"} />
+        {actions.map((action, index) => (
+          <ActionRow name={action.name} keys={action.keys} selected={selected.value == index} />
+        ))}
       </div>
     </div>
   );
