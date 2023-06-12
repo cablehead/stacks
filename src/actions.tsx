@@ -7,10 +7,46 @@ import { JSXInternal } from "preact/src/jsx";
 
 import { Icon } from "./icons.tsx";
 
+export interface Action {
+  name: string;
+  keys?: (string | JSXInternal.Element)[];
+  trigger?: () => void;
+}
+
+const actions = [
+  {
+    name: "Edit",
+    keys: [<Icon name="IconCommandKey" />, "E"],
+  },
+  {
+    name: "Delete",
+    keys: ["Ctrl", "DEL"],
+  },
+  {
+    name: "Microlink Screenshot",
+  },
+];
+
+function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
+  return (
+    <>
+      {keys.map((key, index) => (
+        <span
+          className={iconStyle}
+          style={index !== keys.length - 1
+            ? { marginRight: "0.25ch" }
+            : {}}
+        >
+          {key}
+        </span>
+      ))}
+    </>
+  );
+}
+
 function ActionRow(
-  { name, keys, isSelected }: {
-    name: string;
-    keys?: (string | JSXInternal.Element)[];
+  { action, isSelected }: {
+    action: Action;
     isSelected: boolean;
   },
 ) {
@@ -28,19 +64,10 @@ function ActionRow(
         "
     >
       <div>
-        {name}
+        {action.name}
       </div>
       <div>
-        {keys
-          ? keys.map((key, index) => (
-            <span
-              className={iconStyle}
-              style={index !== keys.length - 1 ? { marginRight: "0.25ch" } : {}}
-            >
-              {key}
-            </span>
-          ))
-          : ""}
+        {action.keys ? <RenderKeys keys={action.keys} /> : ""}
       </div>
     </div>
   );
@@ -60,20 +87,6 @@ export function Actions({ showActions }: {
       inputRef.current.focus();
     }
   }, []);
-
-  const actions = [
-    {
-      name: "Edit",
-      keys: [<Icon name="IconCommandKey" />, "E"],
-    },
-    {
-      name: "Delete",
-      keys: ["Ctrl", "DEL"],
-    },
-    {
-      name: "Microlink Screenshot",
-    },
-  ];
 
   const actionsAvailable = useComputed(() => {
     return actions
@@ -159,8 +172,7 @@ export function Actions({ showActions }: {
         {actionsAvailable.value
           .map((action, index) => (
             <ActionRow
-              name={action.name}
-              keys={action.keys}
+              action={action}
               isSelected={Math.abs(
                 selected.value % actionsAvailable.value.length,
               ) == index}
