@@ -405,8 +405,8 @@ function Main() {
         {selectedItem.value &&
           <MetaPanel item={selectedItem.value} />}
 
-        {showActions.value &&
-          <Actions showActions={showActions} />}
+        {selectedItem.value && showActions.value &&
+          <Actions showActions={showActions} item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}

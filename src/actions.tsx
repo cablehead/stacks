@@ -5,19 +5,20 @@ import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
 import { JSXInternal } from "preact/src/jsx";
 
+import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
 export interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
-  trigger?: () => void;
+  trigger?: (item: Item) => void;
 }
 
 const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: () => console.log("EEDDIT"),
+    trigger: (item: Item) => console.log("EEDDIT", item),
   },
   {
     name: "Microlink Screenshot",
@@ -25,7 +26,7 @@ const actions = [
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-    trigger: () => console.log("DEEELLLETE"),
+    trigger: (item: Item) => console.log("DEEELLLETE", item),
   },
 ];
 
@@ -45,9 +46,10 @@ function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
 }
 
 function ActionRow(
-  { action, isSelected }: {
+  { action, isSelected, item }: {
     action: Action;
     isSelected: boolean;
+    item: Item;
   },
 ) {
   return (
@@ -62,7 +64,7 @@ function ActionRow(
         border-radius: 6px;
         cursor: pointer;
         "
-      onMouseDown={action.trigger}
+      onMouseDown={() => {if (action.trigger) action.trigger(item)}}
     >
       <div>
         {action.name}
@@ -74,8 +76,9 @@ function ActionRow(
   );
 }
 
-export function Actions({ showActions }: {
+export function Actions({ showActions, item }: {
   showActions: Signal<boolean>;
+  item: Item;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -177,6 +180,7 @@ export function Actions({ showActions }: {
               isSelected={Math.abs(
                 selected.value % actionsAvailable.value.length,
               ) == index}
+              item={item}
             />
           ))}
       </div>
