@@ -5,6 +5,8 @@ import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 
 import { JSXInternal } from "preact/src/jsx";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
@@ -26,20 +28,9 @@ const actions = [
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) => console.log("DEEELLLETE", item),
+    trigger: (item: Item) => invoke<Item[]>("store_delete", { hash: item.hash }),
   },
 ];
-
-/*
-
-async function triggerDelete() {
-  const item = selectedItem.value;
-      // await triggerDelete();
-  if (item) {
-    await invoke<Item[]>("store_delete", { hash: item.hash });
-  }
-}
-      */
 
 const trigger = (name: string, item: Item): void => {
   const action = actions.filter((action) => action.name === name)[0];
