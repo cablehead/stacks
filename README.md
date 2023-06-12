@@ -23,12 +23,12 @@ cargo tauri dev
 ## Todo
 
 - add the Actions menu
+    - search should filter available actions
+    - use hover for background color
     - Pass through triggers to be called by Actions menu
     - OR, surface triggers from Actions menu.. hmm
+    - both enter and click should fire trigger
     - Only show Microlink action for Urls
-    - Hide and show Action menu
-    - When shown, global keyboard handler is disabled, action panel is focus
-    - On click away, hide action panel
     - Add icons to action menu (stretch)
 
 - add an action to perform screenshot scrape

@@ -132,7 +132,7 @@ export function Actions({ showActions }: {
           <ActionRow
             name={action.name}
             keys={action.keys}
-            isSelected={selected.value == index}
+            isSelected={Math.abs(selected.value % actions.length) == index}
           />
         ))}
       </div>
