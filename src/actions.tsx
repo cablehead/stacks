@@ -12,7 +12,7 @@ function ActionRow(
 ) {
   return (
     <div
-      className={"terserow" + (isSelected ? " selected" : "")}
+      className={"terserow" + (isSelected ? " hover" : "")}
       style="
         display: flex;
         width: 100%;

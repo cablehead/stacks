@@ -83,6 +83,10 @@ globalStyle(".terserow:hover", {
   backgroundColor: vars.backgroundColorHover,
 });
 
+globalStyle(".terserow.hover", {
+  backgroundColor: vars.backgroundColorHover,
+});
+
 globalStyle(".terserow.selected", {
   backgroundColor: vars.backgroundColorSelected,
 });
