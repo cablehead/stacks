@@ -64,7 +64,9 @@ function ActionRow(
         border-radius: 6px;
         cursor: pointer;
         "
-      onMouseDown={() => {if (action.trigger) action.trigger(item)}}
+      onMouseDown={() => {
+        if (action.trigger) action.trigger(item);
+      }}
     >
       <div>
         {action.name}
@@ -102,6 +104,10 @@ export function Actions({ showActions, item }: {
           currFilter.value.toLowerCase(),
         );
       });
+  });
+
+  const normalizedSelected = useComputed(() => {
+    return Math.abs(selected.value % actionsAvailable.value.length);
   });
 
   return (
@@ -148,6 +154,14 @@ export function Actions({ showActions, item }: {
                   showActions.value = false;
                   break;
 
+                case event.key === "Enter":
+                  event.preventDefault();
+                  showActions.value = false;
+                  const action = actionsAvailable.value[normalizedSelected.value];
+                  if (!action || !action.trigger) return;
+                  action.trigger(item);
+                  break;
+
                 case event.metaKey && event.key === "k":
                   event.preventDefault();
                   showActions.value = !showActions.value;
@@ -177,9 +191,7 @@ export function Actions({ showActions, item }: {
           .map((action, index) => (
             <ActionRow
               action={action}
-              isSelected={Math.abs(
-                selected.value % actionsAvailable.value.length,
-              ) == index}
+              isSelected={normalizedSelected.value == index}
               item={item}
             />
           ))}
