@@ -17,13 +17,14 @@ const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
+    trigger: () => console.log("EEDDIT"),
+  },
+  {
+    name: "Microlink Screenshot",
   },
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-  },
-  {
-    name: "Microlink Screenshot",
   },
 ];
 
@@ -33,9 +34,7 @@ function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
       {keys.map((key, index) => (
         <span
           className={iconStyle}
-          style={index !== keys.length - 1
-            ? { marginRight: "0.25ch" }
-            : {}}
+          style={index !== keys.length - 1 ? { marginRight: "0.25ch" } : {}}
         >
           {key}
         </span>
@@ -62,6 +61,7 @@ function ActionRow(
         border-radius: 6px;
         cursor: pointer;
         "
+      onMouseDown={action.trigger}
     >
       <div>
         {action.name}
