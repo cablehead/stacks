@@ -19,7 +19,7 @@ export function Editor({ showEditor, item }: {
 
   return (
     <div
-      className={overlay}
+        className={overlay}
       style={{
         position: "absolute",
         overflow: "auto",
@@ -37,8 +37,9 @@ export function Editor({ showEditor, item }: {
         style={{
             width: "100%",
             height: "100%",
-            padding: "1ch",
-            margin: "1ch",
+            margin: "2ch",
+            outline: "none",
+            border: "none",
             }}
         onBlur={() => {
             console.log("peace");

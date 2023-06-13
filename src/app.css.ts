@@ -62,23 +62,6 @@ globalStyle("input", {
   outline: "none",
 });
 
-globalStyle("textarea", {
-  padding: "0.5ch",
-  border: "1px solid #ccc",
-  borderRadius: "0.5ch",
-  resize: "none",
-});
-
-globalStyle("textarea:hover", {
-  borderColor: "#999",
-});
-
-globalStyle("textarea:focus", {
-  outline: "none",
-  borderColor: "#aaa",
-  boxShadow: "0 0 2px #aaa",
-});
-
 globalStyle(".terserow:hover", {
   backgroundColor: vars.backgroundColorHover,
 });
@@ -122,6 +105,12 @@ export const borderRight = style({
   borderRightWidth: "1px",
   borderRightStyle: "solid",
   borderRightColor: vars.borderColor,
+});
+
+export const border = style({
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: vars.borderColor,
 });
 
 export const borderBottom = style({
