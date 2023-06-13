@@ -17,7 +17,7 @@ import { Editor } from "./editor.tsx";
 
 import { Item } from "./types.tsx";
 
-import { showEditor } from "./state.tsx";
+import { getContent, showEditor } from "./state.tsx";
 
 import {
   borderBottom,
@@ -62,20 +62,6 @@ const selectedContent = computed((): string | undefined => {
   return loadedContent.value;
 });
 
-// TODO: cap size of CAS, with MRU eviction
-const CAS: Map<string, string> = new Map();
-
-async function getContent(hash: string): Promise<string> {
-  const cachedItem = CAS.get(hash);
-  if (cachedItem !== undefined) {
-    return cachedItem;
-  }
-
-  console.log("CACHE MISS", hash);
-  const content: string = await invoke("store_get_content", { hash: hash });
-  CAS.set(hash, content);
-  return content;
-}
 
 async function updateLoaded(hash: string) {
   loadedContent.value = await getContent(hash);
@@ -403,8 +389,8 @@ function Main() {
         {selectedItem.value && showActions.value &&
           <Actions showActions={showActions} item={selectedItem.value} />}
 
-        {showEditor.value &&
-          <Editor showEditor={showEditor} item={selectedItem.value} />}
+        {selectedItem.value && showEditor.value &&
+          <Editor item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}

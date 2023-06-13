@@ -1,13 +1,13 @@
-import { Signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { overlay } from "./app.css.ts";
 
 import { Item } from "./types.tsx";
 
-export function Editor({ showEditor, item }: {
-  showEditor: Signal<boolean>;
-  item?: Item;
+import { getContent, showEditor } from "./state.tsx";
+
+export function Editor({ item }: {
+  item: Item;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
@@ -15,6 +15,14 @@ export function Editor({ showEditor, item }: {
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
+
+    async function fetchContent() {
+      let content = await getContent(item.hash);
+      if (inputRef.current != null) {
+        inputRef.current.value = content;
+      }
+    }
+    fetchContent();
   }, []);
 
   return (
@@ -45,7 +53,7 @@ export function Editor({ showEditor, item }: {
           console.log("peace");
           showEditor.value = false;
         }}
-        placeholder="Search..."
+        placeholder="..."
         onInput={() => {
           if (inputRef.current == null) return;
         }}

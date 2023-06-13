@@ -94,7 +94,7 @@ const Filter = (
 
 const Theme = ({ themeMode }: { themeMode: Signal<string> }) => (
   <div
-    onClick={() => {
+    onMouseDown={() => {
       themeMode.value = themeMode.value === "light" ? "dark" : "light";
     }}
     class="hoverable"
