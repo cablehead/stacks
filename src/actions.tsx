@@ -24,6 +24,7 @@ const actions = [
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
     trigger: (item: Item) => showEditor.value = true,
+    canApply: (item: Item) => item.content_type === "Text",
   },
   {
     name: "Microlink Screenshot",
