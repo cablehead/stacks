@@ -19,7 +19,7 @@ export function Editor({ showEditor, item }: {
 
   return (
     <div
-        className={overlay}
+      className={overlay}
       style={{
         position: "absolute",
         overflow: "auto",
@@ -35,16 +35,16 @@ export function Editor({ showEditor, item }: {
       <textarea
         ref={inputRef}
         style={{
-            width: "100%",
-            height: "100%",
-            margin: "2ch",
-            outline: "none",
-            border: "none",
-            }}
+          width: "100%",
+          height: "100%",
+          margin: "2ch",
+          outline: "none",
+          border: "none",
+        }}
         onBlur={() => {
-            console.log("peace");
-            showEditor.value = false;
-            }}
+          console.log("peace");
+          showEditor.value = false;
+        }}
         placeholder="Search..."
         onInput={() => {
           if (inputRef.current == null) return;
@@ -52,6 +52,18 @@ export function Editor({ showEditor, item }: {
         onKeyDown={(event) => {
           event.stopPropagation();
           console.log("Editor:", event);
+
+          switch (true) {
+            case event.key === "Escape":
+              event.preventDefault();
+              showEditor.value = false;
+              break;
+
+            case event.metaKey && event.key === "e":
+              event.preventDefault();
+              showEditor.value = false;
+              break;
+          }
         }}
       >
       </textarea>
