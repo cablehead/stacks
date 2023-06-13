@@ -25,13 +25,13 @@ current_date=$(date -Iseconds)
 sig_file_contents=$(cat "$temp_dir/Stacks_${version}_${arch}.app.tar.gz.sig")
 
 # Get stdin for notes
-notes="$(cat)"
+notes="$(jq -s -R)"
 
 # Write JSON to .tauri-updater.json
 cat > .tauri-updater.json << EOF
 {
   "version": "$version",
-  "notes": "$notes",
+  "notes": $notes,
   "pub_date": "$current_date",
   "platforms": {
     "darwin-aarch64": {
