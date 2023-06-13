@@ -410,6 +410,7 @@ function Main() {
         themeMode={themeMode}
         showFilter={showFilter}
         showActions={showActions}
+        showEditor={showEditor}
         triggerCopy={triggerCopy}
       />
     </main>
