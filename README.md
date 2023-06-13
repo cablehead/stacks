@@ -22,8 +22,6 @@ cargo tauri dev
 
 ## Todo
 
-- Only show Microlink action for Urls
-
 - Preference panel
 
 - Urls
@@ -47,14 +45,11 @@ cargo tauri dev
 
 - mark a source as don't track (for password managers, etc).
 
-- clean up meta panel. add:
-    - image info
+- meta panel. add: image info
 
 - handle clipboard images
     - in preview: improve transparency
     - when the user hits enter
-
-- new clipboard items can stop updating
 
 - customize key press
 - meta-n opens choice: note / command
