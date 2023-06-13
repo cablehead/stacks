@@ -167,7 +167,7 @@ impl Store {
                             content_type: if mime_type == "image/png" {
                                 "Image"
                             } else {
-                                "Text"
+                                if is_valid_https_url(&content) { "Link" } else { "Text" }
                             }
                             .to_string(),
                         },
@@ -351,6 +351,11 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
     })
 }
 
+fn is_valid_https_url(url: &[u8]) -> bool {
+    let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
+    re.is_match(url)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -409,5 +414,11 @@ mod tests {
         assert_eq!(link.description, "Enter a URL, receive information...");
         assert_eq!(link.url, "https://microlink.io");
         assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
+    }
+
+    #[test]
+    fn test_is_valid_https_url() {
+        assert!(is_valid_https_url(b"https://www.example.com"));
+        assert!(!is_valid_https_url(b"Good afternoon"));
     }
 }

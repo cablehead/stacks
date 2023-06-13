@@ -38,7 +38,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - Preference panel
 
 - Urls
-    - add code to auto-detect Urls
     - wire up Microlink action
 
 - Theme: initialize theme to the system preference
