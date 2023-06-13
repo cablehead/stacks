@@ -16,6 +16,7 @@ interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
   trigger?: (item: Item) => void;
+  canApply?: (item: Item) => boolean;
 }
 
 const actions = [
@@ -26,11 +27,13 @@ const actions = [
   },
   {
     name: "Microlink Screenshot",
+    canApply: (item: Item) => item.content_type === "Link",
   },
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) => invoke<Item[]>("store_delete", { hash: item.hash }),
+    trigger: (item: Item) =>
+      invoke<Item[]>("store_delete", { hash: item.hash }),
   },
 ];
 
@@ -119,7 +122,7 @@ export function Actions({ showActions, item }: {
     }
   }, []);
 
-  const actionsAvailable = useComputed(() => {
+  const actionsAvailable: Signal<Action[]> = useComputed(() => {
     return actions
       .filter((action) => {
         if (currFilter.value === "") {
@@ -217,6 +220,7 @@ export function Actions({ showActions, item }: {
         padding:1ch;
         ">
         {actionsAvailable.value
+          .filter((action) => !action.canApply || action.canApply(item))
           .map((action, index) => (
             <ActionRow
               action={action}
