@@ -4,11 +4,15 @@
 
 ### Quick Filter
 
-![filter screenshot](./docs/filter-screenshot.webp)
+![filter screenshot](./docs/screenshots/filter.webp)
 
 ### Dark Mode
 
-![dark mode](./docs/dark-mode.webp)
+![dark mode](./docs/screenshots/dark-mode.webp)
+
+### Edit Clippings
+
+![edit](./docs/screenshots/edit.webp)
 
 ## Development
 
@@ -18,6 +22,13 @@ cargo tauri dev
 
 # Type checking:
 ./scripts/ts-check.sh
+```
+
+## Release
+
+```
+./build.sh
+cat changes/v0.5.1 | ./scripts/release.sh
 ```
 
 ## Todo

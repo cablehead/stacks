@@ -1,14 +1,15 @@
 {
-  "version": "0.4.1",
-  "notes": "- You can now delete items
-- Mitigate the issue where new clipboard items can stop updating (not a
-  comprehensive fix though)
-- Initial load time is greatly improved for large histories ",
-  "pub_date": "2023-06-06T10:52:00-04:00",
+  "version": "0.5.1",
+  "notes": "- Meta panel is reworked (to allow for more content soon)
+- Added the start of an item specific Actions panel
+- Delete is moved to the Actions panel
+- New Action: Edit!
+- Mitigate the issue where new clipboard items can stop updating (hopefully actually fixed now)",
+  "pub_date": "2023-06-13T10:56:23-04:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEUyRHUvNktjY241TjR0UC85ZzFQQ2J0VG85QjREVTNvR2tqU0tqaG1OOHdkMXY1dElLZHdMOXFUcCs5anRtZW1aUHRHcHYrQk5jOG54M2pZYm00dmdrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg2MDYyNzg0CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKbG1QK2Zkb3RVNDF5WHpxQzVLMVAzOVVmY2lMOWtEUzBodWlXMHFuV1FEOHp1V1AxaktzTHRIdlV2NWVNNVpkblpGVDZ4djFtdTlFSlY2RHZDZ3hORFE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.4.1/Stacks_0.4.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEdpTHlWWHJRMzBrN1MxNHEzRkJvb000S09ZeUJwQTZHVGkxbTUvMmlDcEVWdTBldnEwS3BPb0ZRT0lEbjFSak9tNzBBUHBEWW5sT2w1WVRFSzJadHdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg2NjY4MDE2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKMGp2bmZ3b1hvZmJvVHFydmdKZEQ4cFd1MDVrTDdOcVhKbmYwQndhUFI0dzdrR1BzVkt2ZzFIb1A5WlBoSkRwNjNJUTZWSTQxMngrRklRN0JWbmMzQXc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.5.1/Stacks_0.5.1_aarch64.app.tar.gz"
     }
   }
 }
