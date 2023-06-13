@@ -1,9 +1,7 @@
-import { style } from "@vanilla-extract/css";
-
 import { Signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { vars } from "./app.css.ts";
+import { overlay } from "./app.css.ts";
 
 import { Item } from "./types.tsx";
 
@@ -21,8 +19,7 @@ export function Editor({ showEditor, item }: {
 
   return (
     <div
-      className={style({
-  boxShadow: "0 0 6px " + vars.shadowColor})}
+      className={overlay}
       style={{
         position: "absolute",
         overflow: "auto",
