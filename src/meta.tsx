@@ -20,7 +20,7 @@ const getMeta = (item: Item): MetaValue[] => {
   if (item.ids.length === 0) return [];
 
   let meta: MetaValue[] = [
-    { name: "ID", value: item.ids[0] },
+    { name: "ID", value: item.ids[item.ids.length - 1] },
   ];
 
   if (item.link) {
