@@ -27,8 +27,10 @@ cargo tauri dev
 ## Release
 
 ```
+RELEASE=v0.5.2
 ./build.sh
-cat changes/v0.5.1 | ./scripts/release.sh
+cat changes/$RELEASE | ./scripts/release.sh
+gh release create $RELEASE /var/folders/q4/wdp99t8167bgts029rc9kff40000gn/T/tmp.NmFKvXLo/* -n "$(cat changes/$RELEASE)"
 ```
 
 ## Todo
