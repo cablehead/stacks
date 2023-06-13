@@ -24,8 +24,12 @@ cargo tauri dev
 
 - add the Actions menu
     - add Edit feature
+    - add code to auto-detect Urls
     - Only show Microlink action for Urls
     - Add icons to action menu (stretch)
+
+- initialize theme to the system preference
+- set a time limit when manually set
 
 - add an action to perform screenshot scrape
 - preference panel

@@ -13,6 +13,8 @@ import { StatusBar } from "./statusbar.tsx";
 import { MetaPanel } from "./meta.tsx";
 import { Actions, attemptAction } from "./actions.tsx";
 
+import { Editor } from "./editor.tsx";
+
 import { Item } from "./types.tsx";
 
 import {
@@ -102,7 +104,8 @@ effect(() => {
   updateFilter(curr);
 });
 
-const showActions = signal(true);
+const showActions = signal(false);
+const showEditor = signal(true);
 
 //
 
@@ -398,6 +401,9 @@ function Main() {
 
         {selectedItem.value && showActions.value &&
           <Actions showActions={showActions} item={selectedItem.value} />}
+
+        {showEditor.value &&
+          <Editor showEditor={showEditor} item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}
