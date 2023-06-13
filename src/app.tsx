@@ -17,6 +17,8 @@ import { Editor } from "./editor.tsx";
 
 import { Item } from "./types.tsx";
 
+import { showEditor } from "./state.tsx";
+
 import {
   borderBottom,
   borderRight,
@@ -105,7 +107,6 @@ effect(() => {
 });
 
 const showActions = signal(false);
-const showEditor = signal(true);
 
 //
 

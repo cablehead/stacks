@@ -10,6 +10,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
+import { showEditor } from "./state.tsx";
+
 interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
@@ -20,7 +22,7 @@ const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (item: Item) => console.log("EEDDIT", item),
+    trigger: (item: Item) => showEditor.value = true,
   },
   {
     name: "Microlink Screenshot",

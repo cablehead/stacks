@@ -22,6 +22,9 @@ cargo tauri dev
 
 ## Todo
 
+- editor
+    - Esc should ext
+    - Update StatusBar: Editor Esc, Exit meta+Enter Collect
 - add the Actions menu
     - add Edit feature
     - add code to auto-detect Urls
