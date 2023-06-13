@@ -136,7 +136,7 @@ export function Actions({ showActions, item }: {
   });
 
   const normalizedSelected = useComputed(() => {
-    return Math.abs(selected.value % actionsAvailable.value.length);
+    return Math.abs(selected.value % (actionsAvailable.value.length - 1));
   });
 
   return (
