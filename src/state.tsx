@@ -17,4 +17,4 @@ export async function getContent(hash: string): Promise<string> {
   return content;
 }
 
-export const showEditor = signal(true);
+export const showEditor = signal(false);

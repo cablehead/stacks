@@ -29,7 +29,7 @@ import {
 //
 // Global State
 
-const themeMode = signal("dark");
+const themeMode = signal("light");
 
 const items = signal<Item[]>([]);
 const selected = signal(0);
@@ -299,7 +299,6 @@ async function triggerCopy() {
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
-  console.log("globalKeyHandler:", event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();

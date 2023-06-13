@@ -22,20 +22,20 @@ cargo tauri dev
 
 ## Todo
 
-- editor
-    - Esc should ext
-    - Update StatusBar: Editor Esc, Exit meta+Enter Collect
-- add the Actions menu
-    - add Edit feature
+- Only show Microlink action for Urls
+
+- Preference panel
+
+- Urls
     - add code to auto-detect Urls
-    - Only show Microlink action for Urls
-    - Add icons to action menu (stretch)
+    - wire up Microlink action
 
-- initialize theme to the system preference
-- set a time limit when manually set
+- Theme: initialize theme to the system preference
+    - set a time limit when manually set
 
-- add an action to perform screenshot scrape
-- preference panel
+- Editor capture should create an xs.add row: with parent set to the id the
+  editor was triggered on: this should be merged version that's put on the
+  clipboard
 
 - better cursor handling
     - dedicated focus handling when the filter changes
@@ -60,3 +60,5 @@ cargo tauri dev
 - meta-n opens choice: note / command
 - add filter: content type
 - add filter: number of times copied
+
+- Actions menu: Add icons to options

@@ -4,6 +4,8 @@ import { overlay } from "./app.css.ts";
 
 import { Item } from "./types.tsx";
 
+import { writeText } from "@tauri-apps/api/clipboard";
+
 import { getContent, showEditor } from "./state.tsx";
 
 export function Editor({ item }: {
@@ -50,7 +52,6 @@ export function Editor({ item }: {
           border: "none",
         }}
         onBlur={() => {
-          console.log("peace");
           showEditor.value = false;
         }}
         placeholder="..."
@@ -59,8 +60,6 @@ export function Editor({ item }: {
         }}
         onKeyDown={(event) => {
           event.stopPropagation();
-          console.log("Editor:", event);
-
           switch (true) {
             case event.key === "Escape":
               event.preventDefault();
@@ -69,6 +68,11 @@ export function Editor({ item }: {
 
             case event.metaKey && event.key === "e":
               event.preventDefault();
+              showEditor.value = false;
+              break;
+
+            case event.metaKey && event.key === "Enter":
+              if (inputRef.current !== null) writeText(inputRef.current.value);
               showEditor.value = false;
               break;
           }
