@@ -63,7 +63,8 @@ pub fn store_put(
     Ok(id)
 }
 
-pub fn store_get(
+#[allow(dead_code)]
+fn store_get(
     env: &lmdb::Environment,
     id: scru128::Scru128Id,
 ) -> Result<Option<Frame>, Box<dyn std::error::Error>> {

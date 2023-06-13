@@ -41,7 +41,7 @@ async fn store_get_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
-async fn store_delete(app: tauri::AppHandle, hash: String) -> Vec<Item> {
+async fn store_delete(app: tauri::AppHandle, hash: String) {
     println!("DEL: {}", &hash);
     let mut state = STORE.lock().unwrap();
     if let Some(item) = state.items.remove(&hash) {
@@ -53,7 +53,7 @@ async fn store_delete(app: tauri::AppHandle, hash: String) -> Vec<Item> {
     }
     state.cas.remove(&hash);
     drop(state);
-    recent_items()
+    app.emit_all("recent-items", recent_items()).unwrap();
 }
 
 #[tauri::command]
@@ -68,6 +68,17 @@ async fn store_set_filter(curr: String) -> Vec<Item> {
 #[tauri::command]
 fn init_window() -> Vec<Item> {
     recent_items()
+}
+
+#[tauri::command]
+async fn open_docs(handle: tauri::AppHandle) {
+    let _ = tauri::WindowBuilder::new(
+        &handle,
+        "external", /* the unique window label */
+        tauri::WindowUrl::App("second.html".into()),
+    )
+    .build()
+    .unwrap();
 }
 
 struct Store {
@@ -113,11 +124,26 @@ impl Store {
                 }
             }
 
-            Some(_) => Some((
-                "text/plain",
-                frame.data.chars().take(100).collect(),
-                frame.data.as_bytes().to_vec(),
-            )),
+            Some(topic) if topic == "microlink" => {
+                let data: Value = serde_json::from_str(&frame.data).unwrap();
+                if let Some(link) = process_microlink_frame(&data) {
+                    let hash = format!("{:x}", Sha256::digest(&link.url));
+                    let mut item = self.items.get_mut(&hash).unwrap();
+                    item.link = Some(link);
+                    item.ids.push(frame.id);
+                    item.content_type = "Link".to_string();
+                }
+                None
+            }
+
+            Some(topic) => {
+                println!("topic: {}", topic);
+                Some((
+                    "text/plain",
+                    frame.data.chars().take(100).collect(),
+                    frame.data.as_bytes().to_vec(),
+                ))
+            }
             None => None,
         };
 
@@ -137,6 +163,13 @@ impl Store {
                             ids: vec![frame.id],
                             mime_type: mime_type.to_string(),
                             terse,
+                            link: None,
+                            content_type: if mime_type == "image/png" {
+                                "Image"
+                            } else {
+                                "Text"
+                            }
+                            .to_string(),
                         },
                     );
                     self.cas.insert(hash, content);
@@ -150,12 +183,24 @@ lazy_static! {
     static ref STORE: Mutex<Store> = Mutex::new(Store::new());
 }
 
+#[derive(PartialEq, Debug, Clone, serde::Serialize)]
+struct Link {
+    provider: String,
+    screenshot: String,
+    title: String,
+    description: String,
+    url: String,
+    icon: String,
+}
+
 #[derive(Debug, Clone, serde::Serialize)]
 struct Item {
     hash: String,
     ids: Vec<scru128::Scru128Id>,
     mime_type: String,
+    content_type: String,
     terse: String,
+    link: Option<Link>,
 }
 
 fn recent_items() -> Vec<Item> {
@@ -246,10 +291,11 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            init_window,
             store_set_filter,
             store_get_content,
             store_delete,
+            init_window,
+            open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
@@ -286,4 +332,82 @@ fn main() {
         })
         .run(context)
         .expect("error while running tauri application");
+}
+
+fn process_microlink_frame(data: &Value) -> Option<Link> {
+    if !data["original_url"].is_string() {
+        return None;
+    }
+    let title = data["title"].as_str().unwrap();
+    let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
+    let title = ex.split(title).next().unwrap().trim();
+    Some(Link {
+        provider: "microlink".to_string(),
+        screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
+        title: title.to_string(),
+        description: data["description"].as_str().unwrap().to_string(),
+        url: data["original_url"].as_str().unwrap().to_string(),
+        icon: data["logo"]["url"].as_str().unwrap().to_string(),
+    })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn get_test_data() -> Value {
+        serde_json::json!({
+            "title": "Turns websites into data — Microlink",
+            "description": "Enter a URL, receive information...",
+            "lang": "en",
+            "author": "Microlink HQ",
+            "publisher": "Microlink",
+            "image": {
+                "url": "https://cdn.microlink.io/logo/banner.jpeg",
+                "type": "jpg",
+                "size": 70184,
+                "height": 1009,
+                "width": 1686,
+                "size_pretty": "70.2 kB"
+            },
+            "date": "2023-06-08T21:18:42.000Z",
+            "url": "https://microlink.io/",
+            "logo": {
+                "url": "https://cdn.microlink.io/logo/trim.png",
+                "type": "png",
+                "size": 5050,
+                "height": 500,
+                "width": 500,
+                "size_pretty": "5.05 kB"
+            },
+            "screenshot": {
+                "size_pretty": "564 kB",
+                "size": 563621,
+                "type": "png",
+                "url": "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png",
+                "width": 2560,
+                "height": 1600
+            }
+        })
+    }
+
+    #[test]
+    fn test_process_microlink_frame_without_original_url() {
+        let data = get_test_data();
+        let link = process_microlink_frame(&data);
+        assert_eq!(link, None);
+    }
+
+    #[test]
+    fn test_process_microlink_frame_with_original_url() {
+        let mut data = get_test_data();
+        data["original_url"] = Value::String("https://microlink.io".to_string());
+        let link = process_microlink_frame(&data).unwrap();
+        assert_eq!(link.provider, "microlink");
+        assert_eq!(link.screenshot, "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png");
+        assert_eq!(link.title, "Turns websites into data");
+        assert_eq!(link.description, "Enter a URL, receive information...");
+        assert_eq!(link.url, "https://microlink.io");
+        assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
+    }
 }

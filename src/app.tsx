@@ -2,8 +2,6 @@ import { render } from "preact";
 import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { Scru128Id } from "scru128";
-
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
@@ -12,6 +10,14 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./icons.tsx";
 import { StatusBar } from "./statusbar.tsx";
+import { MetaPanel } from "./meta.tsx";
+import { Actions, attemptAction } from "./actions.tsx";
+
+import { Editor } from "./editor.tsx";
+
+import { Item } from "./types.tsx";
+
+import { getContent, showEditor } from "./state.tsx";
 
 import {
   borderBottom,
@@ -19,49 +25,6 @@ import {
   darkThemeClass,
   lightThemeClass,
 } from "./app.css.ts";
-
-interface MetaValue {
-  name: string;
-  value?: string;
-  timestamp?: number;
-}
-
-interface Item {
-  hash: string;
-  ids: string[];
-  mime_type: string;
-  terse: string;
-}
-
-const getMeta = (item: Item): MetaValue[] => {
-  const toTimestamp = (id: string) => {
-    return Scru128Id.fromString(id).timestamp;
-  };
-
-  if (item.ids.length === 0) return [];
-
-  let meta = [
-    { name: "ID", value: item.ids[0] },
-    { name: "Mime Type", value: item.mime_type },
-  ];
-
-  if (item.ids.length === 1) {
-    return [
-      ...meta,
-      { name: "Copied", timestamp: toTimestamp(item.ids[0]) },
-    ];
-  }
-
-  return [
-    ...meta,
-    { name: "Times copied", value: item.ids.length.toString() },
-    {
-      name: "Last Copied",
-      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
-    },
-    { name: "First Copied", timestamp: toTimestamp(item.ids[0]) },
-  ];
-};
 
 //
 // Global State
@@ -99,20 +62,6 @@ const selectedContent = computed((): string | undefined => {
   return loadedContent.value;
 });
 
-// TODO: cap size of CAS, with MRU eviction
-const CAS: Map<string, string> = new Map();
-
-async function getContent(hash: string): Promise<string> {
-  const cachedItem = CAS.get(hash);
-  if (cachedItem !== undefined) {
-    return cachedItem;
-  }
-
-  console.log("CACHE MISS", hash);
-  const content: string = await invoke("store_get_content", { hash: hash });
-  CAS.set(hash, content);
-  return content;
-}
 
 async function updateLoaded(hash: string) {
   loadedContent.value = await getContent(hash);
@@ -128,7 +77,6 @@ effect(() => {
 });
 
 async function updateFilter(curr: string) {
-  console.log("FILTER", curr);
   items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
 }
 
@@ -141,9 +89,10 @@ effect(() => {
 
 effect(() => {
   const curr = currentFilter.value;
-  console.log("FILTER", curr);
   updateFilter(curr);
 });
+
+const showActions = signal(false);
 
 //
 
@@ -239,9 +188,11 @@ function LeftPane() {
           overflow: "hidden",
         }}
       >
-        <Icon
-          name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
-        />
+        {item.link ? <img src={item.link.icon} /> : (
+          <Icon
+            name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
+          />
+        )}
       </div>
 
       <div
@@ -284,63 +235,51 @@ function RightPane(
     return <div />;
   }
 
-  function MetaInfoRow(meta: MetaValue) {
-    let displayValue: string;
-    if (meta.timestamp !== undefined) {
-      displayValue = new Date(meta.timestamp).toLocaleString("en-US", {
-        weekday: "short",
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "numeric",
-        minute: "numeric",
-        hour12: true,
-      });
-    } else {
-      displayValue = meta.value || "";
+  function Preview(
+    { item, content }: { item: Item; content: string | undefined },
+  ) {
+    if (content !== undefined && item.mime_type === "image/png") {
+      return (
+        <img
+          src={"data:image/png;base64," + content}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    if (item.link) {
+      return (
+        <img
+          src={item.link.screenshot}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
     }
 
     return (
-      <div style="display:flex;">
-        <div
-          style={{
-            flexShrink: 0,
-            width: "20ch",
-          }}
-        >
-          {meta.name}
-        </div>
-        <div>{displayValue}</div>
-      </div>
+      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { content !== undefined ? content : "loading..." }
+      </pre>
     );
   }
 
   return (
-    <div style=" flex: 3; overflow: auto; display: flex; flex-direction: column;">
-      <div
-        className={borderBottom}
-        style="
-				padding-bottom: 0.5rem;
-				flex:2;
-				overflow: auto;
-				"
-      >
-        {content !== undefined && item.mime_type === "image/png"
-          ? (
-            <img
-              src={"data:image/png;base64," + content}
-              style={{ opacity: 0.95, borderRadius: "5px", maxHeight: "100%" }}
-            />
-          )
-          : (
-            <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
-            </pre>
-          )}
-      </div>
-      <div style="height: 3.5lh;  font-size: 0.8rem; overflow-y: auto;">
-        {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
-      </div>
+    <div style="flex: 3; overflow: auto; height: 100%">
+      <Preview item={item} content={content} />
     </div>
   );
 }
@@ -359,13 +298,6 @@ async function triggerCopy() {
   hide();
 }
 
-async function triggerDelete() {
-  const item = selectedItem.value;
-  if (item) {
-    items.value = await invoke<Item[]>("store_delete", { hash: item.hash });
-  }
-}
-
 async function globalKeyHandler(event: KeyboardEvent) {
   switch (true) {
     case event.key === "Enter":
@@ -375,12 +307,28 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.key === "Escape":
       event.preventDefault();
 
+      if (showActions.value) {
+        showActions.value = false;
+        return;
+      }
+
       if (showFilter.value) {
         showFilter.value = false;
         return;
       }
       hide();
       return;
+
+    case event.metaKey && event.key === "k":
+      event.preventDefault();
+      showActions.value = !showActions.value;
+      // await invoke("open_docs");
+      break;
+
+    case event.key === "Tab":
+      event.preventDefault();
+      // await invoke("open_docs");
+      break;
 
     case ((!showFilter.value) && event.key === "/"):
       event.preventDefault();
@@ -397,10 +345,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       updateSelected(-1);
       break;
 
-    case (event.ctrlKey && event.key === "Backspace"):
-      event.preventDefault();
-      await triggerDelete();
-      break;
+    default:
+      if (selectedItem.value) attemptAction(event, selectedItem.value);
   }
 }
 
@@ -426,6 +372,7 @@ function Main() {
             padding-top:1ch;
             padding-left:1ch;
             padding-right:1ch;
+            position: relative;
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <LeftPane />
@@ -434,12 +381,22 @@ function Main() {
             content={selectedContent.value}
           />
         </div>
+
+        {selectedItem.value &&
+          <MetaPanel item={selectedItem.value} />}
+
+        {selectedItem.value && showActions.value &&
+          <Actions showActions={showActions} item={selectedItem.value} />}
+
+        {selectedItem.value && showEditor.value &&
+          <Editor item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}
         showFilter={showFilter}
+        showActions={showActions}
+        showEditor={showEditor}
         triggerCopy={triggerCopy}
-        triggerDelete={triggerDelete}
       />
     </main>
   );
@@ -462,6 +419,7 @@ function App() {
     // set selection back to the top onBlur
     const onBlur = () => {
       selected.value = 0;
+      showActions.value = false;
     };
     const onFocus = () => {
       focusSelected(100);

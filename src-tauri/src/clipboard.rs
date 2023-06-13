@@ -14,12 +14,27 @@ pub fn start(path: &Path) {
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             if let CommandEvent::Stdout(line) = event {
-                let path = path.clone();
-                let env = xs_lib::store_open(&path).unwrap();
-                log::info!(
-                    "{}",
-                    xs_lib::store_put(&env, Some("clipboard".into()), None, line).unwrap()
-                );
+                loop {
+                    let path = path.clone();
+                    let result = (|| -> Result<(), Box<dyn std::error::Error + Send + Sync>> {
+                        let env = xs_lib::store_open(&path).map_err(|e| format!("{}", e))?;
+                        log::info!(
+                            "{}",
+                            xs_lib::store_put(&env, Some("clipboard".into()), None, line.clone())
+                                .map_err(|e| format!("{}", e))?
+                        );
+                        Ok(())
+                    })();
+
+                    match result {
+                        Ok(_) => break,
+                        Err(e) => {
+                            log::error!("Error: {}", e);
+                            // Sleep for 1 second before retrying
+                            tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+                        }
+                    }
+                }
             }
         }
     });

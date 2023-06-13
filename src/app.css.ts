@@ -4,23 +4,25 @@
 import { createTheme, globalStyle, style } from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
-  textColor: "#a7a9be",
+  textColor: "#bebebe",
   backgroundColor: "#1F1F1F",
   backgroundColorTransparent: "#1F1F1FEF",
-  backgroundColorSelected: "#3A3A3A",
-  backgroundColorButton: "#2A2A2A",
-  backgroundColorHover: "#2A2A2A",
+  backgroundColorSelected: "#4A4A4A",
+  backgroundColorButton: "#4A4A4A",
+  backgroundColorHover: "#333333",
   borderColor: "#333",
+  shadowColor: "rgba(102, 102, 102, 0.4)",
 });
 
 export const lightThemeClass = createTheme(vars, {
   textColor: "#2d334a",
-  backgroundColor: "#F0F0F0",
-  backgroundColorTransparent: "#F0F0F0EF",
+  backgroundColor: "#FFFFFF",
+  backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
-  backgroundColorButton: "#E0E0E0",
-  backgroundColorHover: "#E0E0E0",
+  backgroundColorButton: "#D1D1D1",
+  backgroundColorHover: "#E2E2E2",
   borderColor: "#ddd",
+  shadowColor: "rgba(0, 0, 0, 0.2)",
 });
 
 globalStyle("html, body", {
@@ -28,7 +30,7 @@ globalStyle("html, body", {
   backgroundColor: "transparent",
   padding: "10px",
   letterSpacing: "-0.02ch",
-  fontSize: "16px",
+  fontSize: "14px",
   height: "100%",
   overflow: "hidden",
 });
@@ -60,24 +62,11 @@ globalStyle("input", {
   outline: "none",
 });
 
-globalStyle("textarea", {
-  padding: "0.5ch",
-  border: "1px solid #ccc",
-  borderRadius: "0.5ch",
-  resize: "none",
-});
-
-globalStyle("textarea:hover", {
-  borderColor: "#999",
-});
-
-globalStyle("textarea:focus", {
-  outline: "none",
-  borderColor: "#aaa",
-  boxShadow: "0 0 2px #aaa",
-});
-
 globalStyle(".terserow:hover", {
+  backgroundColor: vars.backgroundColorHover,
+});
+
+globalStyle(".terserow.hover", {
   backgroundColor: vars.backgroundColorHover,
 });
 
@@ -89,19 +78,39 @@ export const footer = style({
   display: "flex",
   alignItems: "center",
   height: "5ch",
-  boxShadow: "0 -1px 3px rgba(0, 0, 0, 0.1)",
-  fontSize: "0.8rem",
+  boxShadow: "0 0 4px " + vars.shadowColor,
+  fontSize: "0.9rem",
   backgroundColor: vars.backgroundColor,
   padding: "1ch",
   paddingLeft: "2ch",
-  paddingRight: "2ch",
+  paddingRight: "1ch",
   justifyContent: "space-between",
+});
+
+export const overlay = style({
+  boxShadow: "0 0 6px " + vars.shadowColor,
+  backgroundColor: vars.backgroundColorTransparent,
+});
+
+export const card = style({
+    backgroundColor: vars.backgroundColorTransparent,
+    height: "100%",
+    width: "auto",
+    display: "flex",
+    borderRadius: "1ch",
+    flexDirection: "column",
 });
 
 export const borderRight = style({
   borderRightWidth: "1px",
   borderRightStyle: "solid",
   borderRightColor: vars.borderColor,
+});
+
+export const border = style({
+  borderWidth: "1px",
+  borderStyle: "solid",
+  borderColor: vars.borderColor,
 });
 
 export const borderBottom = style({
