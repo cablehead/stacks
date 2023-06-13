@@ -167,7 +167,11 @@ impl Store {
                             content_type: if mime_type == "image/png" {
                                 "Image"
                             } else {
-                                if is_valid_https_url(&content) { "Link" } else { "Text" }
+                                if is_valid_https_url(&content) {
+                                    "Link"
+                                } else {
+                                    "Text"
+                                }
                             }
                             .to_string(),
                         },
@@ -295,6 +299,7 @@ fn main() {
             store_get_content,
             store_delete,
             init_window,
+            microlink_screenshot,
             open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
@@ -316,8 +321,8 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            // window.open_devtools();
-            // window.close_devtools();
+            window.open_devtools();
+            window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -349,6 +354,23 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
         url: data["original_url"].as_str().unwrap().to_string(),
         icon: data["logo"]["url"].as_str().unwrap().to_string(),
     })
+}
+
+#[tauri::command]
+async fn microlink_screenshot(url: String) -> Option<String> {
+    let client = reqwest::Client::new();
+    let response = client
+        .get("https://api.microlink.io/")
+        .query(&[
+            ("url", &url),
+            ("screenshot", &"".to_string()),
+            ("device", &"Macbook Pro 13".to_string()),
+        ])
+        .send()
+        .await.unwrap();
+    let response_text = response.text().await.unwrap();
+    println!("RESPONSE: {:?}", response_text);
+    None
 }
 
 fn is_valid_https_url(url: &[u8]) -> bool {

@@ -10,13 +10,20 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
-import { showEditor } from "./state.tsx";
+import { getContent, showEditor } from "./state.tsx";
 
 interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
   trigger?: (item: Item) => void;
   canApply?: (item: Item) => boolean;
+}
+
+async function microlink_screenshot(item: Item) {
+  console.log("MICROLINK");
+  const content = await getContent(item.hash);
+  const res = await invoke("microlink_screenshot", { url: content });
+  console.log(content, res);
 }
 
 const actions = [
@@ -28,13 +35,13 @@ const actions = [
   },
   {
     name: "Microlink Screenshot",
+    trigger: microlink_screenshot,
     canApply: (item: Item) => item.content_type === "Link",
   },
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) =>
-      invoke<Item[]>("store_delete", { hash: item.hash }),
+    trigger: (item: Item) => invoke("store_delete", { hash: item.hash }),
   },
 ];
 
@@ -132,11 +139,14 @@ export function Actions({ showActions, item }: {
         return action.name.toLowerCase().includes(
           currFilter.value.toLowerCase(),
         );
-      });
+      })
+      .filter((action) => !action.canApply || action.canApply(item));
   });
 
   const normalizedSelected = useComputed(() => {
-    return Math.abs(selected.value % (actionsAvailable.value.length - 1));
+    let val = selected.value % (actionsAvailable.value.length);
+    if (val < 0) val = actionsAvailable.value.length + val;
+    return val;
   });
 
   return (
@@ -176,7 +186,6 @@ export function Actions({ showActions, item }: {
             }}
             onKeyDown={(event) => {
               event.stopPropagation();
-              console.log("ACTIONS:", event);
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
@@ -221,7 +230,6 @@ export function Actions({ showActions, item }: {
         padding:1ch;
         ">
         {actionsAvailable.value
-          .filter((action) => !action.canApply || action.canApply(item))
           .map((action, index) => (
             <ActionRow
               action={action}
