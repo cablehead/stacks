@@ -119,11 +119,13 @@ impl Store {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
                     Some(("image/png", clipped["source"].to_string(), content.to_vec()))
                 } else {
-                    println!("add_frame TODO: types: {:?}", types);
+                    println!("add_frame TODO: id: {}, types: {:?}, frame.data size: {}", frame.id,
+                             types.keys().collect::<Vec<_>>(), frame.data.len());
                     None
                 }
             }
 
+            /*
             Some(topic) if topic == "microlink" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
                 if let Some(link) = process_microlink_frame(&data) {
@@ -135,6 +137,7 @@ impl Store {
                 }
                 None
             }
+            */
 
             Some(topic) => {
                 println!("topic: {}", topic);
@@ -339,6 +342,7 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+/*
 fn process_microlink_frame(data: &Value) -> Option<Link> {
     if !data["original_url"].is_string() {
         return None;
@@ -355,6 +359,7 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
         icon: data["logo"]["url"].as_str().unwrap().to_string(),
     })
 }
+*/
 
 #[tauri::command]
 async fn microlink_screenshot(app: tauri::AppHandle, url: String) -> Option<String> {
@@ -397,6 +402,7 @@ fn is_valid_https_url(url: &[u8]) -> bool {
 mod tests {
     use super::*;
 
+    /*
     fn get_test_data() -> Value {
         serde_json::json!({
             "title": "Turns websites into data — Microlink",
@@ -452,6 +458,7 @@ mod tests {
         assert_eq!(link.url, "https://microlink.io");
         assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
     }
+    */
 
     #[test]
     fn test_is_valid_https_url() {

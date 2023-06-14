@@ -20,6 +20,7 @@ interface Action {
   canApply?: (item: Item) => boolean;
 }
 
+/*
 async function microlink_screenshot(item: Item): Promise<boolean> {
   console.log("MICROLINK");
   const content = await getContent(item.hash);
@@ -33,6 +34,7 @@ async function microlink_screenshot(item: Item): Promise<boolean> {
   }
   return true;
 }
+*/
 
 async function open_link(item: Item) {
   const url = await getContent(item.hash);
@@ -52,11 +54,13 @@ const actions = [
     trigger: open_link,
     canApply: (item: Item) => item.content_type === "Link",
   },
+  /*
   {
     name: "Microlink Screenshot",
     trigger: microlink_screenshot,
     canApply: (item: Item) => item.content_type === "Link",
   },
+  */
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
