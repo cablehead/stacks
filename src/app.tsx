@@ -62,7 +62,6 @@ const selectedContent = computed((): string | undefined => {
   return loadedContent.value;
 });
 
-
 async function updateLoaded(hash: string) {
   loadedContent.value = await getContent(hash);
   loadedHash.value = hash;
@@ -166,6 +165,21 @@ function FilterInput() {
 }
 
 function LeftPane() {
+  const RowIcon = ({ item }: { item: Item }) => {
+    switch (item.content_type) {
+      case "Image":
+        return <Icon name="IconImage" />;
+
+      case "Link":
+        return <Icon name="IconLink" />;
+
+      case "Text":
+        return <Icon name="IconClipboard" />;
+    }
+
+    return <Icon name="IconBell" />;
+  };
+
   const TerseRow = ({ item, index }: { item: Item; index: number }) => (
     <div
       className={"terserow" + (index === selected.value ? " selected" : "")}
@@ -188,11 +202,7 @@ function LeftPane() {
           overflow: "hidden",
         }}
       >
-        {item.link ? <img src={item.link.icon} /> : (
-          <Icon
-            name={item.mime_type == "image/png" ? "IconImage" : "IconClipboard"}
-          />
-        )}
+        <RowIcon item={item} />
       </div>
 
       <div
@@ -383,7 +393,12 @@ function Main() {
         </div>
 
         {selectedItem.value && selectedContent.value &&
-          <MetaPanel item={selectedItem.value} content={selectedContent.value} />}
+          (
+            <MetaPanel
+              item={selectedItem.value}
+              content={selectedContent.value}
+            />
+          )}
 
         {selectedItem.value && showActions.value &&
           <Actions showActions={showActions} item={selectedItem.value} />}
