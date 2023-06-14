@@ -1,8 +1,9 @@
-import { JSXInternal } from 'preact/src/jsx';
+import { JSXInternal } from "preact/src/jsx";
 
 import { Scru128Id } from "scru128";
 
 import { Item } from "./types.tsx";
+import { Icon } from "./icons.tsx";
 
 import { overlay } from "./app.css.ts";
 
@@ -12,7 +13,7 @@ interface MetaValue {
   timestamp?: number;
 }
 
-const getMeta = (item: Item): MetaValue[] => {
+function getMeta(item: Item, content: string): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
@@ -21,12 +22,33 @@ const getMeta = (item: Item): MetaValue[] => {
 
   let meta: MetaValue[] = [
     { name: "ID", value: item.ids[item.ids.length - 1] },
+    { name: "Content Type", value: item.content_type },
   ];
+
+  if (item.content_type == "Link") {
+    meta.push({
+      name: "Url",
+      value: (
+        <a href={content} target="_blank">
+          {content}
+          <span
+            style={{
+              display: "inline-block",
+              verticalAlign: "middle",
+              width: "2ch",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            <Icon name="IconExternalLink" />
+          </span>
+        </a>
+      ),
+    });
+  }
 
   if (item.link) {
     meta.push(...[
-      { name: "Content Type", value: "Link" },
-      { name: "Url", value: item.link.url },
       { name: "Title", value: item.link.title },
       {
         name: "Description",
@@ -43,10 +65,6 @@ const getMeta = (item: Item): MetaValue[] => {
         ),
       },
     ]);
-  } else {
-    meta.push(
-      { name: "Content Type", value: item.content_type },
-    );
   }
 
   if (item.ids.length === 1) {
@@ -65,7 +83,7 @@ const getMeta = (item: Item): MetaValue[] => {
     },
     { name: "First Touched", timestamp: toTimestamp(item.ids[0]) },
   ];
-};
+}
 
 function MetaInfoRow(meta: MetaValue) {
   let displayValue;
@@ -93,12 +111,14 @@ function MetaInfoRow(meta: MetaValue) {
       >
         {meta.name}
       </div>
-      <div>{displayValue}</div>
+      <div style={{ overflowWrap: "anywhere" }}>
+        {displayValue}
+      </div>
     </div>
   );
 }
 
-export function MetaPanel({ item }: { item: Item }) {
+export function MetaPanel({ item, content }: { item: Item; content: string }) {
   return (
     <div
       className={overlay}
@@ -106,17 +126,17 @@ export function MetaPanel({ item }: { item: Item }) {
         position: "absolute",
         width: "47ch",
         overflow: "auto",
-        top: "0",
+        bottom: "0",
         fontSize: "0.9rem",
         right: "0",
         paddingTop: "0.5lh",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
-        borderRadius: "0.5rem",
+        borderRadius: "0.5em 0 0 0",
         zIndex: 100,
       }}
     >
-      {getMeta(item).map((info) => <MetaInfoRow {...info} />)}
+      {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
     </div>
   );
 }

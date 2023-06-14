@@ -6,11 +6,12 @@ import { borderBottom, iconStyle, overlay } from "./app.css.ts";
 import { JSXInternal } from "preact/src/jsx";
 
 import { invoke } from "@tauri-apps/api/tauri";
+import { open } from '@tauri-apps/api/shell';
 
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
-import { showEditor } from "./state.tsx";
+import { getContent, showEditor } from "./state.tsx";
 
 interface Action {
   name: string;
@@ -19,26 +20,57 @@ interface Action {
   canApply?: (item: Item) => boolean;
 }
 
+/*
+async function microlink_screenshot(item: Item): Promise<boolean> {
+  console.log("MICROLINK");
+  const content = await getContent(item.hash);
+  const err = await invoke<string | undefined>("microlink_screenshot", {
+    url: content,
+  });
+  console.log(content, err);
+  if (err) {
+    alert(err);
+    return false;
+  }
+  return true;
+}
+*/
+
+async function open_link(item: Item) {
+  const url = await getContent(item.hash);
+  await open(url);
+}
+
 const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
     trigger: (item: Item) => showEditor.value = true,
+    canApply: (item: Item) => item.mime_type === "text/plain",
   },
   {
-    name: "Microlink Screenshot",
+    name: "Open",
+    keys: [<Icon name="IconCommandKey" />, "O"],
+    trigger: open_link,
     canApply: (item: Item) => item.content_type === "Link",
   },
+  /*
+  {
+    name: "Microlink Screenshot",
+    trigger: microlink_screenshot,
+    canApply: (item: Item) => item.content_type === "Link",
+  },
+  */
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) =>
-      invoke<Item[]>("store_delete", { hash: item.hash }),
+    trigger: (item: Item) => invoke("store_delete", { hash: item.hash }),
   },
 ];
 
 const trigger = (name: string, item: Item): void => {
   const action = actions.filter((action) => action.name === name)[0];
+  if (action.canApply && !action.canApply(item)) return;
   if (action.trigger) action.trigger(item);
 };
 
@@ -52,6 +84,11 @@ export const attemptAction = (event: KeyboardEvent, item: Item): boolean => {
     case (event.metaKey && event.key === "e"):
       event.preventDefault();
       trigger("Edit", item);
+      return true;
+
+    case (event.metaKey && event.key === "o"):
+      event.preventDefault();
+      trigger("Open", item);
       return true;
   }
 
@@ -131,11 +168,14 @@ export function Actions({ showActions, item }: {
         return action.name.toLowerCase().includes(
           currFilter.value.toLowerCase(),
         );
-      });
+      })
+      .filter((action) => !action.canApply || action.canApply(item));
   });
 
   const normalizedSelected = useComputed(() => {
-    return Math.abs(selected.value % actionsAvailable.value.length);
+    let val = selected.value % (actionsAvailable.value.length);
+    if (val < 0) val = actionsAvailable.value.length + val;
+    return val;
   });
 
   return (
@@ -175,7 +215,6 @@ export function Actions({ showActions, item }: {
             }}
             onKeyDown={(event) => {
               event.stopPropagation();
-              console.log("ACTIONS:", event);
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
@@ -220,7 +259,6 @@ export function Actions({ showActions, item }: {
         padding:1ch;
         ">
         {actionsAvailable.value
-          .filter((action) => !action.canApply || action.canApply(item))
           .map((action, index) => (
             <ActionRow
               action={action}

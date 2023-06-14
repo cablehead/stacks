@@ -119,11 +119,17 @@ impl Store {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
                     Some(("image/png", clipped["source"].to_string(), content.to_vec()))
                 } else {
-                    println!("add_frame TODO: types: {:?}", types);
+                    println!(
+                        "add_frame TODO: id: {}, types: {:?}, frame.data size: {}",
+                        frame.id,
+                        types.keys().collect::<Vec<_>>(),
+                        frame.data.len()
+                    );
                     None
                 }
             }
 
+            /*
             Some(topic) if topic == "microlink" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
                 if let Some(link) = process_microlink_frame(&data) {
@@ -135,7 +141,7 @@ impl Store {
                 }
                 None
             }
-
+            */
             Some(topic) => {
                 println!("topic: {}", topic);
                 Some((
@@ -167,7 +173,11 @@ impl Store {
                             content_type: if mime_type == "image/png" {
                                 "Image"
                             } else {
-                                "Text"
+                                if is_valid_https_url(&content) {
+                                    "Link"
+                                } else {
+                                    "Text"
+                                }
                             }
                             .to_string(),
                         },
@@ -295,6 +305,7 @@ fn main() {
             store_get_content,
             store_delete,
             init_window,
+            microlink_screenshot,
             open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
@@ -334,6 +345,7 @@ fn main() {
         .expect("error while running tauri application");
 }
 
+/*
 fn process_microlink_frame(data: &Value) -> Option<Link> {
     if !data["original_url"].is_string() {
         return None;
@@ -350,11 +362,50 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
         icon: data["logo"]["url"].as_str().unwrap().to_string(),
     })
 }
+*/
+
+#[tauri::command]
+async fn microlink_screenshot(app: tauri::AppHandle, url: String) -> Option<String> {
+    println!("MICROLINK: {}", &url);
+    let client = reqwest::Client::new();
+    let response = client
+        .get("https://api.microlink.io/")
+        .query(&[
+            ("url", &url),
+            ("screenshot", &"".to_string()),
+            ("device", &"Macbook Pro 13".to_string()),
+        ])
+        .send()
+        .await
+        .unwrap();
+
+    let mut res = response.json::<serde_json::Value>().await.unwrap();
+    let data = &mut res["data"];
+    data["original_url"] = serde_json::Value::String(url);
+    let data = data.to_string();
+    println!("RESPONSE: {}", data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    log::info!(
+        "{}",
+        xs_lib::store_put(&env, Some("microlink".into()), None, data.clone())
+            .map_err(|e| format!("{}", e))
+            .unwrap()
+    );
+    None
+}
+
+fn is_valid_https_url(url: &[u8]) -> bool {
+    let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
+    re.is_match(url)
+}
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    /*
     fn get_test_data() -> Value {
         serde_json::json!({
             "title": "Turns websites into data — Microlink",
@@ -409,5 +460,12 @@ mod tests {
         assert_eq!(link.description, "Enter a URL, receive information...");
         assert_eq!(link.url, "https://microlink.io");
         assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
+    }
+    */
+
+    #[test]
+    fn test_is_valid_https_url() {
+        assert!(is_valid_https_url(b"https://www.example.com"));
+        assert!(!is_valid_https_url(b"Good afternoon"));
     }
 }
