@@ -1,11 +1,11 @@
 {
-  "version": "0.5.3",
-  "notes": "- Meta panel is reworked (to allow for more content soon)\n- Added the start of an item specific Actions panel\n- Delete is moved to the Actions panel\n- New Action: Edit!\n- Mitigate the issue where new clipboard items can stop updating (hopefully actually fixed now)\n",
-  "pub_date": "2023-06-13T11:56:55-04:00",
+  "version": "0.5.4",
+  "notes": "- Links now have an Open action, which opens them in your default browser\n- By popular request, the Meta Panel returns to the bottom right of the preview panel (feedback appreciated!)\n- Bunch of small fixes\n",
+  "pub_date": "2023-06-14T17:16:26-04:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE5VN3ZydlB0MjN5VXcyRnJsc0VoK09MVFFOVmRHbkFZME50a3JrZFpZb2lpZFdxSE0xTmxaSkZBTzFCRlRheHhZTFdTdS9KbXJjcDYxY3dNeHhDeHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg2NjcxNzY2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKMXRCZ3h2Uk8rRFg0Y3RUT3BoU25VVEpKUWg3eGphODAzZzY1SGNPbFora1BHWTlCeEtHMnFScUpkQURLeE5NUkk2NWdPTUQyVkt0b0N2WlJqSlRxQmc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.5.3/Stacks_0.5.3_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE43WmMycWZ1MFIwRWQ1UzA0WlQzaEFDNSsyY1ZnZlVZdVBmd1NrUjNicWJkajJEdW5TaWFBTGQweVk0SVcrbTE0b3V3MmxLN0JLUGkxUEUybGNPcGdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg2Nzc3MjM4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKQ0x1UXZ4aVhDUzQwdmkvaHhIaVJSU3lKZkt4RWwzbDM0c3RLK2dKRWxQTWxYbHUwSC9UbmpLYzZScTdaYVJrWE1DUWFMVDA4MWdUbEsvU2lFRDdDQ2c9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.5.4/Stacks_0.5.4_aarch64.app.tar.gz"
     }
   }
 }

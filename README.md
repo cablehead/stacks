@@ -30,6 +30,7 @@ cargo tauri dev
 RELEASE=v0.5.2
 ./build.sh
 cat changes/$RELEASE | ./scripts/release.sh
+# commit and push
 gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ```
 
