@@ -24,7 +24,16 @@ function getMeta(item: Item, content: string): MetaValue[] {
     { name: "Content Type", value: item.content_type },
   ];
 
-  if (item.content_type == "Link") meta.push({ name: "Url", value: content });
+  if (item.content_type == "Link") {
+    meta.push({
+      name: "Url",
+      value: (
+        <a href={content} target="_blank">
+          {content}
+        </a>
+      ),
+    });
+  }
 
   if (item.link) {
     meta.push(...[
@@ -90,7 +99,9 @@ function MetaInfoRow(meta: MetaValue) {
       >
         {meta.name}
       </div>
-      <div>{displayValue}</div>
+      <div style={{ overflowWrap: "anywhere" }}>
+        {displayValue}
+      </div>
     </div>
   );
 }

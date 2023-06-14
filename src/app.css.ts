@@ -10,7 +10,7 @@ export const [darkThemeClass, vars] = createTheme({
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
   backgroundColorHover: "#333333",
-  borderColor: "#333",
+  borderColor: "#3e3e3e",
   shadowColor: "rgba(102, 102, 102, 0.4)",
 });
 
@@ -21,7 +21,7 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
   backgroundColorHover: "#E2E2E2",
-  borderColor: "#ddd",
+  borderColor: "#ccc",
   shadowColor: "rgba(0, 0, 0, 0.2)",
 });
 
@@ -60,6 +60,13 @@ globalStyle("input", {
   border: "none",
   width: "100%",
   outline: "none",
+});
+
+globalStyle("a", {
+    color: vars.textColor,
+    textDecoration: "underline",
+    textDecorationColor: vars.borderColor,
+    textUnderlineOffset: "3px",
 });
 
 globalStyle(".terserow:hover", {
