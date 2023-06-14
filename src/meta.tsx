@@ -3,6 +3,7 @@ import { JSXInternal } from "preact/src/jsx";
 import { Scru128Id } from "scru128";
 
 import { Item } from "./types.tsx";
+import { Icon } from "./icons.tsx";
 
 import { overlay } from "./app.css.ts";
 
@@ -30,6 +31,17 @@ function getMeta(item: Item, content: string): MetaValue[] {
       value: (
         <a href={content} target="_blank">
           {content}
+          <span
+            style={{
+              display: "inline-block",
+              verticalAlign: "middle",
+              width: "2ch",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            <Icon name="IconExternalLink" />
+          </span>
         </a>
       ),
     });
@@ -120,7 +132,7 @@ export function MetaPanel({ item, content }: { item: Item; content: string }) {
         paddingTop: "0.5lh",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
-        borderRadius: "0.5em 0.5rem 0 0",
+        borderRadius: "0.5em 0 0 0",
         zIndex: 100,
       }}
     >
