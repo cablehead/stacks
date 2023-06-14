@@ -114,13 +114,13 @@ export function MetaPanel({ item, content }: { item: Item; content: string }) {
         position: "absolute",
         width: "47ch",
         overflow: "auto",
-        top: "0",
+        bottom: "0",
         fontSize: "0.9rem",
         right: "0",
         paddingTop: "0.5lh",
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
-        borderRadius: "0.5rem",
+        borderRadius: "0.5em 0.5rem 0 0",
         zIndex: 100,
       }}
     >
