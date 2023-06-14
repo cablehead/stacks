@@ -119,8 +119,12 @@ impl Store {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
                     Some(("image/png", clipped["source"].to_string(), content.to_vec()))
                 } else {
-                    println!("add_frame TODO: id: {}, types: {:?}, frame.data size: {}", frame.id,
-                             types.keys().collect::<Vec<_>>(), frame.data.len());
+                    println!(
+                        "add_frame TODO: id: {}, types: {:?}, frame.data size: {}",
+                        frame.id,
+                        types.keys().collect::<Vec<_>>(),
+                        frame.data.len()
+                    );
                     None
                 }
             }
@@ -138,7 +142,6 @@ impl Store {
                 None
             }
             */
-
             Some(topic) => {
                 println!("topic: {}", topic);
                 Some((
@@ -324,8 +327,8 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
-            window.close_devtools();
+            // window.open_devtools();
+            // window.close_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
