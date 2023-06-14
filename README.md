@@ -37,12 +37,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - Preference panel
 
-- Urls
-    - wire up Microlink action: done, but
-        - need UI to indicate scrape is in progress
-        - need to surface errors
-    - add action to open url in default browser
-
 - Theme: initialize theme to the system preference
     - set a time limit when manually set
 
@@ -72,3 +66,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - add filter: number of times copied
 
 - Actions menu: Add icons to options
+
+- Microlink action: done, but
+    - need UI to indicate scrape is in progress
+    - need to surface errors
+    - feels heavy
+
