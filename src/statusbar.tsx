@@ -137,7 +137,13 @@ const EditorStatusBar = (
         </div>
 
         <VertDiv />
-        <div onClick={() => {}} class="hoverable">
+        <div
+          onMouseDown={() => {
+            editor.save();
+            editor.show.value = false;
+          }}
+          class="hoverable"
+        >
           Capture&nbsp;
           <span className={iconStyle} style="margin-right: 0.25ch;">
             <Icon name="IconCommandKey" />

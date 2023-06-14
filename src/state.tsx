@@ -1,5 +1,7 @@
 import { signal } from "@preact/signals";
 
+import { writeText } from "@tauri-apps/api/clipboard";
+
 import { invoke } from "@tauri-apps/api/tauri";
 
 // TODO: cap size of CAS, with MRU eviction
@@ -18,5 +20,9 @@ export async function getContent(hash: string): Promise<string> {
 }
 
 export const editor = {
-    show: signal(false),
-}
+  show: signal(false),
+  content: "",
+  get save() {
+    return () => writeText(this.content);
+  },
+};

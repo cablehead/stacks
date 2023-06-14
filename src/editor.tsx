@@ -4,9 +4,7 @@ import { overlay } from "./app.css.ts";
 
 import { Item } from "./types.tsx";
 
-import { writeText } from "@tauri-apps/api/clipboard";
-
-import { getContent, editor } from "./state.tsx";
+import { editor, getContent } from "./state.tsx";
 
 export function Editor({ item }: {
   item: Item;
@@ -22,8 +20,10 @@ export function Editor({ item }: {
       let content = await getContent(item.hash);
       if (inputRef.current != null) {
         inputRef.current.value = content;
+        editor.content = content;
       }
     }
+    editor.content = "";
     fetchContent();
   }, []);
 
@@ -56,7 +56,9 @@ export function Editor({ item }: {
         }}
         placeholder="..."
         onInput={() => {
-          if (inputRef.current == null) return;
+          if (inputRef.current !== null) {
+            editor.content = inputRef.current.value;
+          }
         }}
         onKeyDown={(event) => {
           event.stopPropagation();
@@ -72,7 +74,7 @@ export function Editor({ item }: {
               break;
 
             case event.metaKey && event.key === "Enter":
-              if (inputRef.current !== null) writeText(inputRef.current.value);
+              editor.save();
               editor.show.value = false;
               break;
           }

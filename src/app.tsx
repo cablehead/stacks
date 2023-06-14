@@ -17,7 +17,7 @@ import { Editor } from "./editor.tsx";
 
 import { Item } from "./types.tsx";
 
-import { getContent, editor } from "./state.tsx";
+import { editor, getContent } from "./state.tsx";
 
 import {
   borderBottom,
