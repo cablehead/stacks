@@ -19,11 +19,16 @@ interface Action {
   canApply?: (item: Item) => boolean;
 }
 
-async function microlink_screenshot(item: Item) {
+async function microlink_screenshot(item: Item): Promise<boolean> {
   console.log("MICROLINK");
   const content = await getContent(item.hash);
-  const res = await invoke("microlink_screenshot", { url: content });
-  console.log(content, res);
+  const err = await invoke<string | undefined>("microlink_screenshot", { url: content });
+  console.log(content, err);
+  if (err) {
+      alert(err);
+      return false;
+  }
+  return true;
 }
 
 const actions = [

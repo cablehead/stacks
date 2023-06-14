@@ -357,7 +357,8 @@ fn process_microlink_frame(data: &Value) -> Option<Link> {
 }
 
 #[tauri::command]
-async fn microlink_screenshot(url: String) -> Option<String> {
+async fn microlink_screenshot(app: tauri::AppHandle, url: String) -> Option<String> {
+    println!("MICROLINK: {}", &url);
     let client = reqwest::Client::new();
     let response = client
         .get("https://api.microlink.io/")
@@ -367,9 +368,23 @@ async fn microlink_screenshot(url: String) -> Option<String> {
             ("device", &"Macbook Pro 13".to_string()),
         ])
         .send()
-        .await.unwrap();
-    let response_text = response.text().await.unwrap();
-    println!("RESPONSE: {:?}", response_text);
+        .await
+        .unwrap();
+
+    let mut res = response.json::<serde_json::Value>().await.unwrap();
+    let data = &mut res["data"];
+    data["original_url"] = serde_json::Value::String(url);
+    let data = data.to_string();
+    println!("RESPONSE: {}", data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    log::info!(
+        "{}",
+        xs_lib::store_put(&env, Some("microlink".into()), None, data.clone())
+            .map_err(|e| format!("{}", e))
+            .unwrap()
+    );
     None
 }
 
