@@ -17,7 +17,7 @@ import { Editor } from "./editor.tsx";
 
 import { Item } from "./types.tsx";
 
-import { getContent, showEditor } from "./state.tsx";
+import { getContent, editor } from "./state.tsx";
 
 import {
   borderBottom,
@@ -403,14 +403,13 @@ function Main() {
         {selectedItem.value && showActions.value &&
           <Actions showActions={showActions} item={selectedItem.value} />}
 
-        {selectedItem.value && showEditor.value &&
+        {selectedItem.value && editor.show.value &&
           <Editor item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}
         showFilter={showFilter}
         showActions={showActions}
-        showEditor={showEditor}
         triggerCopy={triggerCopy}
       />
     </main>

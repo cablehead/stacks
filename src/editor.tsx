@@ -6,7 +6,7 @@ import { Item } from "./types.tsx";
 
 import { writeText } from "@tauri-apps/api/clipboard";
 
-import { getContent, showEditor } from "./state.tsx";
+import { getContent, editor } from "./state.tsx";
 
 export function Editor({ item }: {
   item: Item;
@@ -52,7 +52,7 @@ export function Editor({ item }: {
           border: "none",
         }}
         onBlur={() => {
-          showEditor.value = false;
+          editor.show.value = false;
         }}
         placeholder="..."
         onInput={() => {
@@ -63,17 +63,17 @@ export function Editor({ item }: {
           switch (true) {
             case event.key === "Escape":
               event.preventDefault();
-              showEditor.value = false;
+              editor.show.value = false;
               break;
 
             case event.metaKey && event.key === "e":
               event.preventDefault();
-              showEditor.value = false;
+              editor.show.value = false;
               break;
 
             case event.metaKey && event.key === "Enter":
               if (inputRef.current !== null) writeText(inputRef.current.value);
-              showEditor.value = false;
+              editor.show.value = false;
               break;
           }
         }}

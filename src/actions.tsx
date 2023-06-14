@@ -11,7 +11,7 @@ import { open } from '@tauri-apps/api/shell';
 import { Item } from "./types.tsx";
 import { Icon } from "./icons.tsx";
 
-import { getContent, showEditor } from "./state.tsx";
+import { getContent, editor } from "./state.tsx";
 
 interface Action {
   name: string;
@@ -45,7 +45,7 @@ const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (item: Item) => showEditor.value = true,
+    trigger: (item: Item) => editor.show.value = true,
     canApply: (item: Item) => item.mime_type === "text/plain",
   },
   {

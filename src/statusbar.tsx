@@ -4,16 +4,17 @@ import { Icon } from "./icons.tsx";
 
 import { borderRight, footer, iconStyle } from "./app.css.ts";
 
+import { editor } from "./state.tsx";
+
 export function StatusBar(
-  { themeMode, showFilter, showActions, showEditor, triggerCopy }: {
+  { themeMode, showFilter, showActions, triggerCopy }: {
     themeMode: Signal<string>;
     showFilter: Signal<boolean>;
     showActions: Signal<boolean>;
-    showEditor: Signal<boolean>;
     triggerCopy: () => void;
   },
 ) {
-  if (showEditor.value) return <EditorStatusBar themeMode={themeMode} showEditor={showEditor} />;
+  if (editor.show.value) return <EditorStatusBar themeMode={themeMode} />;
 
   return (
     <footer className={footer}>
@@ -114,9 +115,8 @@ const Theme = ({ themeMode }: { themeMode: Signal<string> }) => (
 );
 
 const EditorStatusBar = (
-  { themeMode, showEditor }: {
+  { themeMode }: {
     themeMode: Signal<string>;
-    showEditor: Signal<boolean>;
   },
 ) => {
   return (
@@ -129,7 +129,7 @@ const EditorStatusBar = (
         align-items: center;
         gap: 0.5ch;
       ">
-        <div onClick={() => showEditor.value = false} class="hoverable">
+        <div onClick={() => editor.show.value = false} class="hoverable">
           Discard&nbsp;
           <span className={iconStyle}>
             ESC
