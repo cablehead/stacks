@@ -382,8 +382,8 @@ function Main() {
           />
         </div>
 
-        {selectedItem.value &&
-          <MetaPanel item={selectedItem.value} />}
+        {selectedItem.value && selectedContent.value &&
+          <MetaPanel item={selectedItem.value} content={selectedContent.value} />}
 
         {selectedItem.value && showActions.value &&
           <Actions showActions={showActions} item={selectedItem.value} />}
