@@ -1,10 +1,9 @@
 import { Signal } from "@preact/signals";
 
-import { Icon } from "./icons";
+import { Icon } from "../ui/icons";
+import { borderRight, footer, iconStyle } from "../ui/app.css";
 
-import { borderRight, footer, iconStyle } from "./app.css";
-
-import { editor } from "./state";
+import { editor } from "../state";
 
 export function StatusBar(
   { themeMode, showFilter, showActions, triggerCopy }: {

@@ -5,26 +5,23 @@ import { useEffect, useRef } from "preact/hooks";
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 import { writeText } from "@tauri-apps/api/clipboard";
-
 import { hide } from "tauri-plugin-spotlight-api";
 
-import { Icon } from "./icons";
-import { StatusBar } from "./statusbar";
-import { MetaPanel } from "./meta";
-import { Actions, attemptAction } from "./actions";
-
-import { Editor } from "./editor";
-
-import { Item } from "./types";
-
-import { editor, getContent } from "./state";
-
+import { Icon } from "./ui/icons";
 import {
   borderBottom,
   borderRight,
   darkThemeClass,
   lightThemeClass,
-} from "./app.css";
+} from "./ui/app.css";
+
+import { StatusBar } from "./panels/statusbar";
+import { MetaPanel } from "./panels/meta";
+import { Actions, attemptAction } from "./panels/actions";
+import { Editor } from "./panels/editor";
+
+import { Item } from "./types";
+import { editor, getContent } from "./state";
 
 //
 // Global State

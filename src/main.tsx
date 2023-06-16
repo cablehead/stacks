@@ -1,4 +1,4 @@
 import { render } from "preact";
 import { App } from "./app";
-import "./sanitize.css";
+import "./ui/sanitize.css";
 render(<App />, document.body);

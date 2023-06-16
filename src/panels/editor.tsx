@@ -1,10 +1,9 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { overlay } from "./app.css";
+import { overlay } from "../ui/app.css";
 
-import { Item } from "./types";
-
-import { editor, getContent } from "./state";
+import { Item } from "../types";
+import { editor, getContent } from "../state";
 
 export function Editor({ item }: {
   item: Item;

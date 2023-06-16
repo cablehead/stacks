@@ -258,7 +258,10 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
             }
 
             if counter % 1000 == 0 {
-                log::info!("start_child_process::last_id: {:?}", last_id);
+                log::info!(
+                    "start_child_process::last_id: {}",
+                    last_id.map_or(String::from("None"), |id| id.to_string())
+                );
             }
             counter += 1;
             std::thread::sleep(std::time::Duration::from_millis(POLL_INTERVAL));
@@ -327,7 +330,7 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
+            // window.open_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
