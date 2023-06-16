@@ -29,7 +29,7 @@ export function StatusBar(
         <Filter showFilter={showFilter} />
 
         <VertDiv />
-        <div onClick={async (e) => await triggerCopy()} class="hoverable">
+        <div onClick={async () => await triggerCopy()} class="hoverable">
           Copy&nbsp;
           <span className={iconStyle}>
             <Icon name="IconReturnKey" />

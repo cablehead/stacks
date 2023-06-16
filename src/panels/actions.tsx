@@ -42,7 +42,7 @@ const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (item: Item) => editor.show.value = true,
+    trigger: (_: Item) => editor.show.value = true,
     canApply: (item: Item) => item.mime_type === "text/plain",
   },
   {

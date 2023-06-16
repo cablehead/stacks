@@ -1,6 +1,4 @@
-import { render } from "preact";
-import { computed, effect, Signal, signal } from "@preact/signals";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect } from "preact/hooks";
 
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -9,7 +7,6 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
 import {
-  borderBottom,
   borderRight,
   darkThemeClass,
   lightThemeClass,
@@ -19,146 +16,21 @@ import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
+import { Filter } from "./panels/filter";
 
-import { editor, getContent, Item } from "./state";
-
-//
-// Global State
-
-const themeMode = signal("light");
-
-const items = signal<Item[]>([]);
-const selected = signal(0);
-
-const availableItems = computed(() => {
-  return items.value;
-  /*
-  const ret = Array.from(items.value.values())
-    .filter((item) => {
-      const filter = currentFilter.value.trim().toLowerCase();
-      if (filter === "") return true;
-      return item.terse.toLowerCase().includes(filter);
-    })
-    .sort((a, b) => cmp(b.id, a.id));
-  return ret;
-  */
-});
-
-const selectedItem = computed((): Item | undefined => {
-  return availableItems.value[selected.value];
-});
-
-const loadedContent: Signal<string> = signal("");
-const loadedHash: Signal<string> = signal("");
-
-const selectedContent = computed((): string | undefined => {
-  const item = selectedItem.value;
-  if (item === undefined) return undefined;
-  if (item.hash !== loadedHash.value) return undefined;
-  return loadedContent.value;
-});
-
-async function updateLoaded(hash: string) {
-  loadedContent.value = await getContent(hash);
-  loadedHash.value = hash;
-}
-
-effect(() => {
-  const item = selectedItem.value;
-  if (item === undefined) return;
-  if (item.hash != loadedHash.value) {
-    updateLoaded(item.hash);
-  }
-});
-
-async function updateFilter(curr: string) {
-  items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
-}
-
-const showFilter = signal(false);
-const currentFilter = signal("");
-
-effect(() => {
-  if (!showFilter.value) currentFilter.value = "";
-});
-
-effect(() => {
-  const curr = currentFilter.value;
-  updateFilter(curr);
-});
-
-const showActions = signal(false);
-
-//
-
-let focusSelectedTimeout: number | undefined;
-
-function focusSelected(delay: number) {
-  if (focusSelectedTimeout !== undefined) {
-    return;
-  }
-
-  focusSelectedTimeout = window.setTimeout(() => {
-    focusSelectedTimeout = undefined;
-    const selectedItem = document.querySelector(
-      `.terserow.selected`,
-    );
-    if (selectedItem) {
-      selectedItem.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, delay);
-}
-
-async function updateSelected(n: number) {
-  if (availableItems.value.length === 0) return;
-  selected.value = (selected.value + n) % availableItems.value.length;
-  if (selected.value < 0) {
-    selected.value = availableItems.value.length + selected.value;
-  }
-  focusSelected(5);
-}
-
-function FilterInput() {
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    if (inputRef.current != null) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  return (
-    <div
-      className={borderBottom}
-      style="
-        padding:1ch;
-        padding-left:2ch;
-        padding-right:2ch;
-        padding-bottom:0.5ch;
-        display: flex;
-    width: 100%;
-        align-items: center;
-        "
-    >
-      <div>/</div>
-      <div style="width: 100%">
-        <input
-          type="text"
-          placeholder="Type a filter..."
-          ref={inputRef}
-          onInput={() => {
-            if (inputRef.current == null) return;
-            currentFilter.value = inputRef.current.value;
-            // updateSelected(0);
-          }}
-        />
-      </div>
-    </div>
-  );
-}
+import {
+  actions,
+  editor,
+  filter,
+  focusSelected,
+  getContent,
+  Item,
+  selectedContent,
+  selectedItem,
+  stack,
+  themeMode,
+  updateSelected,
+} from "./state";
 
 function LeftPane() {
   const RowIcon = ({ item }: { item: Item }) => {
@@ -178,8 +50,9 @@ function LeftPane() {
 
   const TerseRow = ({ item, index }: { item: Item; index: number }) => (
     <div
-      className={"terserow" + (index === selected.value ? " selected" : "")}
-      onClick={() => selected.value = index}
+      className={"terserow" +
+        (index === stack.selected.value ? " selected" : "")}
+      onClick={() => stack.selected.value = index}
       style="
         display: flex;
         width: 100%;
@@ -223,7 +96,7 @@ function LeftPane() {
       padding-right: 0.5rem;
     "
     >
-      {availableItems.value
+      {stack.items.value
         .map((item, index) => {
           return <TerseRow item={item} index={index} />;
         })}
@@ -300,7 +173,7 @@ async function triggerCopy() {
       await writeText(content);
     }
   }
-  showFilter.value = false;
+  filter.show.value = false;
   hide();
 }
 
@@ -313,13 +186,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.key === "Escape":
       event.preventDefault();
 
-      if (showActions.value) {
-        showActions.value = false;
+      if (actions.show.value) {
+        actions.show.value = false;
         return;
       }
 
-      if (showFilter.value) {
-        showFilter.value = false;
+      if (filter.show.value) {
+        filter.show.value = false;
         return;
       }
       hide();
@@ -327,7 +200,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      showActions.value = !showActions.value;
+      actions.show.value = !actions.show.value;
       // await invoke("open_docs");
       break;
 
@@ -336,9 +209,9 @@ async function globalKeyHandler(event: KeyboardEvent) {
       // await invoke("open_docs");
       break;
 
-    case ((!showFilter.value) && event.key === "/"):
+    case ((!filter.show.value) && event.key === "/"):
       event.preventDefault();
-      showFilter.value = true;
+      filter.show.value = true;
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
@@ -368,7 +241,7 @@ function Main() {
     <main
       className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      {showFilter.value && <FilterInput />}
+      {filter.show.value && <Filter />}
       <section style="
             display: flex;
             flex-direction: column;
@@ -396,16 +269,16 @@ function Main() {
             />
           )}
 
-        {selectedItem.value && showActions.value &&
-          <Actions showActions={showActions} item={selectedItem.value} />}
+        {selectedItem.value && actions.show.value &&
+          <Actions showActions={actions.show} item={selectedItem.value} />}
 
         {selectedItem.value && editor.show.value &&
           <Editor item={selectedItem.value} />}
       </section>
       <StatusBar
         themeMode={themeMode}
-        showFilter={showFilter}
-        showActions={showActions}
+        showFilter={filter.show}
+        showActions={actions.show}
         triggerCopy={triggerCopy}
       />
     </main>
@@ -416,20 +289,20 @@ export function App() {
   useEffect(() => {
     listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
-      items.value = event.payload;
+      stack.items.value = event.payload;
       updateSelected(0);
     });
 
     async function init() {
-      items.value = await invoke<Item[]>("init_window");
+      stack.items.value = await invoke<Item[]>("init_window");
       updateSelected(0);
     }
     init();
 
     // set selection back to the top onBlur
     const onBlur = () => {
-      selected.value = 0;
-      showActions.value = false;
+      stack.selected.value = 0;
+      actions.show.value = false;
     };
     const onFocus = () => {
       focusSelected(100);
