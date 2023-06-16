@@ -2,8 +2,7 @@ import { useEffect, useRef } from "preact/hooks";
 
 import { overlay } from "../ui/app.css";
 
-import { Item } from "../types";
-import { editor, getContent } from "../state";
+import { editor, getContent, Item } from "../state";
 
 export function Editor({ item }: {
   item: Item;

@@ -20,8 +20,7 @@ import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
 
-import { Item } from "./types";
-import { editor, getContent } from "./state";
+import { editor, getContent, Item } from "./state";
 
 //
 // Global State

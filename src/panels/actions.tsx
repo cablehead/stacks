@@ -3,13 +3,12 @@ import { useEffect, useRef } from "preact/hooks";
 import { JSXInternal } from "preact/src/jsx";
 
 import { invoke } from "@tauri-apps/api/tauri";
-import { open } from '@tauri-apps/api/shell';
+import { open } from "@tauri-apps/api/shell";
 
 import { borderBottom, iconStyle, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
-import { Item } from "../types";
-import { getContent, editor } from "../state";
+import { editor, getContent, Item } from "../state";
 
 interface Action {
   name: string;

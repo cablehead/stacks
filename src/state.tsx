@@ -4,6 +4,24 @@ import { writeText } from "@tauri-apps/api/clipboard";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
+interface Link {
+  provider: string;
+  screenshot: string;
+  title: string;
+  description: string;
+  url: string;
+  icon: string;
+}
+
+export interface Item {
+  hash: string;
+  ids: string[];
+  mime_type: string;
+  content_type: string;
+  terse: string;
+  link?: Link;
+}
+
 // TODO: cap size of CAS, with MRU eviction
 const CAS: Map<string, string> = new Map();
 

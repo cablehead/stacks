@@ -5,7 +5,7 @@ import { Scru128Id } from "scru128";
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item } from "../types";
+import { Item } from "../state";
 
 interface MetaValue {
   name: string;
