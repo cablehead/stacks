@@ -17,16 +17,16 @@
 ## Development
 
 ```
-parcel watch src/index.html --no-hmr --dist-dir ./site
-cargo tauri dev
-
+npm run tauri dev
 # Type checking:
-./scripts/ts-check.sh
+tsc
 ```
 
 ## Release
 
 ```
+TODO: to be updated, now we have the vite bundler
+
 RELEASE=v0.5.2
 ./build.sh
 cat changes/$RELEASE | ./scripts/release.sh

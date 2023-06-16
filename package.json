@@ -1,22 +1,29 @@
 {
   "name": "stacks",
+  "private": true,
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "tauri": "tauri"
+  },
   "dependencies": {
-    "@preact/signals": "^1.1.3",
     "@tauri-apps/api": "^1.2.0",
+    "tauri-plugin-spotlight-api": "^0.1.2",
+    "preact": "^10.13.2",
+    "@preact/signals": "^1.1.3",
     "@vanilla-extract/css": "^1.11.0",
     "crypto-js": "^4.1.1",
-    "preact": "^10.13.2",
-    "scru128": "^2.4.1",
-    "tauri-plugin-spotlight-api": "^0.1.2"
-  },
-  "alias": {
-    "preact/jsx-dev-runtime": "preact/jsx-runtime"
+    "scru128": "^2.4.1"
   },
   "devDependencies": {
-    "@parcel/config-default": "^2.8.3",
-    "@types/node": "^20.2.3",
     "@vanilla-extract/integration": "^6.2.1",
-    "@vanilla-extract/parcel-transformer": "^1.0.0",
-    "typescript": "^5.0.4"
+    "@vanilla-extract/vite-plugin": "^3.8.2",
+    "@types/node": "^20.2.3",
+    "@babel/core": "^7.12.10",
+    "@preact/preset-vite": "^2.3.0",
+    "@tauri-apps/cli": "^1.1.0",
+    "typescript": "^5.0.4",
+    "vite": "^3.0.7"
   }
 }

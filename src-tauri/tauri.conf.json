@@ -4,11 +4,11 @@
     "version": "0.5.4"
   },
   "build": {
-    "beforeDevCommand": "",
-    "beforeBuildCommand": "",
-    "devPath": "../site",
-    "distDir": "../site",
-    "withGlobalTauri": true
+    "beforeDevCommand": "npm run dev",
+    "beforeBuildCommand": "npm run build",
+    "devPath": "http://localhost:1420",
+    "distDir": "../dist",
+    "withGlobalTauri": false
   },
   "tauri": {
     "updater": {

@@ -1,17 +1,17 @@
 import { Signal, useComputed, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { borderBottom, iconStyle, overlay } from "./app.css.ts";
+import { borderBottom, iconStyle, overlay } from "./app.css";
 
 import { JSXInternal } from "preact/src/jsx";
 
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from '@tauri-apps/api/shell';
 
-import { Item } from "./types.tsx";
-import { Icon } from "./icons.tsx";
+import { Item } from "./types";
+import { Icon } from "./icons";
 
-import { getContent, editor } from "./state.tsx";
+import { getContent, editor } from "./state";
 
 interface Action {
   name: string;

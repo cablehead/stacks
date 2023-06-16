@@ -2,10 +2,10 @@ import { JSXInternal } from "preact/src/jsx";
 
 import { Scru128Id } from "scru128";
 
-import { Item } from "./types.tsx";
-import { Icon } from "./icons.tsx";
+import { Item } from "./types";
+import { Icon } from "./icons";
 
-import { overlay } from "./app.css.ts";
+import { overlay } from "./app.css";
 
 interface MetaValue {
   name: string;

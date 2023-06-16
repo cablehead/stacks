@@ -8,23 +8,23 @@ import { writeText } from "@tauri-apps/api/clipboard";
 
 import { hide } from "tauri-plugin-spotlight-api";
 
-import { Icon } from "./icons.tsx";
-import { StatusBar } from "./statusbar.tsx";
-import { MetaPanel } from "./meta.tsx";
-import { Actions, attemptAction } from "./actions.tsx";
+import { Icon } from "./icons";
+import { StatusBar } from "./statusbar";
+import { MetaPanel } from "./meta";
+import { Actions, attemptAction } from "./actions";
 
-import { Editor } from "./editor.tsx";
+import { Editor } from "./editor";
 
-import { Item } from "./types.tsx";
+import { Item } from "./types";
 
-import { editor, getContent } from "./state.tsx";
+import { editor, getContent } from "./state";
 
 import {
   borderBottom,
   borderRight,
   darkThemeClass,
   lightThemeClass,
-} from "./app.css.ts";
+} from "./app.css";
 
 //
 // Global State
@@ -416,7 +416,7 @@ function Main() {
   );
 }
 
-function App() {
+export function App() {
   useEffect(() => {
     listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
@@ -450,5 +450,3 @@ function App() {
 
   return <Main />;
 }
-
-render(<App />, document.body);
