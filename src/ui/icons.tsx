@@ -1,4 +1,8 @@
+import { JSXInternal } from "preact/src/jsx";
+
 import { FunctionComponent } from "preact";
+
+import { iconStyle } from "../ui/app.css";
 
 type IconProps = {
   name: string;
@@ -30,6 +34,24 @@ export const Icon: FunctionComponent<IconProps> = ({ name }) => {
       return null;
   }
 };
+
+export function RenderKeys(
+  { keys }: { keys: (string | JSXInternal.Element)[] },
+) {
+  return (
+    <div style="
+        display: flex;
+        align-items: center;
+        gap: 0.25ch;
+      ">
+      {keys.map((key) => (
+        <span className={iconStyle}>
+          {key}
+        </span>
+      ))}
+    </div>
+  );
+}
 
 //
 // https://heroicons.com

@@ -36,8 +36,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
-- Fix clicking on Capture in the StatusBar
-
 - Preference panel
 
 - Theme: initialize theme to the system preference

@@ -109,7 +109,7 @@ async function updateFilter(curr: string) {
 }
 
 export const filter = (() => {
-  const show = signal(false);
+  const show = signal(true);
   const curr = signal("");
 
   effect(() => {

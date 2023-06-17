@@ -1,12 +1,12 @@
+import { JSXInternal } from "preact/src/jsx";
 import { Signal, useComputed, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
-import { JSXInternal } from "preact/src/jsx";
 
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
-import { borderBottom, iconStyle, overlay } from "../ui/app.css";
-import { Icon } from "../ui/icons";
+import { borderBottom, overlay } from "../ui/app.css";
+import { RenderKeys, Icon } from "../ui/icons";
 
 import { editor, getContent, Item } from "../state";
 
@@ -91,21 +91,6 @@ export const attemptAction = (event: KeyboardEvent, item: Item): boolean => {
 
   return false;
 };
-
-function RenderKeys({ keys }: { keys: (string | JSXInternal.Element)[] }) {
-  return (
-    <>
-      {keys.map((key, index) => (
-        <span
-          className={iconStyle}
-          style={index !== keys.length - 1 ? { marginRight: "0.25ch" } : {}}
-        >
-          {key}
-        </span>
-      ))}
-    </>
-  );
-}
 
 function ActionRow(
   { action, isSelected, item }: {
