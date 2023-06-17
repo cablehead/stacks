@@ -2,6 +2,7 @@ import { computed, effect, Signal, signal } from "@preact/signals";
 
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
+import { hide } from "tauri-plugin-spotlight-api";
 
 interface Link {
   provider: string;
@@ -158,6 +159,9 @@ export const editor = {
   show: signal(false),
   content: "",
   get save() {
-    return () => writeText(this.content);
+    return () => {
+        writeText(this.content);
+        hide();
+    }
   },
 };

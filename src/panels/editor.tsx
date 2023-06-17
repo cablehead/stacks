@@ -73,7 +73,6 @@ export function Editor({ item }: {
 
             case event.metaKey && event.key === "Enter":
               editor.save();
-              editor.show.value = false;
               break;
           }
         }}

@@ -137,10 +137,7 @@ const EditorStatusBar = (
 
         <VertDiv />
         <div
-          onMouseDown={() => {
-            editor.save();
-            editor.show.value = false;
-          }}
+          onMouseDown={() => editor.save()}
           class="hoverable"
         >
           Capture&nbsp;
