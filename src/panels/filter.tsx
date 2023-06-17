@@ -1,9 +1,12 @@
 import { useEffect, useRef } from "preact/hooks";
+import { signal, useComputed, useSignal } from "@preact/signals";
 
-import { borderBottom, borderRight } from "../ui/app.css";
+import { borderBottom, borderRight, overlay } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
 import { filter } from "../state";
+
+const showContentType = signal(false);
 
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -49,7 +52,7 @@ export function Filter() {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => null}
+        onMouseDown={() => showContentType.value = !showContentType.value}
         style={{
           marginRight: "4ch",
           fontSize: "0.9rem",
@@ -60,6 +63,8 @@ export function Filter() {
         Content Type&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
+
+      {showContentType.value && <ContentType />}
     </div>
   );
 }
@@ -73,3 +78,68 @@ const VertDiv = () => (
     }}
   />
 );
+
+function ContentType() {
+  const options = ["Links", "Images"];
+
+  const selected = useSignal(0);
+  useEffect(() => {
+    selected.value = 0;
+  }, []);
+
+  const normalizedSelected = useComputed(() => {
+    let val = selected.value % (options.length);
+    if (val < 0) val = options.length + val;
+    return val;
+  });
+
+  const menuRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const handleBlur = (event: MouseEvent) => {
+      if (
+        menuRef.current && event.target instanceof Node &&
+        !menuRef.current.contains(event.target)
+      ) {
+        showContentType.value = false;
+      }
+    };
+    document.addEventListener("mousedown", handleBlur);
+    return () => {
+      document.removeEventListener("mousedown", handleBlur);
+    };
+  }, [menuRef]);
+
+  return (
+    <div
+      ref={menuRef}
+      className={overlay}
+      style={{
+        position: "absolute",
+        width: "20ch",
+        overflow: "auto",
+        top: "7.5ch",
+        fontSize: "0.9rem",
+        padding: "1ch",
+        right: "8.2ch",
+        borderRadius: "0.5rem",
+        zIndex: 100,
+      }}
+    >
+      {options
+        .map((option, index) => (
+          <div
+            style="
+            border-radius: 6px;
+            cursor: pointer;
+            padding: 0.5ch 0.75ch;
+            "
+            className={"terserow" + (
+              normalizedSelected.value == index ? " hover" : ""
+            )}
+          >
+            {option}
+          </div>
+        ))}
+    </div>
+  );
+}

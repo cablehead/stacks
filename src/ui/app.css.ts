@@ -133,5 +133,5 @@ export const iconStyle = style({
   borderRadius: "5px",
   paddingLeft: "1ch",
   paddingRight: "1ch",
-  paddingBottom: "0.25ch",
+  paddingBottom: "0.2ch",
 });
