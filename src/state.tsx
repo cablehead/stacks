@@ -137,7 +137,10 @@ export const filter = (() => {
   });
 
   effect(() => {
-    invoke<Item[]>("store_set_filter", { curr: curr });
+    invoke<Item[]>("store_set_filter", {
+      curr: curr.value,
+      contentType: contentType.curr.value,
+    });
   });
 
   return {
