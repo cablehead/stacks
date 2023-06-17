@@ -21,7 +21,7 @@ export function Filter() {
         padding: "1ch",
         paddingLeft: "2ch",
         height: "5ch",
-        paddingBottom: "0.5ch",
+        paddingBottom: "0.25ch",
         display: "flex",
         width: "100%",
         gap: "0.5ch",
