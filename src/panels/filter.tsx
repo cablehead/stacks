@@ -44,7 +44,6 @@ export function Filter() {
           onInput={() => {
             if (inputRef.current == null) return;
             filter.curr.value = inputRef.current.value;
-            // updateSelected(0);
           }}
         />
       </div>
