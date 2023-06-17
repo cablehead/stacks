@@ -49,7 +49,7 @@ export function Filter() {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => filter.showContentType.value = !filter.showContentType.value}
+        onMouseDown={() => filter.contentType.show.value = !filter.contentType.show.value}
         style={{
           marginRight: "4ch",
           fontSize: "0.9rem",
@@ -61,7 +61,7 @@ export function Filter() {
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
-      {filter.showContentType.value && <ContentType />}
+      {filter.contentType.show.value && <ContentType />}
     </div>
   );
 }
@@ -97,7 +97,7 @@ function ContentType() {
         menuRef.current && event.target instanceof Node &&
         !menuRef.current.contains(event.target)
       ) {
-        filter.showContentType.value = false;
+        filter.contentType.show.value = false;
       }
     };
     document.addEventListener("mousedown", handleBlur);

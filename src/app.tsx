@@ -216,7 +216,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (filter.show.value && event.metaKey && event.key === "p"):
       event.preventDefault();
-      filter.showContentType.value = !filter.showContentType.value;
+      filter.contentType.show.value = !filter.contentType.show.value;
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":

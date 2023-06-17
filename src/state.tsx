@@ -111,12 +111,15 @@ async function updateFilter(curr: string) {
 export const filter = (() => {
   const show = signal(true);
   const curr = signal("");
-  const showContentType = signal(false);
+
+  const contentType = {
+    show: signal(false),
+  };
 
   effect(() => {
     if (!show.value) {
       curr.value = "";
-      showContentType.value = false;
+      contentType.show.value = false;
     }
   });
 
@@ -127,7 +130,7 @@ export const filter = (() => {
   return {
     show,
     curr,
-    showContentType,
+    contentType,
   };
 })();
 
