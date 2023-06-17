@@ -86,7 +86,8 @@ function ContentType() {
     }
   }, []);
 
-  const { options, normalizedSelected, selected } = filter.contentType;
+  const { options, normalizedSelected, selected, show, curr } =
+    filter.contentType;
 
   return (
     <div
@@ -115,12 +116,12 @@ function ContentType() {
             switch (true) {
               case event.key === "Escape":
                 event.preventDefault();
-                filter.contentType.show.value = false;
+                show.value = false;
                 break;
 
               case (event.metaKey && event.key === "p"):
                 event.preventDefault();
-                filter.contentType.show.value = false;
+                show.value = false;
                 break;
 
               case (event.ctrlKey && event.key === "n") ||
@@ -137,13 +138,12 @@ function ContentType() {
 
               case event.key === "Enter":
                 event.preventDefault();
-                filter.contentType.curr.value =
-                  options[normalizedSelected.value];
-                filter.contentType.show.value = false;
+                curr.value = options[normalizedSelected.value];
+                show.value = false;
                 break;
             }
           }}
-          onBlur={() => filter.contentType.show.value = false}
+          onBlur={() => show.value = false}
         />
       </div>
       {options
@@ -157,6 +157,11 @@ function ContentType() {
             className={"terserow" + (
               normalizedSelected.value == index ? " hover" : ""
             )}
+            onMouseDown={() => {
+              selected.value = index;
+              curr.value = options[index];
+              show.value = false;
+            }}
           >
             {option}
           </div>
