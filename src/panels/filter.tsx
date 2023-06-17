@@ -1,12 +1,10 @@
 import { useEffect, useRef } from "preact/hooks";
-import { signal, useComputed, useSignal } from "@preact/signals";
+import { useComputed, useSignal } from "@preact/signals";
 
 import { borderBottom, borderRight, overlay } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
 import { filter } from "../state";
-
-const showContentType = signal(false);
 
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -51,7 +49,7 @@ export function Filter() {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => showContentType.value = !showContentType.value}
+        onMouseDown={() => filter.showContentType.value = !filter.showContentType.value}
         style={{
           marginRight: "4ch",
           fontSize: "0.9rem",
@@ -63,7 +61,7 @@ export function Filter() {
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
-      {showContentType.value && <ContentType />}
+      {filter.showContentType.value && <ContentType />}
     </div>
   );
 }
@@ -99,7 +97,7 @@ function ContentType() {
         menuRef.current && event.target instanceof Node &&
         !menuRef.current.contains(event.target)
       ) {
-        showContentType.value = false;
+        filter.showContentType.value = false;
       }
     };
     document.addEventListener("mousedown", handleBlur);

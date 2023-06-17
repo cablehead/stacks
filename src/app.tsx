@@ -214,6 +214,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       filter.show.value = true;
       break;
 
+    case (filter.show.value && event.metaKey && event.key === "p"):
+      event.preventDefault();
+      filter.showContentType.value = !filter.showContentType.value;
+      break;
+
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
       updateSelected(1);
