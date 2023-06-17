@@ -230,7 +230,13 @@ fn recent_items() -> Vec<Item> {
         .values()
         .filter(|item| {
             if let Some(curr) = &store.filter {
-                item.mime_type == "text/plain" && item.terse.contains(curr)
+                // match case insensitive, unless the filter has upper case, in which, match case
+                // sensitive
+                if curr == &curr.to_lowercase() {
+                    item.terse.to_lowercase().contains(curr)
+                } else {
+                    item.terse.contains(curr)
+                }
             } else {
                 true
             }
