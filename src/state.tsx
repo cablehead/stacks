@@ -112,17 +112,6 @@ export const filter = (() => {
   const show = signal(true);
   const curr = signal("");
 
-  effect(() => {
-    if (!show.value) {
-      curr.value = "";
-      contentType.show.value = false;
-    }
-  });
-
-  effect(() => {
-    updateFilter(curr.value);
-  });
-
   const contentType = (() => {
     const options = ["All", "Links", "Images"];
     const show = signal(false);
@@ -141,6 +130,19 @@ export const filter = (() => {
       normalizedSelected,
     };
   })();
+
+  effect(() => {
+    if (!show.value) {
+      curr.value = "";
+      contentType.selected.value = 0;
+      contentType.curr.value = "All";
+      contentType.show.value = false;
+    }
+  });
+
+  effect(() => {
+    updateFilter(curr.value);
+  });
 
   return {
     show,

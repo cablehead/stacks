@@ -63,7 +63,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - customize key press
 - meta-n opens choice: note / command
-- add filter: content type
 - add filter: number of times copied
 
 - Actions menu: Add icons to options
