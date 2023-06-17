@@ -49,7 +49,8 @@ export function Filter() {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => filter.contentType.show.value = !filter.contentType.show.value}
+        onMouseDown={() =>
+          filter.contentType.show.value = !filter.contentType.show.value}
         style={{
           marginRight: "4ch",
           fontSize: "0.9rem",
@@ -90,25 +91,15 @@ function ContentType() {
     return val;
   });
 
-  const menuRef = useRef<HTMLDivElement>(null);
+  const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
-    const handleBlur = (event: MouseEvent) => {
-      if (
-        menuRef.current && event.target instanceof Node &&
-        !menuRef.current.contains(event.target)
-      ) {
-        filter.contentType.show.value = false;
-      }
-    };
-    document.addEventListener("mousedown", handleBlur);
-    return () => {
-      document.removeEventListener("mousedown", handleBlur);
-    };
-  }, [menuRef]);
+    if (inputRef.current != null) {
+      inputRef.current.focus();
+    }
+  }, []);
 
   return (
     <div
-      ref={menuRef}
       className={overlay}
       style={{
         position: "absolute",
@@ -122,6 +113,42 @@ function ContentType() {
         zIndex: 100,
       }}
     >
+      <div style="
+      width: 0;
+      height: 0;
+      overflow: hidden;
+       ">
+        <input
+          ref={inputRef}
+          onKeyDown={(event) => {
+            event.stopPropagation();
+            switch (true) {
+              case event.key === "Escape":
+                event.preventDefault();
+                filter.contentType.show.value = false;
+                break;
+
+              case (event.metaKey && event.key === "p"):
+                event.preventDefault();
+                filter.contentType.show.value = false;
+                break;
+
+              case (event.ctrlKey && event.key === "n") ||
+                event.key === "ArrowDown":
+                event.preventDefault();
+                selected.value += 1;
+                break;
+
+              case event.ctrlKey && event.key === "p" ||
+                event.key === "ArrowUp":
+                event.preventDefault();
+                selected.value -= 1;
+                break;
+            }
+          }}
+          onBlur={() => filter.contentType.show.value = false}
+        />
+      </div>
       {options
         .map((option, index) => (
           <div
