@@ -104,12 +104,8 @@ export async function updateSelected(n: number) {
   focusSelected(5);
 }
 
-async function updateFilter(curr: string) {
-  stack.items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
-}
-
 export const filter = (() => {
-  const show = signal(true);
+  const show = signal(false);
   const curr = signal("");
 
   const contentType = (() => {
@@ -141,7 +137,7 @@ export const filter = (() => {
   });
 
   effect(() => {
-    updateFilter(curr.value);
+    invoke<Item[]>("store_set_filter", { curr: curr });
   });
 
   return {

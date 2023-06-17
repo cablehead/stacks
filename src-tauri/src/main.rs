@@ -57,12 +57,12 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
 }
 
 #[tauri::command]
-async fn store_set_filter(curr: String) -> Vec<Item> {
+async fn store_set_filter(app: tauri::AppHandle, curr: String) {
     println!("FILTER : {}", &curr);
     let mut state = STORE.lock().unwrap();
     state.filter = if curr.is_empty() { None } else { Some(curr) };
     drop(state);
-    recent_items()
+    app.emit_all("recent-items", recent_items()).unwrap();
 }
 
 #[tauri::command]
