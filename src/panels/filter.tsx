@@ -1,5 +1,4 @@
 import { useEffect, useRef } from "preact/hooks";
-import { useComputed, useSignal } from "@preact/signals";
 
 import { borderBottom, borderRight, overlay } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
@@ -58,7 +57,9 @@ export function Filter() {
           alignItems: "center",
         }}
       >
-        Content Type&nbsp;
+        {filter.contentType.curr.value == "All"
+          ? "Content Type"
+          : filter.contentType.curr.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
@@ -78,25 +79,14 @@ const VertDiv = () => (
 );
 
 function ContentType() {
-  const options = ["Links", "Images"];
-
-  const selected = useSignal(0);
-  useEffect(() => {
-    selected.value = 0;
-  }, []);
-
-  const normalizedSelected = useComputed(() => {
-    let val = selected.value % (options.length);
-    if (val < 0) val = options.length + val;
-    return val;
-  });
-
   const inputRef = useRef<HTMLInputElement>(null);
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
   }, []);
+
+  const { options, normalizedSelected, selected } = filter.contentType;
 
   return (
     <div
@@ -143,6 +133,13 @@ function ContentType() {
                 event.key === "ArrowUp":
                 event.preventDefault();
                 selected.value -= 1;
+                break;
+
+              case event.key === "Enter":
+                event.preventDefault();
+                filter.contentType.curr.value =
+                  options[normalizedSelected.value];
+                filter.contentType.show.value = false;
                 break;
             }
           }}

@@ -112,10 +112,6 @@ export const filter = (() => {
   const show = signal(true);
   const curr = signal("");
 
-  const contentType = {
-    show: signal(false),
-  };
-
   effect(() => {
     if (!show.value) {
       curr.value = "";
@@ -126,6 +122,25 @@ export const filter = (() => {
   effect(() => {
     updateFilter(curr.value);
   });
+
+  const contentType = (() => {
+    const options = ["All", "Links", "Images"];
+    const show = signal(false);
+    const curr = signal("All");
+    const selected = signal(0);
+    const normalizedSelected = computed(() => {
+      let val = selected.value % (options.length);
+      if (val < 0) val = options.length + val;
+      return val;
+    });
+    return {
+      options,
+      show,
+      curr,
+      selected,
+      normalizedSelected,
+    };
+  })();
 
   return {
     show,
