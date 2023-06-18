@@ -1,11 +1,11 @@
 {
-  "version": "0.5.4",
-  "notes": "- Links now have an Open action, which opens them in your default browser\n- By popular request, the Meta Panel returns to the bottom right of the preview panel (feedback appreciated!)\n- Bunch of small fixes\n",
-  "pub_date": "2023-06-14T17:16:26-04:00",
+  "version": "0.6.1",
+  "notes": "- You can now filter by Content Type, e.g. by Links or by Images\n- A bunch of small fixes and UX tweaks. My favorite, if the filter is currently active, but not focused: it'll now automatically refocus when you start typing.\n- Not very exciting, but, under the hood the frontend bundler has been switched from parcel to vite, and the code base has been given a fair spruce up. Thank goodness for Typescript.\n",
+  "pub_date": "2023-06-17T21:04:00-04:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE43WmMycWZ1MFIwRWQ1UzA0WlQzaEFDNSsyY1ZnZlVZdVBmd1NrUjNicWJkajJEdW5TaWFBTGQweVk0SVcrbTE0b3V3MmxLN0JLUGkxUEUybGNPcGdVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg2Nzc3MjM4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKQ0x1UXZ4aVhDUzQwdmkvaHhIaVJSU3lKZkt4RWwzbDM0c3RLK2dKRWxQTWxYbHUwSC9UbmpLYzZScTdaYVJrWE1DUWFMVDA4MWdUbEsvU2lFRDdDQ2c9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.5.4/Stacks_0.5.4_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcFA0ZG1QOXpBaHlpc3dtZkc5ODliOGZDdVNmS2dQRE1GdFNZblB1MTJoN25meHZqd0RXYkcybTJnQjkya29tbVRpTy9HUzZCOWRmVW5nRytZaS85dHdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg3MDUwMjAzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKbnpvbWxwYzZOckkvUXJZZG9OZllmMkIwSE5kRytKblNDQ1BrMXRXM3JDRUNBaG9YdjY5a0tHdFFDMCtIR2gvaXNqNllvZjZ6RTJ3MUlRc2Q1WHNOQlE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.6.1/Stacks_0.6.1_aarch64.app.tar.gz"
     }
   }
 }

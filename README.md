@@ -25,8 +25,8 @@ tsc
 ## Release
 
 ```
-TODO: to be updated, now we have the vite bundler
-
+# update Cargo.toml and tauri.conf.json for new version
+# set RELEASE to the new version, e.g
 RELEASE=v0.5.2
 ./build.sh
 cat changes/$RELEASE | ./scripts/release.sh
@@ -71,4 +71,3 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
     - need UI to indicate scrape is in progress
     - need to surface errors
     - feels heavy
-
