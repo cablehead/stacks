@@ -6,11 +6,7 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
-import {
-  borderRight,
-  darkThemeClass,
-  lightThemeClass,
-} from "./ui/app.css";
+import { borderRight, darkThemeClass, lightThemeClass } from "./ui/app.css";
 
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
@@ -214,6 +210,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       filter.show.value = true;
       break;
 
+    case (filter.show.value && event.metaKey && event.key === "p"):
+      event.preventDefault();
+      filter.contentType.show.value = !filter.contentType.show.value;
+      break;
+
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
       updateSelected(1);
@@ -225,7 +226,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
       break;
 
     default:
-      if (selectedItem.value) attemptAction(event, selectedItem.value);
+      if (selectedItem.value) {
+        if (attemptAction(event, selectedItem.value)) return;
+      }
+
+      if (filter.show.value && filter.input !== null) {
+        filter.input.focus();
+      }
   }
 }
 

@@ -2,6 +2,7 @@ import { computed, effect, Signal, signal } from "@preact/signals";
 
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
+import { hide } from "tauri-plugin-spotlight-api";
 
 interface Link {
   provider: string;
@@ -104,25 +105,56 @@ export async function updateSelected(n: number) {
   focusSelected(5);
 }
 
-async function updateFilter(curr: string) {
-  stack.items.value = await invoke<Item[]>("store_set_filter", { curr: curr });
-}
-
 export const filter = (() => {
   const show = signal(false);
   const curr = signal("");
+  let inputRef: HTMLInputElement | null = null;
+
+  const contentType = (() => {
+    const options = ["All", "Links", "Images"];
+    const show = signal(false);
+    const curr = signal("All");
+    const selected = signal(0);
+    const normalizedSelected = computed(() => {
+      let val = selected.value % (options.length);
+      if (val < 0) val = options.length + val;
+      return val;
+    });
+    return {
+      options,
+      show,
+      curr,
+      selected,
+      normalizedSelected,
+    };
+  })();
 
   effect(() => {
-    if (!show.value) curr.value = "";
+    if (!show.value) {
+      curr.value = "";
+      contentType.selected.value = 0;
+      contentType.curr.value = "All";
+      contentType.show.value = false;
+    }
   });
 
   effect(() => {
-    updateFilter(curr.value);
+    invoke<Item[]>("store_set_filter", {
+      curr: curr.value,
+      contentType: contentType.curr.value,
+    });
   });
 
   return {
     show,
     curr,
+    contentType,
+    get input(): HTMLInputElement | null {
+      return inputRef;
+    },
+    set input(ref: HTMLInputElement | null) {
+      inputRef = ref;
+    },
   };
 })();
 
@@ -134,6 +166,9 @@ export const editor = {
   show: signal(false),
   content: "",
   get save() {
-    return () => writeText(this.content);
+    return () => {
+      writeText(this.content);
+      hide();
+    };
   },
 };

@@ -128,10 +128,10 @@ export const borderBottom = style({
 
 export const iconStyle = style({
   display: "inline-block",
-  height: "1.5em",
   textAlign: "center",
   backgroundColor: vars.backgroundColorButton,
   borderRadius: "5px",
   paddingLeft: "1ch",
   paddingRight: "1ch",
+  paddingBottom: "0.2ch",
 });

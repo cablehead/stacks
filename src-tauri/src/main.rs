@@ -57,12 +57,19 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
 }
 
 #[tauri::command]
-async fn store_set_filter(curr: String) -> Vec<Item> {
-    println!("FILTER : {}", &curr);
+async fn store_set_filter(app: tauri::AppHandle, curr: String, content_type: String) {
+    println!("FILTER : {} {}", &curr, &content_type);
     let mut state = STORE.lock().unwrap();
     state.filter = if curr.is_empty() { None } else { Some(curr) };
+    state.content_type = if content_type == "All" {
+        None
+    } else {
+        let mut content_type = content_type;
+        content_type.truncate(content_type.len() - 1);
+        Some(content_type)
+    };
     drop(state);
-    recent_items()
+    app.emit_all("recent-items", recent_items()).unwrap();
 }
 
 #[tauri::command]
@@ -85,6 +92,7 @@ struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
     filter: Option<String>,
+    content_type: Option<String>,
 }
 
 impl Store {
@@ -93,6 +101,7 @@ impl Store {
             items: HashMap::new(),
             cas: HashMap::new(),
             filter: None,
+            content_type: None,
         }
     }
 
@@ -221,7 +230,20 @@ fn recent_items() -> Vec<Item> {
         .values()
         .filter(|item| {
             if let Some(curr) = &store.filter {
-                item.mime_type == "text/plain" && item.terse.contains(curr)
+                // match case insensitive, unless the filter has upper case, in which, match case
+                // sensitive
+                if curr == &curr.to_lowercase() {
+                    item.terse.to_lowercase().contains(curr)
+                } else {
+                    item.terse.contains(curr)
+                }
+            } else {
+                true
+            }
+        })
+        .filter(|item| {
+            if let Some(content_type) = &store.content_type {
+                &item.content_type == content_type
             } else {
                 true
             }
