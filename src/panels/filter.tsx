@@ -11,6 +11,7 @@ export function Filter() {
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
+      filter.input = inputRef.current;
     }
   }, []);
 

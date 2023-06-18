@@ -108,6 +108,7 @@ export async function updateSelected(n: number) {
 export const filter = (() => {
   const show = signal(false);
   const curr = signal("");
+  let inputRef: HTMLInputElement | null = null;
 
   const contentType = (() => {
     const options = ["All", "Links", "Images"];
@@ -148,6 +149,12 @@ export const filter = (() => {
     show,
     curr,
     contentType,
+    get input(): HTMLInputElement | null {
+      return inputRef;
+    },
+    set input(ref: HTMLInputElement | null) {
+      inputRef = ref;
+    },
   };
 })();
 
@@ -160,8 +167,8 @@ export const editor = {
   content: "",
   get save() {
     return () => {
-        writeText(this.content);
-        hide();
-    }
+      writeText(this.content);
+      hide();
+    };
   },
 };

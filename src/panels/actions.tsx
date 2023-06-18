@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
 import { borderBottom, overlay } from "../ui/app.css";
-import { RenderKeys, Icon } from "../ui/icons";
+import { Icon, RenderKeys } from "../ui/icons";
 
 import { editor, getContent, Item } from "../state";
 
