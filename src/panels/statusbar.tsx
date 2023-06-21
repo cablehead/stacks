@@ -7,7 +7,7 @@ import { actions, editor, filter, themeMode, triggerCopy } from "../state";
 
 export function StatusBar() {
   if (editor.show.value) return <EditorBar />;
-  if (false && actions.show.value) return <ActionBar />;
+  if (actions.show.value) return <ActionBar />;
   return <MainBar />;
 }
 
@@ -113,7 +113,14 @@ const ActionBar = () => {
         }
 
         <HotKey
-          name="Back"
+          name="Trigger Action"
+          keys={[<Icon name="IconReturnKey" />]}
+          onMouseDown={() => undefined}
+        />
+
+        <VertDiv />
+        <HotKey
+          name="Close"
           keys={[<Icon name="IconCommandKey" />, "K"]}
           onMouseDown={() => {
             actions.show.value = !actions.show.value;
