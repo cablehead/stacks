@@ -97,13 +97,18 @@ pub fn store_cat(
     let db = env.open_db(None)?;
     let txn = env.begin_ro_txn()?;
     let mut c = txn.open_ro_cursor(db)?;
-    let it = match last_id {
+    let it: Box<dyn Iterator<Item = Result<(&[u8], &[u8]), lmdb::Error>>> = match last_id {
         Some(key) => {
-            let mut i = c.iter_from(key.to_u128().to_be_bytes());
-            i.next();
-            i
+            let key_bytes = key.to_u128().to_be_bytes();
+            Box::new(c.iter_from(key_bytes).filter_map(move |item| {
+                if item.as_ref().map(|(k, _)| *k == key_bytes).unwrap_or(false) {
+                    None
+                } else {
+                    Some(item)
+                }
+            }))
         }
-        None => c.iter_start(),
+        None => Box::new(c.iter_start()),
     };
     it.map(|item| -> Result<Frame, Box<dyn std::error::Error>> {
         let (_, value) = item?;
@@ -142,6 +147,21 @@ mod tests {
 
         // skip with last_id
         assert_eq!(store_cat(&env, Some(id)).unwrap().len(), 0);
+    }
+
+    #[test]
+    fn test_cat_after_delete() {
+        let d = TempDir::new().unwrap();
+        let env = store_open(&d.path()).unwrap();
+
+        let _ = store_put(&env, None, None, "1".into()).unwrap();
+        let _ = store_put(&env, None, None, "2".into()).unwrap();
+        let id = store_put(&env, None, None, "3".into()).unwrap();
+        assert_eq!(store_cat(&env, Some(id)).unwrap().len(), 0);
+
+        store_delete(&env, vec![id]).unwrap();
+        let _ = store_put(&env, None, None, "4".into()).unwrap();
+        assert_eq!(store_cat(&env, Some(id)).unwrap().len(), 1);
     }
 
     use std::io::BufReader;
