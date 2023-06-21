@@ -1,5 +1,4 @@
 import { JSXInternal } from "preact/src/jsx";
-
 import { FunctionComponent } from "preact";
 
 import { iconStyle } from "../ui/app.css";

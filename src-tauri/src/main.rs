@@ -105,8 +105,53 @@ impl Store {
         }
     }
 
+    fn create_or_merge(
+        &mut self,
+        id: scru128::Scru128Id,
+        mime_type: &str,
+        content_type: &str,
+        terse: String,
+        content: Vec<u8>,
+    ) -> String {
+        let hash = format!("{:x}", Sha256::digest(&content));
+
+        match self.items.get_mut(&hash) {
+            Some(curr) => {
+                assert_eq!(curr.mime_type, mime_type, "Mime types don't match");
+                curr.ids.push(id);
+            }
+            None => {
+                self.items.insert(
+                    hash.clone(),
+                    Item {
+                        hash: hash.clone(),
+                        ids: vec![id],
+                        mime_type: mime_type.to_string(),
+                        terse,
+                        link: None,
+                        stack: Vec::new(),
+                        content_type: content_type.to_string(),
+                    },
+                );
+                self.cas.insert(hash.clone(), content);
+            }
+        };
+
+        hash
+    }
+
+    fn find_item_by_id(&mut self, id: &str) -> Option<Item> {
+        let id = id.parse::<scru128::Scru128Id>().ok()?;
+        for item in self.items.values() {
+            if item.ids.contains(&id) {
+                return Some(item.clone());
+            }
+        }
+        None
+    }
+
     fn add_frame(&mut self, frame: &xs_lib::Frame) {
-        let result: Option<(&str, String, Vec<u8>)> = match &frame.topic {
+        match &frame.topic {
             Some(topic) if topic == "clipboard" => {
                 let clipped: Value = serde_json::from_str(&frame.data).unwrap();
                 let types = clipped["types"].as_object().unwrap();
@@ -115,86 +160,84 @@ impl Store {
                     #[allow(deprecated)]
                     let content =
                         decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-                    Some((
+
+                    let content_type = if is_valid_https_url(&content) {
+                        "Link"
+                    } else {
+                        "Text"
+                    };
+
+                    let _ = self.create_or_merge(
+                        frame.id,
                         "text/plain",
+                        content_type,
                         String::from_utf8(content.clone())
                             .unwrap()
                             .chars()
                             .take(100)
                             .collect(),
                         content,
-                    ))
+                    );
                 } else if types.contains_key("public.png") {
                     let content = types["public.png"].as_str().unwrap().as_bytes();
-                    Some(("image/png", clipped["source"].to_string(), content.to_vec()))
+                    self.create_or_merge(
+                        frame.id,
+                        "image/png",
+                        "Image",
+                        clipped["source"].to_string(),
+                        content.to_vec(),
+                    );
                 } else {
-                    println!(
-                        "add_frame TODO: id: {}, types: {:?}, frame.data size: {}",
+                    log::info!(
+                        "add_frame TODO: topic: clipboard id: {}, types: {:?}, frame.data size: {}",
                         frame.id,
                         types.keys().collect::<Vec<_>>(),
                         frame.data.len()
                     );
-                    None
                 }
             }
 
-            /*
-            Some(topic) if topic == "microlink" => {
+            Some(topic) if topic == "stack" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
-                if let Some(link) = process_microlink_frame(&data) {
-                    let hash = format!("{:x}", Sha256::digest(&link.url));
-                    let mut item = self.items.get_mut(&hash).unwrap();
-                    item.link = Some(link);
-                    item.ids.push(frame.id);
-                    item.content_type = "Link".to_string();
+                println!("topic: {} {:?}", topic, data);
+
+                let id = data["id"].as_str();
+                if let None = id {
+                    return;
                 }
-                None
-            }
-            */
-            Some(topic) => {
-                println!("topic: {}", topic);
-                Some((
+                let id = id.unwrap();
+
+                let target = self.find_item_by_id(id);
+                if let None = target {
+                    return;
+                }
+                let target = target.unwrap();
+
+                let content = data["name"].as_str().unwrap();
+                let hash = self.create_or_merge(
+                    frame.id,
                     "text/plain",
+                    "Stack",
+                    content.chars().take(100).collect(),
+                    content.as_bytes().to_vec(),
+                );
+
+                let item = self.items.get_mut(&hash).unwrap();
+                item.content_type = "Stack".to_string();
+                item.stack.push(target);
+            }
+
+            Some(_) => {
+                let _ = self.create_or_merge(
+                    frame.id,
+                    "text/plain",
+                    "Text",
                     frame.data.chars().take(100).collect(),
                     frame.data.as_bytes().to_vec(),
-                ))
+                );
             }
-            None => None,
+            None => (),
         };
-
-        if let Some((mime_type, terse, content)) = result {
-            let hash = format!("{:x}", Sha256::digest(&content));
-
-            match self.items.get_mut(&hash) {
-                Some(curr) => {
-                    assert_eq!(curr.mime_type, mime_type, "Mime types don't match");
-                    curr.ids.push(frame.id);
-                }
-                None => {
-                    self.items.insert(
-                        hash.clone(),
-                        Item {
-                            hash: hash.clone(),
-                            ids: vec![frame.id],
-                            mime_type: mime_type.to_string(),
-                            terse,
-                            link: None,
-                            content_type: if mime_type == "image/png" {
-                                "Image"
-                            } else {
-                                if is_valid_https_url(&content) {
-                                    "Link"
-                                } else {
-                                    "Text"
-                                }
-                            }
-                            .to_string(),
-                        },
-                    );
-                    self.cas.insert(hash, content);
-                }
-            }
-        }
     }
 }
 
@@ -220,6 +263,7 @@ struct Item {
     content_type: String,
     terse: String,
     link: Option<Link>,
+    stack: Vec<Item>,
 }
 
 fn recent_items() -> Vec<Item> {
@@ -330,7 +374,6 @@ fn main() {
             store_get_content,
             store_delete,
             init_window,
-            microlink_screenshot,
             open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
@@ -369,57 +412,6 @@ fn main() {
         .expect("error while running tauri application");
 }
 
-/*
-fn process_microlink_frame(data: &Value) -> Option<Link> {
-    if !data["original_url"].is_string() {
-        return None;
-    }
-    let title = data["title"].as_str().unwrap();
-    let ex = regex::Regex::new(r"[^a-zA-Z0-9\s]").unwrap();
-    let title = ex.split(title).next().unwrap().trim();
-    Some(Link {
-        provider: "microlink".to_string(),
-        screenshot: data["screenshot"]["url"].as_str().unwrap().to_string(),
-        title: title.to_string(),
-        description: data["description"].as_str().unwrap().to_string(),
-        url: data["original_url"].as_str().unwrap().to_string(),
-        icon: data["logo"]["url"].as_str().unwrap().to_string(),
-    })
-}
-*/
-
-#[tauri::command]
-async fn microlink_screenshot(app: tauri::AppHandle, url: String) -> Option<String> {
-    println!("MICROLINK: {}", &url);
-    let client = reqwest::Client::new();
-    let response = client
-        .get("https://api.microlink.io/")
-        .query(&[
-            ("url", &url),
-            ("screenshot", &"".to_string()),
-            ("device", &"Macbook Pro 13".to_string()),
-        ])
-        .send()
-        .await
-        .unwrap();
-
-    let mut res = response.json::<serde_json::Value>().await.unwrap();
-    let data = &mut res["data"];
-    data["original_url"] = serde_json::Value::String(url);
-    let data = data.to_string();
-    println!("RESPONSE: {}", data);
-    let data_dir = app.path_resolver().app_data_dir().unwrap();
-    let data_dir = data_dir.join("stream");
-    let env = xs_lib::store_open(&data_dir).unwrap();
-    log::info!(
-        "{}",
-        xs_lib::store_put(&env, Some("microlink".into()), None, data.clone())
-            .map_err(|e| format!("{}", e))
-            .unwrap()
-    );
-    None
-}
-
 fn is_valid_https_url(url: &[u8]) -> bool {
     let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
     re.is_match(url)
@@ -428,64 +420,6 @@ fn is_valid_https_url(url: &[u8]) -> bool {
 #[cfg(test)]
 mod tests {
     use super::*;
-
-    /*
-    fn get_test_data() -> Value {
-        serde_json::json!({
-            "title": "Turns websites into data — Microlink",
-            "description": "Enter a URL, receive information...",
-            "lang": "en",
-            "author": "Microlink HQ",
-            "publisher": "Microlink",
-            "image": {
-                "url": "https://cdn.microlink.io/logo/banner.jpeg",
-                "type": "jpg",
-                "size": 70184,
-                "height": 1009,
-                "width": 1686,
-                "size_pretty": "70.2 kB"
-            },
-            "date": "2023-06-08T21:18:42.000Z",
-            "url": "https://microlink.io/",
-            "logo": {
-                "url": "https://cdn.microlink.io/logo/trim.png",
-                "type": "png",
-                "size": 5050,
-                "height": 500,
-                "width": 500,
-                "size_pretty": "5.05 kB"
-            },
-            "screenshot": {
-                "size_pretty": "564 kB",
-                "size": 563621,
-                "type": "png",
-                "url": "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png",
-                "width": 2560,
-                "height": 1600
-            }
-        })
-    }
-
-    #[test]
-    fn test_process_microlink_frame_without_original_url() {
-        let data = get_test_data();
-        let link = process_microlink_frame(&data);
-        assert_eq!(link, None);
-    }
-
-    #[test]
-    fn test_process_microlink_frame_with_original_url() {
-        let mut data = get_test_data();
-        data["original_url"] = Value::String("https://microlink.io".to_string());
-        let link = process_microlink_frame(&data).unwrap();
-        assert_eq!(link.provider, "microlink");
-        assert_eq!(link.screenshot, "https://iad.microlink.io/ijQWQtfkPE4siur3Drxf38QMa_20sUIDLsVahjndfnErFrwcqygQK-8K6MKP-_E1sD5gqt9zOyMn1zrHDqSC4g.png");
-        assert_eq!(link.title, "Turns websites into data");
-        assert_eq!(link.description, "Enter a URL, receive information...");
-        assert_eq!(link.url, "https://microlink.io");
-        assert_eq!(link.icon, "https://cdn.microlink.io/logo/trim.png");
-    }
-    */
 
     #[test]
     fn test_is_valid_https_url() {

@@ -1,8 +1,8 @@
 import { useEffect } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
-import { writeText } from "@tauri-apps/api/clipboard";
 import { hide } from "tauri-plugin-spotlight-api";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -13,6 +13,7 @@ import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
 import { Filter } from "./panels/filter";
+import { AddToStack } from "./panels/stacks";
 
 import {
   actions,
@@ -25,9 +26,9 @@ import {
   selectedItem,
   stack,
   themeMode,
+  triggerCopy,
   updateSelected,
 } from "./state";
-
 
 function RightPane(
   { item, content }: {
@@ -39,10 +40,24 @@ function RightPane(
     return <div />;
   }
 
+  function SubItem({ item }: {
+    item: Item;
+  }) {
+    const content = useSignal("");
+    useEffect(() => {
+      const fetchData = async () => {
+        const result = await getContent(item.hash);
+        content.value = result;
+      };
+      fetchData();
+    });
+    return <div>{content}</div>;
+  }
+
   function Preview(
-    { item, content }: { item: Item; content: string | undefined },
+    { item, content }: { item: Item; content: string },
   ) {
-    if (content !== undefined && item.mime_type === "image/png") {
+    if (item.mime_type === "image/png") {
       return (
         <img
           src={"data:image/png;base64," + content}
@@ -55,6 +70,15 @@ function RightPane(
             objectFit: "contain",
           }}
         />
+      );
+    }
+
+    if (item.content_type == "Stack") {
+      return (
+        <div>
+          <h1>{content}</h1>
+          {item.stack.map((item) => <SubItem item={item} />)}
+        </div>
       );
     }
 
@@ -83,23 +107,9 @@ function RightPane(
 
   return (
     <div style="flex: 3; overflow: auto; height: 100%">
-      <Preview item={item} content={content} />
+      {content ? <Preview item={item} content={content} /> : "loading..."}
     </div>
   );
-}
-
-async function triggerCopy() {
-  const item = selectedItem.value;
-  if (item) {
-    if (item.mime_type != "text/plain") {
-      console.log("MIEM", item.mime_type);
-    } else {
-      let content = await getContent(item.hash);
-      await writeText(content);
-    }
-  }
-  filter.show.value = false;
-  hide();
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
@@ -205,18 +215,16 @@ function Main() {
             />
           )}
 
+        {false &&
+          <AddToStack />}
+
         {selectedItem.value && actions.show.value &&
           <Actions showActions={actions.show} item={selectedItem.value} />}
 
         {selectedItem.value && editor.show.value &&
           <Editor item={selectedItem.value} />}
       </section>
-      <StatusBar
-        themeMode={themeMode}
-        showFilter={filter.show}
-        showActions={actions.show}
-        triggerCopy={triggerCopy}
-      />
+      <StatusBar />
     </main>
   );
 }

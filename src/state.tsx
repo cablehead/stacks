@@ -20,6 +20,7 @@ export interface Item {
   content_type: string;
   terse: string;
   link?: Link;
+  stack: Item[];
 }
 
 export const themeMode = signal("light");
@@ -47,6 +48,20 @@ export const stack = (() => {
     selected,
   };
 })();
+
+export async function triggerCopy() {
+  const item = selectedItem.value;
+  if (item) {
+    if (item.mime_type != "text/plain") {
+      console.log("MIEM", item.mime_type);
+    } else {
+      let content = await getContent(item.hash);
+      await writeText(content);
+    }
+  }
+  filter.show.value = false;
+  hide();
+}
 
 export const selectedItem = computed((): Item | undefined => {
   return stack.items.value[stack.selected.value];
@@ -111,7 +126,7 @@ export const filter = (() => {
   let inputRef: HTMLInputElement | null = null;
 
   const contentType = (() => {
-    const options = ["All", "Links", "Images"];
+    const options = ["All", "Stacks", "Links", "Images"];
     const show = signal(false);
     const curr = signal("All");
     const selected = signal(0);
