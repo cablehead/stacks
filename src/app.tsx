@@ -13,7 +13,7 @@ import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
 import { Filter } from "./panels/filter";
-import { AddToStack } from "./panels/stacks";
+import * as stacks from "./panels/stacks";
 
 import {
   actions,
@@ -141,7 +141,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab":
       event.preventDefault();
-      // await invoke("open_docs");
+      stacks.state.show.value = !stacks.state.show.value;
       break;
 
     case ((!filter.show.value) && event.key === "/"):
@@ -215,8 +215,8 @@ function Main() {
             />
           )}
 
-        {false &&
-          <AddToStack />}
+        {stacks.state.show.value &&
+          <stacks.AddToStack />}
 
         {selectedItem.value && actions.show.value &&
           <Actions showActions={actions.show} item={selectedItem.value} />}

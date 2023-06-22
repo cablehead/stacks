@@ -1,11 +1,11 @@
-import { useSignal } from "@preact/signals";
+import { signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { borderBottom, overlay } from "../ui/app.css";
 
-
-
-
+export const state = {
+  show: signal(false),
+};
 
 /*
 function ActionRow(
@@ -42,7 +42,7 @@ function ActionRow(
 }
 */
 
-export function AddToStack(){
+export function AddToStack() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   const selected = useSignal(0);
@@ -105,14 +105,16 @@ export function AddToStack(){
       <div style="
         padding:1ch;
         ">
-        {/*actionsAvailable.value
+        {
+          /*actionsAvailable.value
           .map((action, index) => (
             <ActionRow
               action={action}
               isSelected={normalizedSelected.value == index}
               item={item}
             />
-          )) */}
+          )) */
+        }
       </div>
     </div>
   );

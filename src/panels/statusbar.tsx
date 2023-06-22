@@ -4,8 +4,10 @@ import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
 import { actions, editor, filter, themeMode, triggerCopy } from "../state";
+import * as stacks from "./stacks";
 
 export function StatusBar() {
+  if (stacks.state.show.value) return <StacksBar />;
   if (editor.show.value) return <EditorBar />;
   if (actions.show.value) return <ActionBar />;
   return <MainBar />;
@@ -204,5 +206,40 @@ const HotKey = ({ name, keys, onMouseDown }: {
         keys={keys}
       />
     </div>
+  );
+};
+
+const StacksBar = () => {
+  return (
+    <footer className={footer}>
+      <div style="">
+        Add to stack
+      </div>
+      <div style="
+        display: flex;
+        align-items: center;
+        gap: 0.5ch;
+      ">
+
+        <HotKey
+          name="Select"
+          keys={[<Icon name="IconReturnKey" />]}
+          onMouseDown={() => undefined}
+        />
+
+        <VertDiv />
+        <HotKey
+          name="Create new"
+          keys={[
+            <Icon name="IconCommandKey" />,
+            <Icon name="IconReturnKey" />,
+          ]}
+          onMouseDown={() => undefined}
+        />
+
+        <VertDiv />
+        <Theme />
+      </div>
+    </footer>
   );
 };
