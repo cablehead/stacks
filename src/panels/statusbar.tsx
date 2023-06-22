@@ -115,15 +115,15 @@ const ActionBar = () => {
         }
 
         <HotKey
-          name="Trigger Action"
+          name="Trigger"
           keys={[<Icon name="IconReturnKey" />]}
           onMouseDown={() => undefined}
         />
 
         <VertDiv />
         <HotKey
-          name="Close"
-          keys={[<Icon name="IconCommandKey" />, "K"]}
+          name="Back"
+          keys={["ESC"]}
           onMouseDown={() => {
             actions.show.value = !actions.show.value;
           }}
