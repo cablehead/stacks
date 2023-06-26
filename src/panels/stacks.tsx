@@ -1,33 +1,44 @@
-import { signal, useSignal } from "@preact/signals";
+import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { borderBottom, overlay } from "../ui/app.css";
+import { Item } from "../state";
 
 export const state = {
   show: signal(false),
 };
 
+const selected = signal(0);
+const currFilter = signal("");
+const options: Signal<Item[]> = signal([]);
+
+const normalizedSelected = computed(() => {
+  let val = selected.value % (options.value.length);
+  if (val < 0) val = options.value.length + val;
+  return val;
+});
+
+async function fetchOptions(filter: string) {
+  options.value = await invoke("store_list_stacks", { filter: filter });
+}
+
+effect(() => {
+  console.log("EFFECT", currFilter.value);
+  fetchOptions(currFilter.value);
+});
+
 export function AddToStack() {
   const inputRef = useRef<HTMLInputElement>(null);
-
-  const selected = useSignal(0);
-  const currFilter = useSignal("");
 
   useEffect(() => {
     selected.value = 0;
     if (inputRef.current != null) {
+      inputRef.current.value = "";
       inputRef.current.focus();
     }
   }, []);
-
-  /*
-
-  const normalizedSelected = useComputed(() => {
-    let val = selected.value % (actionsAvailable.value.length);
-    if (val < 0) val = actionsAvailable.value.length + val;
-    return val;
-  });
-  */
 
   return (
     <div
@@ -80,16 +91,41 @@ export function AddToStack() {
       <div style="
         padding:1ch;
         ">
-        {
-          /*actionsAvailable.value
-          .map((action, index) => (
-            <ActionRow
-              action={action}
-              isSelected={normalizedSelected.value == index}
+        {options.value
+          .map((item, index) => (
+            <Row
               item={item}
+              isSelected={normalizedSelected.value == index}
             />
-          )) */
-        }
+          ))}
+      </div>
+    </div>
+  );
+}
+
+function Row(
+  { item, isSelected }: {
+    item: Item;
+    isSelected: boolean;
+  },
+) {
+  return (
+    <div
+      className={"terserow" + (isSelected ? " hover" : "")}
+      style="
+        display: flex;
+        width: 100%;
+        overflow: hidden;
+        padding: 0.5ch 0.75ch;
+        justify-content: space-between;
+        border-radius: 6px;
+        cursor: pointer;
+        "
+      onMouseDown={() => {
+      }}
+    >
+      <div>
+        {item.terse}
       </div>
     </div>
   );
