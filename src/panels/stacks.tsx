@@ -7,41 +7,6 @@ export const state = {
   show: signal(false),
 };
 
-/*
-function ActionRow(
-  { action, isSelected, item }: {
-    action: Action;
-    isSelected: boolean;
-    item: Item;
-  },
-) {
-  return (
-    <div
-      className={"terserow" + (isSelected ? " hover" : "")}
-      style="
-        display: flex;
-        width: 100%;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        justify-content: space-between;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-      onMouseDown={() => {
-        if (action.trigger) action.trigger(item);
-      }}
-    >
-      <div>
-        {action.name}
-      </div>
-      <div>
-        {action.keys ? <RenderKeys keys={action.keys} /> : ""}
-      </div>
-    </div>
-  );
-}
-*/
-
 export function AddToStack() {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -93,10 +58,20 @@ export function AddToStack() {
           <input
             type="text"
             ref={inputRef}
+            onBlur={() => state.show.value = false}
             placeholder="Stack name..."
             onInput={() => {
               if (inputRef.current == null) return;
               currFilter.value = inputRef.current.value;
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              switch (true) {
+                case event.key === "Escape":
+                  event.preventDefault();
+                  state.show.value = false;
+                  break;
+              }
             }}
           />
         </div>
