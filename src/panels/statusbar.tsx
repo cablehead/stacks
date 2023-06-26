@@ -56,13 +56,6 @@ const EditorBar = () => {
         gap: 0.5ch;
       ">
         <HotKey
-          name="Discard"
-          keys={["ESC"]}
-          onMouseDown={() => editor.show.value = false}
-        />
-
-        <VertDiv />
-        <HotKey
           name="Capture"
           keys={[
             <Icon name="IconCommandKey" />,
@@ -70,7 +63,12 @@ const EditorBar = () => {
           ]}
           onMouseDown={editor.save}
         />
-
+        <VertDiv />
+        <HotKey
+          name="Discard"
+          keys={["ESC"]}
+          onMouseDown={() => editor.show.value = false}
+        />
         <VertDiv />
         <Theme />
       </div>
@@ -89,31 +87,6 @@ const ActionBar = () => {
         align-items: center;
         gap: 0.5ch;
       ">
-        {
-          /*
-        <div onClick={() => actions.show.value = false} class="hoverable">
-          Back&nbsp;
-          <span className={iconStyle}>
-            ESC
-          </span>
-        </div>
-
-        <VertDiv />
-        <div
-          onMouseDown={() => editor.save()}
-          class="hoverable"
-        >
-          Capture&nbsp;
-          <span className={iconStyle} style="margin-right: 0.25ch;">
-            <Icon name="IconCommandKey" />
-          </span>
-          <span className={iconStyle}>
-            <Icon name="IconReturnKey" />
-          </span>
-        </div>
-        */
-        }
-
         <HotKey
           name="Trigger"
           keys={[<Icon name="IconReturnKey" />]}
@@ -220,7 +193,6 @@ const StacksBar = () => {
         align-items: center;
         gap: 0.5ch;
       ">
-
         <HotKey
           name="Select"
           keys={[<Icon name="IconReturnKey" />]}
@@ -235,6 +207,15 @@ const StacksBar = () => {
             <Icon name="IconReturnKey" />,
           ]}
           onMouseDown={() => undefined}
+        />
+
+        <VertDiv />
+        <HotKey
+          name="Back"
+          keys={["ESC"]}
+          onMouseDown={() => {
+            stacks.state.show.value = !stacks.state.show.value;
+          }}
         />
 
         <VertDiv />
