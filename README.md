@@ -36,6 +36,13 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
+
+- bug: copying text now focuses filter, instead of copying
+- shift-enter to copy but keep stacks open
+
+- Editor
+    - access clips while editor is open
+
 - Preference panel
 
 - Theme: initialize theme to the system preference
