@@ -131,7 +131,7 @@ const MainBar = () => {
           )
           : (
             <HotKey
-              name="Clear Filter"
+              name="Clear filter"
               keys={["ESC"]}
               onMouseDown={() => filter.show.value = false}
             />
