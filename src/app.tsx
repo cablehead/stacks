@@ -112,6 +112,7 @@ function RightPane(
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
+  console.log("GLOBAL", event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();

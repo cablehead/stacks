@@ -420,7 +420,7 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            // window.open_devtools();
+            window.open_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
