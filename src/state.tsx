@@ -59,7 +59,6 @@ export async function triggerCopy() {
       await writeText(content);
     }
   }
-  filter.show.value = false;
   hide();
 }
 
@@ -161,7 +160,6 @@ export const filter = (() => {
   });
 
   return {
-    show,
     curr,
     contentType,
     get input(): HTMLInputElement | null {

@@ -153,7 +153,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
 
       // todo: preserve command-c
-      if (filter.show.value && filter.input !== null) {
+      if (filter.input !== null) {
         filter.input.focus();
       }
   }
@@ -171,7 +171,7 @@ function Main() {
     <main
       className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      {filter.show.value && <Filter />}
+      <Filter />
       <section style="
             display: flex;
             flex-direction: column;

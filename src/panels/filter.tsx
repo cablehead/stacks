@@ -29,7 +29,7 @@ export function Filter() {
         alignItems: "center",
       }}
     >
-      <div>/</div>
+      <div>&gt;</div>
       <div
         style={{
           flexGrow: "1",
@@ -37,7 +37,7 @@ export function Filter() {
       >
         <input
           type="text"
-          placeholder="Type a filter..."
+          placeholder="Type to filter..."
           ref={inputRef}
           onInput={() => {
             if (inputRef.current == null) return;
