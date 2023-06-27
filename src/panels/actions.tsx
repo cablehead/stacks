@@ -167,7 +167,7 @@ export function Actions({ item }: {
           <input
             type="text"
             ref={inputRef}
-            onBlur={() => modes.back()}
+            onBlur={() => modes.deactivate()}
             placeholder="Search..."
             onInput={() => {
               if (inputRef.current == null) return;
@@ -178,12 +178,12 @@ export function Actions({ item }: {
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
-                  modes.back();
+                  modes.deactivate();
                   break;
 
                 case event.key === "Enter":
                   event.preventDefault();
-                  modes.back();
+                  modes.deactivate();
                   const action =
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
@@ -208,7 +208,7 @@ export function Actions({ item }: {
                   break;
 
                 default:
-                  if (attemptAction(event, item)) modes.back();
+                  if (attemptAction(event, item)) modes.deactivate();
               }
             }}
           />

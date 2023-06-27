@@ -3,9 +3,9 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { themeMode} from "../state";
+import { themeMode } from "../state";
 
-import { modes, Mode } from '../modes';
+import { Mode, modes } from "../modes";
 
 const VertDiv = () => (
   <div
@@ -37,7 +37,6 @@ const Theme = () => (
     </span>
   </div>
 );
-
 
 const ModeBar = ({ mode }: { mode: Mode }) => {
   return (
@@ -91,4 +90,3 @@ const HotKey = ({ name, keys, onMouseDown }: {
     </div>
   );
 };
-

@@ -3,7 +3,6 @@ import { useSignal } from "@preact/signals";
 
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
-// import { hide } from "tauri-plugin-spotlight-api";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
@@ -121,7 +120,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
-      modes.back();
+      modes.deactivate();
       return;
 
     case event.metaKey && event.key === "k":
