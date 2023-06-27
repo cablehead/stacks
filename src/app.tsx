@@ -15,7 +15,6 @@ import { Filter } from "./panels/filter";
 import * as stacks from "./panels/stacks";
 
 import {
-  editor,
   filter,
   focusSelected,
   getContent,
@@ -28,7 +27,7 @@ import {
   updateSelected,
 } from "./state";
 
-import { actionsMode, modes } from "./modes";
+import { actionsMode, editorMode, modes } from "./modes";
 
 function RightPane(
   { item, content }: {
@@ -206,7 +205,7 @@ function Main() {
         {selectedItem.value && modes.isActive(actionsMode) &&
           <Actions item={selectedItem.value} />}
 
-        {selectedItem.value && editor.show.value &&
+        {selectedItem.value && modes.isActive(editorMode) &&
           <Editor item={selectedItem.value} />}
       </section>
       <StatusBar />

@@ -1,6 +1,7 @@
 import { Signal, signal } from "@preact/signals";
 import { JSXInternal } from "preact/src/jsx";
 
+import { writeText } from "@tauri-apps/api/clipboard";
 import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
@@ -70,6 +71,36 @@ export const actionsMode = {
   ],
 };
 
+export const editorMode = {
+  name: "Editor",
+  hotKeys: [
+    {
+      name: "Capture",
+      keys: [
+        <Icon name="IconCommandKey" />,
+        <Icon name="IconReturnKey" />,
+      ],
+      onMouseDown: () => {
+          // onMouseDown={editor.save}
+      },
+    },
+    {
+      name: "Discard",
+      keys: ["ESC"],
+      onMouseDown: () => modes.deactivate(),
+    },
+  ],
+
+  content: "",
+  get save() {
+    return () => {
+      writeText(this.content);
+      hide();
+    };
+  },
+};
+
+
 /*
 const StacksBar = () => {
   return (
@@ -115,42 +146,8 @@ const StacksBar = () => {
 };
 */
 
-/*
-const EditorBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Editor
-      </div>
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        <HotKey
-          name="Capture"
-          keys={[
-            <Icon name="IconCommandKey" />,
-            <Icon name="IconReturnKey" />,
-          ]}
-          onMouseDown={editor.save}
-        />
-        <VertDiv />
-        <HotKey
-          name="Discard"
-          keys={["ESC"]}
-          onMouseDown={() => editor.show.value = false}
-        />
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-*/
-
 export const modes = {
-  modes: [defaultMode, actionsMode] as Mode[],
+  modes: [defaultMode, actionsMode, editorMode] as Mode[],
   prev: defaultMode as Mode,
   active: signal(defaultMode) as Signal<Mode>,
   isActive(mode: Mode) {

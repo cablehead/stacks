@@ -8,9 +8,9 @@ import { open } from "@tauri-apps/api/shell";
 import { borderBottom, overlay } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
-import { editor, getContent, Item } from "../state";
+import { getContent, Item } from "../state";
 
-import { actionsMode, modes } from "../modes";
+import { actionsMode, editorMode, modes } from "../modes";
 
 interface Action {
   name: string;
@@ -28,7 +28,7 @@ const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (_: Item) => editor.show.value = true,
+    trigger: (_: Item) => modes.activate(editorMode),
     canApply: (item: Item) => item.mime_type === "text/plain",
   },
   {

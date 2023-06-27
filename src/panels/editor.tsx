@@ -2,7 +2,9 @@ import { useEffect, useRef } from "preact/hooks";
 
 import { overlay } from "../ui/app.css";
 
-import { editor, getContent, Item } from "../state";
+import { getContent, Item } from "../state";
+
+import { modes, editorMode } from "../modes";
 
 export function Editor({ item }: {
   item: Item;
@@ -18,10 +20,10 @@ export function Editor({ item }: {
       let content = await getContent(item.hash);
       if (inputRef.current != null) {
         inputRef.current.value = content;
-        editor.content = content;
+        editorMode.content = content;
       }
     }
-    editor.content = "";
+    editorMode.content = "";
     fetchContent();
   }, []);
 
@@ -50,12 +52,12 @@ export function Editor({ item }: {
           border: "none",
         }}
         onBlur={() => {
-          editor.show.value = false;
+            modes.deactivate();
         }}
         placeholder="..."
         onInput={() => {
           if (inputRef.current !== null) {
-            editor.content = inputRef.current.value;
+            editorMode.content = inputRef.current.value;
           }
         }}
         onKeyDown={(event) => {
@@ -63,16 +65,16 @@ export function Editor({ item }: {
           switch (true) {
             case event.key === "Escape":
               event.preventDefault();
-              editor.show.value = false;
+            modes.deactivate();
               break;
 
             case event.metaKey && event.key === "e":
               event.preventDefault();
-              editor.show.value = false;
+            modes.deactivate();
               break;
 
             case event.metaKey && event.key === "Enter":
-              editor.save();
+              editorMode.save();
               break;
           }
         }}

@@ -172,15 +172,3 @@ export const filter = (() => {
     },
   };
 })();
-
-
-export const editor = {
-  show: signal(false),
-  content: "",
-  get save() {
-    return () => {
-      writeText(this.content);
-      hide();
-    };
-  },
-};
