@@ -3,15 +3,9 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { actions, editor, filter, themeMode, triggerCopy } from "../state";
-import * as stacks from "./stacks";
+import { themeMode} from "../state";
 
-export function StatusBar() {
-  if (stacks.state.show.value) return <StacksBar />;
-  if (editor.show.value) return <EditorBar />;
-  if (actions.show.value) return <ActionBar />;
-  return <MainBar />;
-}
+import { modes, Mode } from '../modes';
 
 const VertDiv = () => (
   <div
@@ -44,121 +38,37 @@ const Theme = () => (
   </div>
 );
 
-const EditorBar = () => {
+
+const ModeBar = ({ mode }: { mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
-        Editor
+        {mode.name}
       </div>
       <div style="
         display: flex;
         align-items: center;
         gap: 0.5ch;
       ">
-        <HotKey
-          name="Capture"
-          keys={[
-            <Icon name="IconCommandKey" />,
-            <Icon name="IconReturnKey" />,
-          ]}
-          onMouseDown={editor.save}
-        />
-        <VertDiv />
-        <HotKey
-          name="Discard"
-          keys={["ESC"]}
-          onMouseDown={() => editor.show.value = false}
-        />
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-
-const ActionBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Actions
-      </div>
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        <HotKey
-          name="Trigger"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Back"
-          keys={["ESC"]}
-          onMouseDown={() => {
-            actions.show.value = !actions.show.value;
-          }}
-        />
-
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-
-const MainBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Clipboard
-      </div>
-
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        {!filter.show.value
-          ? (
+        {mode.hotKeys.map((hotKey) => (
+          <>
             <HotKey
-              name="Filter"
-              keys={["/"]}
-              onMouseDown={() => filter.show.value = true}
+              name={hotKey.name}
+              keys={hotKey.keys}
+              onMouseDown={hotKey.onMouseDown}
             />
-          )
-          : (
-            <HotKey
-              name="Clear filter"
-              keys={["ESC"]}
-              onMouseDown={() => filter.show.value = false}
-            />
-          )}
-
-        <VertDiv />
-        <HotKey
-          name="Copy"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={triggerCopy}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Actions"
-          keys={[<Icon name="IconCommandKey" />, "K"]}
-          onMouseDown={() => {
-            actions.show.value = !actions.show.value;
-          }}
-        />
-
-        <VertDiv />
+            <VertDiv />
+          </>
+        ))}
         <Theme />
       </div>
     </footer>
   );
 };
+
+export function StatusBar() {
+  return <ModeBar mode={modes.active.value} />;
+}
 
 const HotKey = ({ name, keys, onMouseDown }: {
   name: string;
@@ -182,45 +92,3 @@ const HotKey = ({ name, keys, onMouseDown }: {
   );
 };
 
-const StacksBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Add to stack
-      </div>
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        <HotKey
-          name="Select"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Create new"
-          keys={[
-            <Icon name="IconCommandKey" />,
-            <Icon name="IconReturnKey" />,
-          ]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Back"
-          keys={["ESC"]}
-          onMouseDown={() => {
-            stacks.state.show.value = !stacks.state.show.value;
-          }}
-        />
-
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
