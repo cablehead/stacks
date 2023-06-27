@@ -1,7 +1,6 @@
 import { useEffect, useRef } from "preact/hooks";
 
 import { writeText } from "@tauri-apps/api/clipboard";
-import { hide } from "tauri-plugin-spotlight-api";
 
 import { overlay } from "../ui/app.css";
 
@@ -61,7 +60,7 @@ export function Editor({ content }: {
             case event.metaKey && event.key === "Enter":
               if (inputRef.current !== null) {
                 writeText(inputRef.current.value);
-                hide();
+              modes.deactivate();
               }
               break;
           }
