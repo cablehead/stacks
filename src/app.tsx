@@ -205,8 +205,8 @@ function Main() {
         {selectedItem.value && modes.isActive(actionsMode) &&
           <Actions item={selectedItem.value} />}
 
-        {selectedItem.value && modes.isActive(editorMode) &&
-          <Editor item={selectedItem.value} />}
+        {selectedContent.value && modes.isActive(editorMode) &&
+          <Editor content={selectedContent.value} />}
       </section>
       <StatusBar />
     </main>

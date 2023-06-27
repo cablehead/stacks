@@ -1,30 +1,20 @@
 import { useEffect, useRef } from "preact/hooks";
 
+import { writeText } from "@tauri-apps/api/clipboard";
+import { hide } from "tauri-plugin-spotlight-api";
+
 import { overlay } from "../ui/app.css";
 
-import { getContent, Item } from "../state";
+import { modes } from "../modes";
 
-import { modes, editorMode } from "../modes";
-
-export function Editor({ item }: {
-  item: Item;
+export function Editor({ content }: {
+  content: string;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
-
-    async function fetchContent() {
-      let content = await getContent(item.hash);
-      if (inputRef.current != null) {
-        inputRef.current.value = content;
-        editorMode.content = content;
-      }
-    }
-    editorMode.content = "";
-    fetchContent();
   }, []);
 
   return (
@@ -52,33 +42,32 @@ export function Editor({ item }: {
           border: "none",
         }}
         onBlur={() => {
-            modes.deactivate();
+          modes.deactivate();
         }}
         placeholder="..."
-        onInput={() => {
-          if (inputRef.current !== null) {
-            editorMode.content = inputRef.current.value;
-          }
-        }}
         onKeyDown={(event) => {
           event.stopPropagation();
           switch (true) {
             case event.key === "Escape":
               event.preventDefault();
-            modes.deactivate();
+              modes.deactivate();
               break;
 
             case event.metaKey && event.key === "e":
               event.preventDefault();
-            modes.deactivate();
+              modes.deactivate();
               break;
 
             case event.metaKey && event.key === "Enter":
-              editorMode.save();
+              if (inputRef.current !== null) {
+                writeText(inputRef.current.value);
+                hide();
+              }
               break;
           }
         }}
       >
+        {content}
       </textarea>
     </div>
   );

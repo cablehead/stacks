@@ -1,7 +1,6 @@
 import { Signal, signal } from "@preact/signals";
 import { JSXInternal } from "preact/src/jsx";
 
-import { writeText } from "@tauri-apps/api/clipboard";
 import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
@@ -81,7 +80,7 @@ export const editorMode = {
         <Icon name="IconReturnKey" />,
       ],
       onMouseDown: () => {
-          // onMouseDown={editor.save}
+        // onMouseDown={editor.save}
       },
     },
     {
@@ -90,16 +89,7 @@ export const editorMode = {
       onMouseDown: () => modes.deactivate(),
     },
   ],
-
-  content: "",
-  get save() {
-    return () => {
-      writeText(this.content);
-      hide();
-    };
-  },
 };
-
 
 /*
 const StacksBar = () => {
