@@ -36,6 +36,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
+- bugs:
+    - cmd-k, then cmd-e
+
 
 - bug: copying text now focuses filter, instead of copying
 - shift-enter to copy but keep stacks open
