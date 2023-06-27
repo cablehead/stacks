@@ -5,6 +5,8 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
 
+import { filter } from "./state";
+
 interface HotKey {
   name: string;
   keys: (string | JSXInternal.Element)[];
@@ -13,36 +15,19 @@ interface HotKey {
 
 export interface Mode {
   name: string;
-  hotKeys: HotKey[];
+  hotKeys: () => HotKey[];
 }
 
 const defaultMode = {
   name: "Clipboard",
-  hotKeys: [
-    /*
-     * TODO:
-    {!filter.show.value
-      ? (
-        <HotKey
-          name="Filter"
-          keys={["/"]}
-          onMouseDown={() => filter.show.value = true}
-        />
-      )
-      : (
-        <HotKey
-          name="Clear filter"
-          keys={["ESC"]}
-          onMouseDown={() => filter.show.value = false}
-        />
-      )}
-      */
+  hotKeys: () => [
     {
       name: "Copy",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
       },
     },
+
     {
       name: "Actions",
       keys: [<Icon name="IconCommandKey" />, "K"],
@@ -50,12 +35,26 @@ const defaultMode = {
         modes.toggle(actionsMode);
       },
     },
+
+    !filter.dirty()
+      ? {
+        name: "Close",
+        keys: ["ESC"],
+        onMouseDown: () => {
+        },
+      }
+      : {
+        name: "Clear filter",
+        keys: ["ESC"],
+        onMouseDown: () => {
+        },
+      },
   ],
 };
 
 export const actionsMode = {
   name: "Actions",
-  hotKeys: [
+  hotKeys: () => [
     {
       name: "Trigger",
       keys: [<Icon name="IconReturnKey" />],
@@ -72,7 +71,7 @@ export const actionsMode = {
 
 export const addToStackMode = {
   name: "Add to stack",
-  hotKeys: [
+  hotKeys: () => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],
@@ -98,7 +97,7 @@ export const addToStackMode = {
 
 export const editorMode = {
   name: "Editor",
-  hotKeys: [
+  hotKeys: () => [
     {
       name: "Capture",
       keys: [
@@ -119,7 +118,7 @@ export const editorMode = {
 
 export const filterContentTypeMode = {
   name: "Filter by content type",
-  hotKeys: [
+  hotKeys: () => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],

@@ -49,7 +49,7 @@ const ModeBar = ({ mode }: { mode: Mode }) => {
         align-items: center;
         gap: 0.5ch;
       ">
-        {mode.hotKeys.map((hotKey) => (
+        {mode.hotKeys().map((hotKey) => (
           <>
             <HotKey
               name={hotKey.name}

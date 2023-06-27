@@ -150,6 +150,7 @@ export const filter = (() => {
   return {
     curr,
     contentType,
+    dirty: () => curr.value != "" || contentType.curr.value != "All",
     get input(): HTMLInputElement | null {
       return inputRef;
     },
