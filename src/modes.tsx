@@ -117,6 +117,23 @@ export const editorMode = {
   ],
 };
 
+export const filterContentTypeMode = {
+  name: "Filter by content type",
+  hotKeys: [
+    {
+      name: "Select",
+      keys: [<Icon name="IconReturnKey" />],
+      onMouseDown: () => {
+      },
+    },
+    {
+      name: "Back",
+      keys: ["ESC"],
+      onMouseDown: () => modes.deactivate(),
+    },
+  ],
+};
+
 export const modes = {
   modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],
   prev: defaultMode as Mode,

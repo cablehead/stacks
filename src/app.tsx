@@ -27,7 +27,13 @@ import {
   updateSelected,
 } from "./state";
 
-import { actionsMode, addToStackMode, editorMode, modes } from "./modes";
+import {
+  actionsMode,
+  addToStackMode,
+  editorMode,
+  filterContentTypeMode,
+  modes,
+} from "./modes";
 
 function RightPane(
   { item, content }: {
@@ -135,7 +141,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      // modes.trigger("Filter by content type");
+      modes.activate(filterContentTypeMode);
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":

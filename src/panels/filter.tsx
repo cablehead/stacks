@@ -5,6 +5,8 @@ import { Icon, RenderKeys } from "../ui/icons";
 
 import { filter } from "../state";
 
+import { filterContentTypeMode, modes } from "../modes";
+
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -49,22 +51,20 @@ export function Filter() {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() =>
-          filter.contentType.show.value = !filter.contentType.show.value}
+        onMouseDown={() => modes.toggle(filterContentTypeMode)}
         style={{
-          marginRight: "4ch",
           fontSize: "0.9rem",
           display: "flex",
           alignItems: "center",
         }}
       >
         {filter.contentType.curr.value == "All"
-          ? "Content Type"
+          ? "Content type"
           : filter.contentType.curr.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
-      {filter.contentType.show.value && <ContentType />}
+      {modes.isActive(filterContentTypeMode) && <ContentType />}
     </div>
   );
 }
@@ -87,7 +87,7 @@ function ContentType() {
     }
   }, []);
 
-  const { options, normalizedSelected, selected, show, curr } =
+  const { options, normalizedSelected, selected, curr } =
     filter.contentType;
 
   return (
@@ -100,7 +100,7 @@ function ContentType() {
         top: "7.5ch",
         fontSize: "0.9rem",
         padding: "1ch",
-        right: "8.2ch",
+        right: "4.2ch",
         borderRadius: "0.5rem",
         zIndex: 100,
       }}
@@ -117,12 +117,12 @@ function ContentType() {
             switch (true) {
               case event.key === "Escape":
                 event.preventDefault();
-                show.value = false;
+                modes.deactivate();
                 break;
 
               case (event.metaKey && event.key === "p"):
                 event.preventDefault();
-                show.value = false;
+                modes.deactivate();
                 break;
 
               case (event.ctrlKey && event.key === "n") ||
@@ -140,11 +140,11 @@ function ContentType() {
               case event.key === "Enter":
                 event.preventDefault();
                 curr.value = options[normalizedSelected.value];
-                show.value = false;
+                modes.deactivate();
                 break;
             }
           }}
-          onBlur={() => show.value = false}
+          onBlur={() => modes.deactivate()}
         />
       </div>
       {options
@@ -161,7 +161,7 @@ function ContentType() {
             onMouseDown={() => {
               selected.value = index;
               curr.value = options[index];
-              show.value = false;
+              modes.deactivate();
             }}
           >
             {option}

@@ -120,13 +120,11 @@ export async function updateSelected(n: number) {
 }
 
 export const filter = (() => {
-  const show = signal(false);
   const curr = signal("");
   let inputRef: HTMLInputElement | null = null;
 
   const contentType = (() => {
     const options = ["All", "Stacks", "Links", "Images"];
-    const show = signal(false);
     const curr = signal("All");
     const selected = signal(0);
     const normalizedSelected = computed(() => {
@@ -136,21 +134,11 @@ export const filter = (() => {
     });
     return {
       options,
-      show,
       curr,
       selected,
       normalizedSelected,
     };
   })();
-
-  effect(() => {
-    if (!show.value) {
-      curr.value = "";
-      contentType.selected.value = 0;
-      contentType.curr.value = "All";
-      contentType.show.value = false;
-    }
-  });
 
   effect(() => {
     invoke<Item[]>("store_set_filter", {

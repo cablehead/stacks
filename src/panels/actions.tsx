@@ -174,8 +174,7 @@ export function Actions({ item }: {
               currFilter.value = inputRef.current.value;
             }}
             onKeyDown={(event) => {
-  console.log("ACTIONS", event);
-
+              console.log("ACTIONS", event);
               event.stopPropagation();
               switch (true) {
                 case event.key === "Escape":
