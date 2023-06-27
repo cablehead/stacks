@@ -6,9 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { borderBottom, overlay } from "../ui/app.css";
 import { Item } from "../state";
 
-export const state = {
-  show: signal(false),
-};
+import { modes } from "../modes";
 
 const selected = signal(0);
 const currFilter = signal("");
@@ -69,7 +67,7 @@ export function AddToStack() {
           <input
             type="text"
             ref={inputRef}
-            onBlur={() => state.show.value = false}
+            onBlur={() => modes.deactivate()}
             placeholder="Stack name..."
             onInput={() => {
               if (inputRef.current == null) return;
@@ -80,7 +78,7 @@ export function AddToStack() {
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
-                  state.show.value = false;
+                  modes.deactivate();
                   break;
               }
             }}

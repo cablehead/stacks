@@ -70,6 +70,32 @@ export const actionsMode = {
   ],
 };
 
+export const addToStackMode = {
+  name: "Add to stack",
+  hotKeys: [
+    {
+      name: "Select",
+      keys: [<Icon name="IconReturnKey" />],
+      onMouseDown: () => {
+      },
+    },
+    {
+      name: "Create new",
+      keys: [
+        <Icon name="IconCommandKey" />,
+        <Icon name="IconReturnKey" />,
+      ],
+      onMouseDown: () => {
+      },
+    },
+    {
+      name: "Back",
+      keys: ["ESC"],
+      onMouseDown: () => modes.deactivate(),
+    },
+  ],
+};
+
 export const editorMode = {
   name: "Editor",
   hotKeys: [
@@ -91,53 +117,8 @@ export const editorMode = {
   ],
 };
 
-/*
-const StacksBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Add to stack
-      </div>
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        <HotKey
-          name="Select"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Create new"
-          keys={[
-            <Icon name="IconCommandKey" />,
-            <Icon name="IconReturnKey" />,
-          ]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Back"
-          keys={["ESC"]}
-          onMouseDown={() => {
-            stacks.state.show.value = !stacks.state.show.value;
-          }}
-        />
-
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-*/
-
 export const modes = {
-  modes: [defaultMode, actionsMode, editorMode] as Mode[],
+  modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],
   prev: defaultMode as Mode,
   active: signal(defaultMode) as Signal<Mode>,
   isActive(mode: Mode) {

@@ -27,7 +27,7 @@ import {
   updateSelected,
 } from "./state";
 
-import { actionsMode, editorMode, modes } from "./modes";
+import { actionsMode, addToStackMode, editorMode, modes } from "./modes";
 
 function RightPane(
   { item, content }: {
@@ -129,7 +129,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab":
       event.preventDefault();
-      // modes.trigger("Add to stack");
+      modes.activate(addToStackMode);
       break;
 
     case (event.metaKey && event.key === "p"):
@@ -199,7 +199,7 @@ function Main() {
             />
           )}
 
-        {stacks.state.show.value &&
+        {modes.isActive(addToStackMode) &&
           <stacks.AddToStack />}
 
         {selectedItem.value && modes.isActive(actionsMode) &&
