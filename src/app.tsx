@@ -3,7 +3,7 @@ import { useSignal } from "@preact/signals";
 
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
-import { hide } from "tauri-plugin-spotlight-api";
+// import { hide } from "tauri-plugin-spotlight-api";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
@@ -16,7 +16,6 @@ import { Filter } from "./panels/filter";
 import * as stacks from "./panels/stacks";
 
 import {
-  actions,
   editor,
   filter,
   focusSelected,
@@ -29,6 +28,8 @@ import {
   triggerCopy,
   updateSelected,
 } from "./state";
+
+import { actionsMode, modes } from "./modes";
 
 function RightPane(
   { item, content }: {
@@ -120,38 +121,22 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
-
-      if (actions.show.value) {
-        actions.show.value = false;
-        return;
-      }
-
-      if (filter.show.value) {
-        filter.show.value = false;
-        return;
-      }
-      hide();
+      modes.back();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      actions.show.value = !actions.show.value;
-      // await invoke("open_docs");
+      modes.toggle(actionsMode);
       break;
 
     case event.key === "Tab":
       event.preventDefault();
-      stacks.state.show.value = !stacks.state.show.value;
+      // modes.trigger("Add to stack");
       break;
 
-    case ((!filter.show.value) && event.key === "/"):
+    case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      filter.show.value = true;
-      break;
-
-    case (filter.show.value && event.metaKey && event.key === "p"):
-      event.preventDefault();
-      filter.contentType.show.value = !filter.contentType.show.value;
+      // modes.trigger("Filter by content type");
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
@@ -169,6 +154,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
         if (attemptAction(event, selectedItem.value)) return;
       }
 
+      // todo: preserve command-c
       if (filter.show.value && filter.input !== null) {
         filter.input.focus();
       }
@@ -218,8 +204,8 @@ function Main() {
         {stacks.state.show.value &&
           <stacks.AddToStack />}
 
-        {selectedItem.value && actions.show.value &&
-          <Actions showActions={actions.show} item={selectedItem.value} />}
+        {selectedItem.value && modes.isActive(actionsMode) &&
+          <Actions item={selectedItem.value} />}
 
         {selectedItem.value && editor.show.value &&
           <Editor item={selectedItem.value} />}
@@ -246,7 +232,8 @@ export function App() {
     // set selection back to the top onBlur
     const onBlur = () => {
       stack.selected.value = 0;
-      actions.show.value = false;
+      // todo:
+      // actions.show.value = false;
     };
     const onFocus = () => {
       focusSelected(100);

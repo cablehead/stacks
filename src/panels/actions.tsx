@@ -10,6 +10,8 @@ import { Icon, RenderKeys } from "../ui/icons";
 
 import { editor, getContent, Item } from "../state";
 
+import { actionsMode, modes } from "../modes";
+
 interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
@@ -102,8 +104,7 @@ function ActionRow(
   );
 }
 
-export function Actions({ showActions, item }: {
-  showActions: Signal<boolean>;
+export function Actions({ item }: {
   item: Item;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -166,7 +167,7 @@ export function Actions({ showActions, item }: {
           <input
             type="text"
             ref={inputRef}
-            onBlur={() => showActions.value = false}
+            onBlur={() => modes.back()}
             placeholder="Search..."
             onInput={() => {
               if (inputRef.current == null) return;
@@ -177,12 +178,12 @@ export function Actions({ showActions, item }: {
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
-                  showActions.value = false;
+                  modes.back();
                   break;
 
                 case event.key === "Enter":
                   event.preventDefault();
-                  showActions.value = false;
+                  modes.back();
                   const action =
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
@@ -191,7 +192,7 @@ export function Actions({ showActions, item }: {
 
                 case event.metaKey && event.key === "k":
                   event.preventDefault();
-                  showActions.value = !showActions.value;
+                  modes.toggle(actionsMode);
                   break;
 
                 case (event.ctrlKey && event.key === "n") ||
@@ -207,7 +208,7 @@ export function Actions({ showActions, item }: {
                   break;
 
                 default:
-                  if (attemptAction(event, item)) showActions.value = false;
+                  if (attemptAction(event, item)) modes.back();
               }
             }}
           />

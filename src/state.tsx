@@ -173,9 +173,6 @@ export const filter = (() => {
   };
 })();
 
-export const actions = {
-  show: signal(false),
-};
 
 export const editor = {
   show: signal(false),
