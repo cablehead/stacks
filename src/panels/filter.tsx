@@ -1,42 +1,11 @@
 import { useEffect, useRef } from "preact/hooks";
-import { effect, signal } from "@preact/signals";
 
-import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
-import { Item } from "../state";
-import { modes } from "../modes";
-import { filterContentTypeMode } from "../modals";
+import { mainMode, filterContentTypeMode, modes } from "../modals";
 
-export const state = (() => {
-  const curr = signal("");
-  let inputRef: HTMLInputElement | null = null;
-
-  effect(() => {
-    invoke<Item[]>("store_set_filter", {
-      curr: curr.value,
-      contentType: filterContentTypeMode.curr.value,
-    });
-  });
-
-  return {
-    curr,
-    dirty: () => curr.value != "" || filterContentTypeMode.curr.value != "All",
-    clear: () => {
-      if (inputRef) inputRef.value = "";
-      curr.value = "";
-      filterContentTypeMode.curr.value = "All";
-    },
-    get input(): HTMLInputElement | null {
-      return inputRef;
-    },
-    set input(ref: HTMLInputElement | null) {
-      inputRef = ref;
-    },
-  };
-})();
 
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -44,7 +13,7 @@ export function Filter() {
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
-      state.input = inputRef.current;
+      mainMode.state.input = inputRef.current;
     }
   }, []);
 
@@ -74,7 +43,7 @@ export function Filter() {
           ref={inputRef}
           onInput={() => {
             if (inputRef.current == null) return;
-            state.curr.value = inputRef.current.value;
+            mainMode.state.curr.value = inputRef.current.value;
           }}
         />
       </div>

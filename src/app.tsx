@@ -1,6 +1,8 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
+import { mainMode, addToStackMode, filterContentTypeMode, actionsMode, editorMode, modes } from "./modals";
+
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -11,7 +13,7 @@ import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
-import { Filter, state } from "./panels/filter";
+import { Filter} from "./panels/filter";
 
 import {
   focusSelected,
@@ -25,9 +27,7 @@ import {
   updateSelected,
 } from "./state";
 
-import { actionsMode, editorMode, modes } from "./modes";
 
-import { addToStackMode, filterContentTypeMode } from "./modals";
 
 function RightPane(
   { item, content }: {
@@ -120,8 +120,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
-      if (state.dirty()) {
-        state.clear();
+      if (mainMode.state.dirty()) {
+        mainMode.state.clear();
         return;
       }
       modes.deactivate();
@@ -158,8 +158,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
 
       // todo: preserve command-c
-      if (state.input !== null) {
-        state.input.focus();
+      if (mainMode.state.input !== null) {
+        mainMode.state.input.focus();
       }
   }
 }

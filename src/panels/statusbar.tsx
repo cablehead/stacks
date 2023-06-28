@@ -5,7 +5,7 @@ import { borderRight, footer } from "../ui/app.css";
 
 import { themeMode } from "../state";
 
-import { modes } from "../modes";
+import { modes } from "../modals";
 import { Mode } from "../modals/types";
 
 const VertDiv = () => (

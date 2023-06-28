@@ -10,7 +10,7 @@ import { Icon, RenderKeys } from "../ui/icons";
 
 import { getContent, Item } from "../state";
 
-import { actionsMode, editorMode, modes } from "../modes";
+import { actionsMode, editorMode, modes } from "../modals";
 
 interface Action {
   name: string;

@@ -4,7 +4,7 @@ import { writeText } from "@tauri-apps/api/clipboard";
 
 import { overlay } from "../ui/app.css";
 
-import { modes } from "../modes";
+import { modes } from "../modals";
 
 export function Editor({ content }: {
   content: string;
