@@ -126,6 +126,10 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
+      if (filter.dirty()) {
+        filter.clear();
+        return;
+      }
       modes.deactivate();
       return;
 
@@ -237,8 +241,6 @@ export function App() {
     // set selection back to the top onBlur
     const onBlur = () => {
       stack.selected.value = 0;
-      // todo:
-      // actions.show.value = false;
     };
     const onFocus = () => {
       focusSelected(100);

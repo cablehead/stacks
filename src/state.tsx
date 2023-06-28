@@ -151,6 +151,12 @@ export const filter = (() => {
     curr,
     contentType,
     dirty: () => curr.value != "" || contentType.curr.value != "All",
+    clear: () => {
+      if (inputRef) inputRef.value = "";
+      curr.value = "";
+      contentType.selected.value = 0;
+      contentType.curr.value = "All";
+    },
     get input(): HTMLInputElement | null {
       return inputRef;
     },
