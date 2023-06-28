@@ -1,5 +1,5 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
-import { useEffect, useRef } from "preact/hooks";
+import { useEffect, useMemo, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -8,33 +8,41 @@ import { Item } from "../state";
 
 import { modes } from "../modes";
 
-const selected = signal(0);
-const currFilter = signal("");
-const options: Signal<Item[]> = signal([]);
-
-const normalizedSelected = computed(() => {
-  let val = selected.value % (options.value.length);
-  if (val < 0) val = options.value.length + val;
-  return val;
-});
-
-async function fetchOptions(filter: string) {
-  options.value = await invoke("store_list_stacks", { filter: filter });
-}
-
-effect(() => {
-  console.log("EFFECT", currFilter.value);
-  fetchOptions(currFilter.value);
-});
-
 export function AddToStack() {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    selected.value = 0;
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
+  }, []);
+
+  const state = useMemo(() => {
+    const selected = signal(0);
+    const currFilter = signal("");
+    const options: Signal<Item[]> = signal([]);
+
+    const normalizedSelected = computed(() => {
+      let val = selected.value % (options.value.length);
+      if (val < 0) val = options.value.length + val;
+      return val;
+    });
+
+    async function fetchOptions(filter: string) {
+      options.value = await invoke("store_list_stacks", { filter: filter });
+    }
+
+    effect(() => {
+      console.log("EFFECT", currFilter.value);
+      fetchOptions(currFilter.value);
+    });
+
+    return {
+      selected,
+      currFilter,
+      options,
+      normalizedSelected,
+    };
   }, []);
 
   return (
@@ -70,7 +78,7 @@ export function AddToStack() {
             placeholder="Stack name..."
             onInput={() => {
               if (inputRef.current == null) return;
-              currFilter.value = inputRef.current.value;
+              state.currFilter.value = inputRef.current.value;
             }}
             onKeyDown={(event) => {
               event.stopPropagation();
@@ -88,11 +96,11 @@ export function AddToStack() {
       <div style="
         padding:1ch;
         ">
-        {options.value
+        {state.options.value
           .map((item, index) => (
             <Row
               item={item}
-              isSelected={normalizedSelected.value == index}
+              isSelected={state.normalizedSelected.value == index}
             />
           ))}
       </div>
