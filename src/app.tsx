@@ -26,9 +26,9 @@ import {
   updateSelected,
 } from "./state";
 
-import { actionsMode, addToStackMode, editorMode, modes } from "./modes";
+import { actionsMode, editorMode, modes } from "./modes";
 
-import { filterContentTypeMode } from "./modals";
+import { addToStackMode, filterContentTypeMode } from "./modals";
 
 function RightPane(
   { item, content }: {

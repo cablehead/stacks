@@ -33,7 +33,6 @@ export function AddToStack() {
   useEffect(() => {
     selected.value = 0;
     if (inputRef.current != null) {
-      inputRef.current.value = "";
       inputRef.current.focus();
     }
   }, []);

@@ -59,32 +59,6 @@ export const actionsMode = {
   ],
 };
 
-export const addToStackMode = {
-  name: "Add to stack",
-  hotKeys: () => [
-    {
-      name: "Select",
-      keys: [<Icon name="IconReturnKey" />],
-      onMouseDown: () => {
-      },
-    },
-    {
-      name: "Create new",
-      keys: [
-        <Icon name="IconCommandKey" />,
-        <Icon name="IconReturnKey" />,
-      ],
-      onMouseDown: () => {
-      },
-    },
-    {
-      name: "Back",
-      keys: ["ESC"],
-      onMouseDown: () => modes.deactivate(),
-    },
-  ],
-};
-
 export const editorMode = {
   name: "Editor",
   hotKeys: () => [
@@ -107,7 +81,7 @@ export const editorMode = {
 };
 
 export const modes = {
-  modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],
+  modes: [defaultMode, actionsMode, editorMode] as Mode[],
   active: signal(defaultMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
