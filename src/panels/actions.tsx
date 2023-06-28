@@ -113,7 +113,6 @@ export function Actions({ item }: {
   const currFilter = useSignal("");
 
   useEffect(() => {
-    selected.value = 0;
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
