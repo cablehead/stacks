@@ -52,7 +52,7 @@ export default {
     state.selected.value = idx == -1 ? 0 : idx;
   },
 
-  Model: ({ modes }: { modes: Modes }) => {
+  Modal: ({ modes }: { modes: Modes }) => {
     const { options, normalizedSelected, selected, curr } = state;
     const inputRef = useRef<HTMLInputElement>(null);
 

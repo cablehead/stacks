@@ -96,7 +96,7 @@ export function Filter() {
       </div>
 
       {modes.isActive(filterContentTypeMode) &&
-        <filterContentTypeMode.Model modes={modes} />}
+        <filterContentTypeMode.Modal modes={modes} />}
     </div>
   );
 }

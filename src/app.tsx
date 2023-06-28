@@ -12,7 +12,6 @@ import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
 import { Filter, state } from "./panels/filter";
-import * as stacks from "./panels/stacks";
 
 import {
   focusSelected,
@@ -205,8 +204,8 @@ function Main() {
             />
           )}
 
-        {modes.isActive(addToStackMode) &&
-          <stacks.AddToStack />}
+      {modes.isActive(addToStackMode) &&
+        <addToStackMode.Modal modes={modes} />}
 
         {selectedItem.value && modes.isActive(actionsMode) &&
           <Actions item={selectedItem.value} />}
