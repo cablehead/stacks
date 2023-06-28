@@ -1,5 +1,7 @@
 import { effect, signal } from "@preact/signals";
+
 import { invoke } from "@tauri-apps/api/tauri";
+import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "../ui/icons";
 import { Item } from "../state";
@@ -8,7 +10,6 @@ import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 import { default as filterContentTypeMode } from "./filterContentTypeMode";
-
 
 export const state = (() => {
   const curr = signal("");
@@ -38,7 +39,6 @@ export const state = (() => {
   };
 })();
 
-
 export default {
   name: "Clipboard",
   state: state,
@@ -63,12 +63,14 @@ export default {
         name: "Close",
         keys: ["ESC"],
         onMouseDown: () => {
+          hide();
         },
       }
       : {
         name: "Clear filter",
         keys: ["ESC"],
         onMouseDown: () => {
+          state.clear();
         },
       },
   ],
