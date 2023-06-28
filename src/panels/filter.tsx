@@ -80,15 +80,17 @@ const VertDiv = () => (
 );
 
 function ContentType() {
+  const { options, normalizedSelected, selected, curr } = filter.contentType;
   const inputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
+    // TODO: we want this to run at modes.activate time
+    const idx = options.indexOf(curr.value);
+    selected.value = idx == -1 ? 0 : idx;
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
   }, []);
-
-  const { options, normalizedSelected, selected, curr } =
-    filter.contentType;
 
   return (
     <div
