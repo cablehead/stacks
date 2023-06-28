@@ -177,7 +177,7 @@ function Main() {
       className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
     >
       <Filter />
-      <section style="
+      <div style="
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -212,7 +212,7 @@ function Main() {
 
         {selectedContent.value && modes.isActive(editorMode) &&
           <Editor content={selectedContent.value} />}
-      </section>
+      </div>
       <StatusBar />
     </main>
   );
