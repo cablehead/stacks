@@ -10,7 +10,7 @@ interface HotKey {
 export interface Mode {
   name: string;
   hotKeys: (modes: Modes) => HotKey[];
-  activate?: ()=>void;
+  activate?: () => void;
 }
 
 export interface Modes {

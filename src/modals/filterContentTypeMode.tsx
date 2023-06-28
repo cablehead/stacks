@@ -20,16 +20,24 @@ const state = (() => {
     curr,
     selected,
     normalizedSelected,
+    accept: (modes: Modes) => {
+      state.curr.value = state.options[state.normalizedSelected.value];
+      modes.deactivate();
+    },
   };
 })();
 
 export default {
   name: "Filter by content type",
+
+  curr: state.curr,
+
   hotKeys: (modes: Modes) => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
+        state.accept(modes);
       },
     },
     {
@@ -38,12 +46,12 @@ export default {
       onMouseDown: () => modes.deactivate(),
     },
   ],
+
   activate: () => {
     const idx = state.options.indexOf(state.curr.value);
     state.selected.value = idx == -1 ? 0 : idx;
   },
 
-  curr: state.curr,
   Model: ({ modes }: { modes: Modes }) => {
     const { options, normalizedSelected, selected, curr } = state;
     const inputRef = useRef<HTMLInputElement>(null);
@@ -103,8 +111,7 @@ export default {
 
                 case event.key === "Enter":
                   event.preventDefault();
-                  curr.value = options[normalizedSelected.value];
-                  modes.deactivate();
+                  state.accept(modes);
                   break;
               }
             }}

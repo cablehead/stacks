@@ -140,7 +140,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      modes.activate(filterContentTypeMode);
+      modes.toggle(filterContentTypeMode);
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
