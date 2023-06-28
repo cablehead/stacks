@@ -15,7 +15,6 @@ export interface Mode {
 
 export interface Modes {
   modes: Mode[];
-  prev: Mode;
   active: Signal<Mode>;
   isActive: (mode: Mode) => boolean;
   activate: (mode: Mode) => void;

@@ -108,7 +108,6 @@ export const editorMode = {
 
 export const modes = {
   modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],
-  prev: defaultMode as Mode,
   active: signal(defaultMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
