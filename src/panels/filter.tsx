@@ -1,12 +1,43 @@
 import { useEffect, useRef } from "preact/hooks";
+import { effect, signal } from "@preact/signals";
 
-import { borderBottom, borderRight, overlay } from "../ui/app.css";
+import { invoke } from "@tauri-apps/api/tauri";
+
+import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
-import { filter } from "../state";
-
+import { Item } from "../state";
 import { modes } from "../modes";
 import { filterContentTypeMode } from "../modals";
+
+export const state = (() => {
+  const curr = signal("");
+  let inputRef: HTMLInputElement | null = null;
+
+  effect(() => {
+    invoke<Item[]>("store_set_filter", {
+      curr: curr.value,
+      contentType: filterContentTypeMode.value(),
+    });
+  });
+
+  return {
+    curr,
+    dirty: () => curr.value != "", /* || contentType.curr.value != "All" */
+    clear: () => {
+      if (inputRef) inputRef.value = "";
+      curr.value = "";
+      // contentType.selected.value = 0;
+      // contentType.curr.value = "All";
+    },
+    get input(): HTMLInputElement | null {
+      return inputRef;
+    },
+    set input(ref: HTMLInputElement | null) {
+      inputRef = ref;
+    },
+  };
+})();
 
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -14,7 +45,7 @@ export function Filter() {
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
-      filter.input = inputRef.current;
+      state.input = inputRef.current;
     }
   }, []);
 
@@ -44,7 +75,7 @@ export function Filter() {
           ref={inputRef}
           onInput={() => {
             if (inputRef.current == null) return;
-            filter.curr.value = inputRef.current.value;
+            state.curr.value = inputRef.current.value;
           }}
         />
       </div>
@@ -59,13 +90,14 @@ export function Filter() {
           alignItems: "center",
         }}
       >
-        {filter.contentType.curr.value == "All"
+        {filterContentTypeMode.value() == "All"
           ? "Content type"
-          : filter.contentType.curr.value}&nbsp;
+          : filterContentTypeMode.value()}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
-      {modes.isActive(filterContentTypeMode) && <ContentType />}
+      {modes.isActive(filterContentTypeMode) &&
+        filterContentTypeMode.Model(modes)}
     </div>
   );
 }
@@ -79,97 +111,3 @@ const VertDiv = () => (
     }}
   />
 );
-
-function ContentType() {
-  const { options, normalizedSelected, selected, curr } = filter.contentType;
-  const inputRef = useRef<HTMLInputElement>(null);
-
-  useEffect(() => {
-    // TODO: we want this to run at modes.activate time
-    const idx = options.indexOf(curr.value);
-    selected.value = idx == -1 ? 0 : idx;
-    if (inputRef.current != null) {
-      inputRef.current.focus();
-    }
-  }, []);
-
-  return (
-    <div
-      className={overlay}
-      style={{
-        position: "absolute",
-        width: "20ch",
-        overflow: "auto",
-        top: "7.5ch",
-        fontSize: "0.9rem",
-        padding: "1ch",
-        right: "4.2ch",
-        borderRadius: "0.5rem",
-        zIndex: 100,
-      }}
-    >
-      <div style="
-      width: 0;
-      height: 0;
-      overflow: hidden;
-       ">
-        <input
-          ref={inputRef}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            switch (true) {
-              case event.key === "Escape":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case (event.metaKey && event.key === "p"):
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case (event.ctrlKey && event.key === "n") ||
-                event.key === "ArrowDown":
-                event.preventDefault();
-                selected.value += 1;
-                break;
-
-              case event.ctrlKey && event.key === "p" ||
-                event.key === "ArrowUp":
-                event.preventDefault();
-                selected.value -= 1;
-                break;
-
-              case event.key === "Enter":
-                event.preventDefault();
-                curr.value = options[normalizedSelected.value];
-                modes.deactivate();
-                break;
-            }
-          }}
-          onBlur={() => modes.deactivate()}
-        />
-      </div>
-      {options
-        .map((option, index) => (
-          <div
-            style="
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 0.5ch 0.75ch;
-            "
-            className={"terserow" + (
-              normalizedSelected.value == index ? " hover" : ""
-            )}
-            onMouseDown={() => {
-              selected.value = index;
-              curr.value = options[index];
-              modes.deactivate();
-            }}
-          >
-            {option}
-          </div>
-        ))}
-    </div>
-  );
-}

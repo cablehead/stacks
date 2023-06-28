@@ -11,11 +11,10 @@ import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions, attemptAction } from "./panels/actions";
 import { Editor } from "./panels/editor";
-import { Filter } from "./panels/filter";
+import { Filter, state } from "./panels/filter";
 import * as stacks from "./panels/stacks";
 
 import {
-  filter,
   focusSelected,
   getContent,
   Item,
@@ -27,12 +26,7 @@ import {
   updateSelected,
 } from "./state";
 
-import {
-  actionsMode,
-  addToStackMode,
-  editorMode,
-  modes,
-} from "./modes";
+import { actionsMode, addToStackMode, editorMode, modes } from "./modes";
 
 import { filterContentTypeMode } from "./modals";
 
@@ -127,8 +121,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
-      if (filter.dirty()) {
-        filter.clear();
+      if (state.dirty()) {
+        state.clear();
         return;
       }
       modes.deactivate();
@@ -165,8 +159,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
 
       // todo: preserve command-c
-      if (filter.input !== null) {
-        filter.input.focus();
+      if (state.input !== null) {
+        state.input.focus();
       }
   }
 }

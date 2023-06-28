@@ -4,7 +4,7 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Icon } from "./ui/icons";
 
-import { filter } from "./state";
+import { state } from "./panels/filter";
 
 import { Mode } from "./modals/types";
 
@@ -26,7 +26,7 @@ const defaultMode = {
       },
     },
 
-    !filter.dirty()
+    !state.dirty()
       ? {
         name: "Close",
         keys: ["ESC"],
