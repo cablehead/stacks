@@ -38,17 +38,12 @@ export default {
       onMouseDown: () => modes.deactivate(),
     },
   ],
-  value: () => {
-    return state.curr.value;
-  },
-  Model: (modes: Modes) => {
+  curr: state.curr,
+  Model: ({modes} : {modes: Modes;}) => {
     const { options, normalizedSelected, selected, curr } = state;
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
-      // TODO: we want this to run at modes.activate time
-      const idx = options.indexOf(curr.value);
-      selected.value = idx == -1 ? 0 : idx;
       if (inputRef.current != null) {
         inputRef.current.focus();
       }

@@ -17,18 +17,17 @@ export const state = (() => {
   effect(() => {
     invoke<Item[]>("store_set_filter", {
       curr: curr.value,
-      contentType: filterContentTypeMode.value(),
+      contentType: filterContentTypeMode.curr.value,
     });
   });
 
   return {
     curr,
-    dirty: () => curr.value != "", /* || contentType.curr.value != "All" */
+    dirty: () => curr.value != "" || filterContentTypeMode.curr.value != "All",
     clear: () => {
       if (inputRef) inputRef.value = "";
       curr.value = "";
-      // contentType.selected.value = 0;
-      // contentType.curr.value = "All";
+      filterContentTypeMode.curr.value = "All";
     },
     get input(): HTMLInputElement | null {
       return inputRef;
@@ -90,14 +89,14 @@ export function Filter() {
           alignItems: "center",
         }}
       >
-        {filterContentTypeMode.value() == "All"
+        {filterContentTypeMode.curr.value == "All"
           ? "Content type"
-          : filterContentTypeMode.value()}&nbsp;
+          : filterContentTypeMode.curr.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
       {modes.isActive(filterContentTypeMode) &&
-        filterContentTypeMode.Model(modes)}
+        <filterContentTypeMode.Model modes={modes} /> }
     </div>
   );
 }
