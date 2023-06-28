@@ -106,7 +106,6 @@ export const editorMode = {
   ],
 };
 
-
 export const modes = {
   modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],
   prev: defaultMode as Mode,
@@ -115,6 +114,7 @@ export const modes = {
     return mode == this.active.value;
   },
   activate(mode: Mode) {
+    mode.activate && mode.activate();
     this.active.value = mode;
   },
   toggle(mode: Mode) {

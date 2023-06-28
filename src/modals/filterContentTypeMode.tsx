@@ -38,8 +38,13 @@ export default {
       onMouseDown: () => modes.deactivate(),
     },
   ],
+  activate: () => {
+    const idx = state.options.indexOf(state.curr.value);
+    state.selected.value = idx == -1 ? 0 : idx;
+  },
+
   curr: state.curr,
-  Model: ({modes} : {modes: Modes;}) => {
+  Model: ({ modes }: { modes: Modes }) => {
     const { options, normalizedSelected, selected, curr } = state;
     const inputRef = useRef<HTMLInputElement>(null);
 
