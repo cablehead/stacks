@@ -5,7 +5,8 @@ import { Icon, RenderKeys } from "../ui/icons";
 
 import { filter } from "../state";
 
-import { filterContentTypeMode, modes } from "../modes";
+import { modes } from "../modes";
+import { filterContentTypeMode } from "../modals";
 
 export function Filter() {
   const inputRef = useRef<HTMLInputElement>(null);

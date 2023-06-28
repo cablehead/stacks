@@ -31,9 +31,10 @@ import {
   actionsMode,
   addToStackMode,
   editorMode,
-  filterContentTypeMode,
   modes,
 } from "./modes";
+
+import { filterContentTypeMode } from "./modals";
 
 function RightPane(
   { item, content }: {

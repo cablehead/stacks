@@ -1,5 +1,4 @@
 import { Signal, signal } from "@preact/signals";
-import { JSXInternal } from "preact/src/jsx";
 
 import { hide } from "tauri-plugin-spotlight-api";
 
@@ -7,16 +6,7 @@ import { Icon } from "./ui/icons";
 
 import { filter } from "./state";
 
-interface HotKey {
-  name: string;
-  keys: (string | JSXInternal.Element)[];
-  onMouseDown: (event: any) => void;
-}
-
-export interface Mode {
-  name: string;
-  hotKeys: () => HotKey[];
-}
+import { Mode } from "./modals/types";
 
 const defaultMode = {
   name: "Clipboard",
@@ -116,22 +106,6 @@ export const editorMode = {
   ],
 };
 
-export const filterContentTypeMode = {
-  name: "Filter by content type",
-  hotKeys: () => [
-    {
-      name: "Select",
-      keys: [<Icon name="IconReturnKey" />],
-      onMouseDown: () => {
-      },
-    },
-    {
-      name: "Back",
-      keys: ["ESC"],
-      onMouseDown: () => modes.deactivate(),
-    },
-  ],
-};
 
 export const modes = {
   modes: [defaultMode, actionsMode, editorMode, addToStackMode] as Mode[],

@@ -5,7 +5,8 @@ import { borderRight, footer } from "../ui/app.css";
 
 import { themeMode } from "../state";
 
-import { Mode, modes } from "../modes";
+import { modes } from "../modes";
+import { Mode } from "../modals/types";
 
 const VertDiv = () => (
   <div
@@ -49,7 +50,7 @@ const ModeBar = ({ mode }: { mode: Mode }) => {
         align-items: center;
         gap: 0.5ch;
       ">
-        {mode.hotKeys().map((hotKey) => (
+        {mode.hotKeys(modes).map((hotKey) => (
           <>
             <HotKey
               name={hotKey.name}
