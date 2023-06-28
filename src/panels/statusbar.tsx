@@ -3,7 +3,7 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { themeMode } from "../state";
+import { themeMode } from "../modals/mainMode";
 
 import { modes } from "../modals";
 import { Mode } from "../modals/types";

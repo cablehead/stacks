@@ -1,81 +1,20 @@
-import { JSXInternal } from "preact/src/jsx";
 import { Signal, useComputed, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/shell";
-
 import { borderBottom, overlay } from "../ui/app.css";
-import { Icon, RenderKeys } from "../ui/icons";
+import { RenderKeys } from "../ui/icons";
 
-import { getContent, Item } from "../state";
+import { Action, LoadedItem } from "../types";
 
-import { actionsMode, editorMode, modes } from "../modals";
+import { actionsMode, modes } from "../modals";
 
-interface Action {
-  name: string;
-  keys?: (string | JSXInternal.Element)[];
-  trigger?: (item: Item) => void;
-  canApply?: (item: Item) => boolean;
-}
-
-async function open_link(item: Item) {
-  const url = await getContent(item.hash);
-  await open(url);
-}
-
-const actions = [
-  {
-    name: "Edit",
-    keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (_: Item) => modes.activate(editorMode),
-    canApply: (item: Item) => item.mime_type === "text/plain",
-  },
-  {
-    name: "Open",
-    keys: [<Icon name="IconCommandKey" />, "O"],
-    trigger: open_link,
-    canApply: (item: Item) => item.content_type === "Link",
-  },
-  {
-    name: "Delete",
-    keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) => invoke("store_delete", { hash: item.hash }),
-  },
-];
-
-const trigger = (name: string, item: Item): void => {
-  const action = actions.filter((action) => action.name === name)[0];
-  if (action.canApply && !action.canApply(item)) return;
-  if (action.trigger) action.trigger(item);
-};
-
-export const attemptAction = (event: KeyboardEvent, item: Item): boolean => {
-  switch (true) {
-    case (event.ctrlKey && event.key === "Backspace"):
-      event.preventDefault();
-      trigger("Delete", item);
-      return true;
-
-    case (event.metaKey && event.key === "e"):
-      event.preventDefault();
-      trigger("Edit", item);
-      return true;
-
-    case (event.metaKey && event.key === "o"):
-      event.preventDefault();
-      trigger("Open", item);
-      return true;
-  }
-
-  return false;
-};
+import { actions, attemptAction } from "../actions";
 
 function ActionRow(
-  { action, isSelected, item }: {
+  { action, isSelected, loaded }: {
     action: Action;
     isSelected: boolean;
-    item: Item;
+    loaded: LoadedItem;
   },
 ) {
   return (
@@ -91,7 +30,7 @@ function ActionRow(
         cursor: pointer;
         "
       onMouseDown={() => {
-        if (action.trigger) action.trigger(item);
+        if (action.trigger) action.trigger(loaded);
       }}
     >
       <div>
@@ -104,8 +43,8 @@ function ActionRow(
   );
 }
 
-export function Actions({ item }: {
-  item: Item;
+export function Actions({ loaded }: {
+  loaded: LoadedItem;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -128,7 +67,7 @@ export function Actions({ item }: {
           currFilter.value.toLowerCase(),
         );
       })
-      .filter((action) => !action.canApply || action.canApply(item));
+      .filter((action) => !action.canApply || action.canApply(loaded.item));
   });
 
   const normalizedSelected = useComputed(() => {
@@ -187,7 +126,7 @@ export function Actions({ item }: {
                   const action =
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
-                  action.trigger(item);
+                  action.trigger(loaded);
                   break;
 
                 case event.metaKey && event.key === "k":
@@ -208,7 +147,7 @@ export function Actions({ item }: {
                   break;
 
                 default:
-                  attemptAction(event, item);
+                  attemptAction(event, loaded);
               }
             }}
           />
@@ -223,7 +162,7 @@ export function Actions({ item }: {
             <ActionRow
               action={action}
               isSelected={normalizedSelected.value == index}
-              item={item}
+              loaded={loaded}
             />
           ))}
       </div>

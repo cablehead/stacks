@@ -1,7 +1,9 @@
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, stack } from "../state";
+import { Item } from "../types";
+
+import { stack } from "../modals/mainMode";
 
 export function Nav() {
   return (

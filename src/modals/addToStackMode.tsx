@@ -4,9 +4,10 @@ import { useEffect, useMemo, useRef } from "preact/hooks";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, overlay } from "../ui/app.css";
-import { Item } from "../state";
 import { Icon } from "../ui/icons";
+
 import { Modes } from "./types";
+import { Item } from "../types";
 
 
 export default {

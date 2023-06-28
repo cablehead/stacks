@@ -1,7 +1,14 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
-import { mainMode, addToStackMode, filterContentTypeMode, actionsMode, editorMode, modes } from "./modals";
+import {
+  actionsMode,
+  addToStackMode,
+  editorMode,
+  filterContentTypeMode,
+  mainMode,
+  modes,
+} from "./modals";
 
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -11,23 +18,24 @@ import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 import { Nav } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
-import { Actions, attemptAction } from "./panels/actions";
+import { Actions } from "./panels/actions";
 import { Editor } from "./panels/editor";
-import { Filter} from "./panels/filter";
+import { Filter } from "./panels/filter";
 
+import { attemptAction } from "./actions";
+
+import { Item } from "./types";
 import {
   focusSelected,
   getContent,
-  Item,
+  loadedItem,
   selectedContent,
   selectedItem,
   stack,
   themeMode,
   triggerCopy,
   updateSelected,
-} from "./state";
-
-
+} from "./modals/mainMode";
 
 function RightPane(
   { item, content }: {
@@ -153,8 +161,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       break;
 
     default:
-      if (selectedItem.value) {
-        if (attemptAction(event, selectedItem.value)) return;
+      if (loadedItem.value) {
+        if (attemptAction(event, loadedItem.value)) return;
       }
 
       // todo: preserve command-c
@@ -204,11 +212,11 @@ function Main() {
             />
           )}
 
-      {modes.isActive(addToStackMode) &&
-        <addToStackMode.Modal modes={modes} />}
+        {modes.isActive(addToStackMode) &&
+          <addToStackMode.Modal modes={modes} />}
 
-        {selectedItem.value && modes.isActive(actionsMode) &&
-          <Actions item={selectedItem.value} />}
+        {loadedItem.value && modes.isActive(actionsMode) &&
+          <Actions loaded={loadedItem.value} />}
 
         {selectedContent.value && modes.isActive(editorMode) &&
           <Editor content={selectedContent.value} />}
