@@ -23,18 +23,10 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { Item } from "./types";
-import {
-  focusSelected,
-  loadedItem,
-  selectedContent,
-  selectedItem,
-  stack,
-  themeMode,
-  triggerCopy,
-  updateSelected,
-} from "./modals/mainMode";
+import { stack, triggerCopy } from "./stacks";
 
+import { Item } from "./types";
+import { focusSelected, themeMode } from "./modals/mainMode";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
@@ -69,12 +61,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      updateSelected(1);
+      stack.value.selected.value += 1;
       break;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      updateSelected(-1);
+      stack.value.selected.value -= 1;
       break;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -82,8 +74,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      if (loadedItem.value) {
-        if (attemptAction(event, loadedItem.value)) return;
+      if (stack.value.loaded.value) {
+        if (attemptAction(event, stack.value.loaded.value)) return;
       }
 
       if (mainMode.state.input !== null) {
@@ -117,25 +109,24 @@ function Main() {
             position: relative;
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-          <Nav stack={stack} />
+          <Nav stack={stack.value} />
         </div>
 
-        {selectedItem.value && selectedContent.value &&
+        {stack.value.loaded.value &&
           (
             <MetaPanel
-              item={selectedItem.value}
-              content={selectedContent.value}
+              loaded={stack.value.loaded.value}
             />
-          )}
+          ) }
 
         {modes.isActive(addToStackMode) &&
           <addToStackMode.Modal modes={modes} />}
 
-        {loadedItem.value && modes.isActive(actionsMode) &&
-          <Actions loaded={loadedItem.value} />}
+        {stack.value.loaded.value && modes.isActive(actionsMode) &&
+          <Actions loaded={stack.value.loaded.value} />}
 
-        {selectedContent.value && modes.isActive(editorMode) &&
-          <Editor content={selectedContent.value} />}
+        {stack.value.loaded.value && modes.isActive(editorMode) &&
+          <Editor loaded={stack.value.loaded.value} />}
       </div>
       <StatusBar />
     </main>
@@ -146,19 +137,17 @@ export function App() {
   useEffect(() => {
     listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
-      stack.items.value = event.payload;
-      updateSelected(0);
+      stack.value.items.value = event.payload;
     });
 
     async function init() {
-      stack.items.value = await invoke<Item[]>("init_window");
-      updateSelected(0);
+      stack.value.items.value = await invoke<Item[]>("init_window");
     }
     init();
 
     // set selection back to the top onBlur
     const onBlur = () => {
-      stack.selected.value = 0;
+      stack.value.selected.value = 0;
     };
     const onFocus = () => {
       focusSelected(100);

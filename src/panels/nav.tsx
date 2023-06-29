@@ -3,10 +3,8 @@ import { useSignal } from "@preact/signals";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
-import { createStack } from "../stack";
-
-import { selectedContent, selectedItem } from "../modals/mainMode";
+import { Item, Stack, LoadedItem } from "../types";
+import { createStack } from "../stacks";
 
 export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
   return (
@@ -27,8 +25,7 @@ export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
       </div>
 
       <RightPane
-        item={selectedItem.value}
-        content={selectedContent.value}
+        loaded={stack.loaded.value}
         parent={parent}
       />
     </>
@@ -95,65 +92,62 @@ const TerseRow = (
 );
 
 function RightPane(
-  { item, content, parent }: {
-    item: Item | undefined;
-    content: string | undefined;
+  { loaded, parent }: {
+    loaded: LoadedItem | undefined;
     parent?: boolean;
   },
 ) {
-  if (!item) {
-    return <div />;
+  return (
+    <div style="flex: 3; overflow: auto; height: 100%">
+      {loaded
+        ? <Preview item={loaded.item} content={loaded.content} parent={parent} />
+        : "loading..."}
+    </div>
+  );
+}
+
+function Preview(
+  { item, content }: { item: Item; content: string; parent?: boolean; },
+) {
+  if (item.mime_type === "image/png") {
+    return (
+      <img
+        src={"data:image/png;base64," + content}
+        style={{
+          opacity: 0.95,
+          borderRadius: "0.5rem",
+          maxHeight: "100%",
+          height: "auto",
+          width: "auto",
+          objectFit: "contain",
+        }}
+      />
+    );
   }
 
-  function Preview(
-    { item, content }: { item: Item; content: string },
-  ) {
-    if (item.mime_type === "image/png") {
-      return (
-        <img
-          src={"data:image/png;base64," + content}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
+  if (!parent && item.content_type == "Stack") {
+    return <Nav stack={createStack(useSignal(item.stack))} parent={true} />;
+  }
 
-    if (!parent && item.content_type == "Stack") {
-      return <Nav stack={createStack(useSignal(item.stack))} parent={true} />;
-    }
-
-    if (item.link) {
-      return (
-        <img
-          src={item.link.screenshot}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
-
+  if (item.link) {
     return (
-      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
-      </pre>
+      <img
+        src={item.link.screenshot}
+        style={{
+          opacity: 0.95,
+          borderRadius: "0.5rem",
+          maxHeight: "100%",
+          height: "auto",
+          width: "auto",
+          objectFit: "contain",
+        }}
+      />
     );
   }
 
   return (
-    <div style="flex: 3; overflow: auto; height: 100%">
-      {content ? <Preview item={item} content={content} /> : "loading..."}
-    </div>
+    <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { content !== undefined ? content : "loading..." }
+    </pre>
   );
 }
