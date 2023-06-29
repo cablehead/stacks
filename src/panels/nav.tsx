@@ -4,6 +4,7 @@ import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
+import { createStack } from "../stack";
 
 import { selectedContent, selectedItem } from "../modals/mainMode";
 
@@ -104,19 +105,6 @@ function RightPane(
     return <div />;
   }
 
-  function SubItem({ item }: {
-    item: Item;
-  }) {
-    const selected = useSignal(0);
-    const items = useSignal(item.stack);
-    let stack = {
-      selected,
-      items,
-    };
-
-    return <Nav stack={stack} parent={true} />;
-  }
-
   function Preview(
     { item, content }: { item: Item; content: string },
   ) {
@@ -137,7 +125,7 @@ function RightPane(
     }
 
     if (!parent && item.content_type == "Stack") {
-      return <SubItem item={item} />;
+      return <Nav stack={createStack(useSignal(item.stack))} parent={true} />;
     }
 
     if (item.link) {
