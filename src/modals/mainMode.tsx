@@ -13,7 +13,7 @@ import { default as filterContentTypeMode } from "./filterContentTypeMode";
 
 import { writeText } from "@tauri-apps/api/clipboard";
 
-export const themeMode = signal("light");
+export const themeMode = signal("dark");
 
 // TODO: cap size of CAS, with MRU eviction
 const CAS: Map<string, string> = new Map();

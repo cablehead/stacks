@@ -26,6 +26,9 @@ export function Nav() {
 
 const RowIcon = ({ item }: { item: Item }) => {
   switch (item.content_type) {
+    case "Stack":
+      return <Icon name="IconStack" />;
+
     case "Image":
       return <Icon name="IconImage" />;
 
