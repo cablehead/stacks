@@ -1,4 +1,5 @@
 import { useEffect } from "preact/hooks";
+import { signal } from "@preact/signals";
 
 import {
   actionsMode,
@@ -23,7 +24,7 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { currStack, triggerCopy } from "./stacks";
+import { createStack, currStack, triggerCopy } from "./stacks";
 
 import { Item } from "./types";
 import { focusSelected, themeMode } from "./modals/mainMode";
@@ -57,6 +58,19 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab":
       event.preventDefault();
+      const loaded = currStack.value.loaded.value;
+      if (!loaded) return;
+
+      if (loaded.item.content_type == "Stack") {
+        const subStack = createStack(
+          signal(loaded.item.stack),
+          currStack.value,
+        );
+        currStack.value = subStack;
+
+        return;
+      }
+
       modes.activate(addToStackMode);
       break;
 
