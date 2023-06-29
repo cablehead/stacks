@@ -4,7 +4,7 @@ import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
-import { createStack } from "../stacks";
+import { createStack, currStack } from "../stacks";
 
 export function Nav({ stack }: { stack: Stack }) {
   return (
@@ -57,7 +57,13 @@ const TerseRow = (
   <div
     className={"terserow" +
       (index === stack.normalizedSelected.value ? " selected" : "")}
-    onClick={() => stack.selected.value = index}
+    onClick={() => {
+        if (currStack.value != stack) {
+            console.log("Switcheroo");
+            currStack.value = stack;
+        }
+      stack.selected.value = index;
+    }}
     style="
         display: flex;
         width: 100%;
