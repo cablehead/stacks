@@ -1,3 +1,6 @@
+import { forwardRef } from "preact/compat";
+import { useEffect, useRef } from "preact/hooks";
+
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
@@ -32,6 +35,41 @@ export function RenderStack({ stack }: { stack: Stack }) {
 */
 
 export function Nav({ stack }: { stack: Stack }) {
+  const theRef = useRef<HTMLDivElement>(null);
+
+  let focusSelectedTimeout: number | undefined;
+
+  function focusSelected(delay: number) {
+    if (focusSelectedTimeout !== undefined) {
+      return;
+    }
+
+    focusSelectedTimeout = window.setTimeout(() => {
+      focusSelectedTimeout = undefined;
+      if (theRef.current) {
+        console.log("SCROLL INTO VIEW");
+        theRef.current.scrollIntoView({
+          behavior: "smooth",
+          block: "nearest",
+        });
+      }
+    }, delay);
+  }
+
+  useEffect(() => {
+    focusSelected(5);
+  }, [theRef.current]);
+
+  useEffect(() => {
+    const onFocus = () => {
+      focusSelected(100);
+    };
+    window.addEventListener("focus", onFocus);
+    return () => {
+      window.removeEventListener("focus", onFocus);
+    };
+  }, []);
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
       <div
@@ -45,7 +83,15 @@ export function Nav({ stack }: { stack: Stack }) {
       >
         {stack.items.value
           .map((item, index) => {
-            return <TerseRow stack={stack} item={item} index={index} />;
+            return (
+              <TerseRow
+                stack={stack}
+                item={item}
+                index={index}
+                ref={index === stack.normalizedSelected.value ? theRef : null}
+                key={index}
+              />
+            );
           })}
       </div>
 
@@ -74,53 +120,57 @@ const RowIcon = ({ item }: { item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
-const TerseRow = (
-  { stack, item, index }: { stack: Stack; item: Item; index: number },
-) => (
-  <div
-    className={"terserow" +
-      (index === stack.normalizedSelected.value ? " selected" : "")}
-    onClick={() => {
+const TerseRow = forwardRef<
+  HTMLDivElement,
+  { stack: Stack; item: Item; index: number }
+>(
+  ({ stack, item, index }, ref) => (
+    <div
+      ref={ref}
+      className={"terserow" +
+        (index === stack.normalizedSelected.value ? " selected" : "")}
+      onClick={() => {
         /* todo:
-      if (currStack.value != stack) {
-        console.log("Switcheroo");
-        currStack.value = stack;
-      }
-      stack.selected.value = index;
-      */
-    }}
-    style="
-        display: flex;
-        width: 100%;
-        gap: 0.5ch;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-  >
-    <div
-      style={{
-        flexShrink: 0,
-        width: "2ch",
-        whiteSpace: "nowrap",
-        overflow: "hidden",
+        if (currStack.value != stack) {
+          console.log("Switcheroo");
+          currStack.value = stack;
+        }
+        */
+        stack.selected.value = index;
       }}
+      style="
+          display: flex;
+          width: 100%;
+          gap: 0.5ch;
+          overflow: hidden;
+          padding: 0.5ch 0.75ch;
+          border-radius: 6px;
+          cursor: pointer;
+          "
     >
-      <RowIcon item={item} />
-    </div>
+      <div
+        style={{
+          flexShrink: 0,
+          width: "2ch",
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+        }}
+      >
+        <RowIcon item={item} />
+      </div>
 
-    <div
-      style={{
-        flexGrow: 1,
-        whiteSpace: "nowrap",
-        overflow: "hidden",
-        textOverflow: "ellipsis",
-      }}
-    >
-      {item.terse}
+      <div
+        style={{
+          flexGrow: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {item.terse}
+      </div>
     </div>
-  </div>
+  ),
 );
 
 function Preview({ stack }: { stack: Stack }) {

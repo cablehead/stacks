@@ -10,26 +10,6 @@ import { default as filterContentTypeMode } from "./filterContentTypeMode";
 
 export const themeMode = signal("light");
 
-let focusSelectedTimeout: number | undefined;
-
-export function focusSelected(delay: number) {
-  if (focusSelectedTimeout !== undefined) {
-    return;
-  }
-
-  focusSelectedTimeout = window.setTimeout(() => {
-    focusSelectedTimeout = undefined;
-    const selectedItem = document.querySelector(
-      `.terserow.selected`,
-    );
-    if (selectedItem) {
-      selectedItem.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
-    }
-  }, delay);
-}
 
 export const state = (() => {
   const curr = signal("");
