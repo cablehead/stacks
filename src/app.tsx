@@ -14,7 +14,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
-import { Nav } from "./panels/nav";
+import { RenderStack } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions } from "./panels/actions";
@@ -114,7 +114,7 @@ function Main() {
             padding-right:1ch;
             position: relative;
         ">
-        <Nav stack={currStack.value} />
+        <RenderStack stack={currStack.value} />
 
         {currStack.value.loaded.value &&
           (

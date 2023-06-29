@@ -6,30 +6,54 @@ import { borderRight } from "../ui/app.css";
 import { Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
+export function RenderStack({ stack }: { stack: Stack }) {
+  const parent = stack.parents[0];
+  return (
+    <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+      {parent &&
+        (
+          <div
+            className={borderRight}
+            style="
+      flex: 1;
+      max-width: 10ch;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    "
+          >
+            {parent.items.value
+              .map((item, index) => {
+                return <TerseRow stack={parent} item={item} index={index} />;
+              })}
+          </div>
+        )}
+    <Nav stack={stack} />
+    </div>
+  );
+}
+
 export function Nav({ stack }: { stack: Stack }) {
   return (
-    <>
-      <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-        <div
-          className={borderRight}
-          style="
+    <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+      <div
+        className={borderRight}
+        style="
       flex: 1;
       max-width: 20ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
-        >
-          {stack.items.value
-            .map((item, index) => {
-              return <TerseRow stack={stack} item={item} index={index} />;
-            })}
-        </div>
-
-        <div style="flex: 3; overflow: auto; height: 100%">
-          <Preview stack={stack} />
-        </div>
+      >
+        {stack.items.value
+          .map((item, index) => {
+            return <TerseRow stack={stack} item={item} index={index} />;
+          })}
       </div>
-    </>
+
+      <div style="flex: 3; overflow: auto; height: 100%">
+        <Preview stack={stack} />
+      </div>
+    </div>
   );
 }
 
@@ -58,10 +82,10 @@ const TerseRow = (
     className={"terserow" +
       (index === stack.normalizedSelected.value ? " selected" : "")}
     onClick={() => {
-        if (currStack.value != stack) {
-            console.log("Switcheroo");
-            currStack.value = stack;
-        }
+      if (currStack.value != stack) {
+        console.log("Switcheroo");
+        currStack.value = stack;
+      }
       stack.selected.value = index;
     }}
     style="
