@@ -108,16 +108,14 @@ function Main() {
             padding-right:1ch;
             position: relative;
         ">
-        <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-          <Nav stack={stack.value} />
-        </div>
+        <Nav stack={stack.value} />
 
         {stack.value.loaded.value &&
           (
             <MetaPanel
               loaded={stack.value.loaded.value}
             />
-          ) }
+          )}
 
         {modes.isActive(addToStackMode) &&
           <addToStackMode.Modal modes={modes} />}

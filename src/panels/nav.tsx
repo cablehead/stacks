@@ -9,23 +9,25 @@ import { createStack } from "../stacks";
 export function Nav({ stack }: { stack: Stack }) {
   return (
     <>
-      <div
-        className={borderRight}
-        style="
+      <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+        <div
+          className={borderRight}
+          style="
       flex: 1;
       max-width: 20ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
-      >
-        {stack.items.value
-          .map((item, index) => {
-            return <TerseRow stack={stack} item={item} index={index} />;
-          })}
-      </div>
+        >
+          {stack.items.value
+            .map((item, index) => {
+              return <TerseRow stack={stack} item={item} index={index} />;
+            })}
+        </div>
 
-      <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} />
+        <div style="flex: 3; overflow: auto; height: 100%">
+          <Preview stack={stack} />
+        </div>
       </div>
     </>
   );
