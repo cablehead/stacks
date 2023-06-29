@@ -41,6 +41,30 @@ async fn store_get_content(hash: String) -> Option<String> {
 }
 
 #[tauri::command]
+async fn store_list_stacks(filter: String) -> Vec<Item> {
+    let store = &STORE.lock().unwrap();
+    let mut ret: Vec<Item> = store
+        .items
+        .values()
+        .filter(|item| {
+            if &item.content_type != "Stack" {
+                return false;
+            }
+
+            return if filter == filter.to_lowercase() {
+                item.terse.to_lowercase().contains(&filter)
+            } else {
+                item.terse.contains(&filter)
+            };
+        })
+        .cloned()
+        .collect();
+    ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+    ret.truncate(400);
+    ret
+}
+
+#[tauri::command]
 async fn store_delete(app: tauri::AppHandle, hash: String) {
     println!("DEL: {}", &hash);
     let mut state = STORE.lock().unwrap();
@@ -372,6 +396,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             store_set_filter,
             store_get_content,
+            store_list_stacks,
             store_delete,
             init_window,
             open_docs,
@@ -395,7 +420,7 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            // window.open_devtools();
+            window.open_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

@@ -1,28 +1,19 @@
 import { useEffect, useRef } from "preact/hooks";
 
+import { writeText } from "@tauri-apps/api/clipboard";
+
 import { overlay } from "../ui/app.css";
 
-import { editor, getContent, Item } from "../state";
+import { modes } from "../modals";
 
-export function Editor({ item }: {
-  item: Item;
+export function Editor({ content }: {
+  content: string;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
-
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
-
-    async function fetchContent() {
-      let content = await getContent(item.hash);
-      if (inputRef.current != null) {
-        inputRef.current.value = content;
-        editor.content = content;
-      }
-    }
-    editor.content = "";
-    fetchContent();
   }, []);
 
   return (
@@ -50,33 +41,32 @@ export function Editor({ item }: {
           border: "none",
         }}
         onBlur={() => {
-          editor.show.value = false;
+          modes.deactivate();
         }}
         placeholder="..."
-        onInput={() => {
-          if (inputRef.current !== null) {
-            editor.content = inputRef.current.value;
-          }
-        }}
         onKeyDown={(event) => {
           event.stopPropagation();
           switch (true) {
             case event.key === "Escape":
               event.preventDefault();
-              editor.show.value = false;
+              modes.deactivate();
               break;
 
             case event.metaKey && event.key === "e":
               event.preventDefault();
-              editor.show.value = false;
+              modes.deactivate();
               break;
 
             case event.metaKey && event.key === "Enter":
-              editor.save();
+              if (inputRef.current !== null) {
+                writeText(inputRef.current.value);
+              modes.deactivate();
+              }
               break;
           }
         }}
       >
+        {content}
       </textarea>
     </div>
   );

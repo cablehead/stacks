@@ -3,13 +3,10 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { actions, editor, filter, themeMode, triggerCopy } from "../state";
+import { themeMode } from "../modals/mainMode";
 
-export function StatusBar() {
-  if (editor.show.value) return <EditorBar />;
-  if (actions.show.value) return <ActionBar />;
-  return <MainBar />;
-}
+import { modes } from "../modals";
+import { Mode } from "../modals/types";
 
 const VertDiv = () => (
   <div
@@ -42,148 +39,36 @@ const Theme = () => (
   </div>
 );
 
-const EditorBar = () => {
+const ModeBar = ({ mode }: { mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
-        Editor
+        {mode.name}
       </div>
       <div style="
         display: flex;
         align-items: center;
         gap: 0.5ch;
       ">
-        <HotKey
-          name="Discard"
-          keys={["ESC"]}
-          onMouseDown={() => editor.show.value = false}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Capture"
-          keys={[
-            <Icon name="IconCommandKey" />,
-            <Icon name="IconReturnKey" />,
-          ]}
-          onMouseDown={editor.save}
-        />
-
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-
-const ActionBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Actions
-      </div>
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        {
-          /*
-        <div onClick={() => actions.show.value = false} class="hoverable">
-          Back&nbsp;
-          <span className={iconStyle}>
-            ESC
-          </span>
-        </div>
-
-        <VertDiv />
-        <div
-          onMouseDown={() => editor.save()}
-          class="hoverable"
-        >
-          Capture&nbsp;
-          <span className={iconStyle} style="margin-right: 0.25ch;">
-            <Icon name="IconCommandKey" />
-          </span>
-          <span className={iconStyle}>
-            <Icon name="IconReturnKey" />
-          </span>
-        </div>
-        */
-        }
-
-        <HotKey
-          name="Trigger Action"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={() => undefined}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Close"
-          keys={[<Icon name="IconCommandKey" />, "K"]}
-          onMouseDown={() => {
-            actions.show.value = !actions.show.value;
-          }}
-        />
-
-        <VertDiv />
-        <Theme />
-      </div>
-    </footer>
-  );
-};
-
-const MainBar = () => {
-  return (
-    <footer className={footer}>
-      <div style="">
-        Clipboard
-      </div>
-
-      <div style="
-        display: flex;
-        align-items: center;
-        gap: 0.5ch;
-      ">
-        {!filter.show.value
-          ? (
+        {mode.hotKeys(modes).map((hotKey) => (
+          <>
             <HotKey
-              name="Filter"
-              keys={["/"]}
-              onMouseDown={() => filter.show.value = true}
+              name={hotKey.name}
+              keys={hotKey.keys}
+              onMouseDown={hotKey.onMouseDown}
             />
-          )
-          : (
-            <HotKey
-              name="Clear Filter"
-              keys={["ESC"]}
-              onMouseDown={() => filter.show.value = false}
-            />
-          )}
-
-        <VertDiv />
-        <HotKey
-          name="Copy"
-          keys={[<Icon name="IconReturnKey" />]}
-          onMouseDown={triggerCopy}
-        />
-
-        <VertDiv />
-        <HotKey
-          name="Actions"
-          keys={[<Icon name="IconCommandKey" />, "K"]}
-          onMouseDown={() => {
-            actions.show.value = !actions.show.value;
-          }}
-        />
-
-        <VertDiv />
+            <VertDiv />
+          </>
+        ))}
         <Theme />
       </div>
     </footer>
   );
 };
+
+export function StatusBar() {
+  return <ModeBar mode={modes.active.value} />;
+}
 
 const HotKey = ({ name, keys, onMouseDown }: {
   name: string;

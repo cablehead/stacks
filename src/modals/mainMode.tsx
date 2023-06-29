@@ -1,27 +1,17 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
 
-import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 import { hide } from "tauri-plugin-spotlight-api";
 
-interface Link {
-  provider: string;
-  screenshot: string;
-  title: string;
-  description: string;
-  url: string;
-  icon: string;
-}
+import { Icon } from "../ui/icons";
 
-export interface Item {
-  hash: string;
-  ids: string[];
-  mime_type: string;
-  content_type: string;
-  terse: string;
-  link?: Link;
-  stack: Item[];
-}
+import { Item, LoadedItem } from "../types";
+import { Modes } from "./types";
+
+import { default as actionsMode } from "./actionsMode";
+import { default as filterContentTypeMode } from "./filterContentTypeMode";
+
+import { writeText } from "@tauri-apps/api/clipboard";
 
 export const themeMode = signal("light");
 
@@ -42,7 +32,6 @@ export async function getContent(hash: string): Promise<string> {
 export const stack = (() => {
   const items = signal<Item[]>([]);
   const selected = signal(0);
-
   return {
     items,
     selected,
@@ -59,7 +48,6 @@ export async function triggerCopy() {
       await writeText(content);
     }
   }
-  filter.show.value = false;
   hide();
 }
 
@@ -75,6 +63,17 @@ export const selectedContent = computed((): string | undefined => {
   if (item === undefined) return undefined;
   if (item.hash !== loadedHash.value) return undefined;
   return loadedContent.value;
+});
+
+export const loadedItem = computed((): LoadedItem | undefined => {
+  const item = selectedItem.value;
+  if (item === undefined) return undefined;
+  const content = selectedContent.value;
+  if (content === undefined) return undefined;
+  return {
+    item,
+    content,
+  };
 });
 
 async function updateLoaded(hash: string) {
@@ -120,50 +119,25 @@ export async function updateSelected(n: number) {
   focusSelected(5);
 }
 
-export const filter = (() => {
-  const show = signal(false);
+export const state = (() => {
   const curr = signal("");
   let inputRef: HTMLInputElement | null = null;
-
-  const contentType = (() => {
-    const options = ["All", "Stacks", "Links", "Images"];
-    const show = signal(false);
-    const curr = signal("All");
-    const selected = signal(0);
-    const normalizedSelected = computed(() => {
-      let val = selected.value % (options.length);
-      if (val < 0) val = options.length + val;
-      return val;
-    });
-    return {
-      options,
-      show,
-      curr,
-      selected,
-      normalizedSelected,
-    };
-  })();
-
-  effect(() => {
-    if (!show.value) {
-      curr.value = "";
-      contentType.selected.value = 0;
-      contentType.curr.value = "All";
-      contentType.show.value = false;
-    }
-  });
 
   effect(() => {
     invoke<Item[]>("store_set_filter", {
       curr: curr.value,
-      contentType: contentType.curr.value,
+      contentType: filterContentTypeMode.curr.value,
     });
   });
 
   return {
-    show,
     curr,
-    contentType,
+    dirty: () => curr.value != "" || filterContentTypeMode.curr.value != "All",
+    clear: () => {
+      if (inputRef) inputRef.value = "";
+      curr.value = "";
+      filterContentTypeMode.curr.value = "All";
+    },
     get input(): HTMLInputElement | null {
       return inputRef;
     },
@@ -173,17 +147,39 @@ export const filter = (() => {
   };
 })();
 
-export const actions = {
-  show: signal(false),
-};
+export default {
+  name: "Clipboard",
+  state: state,
+  hotKeys: (modes: Modes) => [
+    {
+      name: "Copy",
+      keys: [<Icon name="IconReturnKey" />],
+      onMouseDown: () => {
+      },
+    },
 
-export const editor = {
-  show: signal(false),
-  content: "",
-  get save() {
-    return () => {
-      writeText(this.content);
-      hide();
-    };
-  },
+    {
+      name: "Actions",
+      keys: [<Icon name="IconCommandKey" />, "K"],
+      onMouseDown: () => {
+        modes.toggle(actionsMode);
+      },
+    },
+
+    !state.dirty()
+      ? {
+        name: "Close",
+        keys: ["ESC"],
+        onMouseDown: () => {
+          hide();
+        },
+      }
+      : {
+        name: "Clear filter",
+        keys: ["ESC"],
+        onMouseDown: () => {
+          state.clear();
+        },
+      },
+  ],
 };

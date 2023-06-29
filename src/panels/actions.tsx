@@ -1,79 +1,20 @@
-import { JSXInternal } from "preact/src/jsx";
 import { Signal, useComputed, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/shell";
-
 import { borderBottom, overlay } from "../ui/app.css";
-import { Icon, RenderKeys } from "../ui/icons";
+import { RenderKeys } from "../ui/icons";
 
-import { editor, getContent, Item } from "../state";
+import { Action, LoadedItem } from "../types";
 
-interface Action {
-  name: string;
-  keys?: (string | JSXInternal.Element)[];
-  trigger?: (item: Item) => void;
-  canApply?: (item: Item) => boolean;
-}
+import { actionsMode, modes } from "../modals";
 
-async function open_link(item: Item) {
-  const url = await getContent(item.hash);
-  await open(url);
-}
-
-const actions = [
-  {
-    name: "Edit",
-    keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (_: Item) => editor.show.value = true,
-    canApply: (item: Item) => item.mime_type === "text/plain",
-  },
-  {
-    name: "Open",
-    keys: [<Icon name="IconCommandKey" />, "O"],
-    trigger: open_link,
-    canApply: (item: Item) => item.content_type === "Link",
-  },
-  {
-    name: "Delete",
-    keys: ["Ctrl", "DEL"],
-    trigger: (item: Item) => invoke("store_delete", { hash: item.hash }),
-  },
-];
-
-const trigger = (name: string, item: Item): void => {
-  const action = actions.filter((action) => action.name === name)[0];
-  if (action.canApply && !action.canApply(item)) return;
-  if (action.trigger) action.trigger(item);
-};
-
-export const attemptAction = (event: KeyboardEvent, item: Item): boolean => {
-  switch (true) {
-    case (event.ctrlKey && event.key === "Backspace"):
-      event.preventDefault();
-      trigger("Delete", item);
-      return true;
-
-    case (event.metaKey && event.key === "e"):
-      event.preventDefault();
-      trigger("Edit", item);
-      return true;
-
-    case (event.metaKey && event.key === "o"):
-      event.preventDefault();
-      trigger("Open", item);
-      return true;
-  }
-
-  return false;
-};
+import { actions, attemptAction } from "../actions";
 
 function ActionRow(
-  { action, isSelected, item }: {
+  { action, isSelected, loaded }: {
     action: Action;
     isSelected: boolean;
-    item: Item;
+    loaded: LoadedItem;
   },
 ) {
   return (
@@ -89,7 +30,7 @@ function ActionRow(
         cursor: pointer;
         "
       onMouseDown={() => {
-        if (action.trigger) action.trigger(item);
+        if (action.trigger) action.trigger(loaded);
       }}
     >
       <div>
@@ -102,9 +43,8 @@ function ActionRow(
   );
 }
 
-export function Actions({ showActions, item }: {
-  showActions: Signal<boolean>;
-  item: Item;
+export function Actions({ loaded }: {
+  loaded: LoadedItem;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -112,7 +52,6 @@ export function Actions({ showActions, item }: {
   const currFilter = useSignal("");
 
   useEffect(() => {
-    selected.value = 0;
     if (inputRef.current != null) {
       inputRef.current.focus();
     }
@@ -128,7 +67,7 @@ export function Actions({ showActions, item }: {
           currFilter.value.toLowerCase(),
         );
       })
-      .filter((action) => !action.canApply || action.canApply(item));
+      .filter((action) => !action.canApply || action.canApply(loaded.item));
   });
 
   const normalizedSelected = useComputed(() => {
@@ -166,32 +105,33 @@ export function Actions({ showActions, item }: {
           <input
             type="text"
             ref={inputRef}
-            onBlur={() => showActions.value = false}
+            onBlur={() => modes.deactivate()}
             placeholder="Search..."
             onInput={() => {
               if (inputRef.current == null) return;
               currFilter.value = inputRef.current.value;
             }}
             onKeyDown={(event) => {
+              console.log("ACTIONS", event);
               event.stopPropagation();
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
-                  showActions.value = false;
+                  modes.deactivate();
                   break;
 
                 case event.key === "Enter":
                   event.preventDefault();
-                  showActions.value = false;
+                  modes.deactivate();
                   const action =
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
-                  action.trigger(item);
+                  action.trigger(loaded);
                   break;
 
                 case event.metaKey && event.key === "k":
                   event.preventDefault();
-                  showActions.value = !showActions.value;
+                  modes.toggle(actionsMode);
                   break;
 
                 case (event.ctrlKey && event.key === "n") ||
@@ -207,7 +147,7 @@ export function Actions({ showActions, item }: {
                   break;
 
                 default:
-                  if (attemptAction(event, item)) showActions.value = false;
+                  attemptAction(event, loaded);
               }
             }}
           />
@@ -222,7 +162,7 @@ export function Actions({ showActions, item }: {
             <ActionRow
               action={action}
               isSelected={normalizedSelected.value == index}
-              item={item}
+              loaded={loaded}
             />
           ))}
       </div>

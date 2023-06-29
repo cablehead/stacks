@@ -1,34 +1,41 @@
 import { useEffect } from "preact/hooks";
 import { useSignal } from "@preact/signals";
 
+import {
+  actionsMode,
+  addToStackMode,
+  editorMode,
+  filterContentTypeMode,
+  mainMode,
+  modes,
+} from "./modals";
+
 import { Event, listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
-import { hide } from "tauri-plugin-spotlight-api";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
 import { Nav } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
-import { Actions, attemptAction } from "./panels/actions";
+import { Actions } from "./panels/actions";
 import { Editor } from "./panels/editor";
 import { Filter } from "./panels/filter";
-import { AddToStack } from "./panels/stacks";
 
+import { attemptAction } from "./actions";
+
+import { Item } from "./types";
 import {
-  actions,
-  editor,
-  filter,
   focusSelected,
   getContent,
-  Item,
+  loadedItem,
   selectedContent,
   selectedItem,
   stack,
   themeMode,
   triggerCopy,
   updateSelected,
-} from "./state";
+} from "./modals/mainMode";
 
 function RightPane(
   { item, content }: {
@@ -113,6 +120,7 @@ function RightPane(
 }
 
 async function globalKeyHandler(event: KeyboardEvent) {
+  console.log("GLOBAL", event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
@@ -120,38 +128,26 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
-
-      if (actions.show.value) {
-        actions.show.value = false;
+      if (mainMode.state.dirty()) {
+        mainMode.state.clear();
         return;
       }
-
-      if (filter.show.value) {
-        filter.show.value = false;
-        return;
-      }
-      hide();
+      modes.deactivate();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      actions.show.value = !actions.show.value;
-      // await invoke("open_docs");
+      modes.toggle(actionsMode);
       break;
 
     case event.key === "Tab":
       event.preventDefault();
-      // await invoke("open_docs");
+      modes.activate(addToStackMode);
       break;
 
-    case ((!filter.show.value) && event.key === "/"):
+    case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      filter.show.value = true;
-      break;
-
-    case (filter.show.value && event.metaKey && event.key === "p"):
-      event.preventDefault();
-      filter.contentType.show.value = !filter.contentType.show.value;
+      modes.toggle(filterContentTypeMode);
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
@@ -165,12 +161,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
       break;
 
     default:
-      if (selectedItem.value) {
-        if (attemptAction(event, selectedItem.value)) return;
+      if (loadedItem.value) {
+        if (attemptAction(event, loadedItem.value)) return;
       }
 
-      if (filter.show.value && filter.input !== null) {
-        filter.input.focus();
+      // todo: preserve command-c
+      if (mainMode.state.input !== null) {
+        mainMode.state.input.focus();
       }
   }
 }
@@ -187,8 +184,8 @@ function Main() {
     <main
       className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      {filter.show.value && <Filter />}
-      <section style="
+      <Filter />
+      <div style="
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -215,15 +212,15 @@ function Main() {
             />
           )}
 
-        {false &&
-          <AddToStack />}
+        {modes.isActive(addToStackMode) &&
+          <addToStackMode.Modal modes={modes} />}
 
-        {selectedItem.value && actions.show.value &&
-          <Actions showActions={actions.show} item={selectedItem.value} />}
+        {loadedItem.value && modes.isActive(actionsMode) &&
+          <Actions loaded={loadedItem.value} />}
 
-        {selectedItem.value && editor.show.value &&
-          <Editor item={selectedItem.value} />}
-      </section>
+        {selectedContent.value && modes.isActive(editorMode) &&
+          <Editor content={selectedContent.value} />}
+      </div>
       <StatusBar />
     </main>
   );
@@ -246,7 +243,6 @@ export function App() {
     // set selection back to the top onBlur
     const onBlur = () => {
       stack.selected.value = 0;
-      actions.show.value = false;
     };
     const onFocus = () => {
       focusSelected(100);
