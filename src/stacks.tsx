@@ -77,10 +77,10 @@ export const createStack = (items: Signal<Item[]>, parent?: Stack): Stack => {
 const items = signal<Item[]>([]);
 const root = createStack(items);
 
-export const stack = signal(root);
+export const currStack = signal(root);
 
 export async function triggerCopy() {
-  const loaded = stack.value.loaded.value;
+  const loaded = currStack.value.loaded.value;
   if (!loaded) return;
 
   if (loaded.item.mime_type != "text/plain") {
