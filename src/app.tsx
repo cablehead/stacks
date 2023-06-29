@@ -160,12 +160,15 @@ async function globalKeyHandler(event: KeyboardEvent) {
       updateSelected(-1);
       break;
 
+    case (event.metaKey && (event.key === "Meta" || event.key === "c")):
+      // avoid capturing command-c
+      return;
+
     default:
       if (loadedItem.value) {
         if (attemptAction(event, loadedItem.value)) return;
       }
 
-      // todo: preserve command-c
       if (mainMode.state.input !== null) {
         mainMode.state.input.focus();
       }
