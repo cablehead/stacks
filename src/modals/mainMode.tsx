@@ -166,20 +166,16 @@ export default {
       },
     },
 
-    !state.dirty()
-      ? {
-        name: "Close",
-        keys: ["ESC"],
-        onMouseDown: () => {
-          hide();
+    ...(state.dirty()
+      ? [
+        {
+          name: "Clear filter",
+          keys: ["ESC"],
+          onMouseDown: () => {
+            state.clear();
+          },
         },
-      }
-      : {
-        name: "Clear filter",
-        keys: ["ESC"],
-        onMouseDown: () => {
-          state.clear();
-        },
-      },
+      ]
+      : []),
   ],
 };
