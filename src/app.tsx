@@ -41,6 +41,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
         mainMode.state.clear();
         return;
       }
+
+      if (currStack.value.parents.length >= 1) {
+        currStack.value = currStack.value.parents[0];
+        return;
+      }
+
       modes.deactivate();
       return;
 
