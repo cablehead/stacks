@@ -1,11 +1,9 @@
-import { useSignal } from "@preact/signals";
-
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
-import { createStack, currStack } from "../stacks";
 
+/*
 export function RenderStack({ stack }: { stack: Stack }) {
   const parent = stack.parents[0];
   return (
@@ -31,6 +29,7 @@ export function RenderStack({ stack }: { stack: Stack }) {
     </div>
   );
 }
+*/
 
 export function Nav({ stack }: { stack: Stack }) {
   return (
@@ -82,11 +81,13 @@ const TerseRow = (
     className={"terserow" +
       (index === stack.normalizedSelected.value ? " selected" : "")}
     onClick={() => {
+        /* todo:
       if (currStack.value != stack) {
         console.log("Switcheroo");
         currStack.value = stack;
       }
       stack.selected.value = index;
+      */
     }}
     style="
         display: flex;
@@ -124,7 +125,7 @@ const TerseRow = (
 
 function Preview({ stack }: { stack: Stack }) {
   const loaded = stack.loaded.value;
-  if (!loaded) return <div>loading..."</div>;
+  if (!loaded) return <div>loading...</div>;
 
   if (loaded.item.mime_type === "image/png") {
     return (
@@ -142,10 +143,12 @@ function Preview({ stack }: { stack: Stack }) {
     );
   }
 
+  /* todo:
   if (loaded && loaded.item.content_type == "Stack") {
     const subStack = createStack(useSignal(loaded.item.stack), stack);
     if (subStack.parents.length <= 1) return <Nav stack={subStack} />;
   }
+  */
 
   if (loaded.item.link) {
     return (

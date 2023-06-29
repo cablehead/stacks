@@ -6,6 +6,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 import { Item, LoadedItem, Stack } from "./types";
 
+import { filterContentTypeMode, mainMode } from "./modals";
+
 // TODO: cap size of CAS, with MRU eviction
 const CAS: Map<string, string> = new Map();
 
@@ -63,24 +65,44 @@ export const createStack = (items: Signal<Item[]>, parent?: Stack): Stack => {
     }
   });
 
-  const parents = parent ? [parent, ...parent.parents] : [];
+  console.log("createStack", parent);
+  // const parents = parent ? [parent, ...parent.parents] : [];
+
+  /*
+  effect(() => {
+    console.log("SLECECTED CHANGED", parents.length > 0 ? parents[0].selected.value : -6000, selected.value);
+  });
+  */
 
   return {
     items,
     selected,
     normalizedSelected,
     loaded,
-    parents,
   };
 };
 
-const items = signal<Item[]>([]);
-const root = createStack(items);
+export const items = signal<Item[]>([]);
 
-export const currStack = signal(root);
+const updateItems = async (filter: string, contentType: string) => {
+    items.value = await invoke<Item[]>("store_list_items", {
+      filter: filter,
+      contentType: contentType,
+    });
+};
+
+effect(() => {
+  updateItems(
+    mainMode.state.curr.value,
+    filterContentTypeMode.curr.value,
+  );
+});
+
+const root = createStack(items);
+export const currStack = root;
 
 export async function triggerCopy() {
-  const loaded = currStack.value.loaded.value;
+  const loaded = currStack.loaded.value;
   if (!loaded) return;
 
   if (loaded.item.mime_type != "text/plain") {

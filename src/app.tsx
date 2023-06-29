@@ -1,5 +1,4 @@
 import { useEffect } from "preact/hooks";
-import { signal } from "@preact/signals";
 
 import {
   actionsMode,
@@ -11,11 +10,10 @@ import {
 } from "./modals";
 
 import { Event, listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/tauri";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
-import { RenderStack } from "./panels/nav";
+import { Nav } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions } from "./panels/actions";
@@ -24,10 +22,10 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { createStack, currStack, triggerCopy } from "./stacks";
+import { currStack, triggerCopy } from "./stacks";
 
 import { Item } from "./types";
-import { focusSelected, themeMode } from "./modals/mainMode";
+import { themeMode } from "./modals/mainMode";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
@@ -43,10 +41,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
         return;
       }
 
-      if (currStack.value.parents.length >= 1) {
+      /*
+      if (currStack.parents.length >= 1) {
         currStack.value = currStack.value.parents[0];
         return;
       }
+      */
 
       modes.deactivate();
       return;
@@ -56,23 +56,37 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.toggle(actionsMode);
       break;
 
-    case event.key === "Tab":
+    case event.shiftKey && event.key === "Tab": {
+        /* todo:
+      const parents = currStack.value.parents;
+      if (parents.length > 0) {
+          console.log("switch", currStack.value);
+        currStack.value = parents[0];
+      }
+      */
+      return;
+    }
+
+    case event.key === "Tab": {
       event.preventDefault();
-      const loaded = currStack.value.loaded.value;
+      const loaded = currStack.loaded.value;
       if (!loaded) return;
 
+      /* todo:
       if (loaded.item.content_type == "Stack") {
         const subStack = createStack(
           signal(loaded.item.stack),
-          currStack.value,
+          currStack,
         );
         currStack.value = subStack;
 
         return;
       }
+      */
 
       modes.activate(addToStackMode);
-      break;
+      return;
+    }
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
@@ -81,12 +95,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      currStack.value.selected.value += 1;
+      currStack.selected.value += 1;
       break;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      currStack.value.selected.value -= 1;
+      currStack.selected.value -= 1;
       break;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -94,8 +108,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      if (currStack.value.loaded.value) {
-        if (attemptAction(event, currStack.value.loaded.value)) return;
+      if (currStack.loaded.value) {
+        if (attemptAction(event, currStack.loaded.value)) return;
       }
 
       if (mainMode.state.input !== null) {
@@ -128,23 +142,23 @@ function Main() {
             padding-right:1ch;
             position: relative;
         ">
-        <RenderStack stack={currStack.value} />
+        <Nav stack={currStack} />
 
-        {currStack.value.loaded.value &&
+        {currStack.loaded.value &&
           (
             <MetaPanel
-              loaded={currStack.value.loaded.value}
+              loaded={currStack.loaded.value}
             />
           )}
 
         {modes.isActive(addToStackMode) &&
           <addToStackMode.Modal modes={modes} />}
 
-        {currStack.value.loaded.value && modes.isActive(actionsMode) &&
-          <Actions loaded={currStack.value.loaded.value} />}
+        {currStack.loaded.value && modes.isActive(actionsMode) &&
+          <Actions loaded={currStack.loaded.value} />}
 
-        {currStack.value.loaded.value && modes.isActive(editorMode) &&
-          <Editor loaded={currStack.value.loaded.value} />}
+        {currStack.loaded.value && modes.isActive(editorMode) &&
+          <Editor loaded={currStack.loaded.value} />}
       </div>
       <StatusBar />
     </main>
@@ -155,28 +169,26 @@ export function App() {
   useEffect(() => {
     listen("recent-items", (event: Event<Item[]>) => {
       console.log("Data pushed from Rust:", event);
-      currStack.value.items.value = event.payload;
+      currStack.items.value = event.payload;
     });
 
-    async function init() {
-      currStack.value.items.value = await invoke<Item[]>("init_window");
-    }
-    init();
-
+    /*
     // set selection back to the top onBlur
     const onBlur = () => {
+        console.log("BLURRRR", 0);
       currStack.value.selected.value = 0;
     };
     const onFocus = () => {
       focusSelected(100);
     };
+    */
 
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
+    // window.addEventListener("blur", onBlur);
+    // window.addEventListener("focus", onFocus);
 
     return () => {
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
+      // window.removeEventListener("blur", onBlur);
+      // window.removeEventListener("focus", onFocus);
     };
   }, []);
 

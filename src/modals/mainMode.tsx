@@ -1,16 +1,14 @@
-import { effect, signal } from "@preact/signals";
+import { signal } from "@preact/signals";
 
-import { invoke } from "@tauri-apps/api/tauri";
 
 import { Icon } from "../ui/icons";
 
-import { Item } from "../types";
 import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 import { default as filterContentTypeMode } from "./filterContentTypeMode";
 
-export const themeMode = signal("dark");
+export const themeMode = signal("light");
 
 let focusSelectedTimeout: number | undefined;
 
@@ -37,12 +35,15 @@ export const state = (() => {
   const curr = signal("");
   let inputRef: HTMLInputElement | null = null;
 
+  /*
+   * todo:
   effect(() => {
     invoke<Item[]>("store_set_filter", {
       curr: curr.value,
       contentType: filterContentTypeMode.curr.value,
     });
   });
+  */
 
   return {
     curr,

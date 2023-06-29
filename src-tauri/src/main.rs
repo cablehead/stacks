@@ -64,6 +64,7 @@ async fn store_list_stacks(filter: String) -> Vec<Item> {
     ret
 }
 
+/*
 #[tauri::command]
 async fn store_delete(app: tauri::AppHandle, hash: String) {
     println!("DEL: {}", &hash);
@@ -79,26 +80,55 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
     drop(state);
     app.emit_all("recent-items", recent_items()).unwrap();
 }
+*/
 
 #[tauri::command]
-async fn store_set_filter(app: tauri::AppHandle, curr: String, content_type: String) {
-    println!("FILTER : {} {}", &curr, &content_type);
-    let mut state = STORE.lock().unwrap();
-    state.filter = if curr.is_empty() { None } else { Some(curr) };
-    state.content_type = if content_type == "All" {
+async fn store_list_items(
+    app: tauri::AppHandle,
+    stack: Option<String>,
+    filter: String,
+    content_type: String,
+) -> Vec<Item> {
+    println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
+    let store = &STORE.lock().unwrap();
+
+    let filter = if filter.is_empty() { None } else { Some(filter) };
+    let content_type = if content_type == "All" {
         None
     } else {
         let mut content_type = content_type;
         content_type.truncate(content_type.len() - 1);
         Some(content_type)
     };
-    drop(state);
-    app.emit_all("recent-items", recent_items()).unwrap();
-}
 
-#[tauri::command]
-fn init_window() -> Vec<Item> {
-    recent_items()
+    let mut recent_items: Vec<Item> = store
+        .items
+        .values()
+        .filter(|item| {
+            if let Some(curr) = &filter {
+                // match case insensitive, unless the filter has upper case, in which, match case
+                // sensitive
+                if curr == &curr.to_lowercase() {
+                    item.terse.to_lowercase().contains(curr)
+                } else {
+                    item.terse.contains(curr)
+                }
+            } else {
+                true
+            }
+        })
+        .filter(|item| {
+            if let Some(content_type) = &content_type {
+                &item.content_type == content_type
+            } else {
+                true
+            }
+        })
+        .cloned()
+        .collect();
+    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+    recent_items.truncate(400);
+    recent_items
 }
 
 #[tauri::command]
@@ -115,8 +145,6 @@ async fn open_docs(handle: tauri::AppHandle) {
 struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
-    filter: Option<String>,
-    content_type: Option<String>,
 }
 
 impl Store {
@@ -124,8 +152,6 @@ impl Store {
         Self {
             items: HashMap::new(),
             cas: HashMap::new(),
-            filter: None,
-            content_type: None,
         }
     }
 
@@ -290,39 +316,6 @@ struct Item {
     stack: Vec<Item>,
 }
 
-fn recent_items() -> Vec<Item> {
-    let store = &STORE.lock().unwrap();
-
-    let mut recent_items: Vec<Item> = store
-        .items
-        .values()
-        .filter(|item| {
-            if let Some(curr) = &store.filter {
-                // match case insensitive, unless the filter has upper case, in which, match case
-                // sensitive
-                if curr == &curr.to_lowercase() {
-                    item.terse.to_lowercase().contains(curr)
-                } else {
-                    item.terse.contains(curr)
-                }
-            } else {
-                true
-            }
-        })
-        .filter(|item| {
-            if let Some(content_type) = &store.content_type {
-                &item.content_type == content_type
-            } else {
-                true
-            }
-        })
-        .cloned()
-        .collect();
-    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    recent_items.truncate(400);
-    recent_items
-}
-
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
     let path = path.to_path_buf();
     std::thread::spawn(move || {
@@ -338,7 +331,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                         let mut state = STORE.lock()?;
                         state.add_frame(&frame);
                     }
-                    app.emit_all("recent-items", recent_items())?;
+                    // todo: app.emit_all("recent-items", recent_items())?;
                 }
                 Ok(())
             })();
@@ -394,11 +387,9 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            store_set_filter,
+            store_list_items,
             store_get_content,
             store_list_stacks,
-            store_delete,
-            init_window,
             open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
