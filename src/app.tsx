@@ -27,7 +27,6 @@ import { attemptAction } from "./actions";
 import { Item } from "./types";
 import {
   focusSelected,
-  getContent,
   loadedItem,
   selectedContent,
   selectedItem,
@@ -50,15 +49,14 @@ function RightPane(
   function SubItem({ item }: {
     item: Item;
   }) {
-    const content = useSignal("");
-    useEffect(() => {
-      const fetchData = async () => {
-        const result = await getContent(item.hash);
-        content.value = result;
-      };
-      fetchData();
-    });
-    return <div>{content}</div>;
+      const selected = useSignal(0);
+      const items = useSignal(item.stack);
+      let stack = {
+          selected,
+          items,
+      }
+
+    return <Nav stack={stack} />;
   }
 
   function Preview(
@@ -82,10 +80,7 @@ function RightPane(
 
     if (item.content_type == "Stack") {
       return (
-        <div>
-          <h1>{content}</h1>
-          {item.stack.map((item) => <SubItem item={item} />)}
-        </div>
+          <SubItem item={item} />
       );
     }
 

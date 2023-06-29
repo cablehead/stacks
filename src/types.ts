@@ -26,7 +26,6 @@ export interface Stack {
   selected: Signal<number>;
 }
 
-
 export interface LoadedItem {
   item: Item;
   content: string;
