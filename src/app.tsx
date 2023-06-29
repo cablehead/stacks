@@ -9,8 +9,6 @@ import {
   modes,
 } from "./modals";
 
-import { Event, listen } from "@tauri-apps/api/event";
-
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
 import { Nav } from "./panels/nav";
@@ -24,7 +22,6 @@ import { attemptAction } from "./actions";
 
 import { currStack, triggerCopy } from "./stacks";
 
-import { Item } from "./types";
 import { themeMode } from "./modals/mainMode";
 
 async function globalKeyHandler(event: KeyboardEvent) {
@@ -57,7 +54,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       break;
 
     case event.shiftKey && event.key === "Tab": {
-        /* todo:
+      /* todo:
       const parents = currStack.value.parents;
       if (parents.length > 0) {
           console.log("switch", currStack.value);
@@ -167,11 +164,6 @@ function Main() {
 
 export function App() {
   useEffect(() => {
-    listen("recent-items", (event: Event<Item[]>) => {
-      console.log("Data pushed from Rust:", event);
-      currStack.items.value = event.payload;
-    });
-
     /*
     // set selection back to the top onBlur
     const onBlur = () => {

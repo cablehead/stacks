@@ -331,7 +331,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                         let mut state = STORE.lock()?;
                         state.add_frame(&frame);
                     }
-                    // todo: app.emit_all("recent-items", recent_items())?;
+                    app.emit_all("refresh-items", true)?;
                 }
                 Ok(())
             })();

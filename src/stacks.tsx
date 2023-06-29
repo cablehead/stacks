@@ -1,6 +1,7 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
+import { listen } from "@tauri-apps/api/event";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -85,11 +86,19 @@ export const createStack = (items: Signal<Item[]>, parent?: Stack): Stack => {
 export const items = signal<Item[]>([]);
 
 const updateItems = async (filter: string, contentType: string) => {
-    items.value = await invoke<Item[]>("store_list_items", {
-      filter: filter,
-      contentType: contentType,
-    });
+  items.value = await invoke<Item[]>("store_list_items", {
+    filter: filter,
+    contentType: contentType,
+  });
 };
+
+listen("refresh-items", () => {
+  console.log("Data pushed from Rust");
+  updateItems(
+    mainMode.state.curr.value,
+    filterContentTypeMode.curr.value,
+  );
+});
 
 effect(() => {
   updateItems(
