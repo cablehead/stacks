@@ -20,7 +20,7 @@ export async function getContent(hash: string): Promise<string> {
   return content;
 }
 
-export const createStack = (items: Signal<Item[]>): Stack => {
+export const createStack = (items: Signal<Item[]>, parent?: Stack): Stack => {
   const selected = signal(0);
 
   const loadedHash: Signal<string> = signal("");
@@ -63,12 +63,14 @@ export const createStack = (items: Signal<Item[]>): Stack => {
     }
   });
 
+  const parents = parent ? [parent, ...parent.parents] : [];
+
   return {
     items,
     selected,
     normalizedSelected,
     loaded,
-    parents: [],
+    parents,
   };
 };
 

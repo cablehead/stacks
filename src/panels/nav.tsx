@@ -3,10 +3,10 @@ import { useSignal } from "@preact/signals";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, LoadedItem, Stack } from "../types";
+import { Item, Stack } from "../types";
 import { createStack } from "../stacks";
 
-export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
+export function Nav({ stack }: { stack: Stack }) {
   return (
     <>
       <div
@@ -24,10 +24,9 @@ export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
           })}
       </div>
 
-      <RightPane
-        loaded={stack.loaded.value}
-        parent={parent}
-      />
+      <div style="flex: 3; overflow: auto; height: 100%">
+        <Preview stack={stack} />
+      </div>
     </>
   );
 }
@@ -91,34 +90,14 @@ const TerseRow = (
   </div>
 );
 
-function RightPane(
-  { loaded, parent }: {
-    loaded: LoadedItem | undefined;
-    parent?: boolean;
-  },
-) {
-  return (
-    <div style="flex: 3; overflow: auto; height: 100%">
-      {loaded
-        ? (
-          <Preview
-            item={loaded.item}
-            content={loaded.content}
-            parent={parent}
-          />
-        )
-        : "loading..."}
-    </div>
-  );
-}
+function Preview({ stack }: { stack: Stack }) {
+  const loaded = stack.loaded.value;
+  if (!loaded) return <div>loading..."</div>;
 
-function Preview(
-  { item, content }: { item: Item; content: string; parent?: boolean },
-) {
-  if (item.mime_type === "image/png") {
+  if (loaded.item.mime_type === "image/png") {
     return (
       <img
-        src={"data:image/png;base64," + content}
+        src={"data:image/png;base64," + loaded.content}
         style={{
           opacity: 0.95,
           borderRadius: "0.5rem",
@@ -131,14 +110,15 @@ function Preview(
     );
   }
 
-  if (!parent && item.content_type == "Stack") {
-    return <Nav stack={createStack(useSignal(item.stack))} parent={true} />;
+  if (loaded && loaded.item.content_type == "Stack") {
+    const subStack = createStack(useSignal(loaded.item.stack), stack);
+    if (subStack.parents.length <= 1) return <Nav stack={subStack} />;
   }
 
-  if (item.link) {
+  if (loaded.item.link) {
     return (
       <img
-        src={item.link.screenshot}
+        src={loaded.item.link.screenshot}
         style={{
           opacity: 0.95,
           borderRadius: "0.5rem",
@@ -153,7 +133,7 @@ function Preview(
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content }
+    { loaded.content }
     </pre>
   );
 }
