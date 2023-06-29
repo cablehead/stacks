@@ -1,5 +1,4 @@
 import { useEffect } from "preact/hooks";
-import { useSignal } from "@preact/signals";
 
 import {
   actionsMode,
@@ -36,83 +35,6 @@ import {
   updateSelected,
 } from "./modals/mainMode";
 
-function RightPane(
-  { item, content }: {
-    item: Item | undefined;
-    content: string | undefined;
-  },
-) {
-  if (!item) {
-    return <div />;
-  }
-
-  function SubItem({ item }: {
-    item: Item;
-  }) {
-      const selected = useSignal(0);
-      const items = useSignal(item.stack);
-      let stack = {
-          selected,
-          items,
-      }
-
-    return <Nav stack={stack} />;
-  }
-
-  function Preview(
-    { item, content }: { item: Item; content: string },
-  ) {
-    if (item.mime_type === "image/png") {
-      return (
-        <img
-          src={"data:image/png;base64," + content}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
-
-    if (item.content_type == "Stack") {
-      return (
-          <SubItem item={item} />
-      );
-    }
-
-    if (item.link) {
-      return (
-        <img
-          src={item.link.screenshot}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
-
-    return (
-      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
-      </pre>
-    );
-  }
-
-  return (
-    <div style="flex: 3; overflow: auto; height: 100%">
-      {content ? <Preview item={item} content={content} /> : "loading..."}
-    </div>
-  );
-}
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
@@ -196,10 +118,6 @@ function Main() {
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
           <Nav stack={stack} />
-          <RightPane
-            item={selectedItem.value}
-            content={selectedContent.value}
-          />
         </div>
 
         {selectedItem.value && selectedContent.value &&

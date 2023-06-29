@@ -1,24 +1,36 @@
+import { useSignal } from "@preact/signals";
+
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
 
-export function Nav({ stack }: { stack: Stack }) {
+import { selectedContent, selectedItem } from "../modals/mainMode";
+
+export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
   return (
-    <div
-      className={borderRight}
-      style="
+    <>
+      <div
+        className={borderRight}
+        style="
       flex: 1;
       max-width: 20ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
-    >
-      {stack.items.value
-        .map((item, index) => {
-          return <TerseRow stack={stack} item={item} index={index} />;
-        })}
-    </div>
+      >
+        {stack.items.value
+          .map((item, index) => {
+            return <TerseRow stack={stack} item={item} index={index} />;
+          })}
+      </div>
+
+      <RightPane
+        item={selectedItem.value}
+        content={selectedContent.value}
+        parent={parent}
+      />
+    </>
   );
 }
 
@@ -80,3 +92,80 @@ const TerseRow = (
     </div>
   </div>
 );
+
+function RightPane(
+  { item, content, parent }: {
+    item: Item | undefined;
+    content: string | undefined;
+    parent?: boolean;
+  },
+) {
+  if (!item) {
+    return <div />;
+  }
+
+  function SubItem({ item }: {
+    item: Item;
+  }) {
+    const selected = useSignal(0);
+    const items = useSignal(item.stack);
+    let stack = {
+      selected,
+      items,
+    };
+
+    return <Nav stack={stack} parent={true} />;
+  }
+
+  function Preview(
+    { item, content }: { item: Item; content: string },
+  ) {
+    if (item.mime_type === "image/png") {
+      return (
+        <img
+          src={"data:image/png;base64," + content}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    if (!parent && item.content_type == "Stack") {
+      return <SubItem item={item} />;
+    }
+
+    if (item.link) {
+      return (
+        <img
+          src={item.link.screenshot}
+          style={{
+            opacity: 0.95,
+            borderRadius: "0.5rem",
+            maxHeight: "100%",
+            height: "auto",
+            width: "auto",
+            objectFit: "contain",
+          }}
+        />
+      );
+    }
+
+    return (
+      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    { content !== undefined ? content : "loading..." }
+      </pre>
+    );
+  }
+
+  return (
+    <div style="flex: 3; overflow: auto; height: 100%">
+      {content ? <Preview item={item} content={content} /> : "loading..."}
+    </div>
+  );
+}
