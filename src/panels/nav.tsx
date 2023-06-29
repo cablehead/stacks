@@ -153,7 +153,7 @@ function Preview(
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
+    { content }
     </pre>
   );
 }
