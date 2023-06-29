@@ -24,6 +24,7 @@ export interface Item {
 export interface Stack {
   items: Signal<Item[]>;
   selected: Signal<number>;
+  normalizedSelected: Signal<number>;
   loaded: Signal<LoadedItem | undefined>;
   parents: Stack[];
 }

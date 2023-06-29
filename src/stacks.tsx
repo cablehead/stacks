@@ -1,4 +1,4 @@
-import { Signal, signal} from "@preact/signals";
+import { computed, Signal, signal } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
 import { writeText } from "@tauri-apps/api/clipboard";
@@ -8,9 +8,17 @@ import { Item, Stack } from "./types";
 export const createStack = (items: Signal<Item[]>): Stack => {
   const selected = signal(0);
   const loaded = signal(undefined);
+
+  const normalizedSelected = computed(() => {
+    let val = selected.value % (items.value.length);
+    if (val < 0) val = items.value.length + val;
+    return val;
+  });
+
   return {
     items,
     selected,
+    normalizedSelected,
     loaded,
     parents: [],
   };

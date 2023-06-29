@@ -3,7 +3,7 @@ import { useSignal } from "@preact/signals";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Stack, LoadedItem } from "../types";
+import { Item, LoadedItem, Stack } from "../types";
 import { createStack } from "../stacks";
 
 export function Nav({ stack, parent }: { stack: Stack; parent?: boolean }) {
@@ -55,7 +55,7 @@ const TerseRow = (
 ) => (
   <div
     className={"terserow" +
-      (index === stack.selected.value ? " selected" : "")}
+      (index === stack.normalizedSelected.value ? " selected" : "")}
     onClick={() => stack.selected.value = index}
     style="
         display: flex;
@@ -100,14 +100,20 @@ function RightPane(
   return (
     <div style="flex: 3; overflow: auto; height: 100%">
       {loaded
-        ? <Preview item={loaded.item} content={loaded.content} parent={parent} />
+        ? (
+          <Preview
+            item={loaded.item}
+            content={loaded.content}
+            parent={parent}
+          />
+        )
         : "loading..."}
     </div>
   );
 }
 
 function Preview(
-  { item, content }: { item: Item; content: string; parent?: boolean; },
+  { item, content }: { item: Item; content: string; parent?: boolean },
 ) {
   if (item.mime_type === "image/png") {
     return (
