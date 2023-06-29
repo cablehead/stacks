@@ -45,6 +45,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
       */
 
+      currStack.selected.value = 0;
       modes.deactivate();
       return;
 

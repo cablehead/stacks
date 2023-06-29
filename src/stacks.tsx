@@ -92,13 +92,14 @@ const updateItems = async (filter: string, contentType: string) => {
   });
 };
 
-listen("refresh-items", () => {
+const d1 = await listen("refresh-items", () => {
   console.log("Data pushed from Rust");
   updateItems(
     mainMode.state.curr.value,
     filterContentTypeMode.curr.value,
   );
 });
+console.log("init my listen", d1);
 
 effect(() => {
   updateItems(
@@ -119,5 +120,17 @@ export async function triggerCopy() {
   } else {
     await writeText(loaded.content);
   }
+  currStack.selected.value = 0;
   hide();
+}
+
+if (import.meta.hot) {
+  console.log("HOT");
+  import.meta.hot.accept(() => {
+    console.log("ACCEPT");
+  });
+  import.meta.hot.dispose(() => {
+    console.log("DISPOSE4");
+    d1();
+  });
 }

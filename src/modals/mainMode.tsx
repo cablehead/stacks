@@ -34,17 +34,6 @@ export function focusSelected(delay: number) {
 export const state = (() => {
   const curr = signal("");
   let inputRef: HTMLInputElement | null = null;
-
-  /*
-   * todo:
-  effect(() => {
-    invoke<Item[]>("store_set_filter", {
-      curr: curr.value,
-      contentType: filterContentTypeMode.curr.value,
-    });
-  });
-  */
-
   return {
     curr,
     dirty: () => curr.value != "" || filterContentTypeMode.curr.value != "All",
