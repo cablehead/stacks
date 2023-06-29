@@ -59,6 +59,7 @@ export const createStack = (items: Signal<Item[]>, parent?: Stack): Stack => {
   }
 
   effect(() => {
+  console.log("EFFECT", "updateLoaded");
     const item = items.value[normalizedSelected.value];
     if (item === undefined) return undefined;
     if (item.hash != loadedHash.value) {
@@ -102,6 +103,7 @@ const d1 = await listen("refresh-items", () => {
 console.log("init my listen", d1);
 
 effect(() => {
+  console.log("EFFECT", "updateItems");
   updateItems(
     mainMode.state.curr.value,
     filterContentTypeMode.curr.value,
