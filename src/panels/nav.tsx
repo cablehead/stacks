@@ -1,11 +1,9 @@
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item } from "../types";
+import { Item, Stack } from "../types";
 
-import { stack } from "../modals/mainMode";
-
-export function Nav() {
+export function Nav({ stack }: { stack: Stack }) {
   return (
     <div
       className={borderRight}
@@ -18,7 +16,7 @@ export function Nav() {
     >
       {stack.items.value
         .map((item, index) => {
-          return <TerseRow item={item} index={index} />;
+          return <TerseRow stack={stack} item={item} index={index} />;
         })}
     </div>
   );
@@ -42,7 +40,9 @@ const RowIcon = ({ item }: { item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
-const TerseRow = ({ item, index }: { item: Item; index: number }) => (
+const TerseRow = (
+  { stack, item, index }: { stack: Stack; item: Item; index: number },
+) => (
   <div
     className={"terserow" +
       (index === stack.selected.value ? " selected" : "")}

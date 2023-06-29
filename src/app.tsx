@@ -200,7 +200,7 @@ function Main() {
             position: relative;
         ">
         <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-          <Nav />
+          <Nav stack={stack} />
           <RightPane
             item={selectedItem.value}
             content={selectedContent.value}

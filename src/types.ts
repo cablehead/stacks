@@ -1,5 +1,7 @@
 import { JSXInternal } from "preact/src/jsx";
 
+import { Signal } from "@preact/signals";
+
 interface Link {
   provider: string;
   screenshot: string;
@@ -19,10 +21,15 @@ export interface Item {
   stack: Item[];
 }
 
+export interface Stack {
+  items: Signal<Item[]>;
+  selected: Signal<number>;
+}
+
 
 export interface LoadedItem {
-    item: Item;
-    content: string;
+  item: Item;
+  content: string;
 }
 
 export interface Action {
