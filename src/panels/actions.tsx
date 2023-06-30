@@ -131,7 +131,7 @@ export function Actions({ stack }: {
 
                 case event.metaKey && event.key === "k":
                   event.preventDefault();
-                  modes.toggle(actionsMode);
+                  modes.toggle(stack, actionsMode);
                   break;
 
                 case (event.ctrlKey && event.key === "n") ||

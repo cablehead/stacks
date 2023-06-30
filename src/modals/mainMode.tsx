@@ -20,7 +20,7 @@ export default {
       name: "Actions",
       keys: [<Icon name="IconCommandKey" />, "K"],
       onMouseDown: () => {
-        modes.toggle(actionsMode);
+        modes.toggle(stack, actionsMode);
       },
     },
 

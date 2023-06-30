@@ -10,7 +10,7 @@ export const actions = [
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
-    trigger: (_: Stack) => modes.activate(editorMode),
+    trigger: (stack: Stack) => modes.activate(stack, editorMode),
     canApply: (stack: Stack) => stack.item.value?.mime_type === "text/plain",
   },
   {

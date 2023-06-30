@@ -55,7 +55,7 @@ export function Filter({ stack }: { stack: Stack }) {
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => modes.toggle(filterContentTypeMode)}
+        onMouseDown={() => modes.toggle(stack, filterContentTypeMode)}
         style={{
           fontSize: "0.9rem",
           display: "flex",
@@ -69,7 +69,7 @@ export function Filter({ stack }: { stack: Stack }) {
       </div>
 
       {modes.isActive(filterContentTypeMode) &&
-        <filterContentTypeMode.Modal modes={modes} />}
+        <filterContentTypeMode.Modal stack={stack} modes={modes} />}
     </div>
   );
 }

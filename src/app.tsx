@@ -52,7 +52,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      modes.toggle(actionsMode);
+      modes.toggle(currStack.value, actionsMode);
       break;
 
     case event.shiftKey && event.key === "Tab": {
@@ -75,13 +75,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
 
       // otherwise, add to stack
-      modes.activate(addToStackMode);
+      modes.activate(currStack.value, addToStackMode);
       return;
     }
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      modes.toggle(filterContentTypeMode);
+      modes.toggle(currStack.value, filterContentTypeMode);
       break;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":

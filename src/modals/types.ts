@@ -12,15 +12,15 @@ interface HotKey {
 export interface Mode {
   name: string;
   hotKeys: (stack: Stack, modes: Modes) => HotKey[];
-  activate?: () => void;
+  activate?: (stack: Stack) => void;
 }
 
 export interface Modes {
   modes: Mode[];
   active: Signal<Mode>;
   isActive: (mode: Mode) => boolean;
-  activate: (mode: Mode) => void;
-  toggle: (mode: Mode) => void;
+  activate: (stack: Stack, mode: Mode) => void;
+  toggle: (stack: Stack, mode: Mode) => void;
   deactivate: () => void;
   get: (name: string) => Mode;
 }
