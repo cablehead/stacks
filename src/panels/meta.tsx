@@ -137,7 +137,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
         borderRadius: "0.5em 0 0 0",
-        zIndex: 100,
+        zIndex: 10,
       }}
     >
       {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
