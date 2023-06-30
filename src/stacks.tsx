@@ -105,16 +105,14 @@ const updateItems = async (filter: string, contentType: string) => {
 const d1 = await listen("refresh-items", () => {
   updateItems(
     currStack.value.filter.curr.value,
-    "All",
-    // filterContentTypeMode.curr.value,
+    currStack.value.filter.content_type.value,
   );
 });
 
 effect(() => {
   updateItems(
     currStack.value.filter.curr.value,
-    "All",
-    // filterContentTypeMode.curr.value,
+    currStack.value.filter.content_type.value,
   );
 });
 // End items
