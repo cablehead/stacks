@@ -105,12 +105,8 @@ export async function triggerCopy() {
 }
 
 if (import.meta.hot) {
-  console.log("HOT");
-  import.meta.hot.accept(() => {
-    console.log("ACCEPT");
-  });
+  import.meta.hot.accept(() => {});
   import.meta.hot.dispose(() => {
-    console.log("DISPOSE4");
     d1();
   });
 }
