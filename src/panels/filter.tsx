@@ -62,9 +62,9 @@ export function Filter({ stack }: { stack: Stack }) {
           alignItems: "center",
         }}
       >
-        {filterContentTypeMode.curr.value == "All"
+        {stack.filter.content_type.value == "All"
           ? "Content type"
-          : filterContentTypeMode.curr.value}&nbsp;
+          : stack.filter.content_type.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
