@@ -3,10 +3,11 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { themeMode } from "../modals/mainMode";
+import { default as state } from "../state";
 
 import { modes } from "../modals";
 import { Mode } from "../modals/types";
+import { Stack } from "../types";
 
 const VertDiv = () => (
   <div
@@ -21,7 +22,9 @@ const VertDiv = () => (
 const Theme = () => (
   <div
     onMouseDown={() => {
-      themeMode.value = themeMode.value === "light" ? "dark" : "light";
+      state.themeMode.value = state.themeMode.value === "light"
+        ? "dark"
+        : "light";
     }}
     class="hoverable"
   >
@@ -32,14 +35,14 @@ const Theme = () => (
             text-align: center;
             border-radius: 5px;
             ">
-      {themeMode.value == "light"
+      {state.themeMode.value == "light"
         ? <Icon name="IconMoon" />
         : <Icon name="IconSun" />}
     </span>
   </div>
 );
 
-const ModeBar = ({ mode }: { mode: Mode }) => {
+const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
@@ -50,7 +53,7 @@ const ModeBar = ({ mode }: { mode: Mode }) => {
         align-items: center;
         gap: 0.5ch;
       ">
-        {mode.hotKeys(modes).map((hotKey) => (
+        {mode.hotKeys(stack, modes).map((hotKey) => (
           <>
             <HotKey
               name={hotKey.name}
@@ -66,9 +69,9 @@ const ModeBar = ({ mode }: { mode: Mode }) => {
   );
 };
 
-export function StatusBar() {
-  return <ModeBar mode={modes.active.value} />;
-}
+export const StatusBar = ({ stack }: { stack: Stack }) => {
+  return <ModeBar stack={stack} mode={modes.active.value} />;
+};
 
 const HotKey = ({ name, keys, onMouseDown }: {
   name: string;

@@ -37,15 +37,13 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Todo
 
 - bugs:
-    - esc should clear filter
-    - cmd-p
+    - nested stacks don't see all items for some reasons
     - clicking on Copy doesn't work
     - click on Capture doesn't work
-    - ESC should clear filter instead of closing window
-
-- bug: copying text now focuses filter, instead of copying
 
 - shift-enter to copy but keep stacks open
+
+- Delete inside a stack should just remove the item from the stack
 
 - Editor
     - access clips while editor is open

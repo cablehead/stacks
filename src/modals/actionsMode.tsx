@@ -1,10 +1,11 @@
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
+import { Stack } from "../types";
 
 export default {
   name: "Actions",
-  hotKeys: (modes: Modes) => [
+  hotKeys: (_: Stack, modes: Modes) => [
     {
       name: "Trigger",
       keys: [<Icon name="IconReturnKey" />],

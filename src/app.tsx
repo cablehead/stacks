@@ -1,17 +1,12 @@
 import { useEffect } from "preact/hooks";
-import { useSignal } from "@preact/signals";
 
 import {
   actionsMode,
   addToStackMode,
   editorMode,
   filterContentTypeMode,
-  mainMode,
   modes,
 } from "./modals";
-
-import { Event, listen } from "@tauri-apps/api/event";
-import { invoke } from "@tauri-apps/api/tauri";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
 
@@ -24,155 +19,95 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { Item } from "./types";
-import {
-  focusSelected,
-  getContent,
-  loadedItem,
-  selectedContent,
-  selectedItem,
-  stack,
-  themeMode,
-  triggerCopy,
-  updateSelected,
-} from "./modals/mainMode";
+import { createStack, currStack, triggerCopy } from "./stacks";
 
-function RightPane(
-  { item, content }: {
-    item: Item | undefined;
-    content: string | undefined;
-  },
-) {
-  if (!item) {
-    return <div />;
-  }
-
-  function SubItem({ item }: {
-    item: Item;
-  }) {
-    const content = useSignal("");
-    useEffect(() => {
-      const fetchData = async () => {
-        const result = await getContent(item.hash);
-        content.value = result;
-      };
-      fetchData();
-    });
-    return <div>{content}</div>;
-  }
-
-  function Preview(
-    { item, content }: { item: Item; content: string },
-  ) {
-    if (item.mime_type === "image/png") {
-      return (
-        <img
-          src={"data:image/png;base64," + content}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
-
-    if (item.content_type == "Stack") {
-      return (
-        <div>
-          <h1>{content}</h1>
-          {item.stack.map((item) => <SubItem item={item} />)}
-        </div>
-      );
-    }
-
-    if (item.link) {
-      return (
-        <img
-          src={item.link.screenshot}
-          style={{
-            opacity: 0.95,
-            borderRadius: "0.5rem",
-            maxHeight: "100%",
-            height: "auto",
-            width: "auto",
-            objectFit: "contain",
-          }}
-        />
-      );
-    }
-
-    return (
-      <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content !== undefined ? content : "loading..." }
-      </pre>
-    );
-  }
-
-  return (
-    <div style="flex: 3; overflow: auto; height: 100%">
-      {content ? <Preview item={item} content={content} /> : "loading..."}
-    </div>
-  );
-}
+import { default as state } from "./state";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
-      break;
+      return;
 
     case event.key === "Escape":
       event.preventDefault();
-      if (mainMode.state.dirty()) {
-        mainMode.state.clear();
+
+      // attempt to clear filter first
+      if (currStack.value.filter.dirty()) {
+        currStack.value.filter.clear();
         return;
       }
+
+      // attempt to pop the current stack
+      if (currStack.value.parent) {
+        currStack.value = currStack.value.parent;
+        return;
+      }
+
+      // otherwise, hide the window
+      currStack.value.selected.value = 0;
       modes.deactivate();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      modes.toggle(actionsMode);
-      break;
+      modes.toggle(currStack.value, actionsMode);
+      return;
 
-    case event.key === "Tab":
+    case event.shiftKey && event.key === "Tab": {
+      if (currStack.value.parent) {
+        currStack.value = currStack.value.parent;
+        return;
+      }
+      return;
+    }
+
+    case event.key === "Tab": {
       event.preventDefault();
-      modes.activate(addToStackMode);
-      break;
+
+      // if this is a stack, open it
+      const item = currStack.value.item.value;
+      if (item && item.content_type == "Stack") {
+        const subStack = createStack(item.stack, currStack.value);
+        currStack.value = subStack;
+        return;
+      }
+
+      // otherwise, add to stack
+      modes.activate(currStack.value, addToStackMode);
+      return;
+    }
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      modes.toggle(filterContentTypeMode);
-      break;
+      modes.toggle(currStack.value, filterContentTypeMode);
+      return;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      updateSelected(1);
-      break;
+      currStack.value.selected.value += 1;
+      return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      updateSelected(-1);
-      break;
+      currStack.value.selected.value -= 1;
+      return;
+
+    case (event.metaKey && (event.key === "Meta" || event.key === "c")):
+      // avoid capturing command-c
+      return;
 
     default:
-      if (loadedItem.value) {
-        if (attemptAction(event, loadedItem.value)) return;
-      }
+      if (attemptAction(event, currStack.value)) return;
 
-      // todo: preserve command-c
-      if (mainMode.state.input !== null) {
-        mainMode.state.input.focus();
-      }
+      // fallback to sending the key stroke to the filter input
+      const filterInput = document.getElementById("filter-input");
+      if (filterInput) filterInput.focus();
   }
 }
 
-function Main() {
+export function App() {
   useEffect(() => {
     window.addEventListener("keydown", globalKeyHandler);
     return () => {
@@ -182,9 +117,11 @@ function Main() {
 
   return (
     <main
-      className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
+      className={state.themeMode.value === "light"
+        ? lightThemeClass
+        : darkThemeClass}
     >
-      <Filter />
+      <Filter stack={currStack.value} />
       <div style="
             display: flex;
             flex-direction: column;
@@ -196,66 +133,15 @@ function Main() {
             padding-right:1ch;
             position: relative;
         ">
-        <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-          <Nav />
-          <RightPane
-            item={selectedItem.value}
-            content={selectedContent.value}
-          />
-        </div>
-
-        {selectedItem.value && selectedContent.value &&
-          (
-            <MetaPanel
-              item={selectedItem.value}
-              content={selectedContent.value}
-            />
-          )}
-
-        {modes.isActive(addToStackMode) &&
-          <addToStackMode.Modal modes={modes} />}
-
-        {loadedItem.value && modes.isActive(actionsMode) &&
-          <Actions loaded={loadedItem.value} />}
-
-        {selectedContent.value && modes.isActive(editorMode) &&
-          <Editor content={selectedContent.value} />}
+        <Nav stack={currStack.value} />
+        <MetaPanel stack={currStack.value} />
+        {modes.isActive(addToStackMode) && (
+          <addToStackMode.Modal stack={currStack.value} modes={modes} />
+        )}
+        {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
+        {modes.isActive(editorMode) && <Editor stack={currStack.value} />}
       </div>
-      <StatusBar />
+      <StatusBar stack={currStack.value} />
     </main>
   );
-}
-
-export function App() {
-  useEffect(() => {
-    listen("recent-items", (event: Event<Item[]>) => {
-      console.log("Data pushed from Rust:", event);
-      stack.items.value = event.payload;
-      updateSelected(0);
-    });
-
-    async function init() {
-      stack.items.value = await invoke<Item[]>("init_window");
-      updateSelected(0);
-    }
-    init();
-
-    // set selection back to the top onBlur
-    const onBlur = () => {
-      stack.selected.value = 0;
-    };
-    const onFocus = () => {
-      focusSelected(100);
-    };
-
-    window.addEventListener("blur", onBlur);
-    window.addEventListener("focus", onFocus);
-
-    return () => {
-      window.removeEventListener("blur", onBlur);
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
-
-  return <Main />;
 }

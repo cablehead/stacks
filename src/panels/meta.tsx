@@ -5,7 +5,7 @@ import { Scru128Id } from "scru128";
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item } from "../types";
+import { Item, Stack } from "../types";
 
 interface MetaValue {
   name: string;
@@ -118,7 +118,11 @@ function MetaInfoRow(meta: MetaValue) {
   );
 }
 
-export function MetaPanel({ item, content }: { item: Item; content: string }) {
+export function MetaPanel({ stack }: { stack: Stack }) {
+  const item = stack.item.value;
+  const content = stack.content?.value;
+  if (!item || !content) return <></>;
+
   return (
     <div
       className={overlay}
@@ -133,7 +137,7 @@ export function MetaPanel({ item, content }: { item: Item; content: string }) {
         paddingLeft: "1ch",
         paddingBottom: "0.5lh",
         borderRadius: "0.5em 0 0 0",
-        zIndex: 100,
+        zIndex: 10,
       }}
     >
       {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}

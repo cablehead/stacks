@@ -1,5 +1,5 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
-import { useEffect, useMemo, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -7,70 +7,112 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Item } from "../types";
+import { Item, Stack } from "../types";
 
+const state = (() => {
+  const selected = signal(0);
+  const currFilter = signal("");
+  const options: Signal<Item[]> = signal([]);
+
+  const normalizedSelected = computed(() => {
+    let val = selected.value % (options.value.length);
+    if (val < 0) val = options.value.length + val;
+    return val;
+  });
+
+  async function fetchOptions(filter: string) {
+    options.value = await invoke("store_list_stacks", { filter: filter });
+  }
+  effect(() => {
+    fetchOptions(currFilter.value);
+  });
+
+  return {
+    selected,
+    currFilter,
+    options,
+    normalizedSelected,
+
+    accept: (stack: Stack, modes: Modes) => {
+      const item = stack.item.value;
+      if (!item) return;
+      const id = item.ids[item.ids.length - 1];
+      if (!id) return;
+      const name = options.value[normalizedSelected.value]?.terse;
+      if (!name) return;
+      (async () => {
+        await invoke("store_add_to_stack", { name: name, id: id });
+        modes.deactivate();
+      })();
+    },
+
+    accept_meta: (stack: Stack, modes: Modes) => {
+      const item = stack.item.value;
+      if (!item) return;
+      const id = item.ids[item.ids.length - 1];
+      if (!id) return;
+      const name = currFilter.value;
+      if (name === "") return;
+      (async () => {
+        await invoke("store_add_to_stack", { name: name, id: id });
+        modes.deactivate();
+      })();
+    },
+  };
+})();
 
 export default {
   name: "Add to stack",
 
-  hotKeys: (modes: Modes) => [
-    {
-      name: "Select",
-      keys: [<Icon name="IconReturnKey" />],
-      onMouseDown: () => {
-      },
-    },
-    {
-      name: "Create new",
-      keys: [
-        <Icon name="IconCommandKey" />,
-        <Icon name="IconReturnKey" />,
-      ],
-      onMouseDown: () => {
-      },
-    },
-    {
-      name: "Back",
-      keys: ["ESC"],
-      onMouseDown: () => modes.deactivate(),
-    },
-  ],
+  hotKeys: (stack: Stack, modes: Modes) => {
+    const ret = [];
 
-  Modal: ({ modes }: { modes: Modes }) => {
+    if (state.options.value.length > 0) {
+      ret.push({
+        name: "Select",
+        keys: [<Icon name="IconReturnKey" />],
+        onMouseDown: () => {
+          state.accept(stack, modes);
+        },
+      });
+    }
+
+    if (state.currFilter.value !== "") {
+      ret.push({
+        name: "Create new",
+        keys: [
+          <Icon name="IconCommandKey" />,
+          <Icon name="IconReturnKey" />,
+        ],
+        onMouseDown: () => {
+          state.accept_meta(stack, modes);
+        },
+      });
+    }
+
+    ret.push(
+      {
+        name: "Back",
+        keys: ["ESC"],
+        onMouseDown: () => modes.deactivate(),
+      },
+    );
+
+    return ret;
+  },
+
+  activate: (_: Stack) => {
+    state.currFilter.value = "";
+    state.selected.value = 0;
+  },
+
+  Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
       if (inputRef.current != null) {
         inputRef.current.focus();
       }
-    }, []);
-
-    const state = useMemo(() => {
-      const selected = signal(0);
-      const currFilter = signal("");
-      const options: Signal<Item[]> = signal([]);
-
-      const normalizedSelected = computed(() => {
-        let val = selected.value % (options.value.length);
-        if (val < 0) val = options.value.length + val;
-        return val;
-      });
-
-      async function fetchOptions(filter: string) {
-        options.value = await invoke("store_list_stacks", { filter: filter });
-      }
-
-      effect(() => {
-        console.log("EFFECT", currFilter.value);
-        fetchOptions(currFilter.value);
-      });
-
-      return {
-        selected,
-        currFilter,
-        options,
-        normalizedSelected,
-      };
     }, []);
 
     return (
@@ -111,10 +153,18 @@ export default {
               onKeyDown={(event) => {
                 event.stopPropagation();
                 switch (true) {
+                  case event.metaKey && event.key === "Enter":
+                    state.accept_meta(stack, modes);
+                    return;
+
+                  case event.key === "Enter":
+                    state.accept(stack, modes);
+                    return;
+
                   case event.key === "Escape":
                     event.preventDefault();
                     modes.deactivate();
-                    break;
+                    return;
                 }
               }}
             />

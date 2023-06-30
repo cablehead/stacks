@@ -5,10 +5,10 @@ import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
+import { Stack } from "../types";
 
 const state = (() => {
   const options = ["All", "Stacks", "Links", "Images"];
-  const curr = signal("All");
   const selected = signal(0);
   const normalizedSelected = computed(() => {
     let val = selected.value % (options.length);
@@ -17,11 +17,10 @@ const state = (() => {
   });
   return {
     options,
-    curr,
     selected,
     normalizedSelected,
-    accept: (modes: Modes) => {
-      state.curr.value = state.options[state.normalizedSelected.value];
+    accept: (stack: Stack, modes: Modes) => {
+      stack.filter.content_type.value = options[normalizedSelected.value];
       modes.deactivate();
     },
   };
@@ -30,14 +29,12 @@ const state = (() => {
 export default {
   name: "Filter by content type",
 
-  curr: state.curr,
-
-  hotKeys: (modes: Modes) => [
+  hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
-        state.accept(modes);
+        state.accept(stack, modes);
       },
     },
     {
@@ -47,13 +44,13 @@ export default {
     },
   ],
 
-  activate: () => {
-    const idx = state.options.indexOf(state.curr.value);
+  activate: (stack: Stack) => {
+    const idx = state.options.indexOf(stack.filter.content_type.value);
     state.selected.value = idx == -1 ? 0 : idx;
   },
 
-  Modal: ({ modes }: { modes: Modes }) => {
-    const { options, normalizedSelected, selected, curr } = state;
+  Modal: ({ stack, modes }: { stack: Stack; modes: Modes; }) => {
+    const { options, normalizedSelected, selected} = state;
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -111,7 +108,7 @@ export default {
 
                 case event.key === "Enter":
                   event.preventDefault();
-                  state.accept(modes);
+                  state.accept(stack, modes);
                   break;
               }
             }}
@@ -131,8 +128,7 @@ export default {
               )}
               onMouseDown={() => {
                 selected.value = index;
-                curr.value = options[index];
-                modes.deactivate();
+                state.accept(stack, modes);
               }}
             >
               {option}

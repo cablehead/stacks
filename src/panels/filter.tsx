@@ -1,21 +1,27 @@
 import { useEffect, useRef } from "preact/hooks";
 
-
 import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
-import { mainMode, filterContentTypeMode, modes } from "../modals";
+import { Stack } from "../types";
+import { filterContentTypeMode, modes } from "../modals";
 
-
-export function Filter() {
+export function Filter({ stack }: { stack: Stack }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
-      mainMode.state.input = inputRef.current;
     }
   }, []);
+
+  useEffect(() => {
+    if (inputRef.current != null) {
+      if (inputRef.current.value != stack.filter.curr.value) {
+        inputRef.current.value = stack.filter.curr.value;
+      }
+    }
+  }, [stack.filter.curr.value]);
 
   return (
     <div
@@ -38,34 +44,33 @@ export function Filter() {
         }}
       >
         <input
+          id="filter-input"
           type="text"
           placeholder="Type to filter..."
           ref={inputRef}
-          onInput={() => {
-            if (inputRef.current == null) return;
-            mainMode.state.curr.value = inputRef.current.value;
-          }}
+          onInput={(event) =>
+            stack.filter.curr.value = (event.target as HTMLInputElement).value}
         />
       </div>
 
       <VertDiv />
       <div
         class="hoverable"
-        onMouseDown={() => modes.toggle(filterContentTypeMode)}
+        onMouseDown={() => modes.toggle(stack, filterContentTypeMode)}
         style={{
           fontSize: "0.9rem",
           display: "flex",
           alignItems: "center",
         }}
       >
-        {filterContentTypeMode.curr.value == "All"
+        {stack.filter.content_type.value == "All"
           ? "Content type"
-          : filterContentTypeMode.curr.value}&nbsp;
+          : stack.filter.content_type.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
       {modes.isActive(filterContentTypeMode) &&
-        <filterContentTypeMode.Modal modes={modes} />}
+        <filterContentTypeMode.Modal stack={stack} modes={modes} />}
     </div>
   );
 }

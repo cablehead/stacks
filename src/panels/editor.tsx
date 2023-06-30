@@ -5,9 +5,10 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { overlay } from "../ui/app.css";
 
 import { modes } from "../modals";
+import { Stack } from "../types";
 
-export function Editor({ content }: {
-  content: string;
+export function Editor({ stack }: {
+  stack: Stack;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -15,6 +16,8 @@ export function Editor({ content }: {
       inputRef.current.focus();
     }
   }, []);
+
+  const content = stack.content?.value || "";
 
   return (
     <div
@@ -60,7 +63,7 @@ export function Editor({ content }: {
             case event.metaKey && event.key === "Enter":
               if (inputRef.current !== null) {
                 writeText(inputRef.current.value);
-              modes.deactivate();
+                modes.deactivate();
               }
               break;
           }

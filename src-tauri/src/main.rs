@@ -77,28 +77,79 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
     }
     state.cas.remove(&hash);
     drop(state);
-    app.emit_all("recent-items", recent_items()).unwrap();
+    app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
-async fn store_set_filter(app: tauri::AppHandle, curr: String, content_type: String) {
-    println!("FILTER : {} {}", &curr, &content_type);
-    let mut state = STORE.lock().unwrap();
-    state.filter = if curr.is_empty() { None } else { Some(curr) };
-    state.content_type = if content_type == "All" {
+async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
+    let data = serde_json::json!({
+        "name": name,
+        "id": id
+    })
+    .to_string();
+    println!("ADD TO STACK: {}", &data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
+}
+
+#[tauri::command]
+async fn store_list_items(
+    stack: Option<String>,
+    filter: String,
+    content_type: String,
+) -> Vec<Item> {
+    println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
+    let store = &STORE.lock().unwrap();
+
+    let filter = if filter.is_empty() {
+        None
+    } else {
+        Some(filter)
+    };
+    let content_type = if content_type == "All" {
         None
     } else {
         let mut content_type = content_type;
         content_type.truncate(content_type.len() - 1);
         Some(content_type)
     };
-    drop(state);
-    app.emit_all("recent-items", recent_items()).unwrap();
-}
 
-#[tauri::command]
-fn init_window() -> Vec<Item> {
-    recent_items()
+    let base_items = if let Some(hash) = stack {
+        let item = store.items.get(&hash).unwrap();
+        item.stack.clone()
+    } else {
+        store.items.values().cloned().collect()
+    };
+
+    let mut recent_items: Vec<Item> = base_items
+        .iter()
+        .filter(|item| {
+            if let Some(curr) = &filter {
+                // match case insensitive, unless the filter has upper case, in which, match case
+                // sensitive
+                if curr == &curr.to_lowercase() {
+                    item.terse.to_lowercase().contains(curr)
+                } else {
+                    item.terse.contains(curr)
+                }
+            } else {
+                true
+            }
+        })
+        .filter(|item| {
+            if let Some(content_type) = &content_type {
+                &item.content_type == content_type
+            } else {
+                true
+            }
+        })
+        .cloned()
+        .collect();
+    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+    recent_items.truncate(400);
+    recent_items
 }
 
 #[tauri::command]
@@ -115,8 +166,6 @@ async fn open_docs(handle: tauri::AppHandle) {
 struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
-    filter: Option<String>,
-    content_type: Option<String>,
 }
 
 impl Store {
@@ -124,8 +173,6 @@ impl Store {
         Self {
             items: HashMap::new(),
             cas: HashMap::new(),
-            filter: None,
-            content_type: None,
         }
     }
 
@@ -290,39 +337,6 @@ struct Item {
     stack: Vec<Item>,
 }
 
-fn recent_items() -> Vec<Item> {
-    let store = &STORE.lock().unwrap();
-
-    let mut recent_items: Vec<Item> = store
-        .items
-        .values()
-        .filter(|item| {
-            if let Some(curr) = &store.filter {
-                // match case insensitive, unless the filter has upper case, in which, match case
-                // sensitive
-                if curr == &curr.to_lowercase() {
-                    item.terse.to_lowercase().contains(curr)
-                } else {
-                    item.terse.contains(curr)
-                }
-            } else {
-                true
-            }
-        })
-        .filter(|item| {
-            if let Some(content_type) = &store.content_type {
-                &item.content_type == content_type
-            } else {
-                true
-            }
-        })
-        .cloned()
-        .collect();
-    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    recent_items.truncate(400);
-    recent_items
-}
-
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
     let path = path.to_path_buf();
     std::thread::spawn(move || {
@@ -338,7 +352,7 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                         let mut state = STORE.lock()?;
                         state.add_frame(&frame);
                     }
-                    app.emit_all("recent-items", recent_items())?;
+                    app.emit_all("refresh-items", true)?;
                 }
                 Ok(())
             })();
@@ -394,11 +408,11 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            store_set_filter,
+            store_list_items,
+            store_delete,
+            store_add_to_stack,
             store_get_content,
             store_list_stacks,
-            store_delete,
-            init_window,
             open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
