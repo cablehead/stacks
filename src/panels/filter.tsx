@@ -1,20 +1,17 @@
 import { useEffect, useRef } from "preact/hooks";
 
-
 import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
+import { Stack } from "../types";
 import { filterContentTypeMode, modes } from "../modals";
-import { default as state } from "../state";
 
-
-export function Filter() {
+export function Filter({ stack }: { stack: Stack }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
-      state.filter.input = inputRef.current;
     }
   }, []);
 
@@ -42,10 +39,9 @@ export function Filter() {
           type="text"
           placeholder="Type to filter..."
           ref={inputRef}
-          onInput={() => {
-            if (inputRef.current == null) return;
-            state.filter.curr.value = inputRef.current.value;
-          }}
+          onInput={(event) =>
+            stack.filter.curr.value = (event.target as HTMLInputElement).value}
+          value={stack.filter.curr.value}
         />
       </div>
 

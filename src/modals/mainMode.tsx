@@ -4,7 +4,7 @@ import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 
-import { default as state } from "../state";
+import { currStack} from "../stacks";
 
 export default {
   name: "Clipboard",
@@ -24,13 +24,13 @@ export default {
       },
     },
 
-    ...(state.filter.dirty()
+    ...(currStack.value.filter.dirty()
       ? [
         {
           name: "Clear filter",
           keys: ["ESC"],
           onMouseDown: () => {
-            state.filter.clear();
+            currStack.value.filter.clear();
           },
         },
       ]

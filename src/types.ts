@@ -22,6 +22,12 @@ export interface Item {
 }
 
 export interface Stack {
+  filter: {
+    curr: Signal<string>;
+    content_type: Signal<string>;
+    dirty: () => boolean;
+    clear: () => void;
+  };
   items: Signal<Item[]>;
   selected: Signal<number>;
   normalizedSelected: Signal<number>;

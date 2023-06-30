@@ -6,9 +6,6 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { Item, Stack } from "./types";
-import { filterContentTypeMode } from "./modals";
-
-import { default as state } from "./state";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -43,7 +40,22 @@ export const CAS = (() => {
   };
 })();
 
+const createFilter = () => {
+  const curr = signal("");
+  const content_type = signal("");
+  return {
+    curr,
+    content_type,
+    dirty: () => curr.value != "" || content_type.value != "All",
+    clear: () => {
+      curr.value = "";
+      content_type.value = "All";
+    },
+  };
+};
+
 export const createStack = (initItems?: Item[], parent?: Stack): Stack => {
+  const filter = createFilter();
   const items = signal(initItems || []);
   const selected = signal(0);
 
@@ -58,6 +70,7 @@ export const createStack = (initItems?: Item[], parent?: Stack): Stack => {
   );
 
   return {
+    filter,
     items,
     selected,
     normalizedSelected,
@@ -90,11 +103,19 @@ const updateItems = async (filter: string, contentType: string) => {
 };
 
 const d1 = await listen("refresh-items", () => {
-  updateItems(state.filter.curr.value, filterContentTypeMode.curr.value);
+  updateItems(
+    currStack.value.filter.curr.value,
+    "All",
+    // filterContentTypeMode.curr.value,
+  );
 });
 
 effect(() => {
-  updateItems(state.filter.curr.value, filterContentTypeMode.curr.value);
+  updateItems(
+    currStack.value.filter.curr.value,
+    "All",
+    // filterContentTypeMode.curr.value,
+  );
 });
 // End items
 

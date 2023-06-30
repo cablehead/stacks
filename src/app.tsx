@@ -34,8 +34,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       event.preventDefault();
 
       // attempt to clear filter first
-      if (state.filter.dirty()) {
-        state.filter.clear();
+      if (currStack.value.filter.dirty()) {
+        currStack.value.filter.clear();
         return;
       }
 
@@ -100,9 +100,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     default:
       if (attemptAction(event, currStack.value)) return;
-      if (state.filter.input !== null) {
-        state.filter.input.focus();
+      /*
+      if (currStack.value.filter.input !== null) {
+        currStack.value.filter.input.focus();
       }
+      */
   }
 }
 
@@ -116,9 +118,11 @@ export function App() {
 
   return (
     <main
-      className={state.themeMode.value === "light" ? lightThemeClass : darkThemeClass}
+      className={state.themeMode.value === "light"
+        ? lightThemeClass
+        : darkThemeClass}
     >
-      <Filter />
+      <Filter stack={currStack.value} />
       <div style="
             display: flex;
             flex-direction: column;
