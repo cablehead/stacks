@@ -69,7 +69,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
       // if this is a stack, open it
       const item = currStack.value.item.value;
-      if (item) {
+      if (item && item.content_type == "Stack") {
         const subStack = createStack(item.stack, currStack.value);
         currStack.value = subStack;
         return;
@@ -143,4 +143,3 @@ export function App() {
     </main>
   );
 }
-
