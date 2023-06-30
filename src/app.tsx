@@ -5,7 +5,6 @@ import {
   addToStackMode,
   editorMode,
   filterContentTypeMode,
-  mainMode,
   modes,
 } from "./modals";
 
@@ -22,7 +21,7 @@ import { attemptAction } from "./actions";
 
 import { createStack, currStack, triggerCopy } from "./stacks";
 
-import { themeMode } from "./state";
+import { default as state } from "./state";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
@@ -35,8 +34,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       event.preventDefault();
 
       // attempt to clear filter first
-      if (mainMode.state.dirty()) {
-        mainMode.state.clear();
+      if (state.filter.dirty()) {
+        state.filter.clear();
         return;
       }
 
@@ -101,8 +100,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     default:
       if (attemptAction(event, currStack.value)) return;
-      if (mainMode.state.input !== null) {
-        mainMode.state.input.focus();
+      if (state.filter.input !== null) {
+        state.filter.input.focus();
       }
   }
 }
@@ -117,7 +116,7 @@ export function App() {
 
   return (
     <main
-      className={themeMode.value === "light" ? lightThemeClass : darkThemeClass}
+      className={state.themeMode.value === "light" ? lightThemeClass : darkThemeClass}
     >
       <Filter />
       <div style="

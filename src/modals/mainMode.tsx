@@ -1,36 +1,13 @@
-import { signal } from "@preact/signals";
-
-
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
-import { default as filterContentTypeMode } from "./filterContentTypeMode";
 
-export const state = (() => {
-  const curr = signal("");
-  let inputRef: HTMLInputElement | null = null;
-  return {
-    curr,
-    dirty: () => curr.value != "" || filterContentTypeMode.curr.value != "All",
-    clear: () => {
-      if (inputRef) inputRef.value = "";
-      curr.value = "";
-      filterContentTypeMode.curr.value = "All";
-    },
-    get input(): HTMLInputElement | null {
-      return inputRef;
-    },
-    set input(ref: HTMLInputElement | null) {
-      inputRef = ref;
-    },
-  };
-})();
+import { default as state } from "../state";
 
 export default {
   name: "Clipboard",
-  state: state,
   hotKeys: (modes: Modes) => [
     {
       name: "Copy",
@@ -47,13 +24,13 @@ export default {
       },
     },
 
-    ...(state.dirty()
+    ...(state.filter.dirty()
       ? [
         {
           name: "Clear filter",
           keys: ["ESC"],
           onMouseDown: () => {
-            state.clear();
+            state.filter.clear();
           },
         },
       ]

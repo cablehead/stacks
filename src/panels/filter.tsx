@@ -4,7 +4,8 @@ import { useEffect, useRef } from "preact/hooks";
 import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
-import { mainMode, filterContentTypeMode, modes } from "../modals";
+import { filterContentTypeMode, modes } from "../modals";
+import { default as state } from "../state";
 
 
 export function Filter() {
@@ -13,7 +14,7 @@ export function Filter() {
   useEffect(() => {
     if (inputRef.current != null) {
       inputRef.current.focus();
-      mainMode.state.input = inputRef.current;
+      state.filter.input = inputRef.current;
     }
   }, []);
 
@@ -43,7 +44,7 @@ export function Filter() {
           ref={inputRef}
           onInput={() => {
             if (inputRef.current == null) return;
-            mainMode.state.curr.value = inputRef.current.value;
+            state.filter.curr.value = inputRef.current.value;
           }}
         />
       </div>

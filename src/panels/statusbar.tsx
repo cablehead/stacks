@@ -3,7 +3,7 @@ import { JSXInternal } from "preact/src/jsx";
 import { Icon, RenderKeys } from "../ui/icons";
 import { borderRight, footer } from "../ui/app.css";
 
-import { themeMode } from "../state";
+import { default as state } from "../state";
 
 import { modes } from "../modals";
 import { Mode } from "../modals/types";
@@ -21,7 +21,7 @@ const VertDiv = () => (
 const Theme = () => (
   <div
     onMouseDown={() => {
-      themeMode.value = themeMode.value === "light" ? "dark" : "light";
+      state.themeMode.value = state.themeMode.value === "light" ? "dark" : "light";
     }}
     class="hoverable"
   >
@@ -32,7 +32,7 @@ const Theme = () => (
             text-align: center;
             border-radius: 5px;
             ">
-      {themeMode.value == "light"
+      {state.themeMode.value == "light"
         ? <Icon name="IconMoon" />
         : <Icon name="IconSun" />}
     </span>

@@ -6,7 +6,9 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { Item, Stack } from "./types";
-import { filterContentTypeMode, mainMode } from "./modals";
+import { filterContentTypeMode } from "./modals";
+
+import { default as state } from "./state";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -88,11 +90,11 @@ const updateItems = async (filter: string, contentType: string) => {
 };
 
 const d1 = await listen("refresh-items", () => {
-  updateItems(mainMode.state.curr.value, filterContentTypeMode.curr.value);
+  updateItems(state.filter.curr.value, filterContentTypeMode.curr.value);
 });
 
 effect(() => {
-  updateItems(mainMode.state.curr.value, filterContentTypeMode.curr.value);
+  updateItems(state.filter.curr.value, filterContentTypeMode.curr.value);
 });
 // End items
 
