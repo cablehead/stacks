@@ -4,17 +4,17 @@ import { useEffect, useRef } from "preact/hooks";
 import { borderBottom, overlay } from "../ui/app.css";
 import { RenderKeys } from "../ui/icons";
 
-import { Action, LoadedItem } from "../types";
+import { Action, Stack } from "../types";
 
 import { actionsMode, modes } from "../modals";
 
 import { actions, attemptAction } from "../actions";
 
 function ActionRow(
-  { action, isSelected, loaded }: {
+  { action, isSelected, stack }: {
     action: Action;
     isSelected: boolean;
-    loaded: LoadedItem;
+    stack: Stack;
   },
 ) {
   return (
@@ -30,7 +30,7 @@ function ActionRow(
         cursor: pointer;
         "
       onMouseDown={() => {
-        if (action.trigger) action.trigger(loaded);
+        if (action.trigger) action.trigger(stack);
       }}
     >
       <div>
@@ -43,8 +43,8 @@ function ActionRow(
   );
 }
 
-export function Actions({ loaded }: {
-  loaded: LoadedItem;
+export function Actions({ stack }: {
+  stack: Stack;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -67,7 +67,7 @@ export function Actions({ loaded }: {
           currFilter.value.toLowerCase(),
         );
       })
-      .filter((action) => !action.canApply || action.canApply(loaded.item));
+      .filter((action) => !action.canApply || action.canApply(stack));
   });
 
   const normalizedSelected = useComputed(() => {
@@ -126,7 +126,7 @@ export function Actions({ loaded }: {
                   const action =
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
-                  action.trigger(loaded);
+                  action.trigger(stack);
                   break;
 
                 case event.metaKey && event.key === "k":
@@ -147,7 +147,7 @@ export function Actions({ loaded }: {
                   break;
 
                 default:
-                  attemptAction(event, loaded);
+                  attemptAction(event, stack);
               }
             }}
           />
@@ -162,7 +162,7 @@ export function Actions({ loaded }: {
             <ActionRow
               action={action}
               isSelected={normalizedSelected.value == index}
-              loaded={loaded}
+              stack={stack}
             />
           ))}
       </div>

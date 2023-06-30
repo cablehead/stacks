@@ -5,10 +5,10 @@ import { writeText } from "@tauri-apps/api/clipboard";
 import { overlay } from "../ui/app.css";
 
 import { modes } from "../modals";
-import { LoadedItem } from "../types";
+import { Stack } from "../types";
 
-export function Editor({ loaded }: {
-  loaded: LoadedItem;
+export function Editor({ stack }: {
+  stack: Stack;
 }) {
   const inputRef = useRef<HTMLTextAreaElement>(null);
   useEffect(() => {
@@ -16,6 +16,8 @@ export function Editor({ loaded }: {
       inputRef.current.focus();
     }
   }, []);
+
+  const content = stack.content?.value || "";
 
   return (
     <div
@@ -67,7 +69,7 @@ export function Editor({ loaded }: {
           }
         }}
       >
-        {loaded.content}
+        {content}
       </textarea>
     </div>
   );

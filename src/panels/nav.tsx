@@ -174,13 +174,16 @@ const TerseRow = forwardRef<
 );
 
 function Preview({ stack }: { stack: Stack }) {
-  const loaded = stack.loaded.value;
-  if (!loaded) return <div>loading...</div>;
+  const item = stack.item.value;
+  const content = stack.content?.value;
+  if (!item || !content) return <div>loading...</div>;
 
-  if (loaded.item.mime_type === "image/png") {
+
+  if (item.mime_type === "image/png") {
+
     return (
       <img
-        src={"data:image/png;base64," + loaded.content}
+        src={"data:image/png;base64," + content}
         style={{
           opacity: 0.95,
           borderRadius: "0.5rem",
@@ -200,10 +203,10 @@ function Preview({ stack }: { stack: Stack }) {
   }
   */
 
-  if (loaded.item.link) {
+  if (item.link) {
     return (
       <img
-        src={loaded.item.link.screenshot}
+        src={item.link.screenshot}
         style={{
           opacity: 0.95,
           borderRadius: "0.5rem",
@@ -218,7 +221,7 @@ function Preview({ stack }: { stack: Stack }) {
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { loaded.content }
+    { content }
     </pre>
   );
 }

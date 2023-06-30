@@ -67,10 +67,10 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab": {
       event.preventDefault();
-      const loaded = currStack.loaded.value;
-      if (!loaded) return;
 
       /* todo:
+      const loaded = currStack.loaded.value;
+      if (!loaded) return;
       if (loaded.item.content_type == "Stack") {
         const subStack = createStack(
           signal(loaded.item.stack),
@@ -106,10 +106,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      if (currStack.loaded.value) {
-        if (attemptAction(event, currStack.loaded.value)) return;
-      }
-
+      if (attemptAction(event, currStack)) return;
       if (mainMode.state.input !== null) {
         mainMode.state.input.focus();
       }
@@ -141,22 +138,12 @@ function Main() {
             position: relative;
         ">
         <Nav stack={currStack} />
-
-        {currStack.loaded.value &&
-          (
-            <MetaPanel
-              loaded={currStack.loaded.value}
-            />
-          )}
-
-        {modes.isActive(addToStackMode) &&
-          <addToStackMode.Modal modes={modes} />}
-
-        {currStack.loaded.value && modes.isActive(actionsMode) &&
-          <Actions loaded={currStack.loaded.value} />}
-
-        {currStack.loaded.value && modes.isActive(editorMode) &&
-          <Editor loaded={currStack.loaded.value} />}
+        <MetaPanel stack={currStack} />
+        {modes.isActive(addToStackMode) && (
+          <addToStackMode.Modal modes={modes} />
+        )}
+        {modes.isActive(actionsMode) && <Actions stack={currStack} />}
+        {modes.isActive(editorMode) && <Editor stack={currStack} />}
       </div>
       <StatusBar />
     </main>

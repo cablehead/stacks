@@ -25,17 +25,13 @@ export interface Stack {
   items: Signal<Item[]>;
   selected: Signal<number>;
   normalizedSelected: Signal<number>;
-  loaded: Signal<LoadedItem | undefined>;
-}
-
-export interface LoadedItem {
-  item: Item;
-  content: string;
+  item: Signal<Item | undefined>;
+  get content(): undefined | Signal<string | undefined>;
 }
 
 export interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];
-  trigger?: (loaded: LoadedItem) => void;
-  canApply?: (item: Item) => boolean;
+  trigger?: (stack: Stack) => void;
+  canApply?: (stack: Stack) => boolean;
 }
