@@ -28,7 +28,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
-      break;
+      return;
 
     case event.key === "Escape":
       event.preventDefault();
@@ -53,7 +53,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.metaKey && event.key === "k":
       event.preventDefault();
       modes.toggle(currStack.value, actionsMode);
-      break;
+      return;
 
     case event.shiftKey && event.key === "Tab": {
       if (currStack.value.parent) {
@@ -82,17 +82,17 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
       modes.toggle(currStack.value, filterContentTypeMode);
-      break;
+      return;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
       currStack.value.selected.value += 1;
-      break;
+      return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
       currStack.value.selected.value -= 1;
-      break;
+      return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
       // avoid capturing command-c
@@ -100,11 +100,10 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     default:
       if (attemptAction(event, currStack.value)) return;
-      /*
-      if (currStack.value.filter.input !== null) {
-        currStack.value.filter.input.focus();
-      }
-      */
+
+      // fallback to sending the key stroke to the filter input
+      const filterInput = document.getElementById("filter-input");
+      if (filterInput) filterInput.focus();
   }
 }
 

@@ -44,6 +44,7 @@ export function Filter({ stack }: { stack: Stack }) {
         }}
       >
         <input
+          id="filter-input"
           type="text"
           placeholder="Type to filter..."
           ref={inputRef}
