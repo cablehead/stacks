@@ -22,7 +22,7 @@ import { attemptAction } from "./actions";
 
 import { createStack, currStack, triggerCopy } from "./stacks";
 
-import { themeMode } from "./modals/mainMode";
+import { themeMode } from "./state";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);

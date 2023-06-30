@@ -8,9 +8,6 @@ import { Modes } from "./types";
 import { default as actionsMode } from "./actionsMode";
 import { default as filterContentTypeMode } from "./filterContentTypeMode";
 
-export const themeMode = signal("light");
-
-
 export const state = (() => {
   const curr = signal("");
   let inputRef: HTMLInputElement | null = null;

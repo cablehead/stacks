@@ -1,8 +1,10 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
+
 import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
+
 import { Item, Stack } from "./types";
 import { filterContentTypeMode, mainMode } from "./modals";
 

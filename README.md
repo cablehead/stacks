@@ -37,6 +37,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Todo
 
 - Wire up filter to substacks
+- Bring back delete
 
 - bugs:
     - nested stacks don't see all items for some reasons
