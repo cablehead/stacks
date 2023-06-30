@@ -7,13 +7,12 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Item } from "../types";
-
+import { Item, Stack } from "../types";
 
 export default {
   name: "Add to stack",
 
-  hotKeys: (modes: Modes) => [
+  hotKeys: (_: Stack, modes: Modes) => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],

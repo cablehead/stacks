@@ -5,6 +5,7 @@ import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
+import { Stack } from "../types";
 
 const state = (() => {
   const options = ["All", "Stacks", "Links", "Images"];
@@ -32,7 +33,7 @@ export default {
 
   curr: state.curr,
 
-  hotKeys: (modes: Modes) => [
+  hotKeys: (_: Stack, modes: Modes) => [
     {
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],

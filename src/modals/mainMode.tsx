@@ -4,11 +4,11 @@ import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 
-import { currStack} from "../stacks";
+import { Stack } from "../types";
 
 export default {
   name: "Clipboard",
-  hotKeys: (modes: Modes) => [
+  hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Copy",
       keys: [<Icon name="IconReturnKey" />],
@@ -24,13 +24,13 @@ export default {
       },
     },
 
-    ...(currStack.value.filter.dirty()
+    ...(stack.filter.dirty()
       ? [
         {
           name: "Clear filter",
           keys: ["ESC"],
           onMouseDown: () => {
-            currStack.value.filter.clear();
+            stack.filter.clear();
           },
         },
       ]

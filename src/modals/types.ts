@@ -1,6 +1,8 @@
 import { JSXInternal } from "preact/src/jsx";
 import { Signal } from "@preact/signals";
 
+import { Stack } from "../types";
+
 interface HotKey {
   name: string;
   keys: (string | JSXInternal.Element)[];
@@ -9,7 +11,7 @@ interface HotKey {
 
 export interface Mode {
   name: string;
-  hotKeys: (modes: Modes) => HotKey[];
+  hotKeys: (stack: Stack, modes: Modes) => HotKey[];
   activate?: () => void;
 }
 

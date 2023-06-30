@@ -142,7 +142,7 @@ export function App() {
         {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
         {modes.isActive(editorMode) && <Editor stack={currStack.value} />}
       </div>
-      <StatusBar />
+      <StatusBar stack={currStack.value} />
     </main>
   );
 }
