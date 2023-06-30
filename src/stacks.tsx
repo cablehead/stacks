@@ -39,16 +39,8 @@ export const CAS = (() => {
   };
 })();
 
-/*
-export interface Stack {
-  items: Signal<Item[]>;
-  selected: Signal<number>;
-  normalizedSelected: Signal<number>;
-  selectedItem: Signal<Item | undefined>;
-}
-*/
-
-export const createStack = (items: Signal<Item[]>): Stack => {
+export const createStack = (initItems?: Item[]): Stack => {
+  const items = signal(initItems || []);
   const selected = signal(0);
 
   const normalizedSelected = computed(() => {
@@ -75,12 +67,14 @@ export const createStack = (items: Signal<Item[]>): Stack => {
   };
 };
 
-//
-// Wire items up to the filter, and server refresh notifications
-const items = signal<Item[]>([]);
+const root = createStack();
+export const currStack: Signal<Stack> = signal(root);
 
+//
+// Wire filter, and server refresh notifications, to update the current stacks
+// items
 const updateItems = async (filter: string, contentType: string) => {
-  items.value = await invoke<Item[]>("store_list_items", {
+  currStack.value.items.value = await invoke<Item[]>("store_list_items", {
     filter: filter,
     contentType: contentType,
   });
@@ -95,12 +89,10 @@ effect(() => {
 });
 // End items
 
-export const currStack: Stack = createStack(items);
-
 export async function triggerCopy() {
-  const item = currStack.item.value;
+  const item = currStack.value.item.value;
   if (!item) return;
-  const content = currStack.content?.value;
+  const content = currStack.value.content?.value;
   if (!content) return;
 
   if (item.mime_type != "text/plain") {
@@ -108,7 +100,7 @@ export async function triggerCopy() {
   } else {
     await writeText(content);
   }
-  currStack.selected.value = 0;
+  currStack.value.selected.value = 0;
   hide();
 }
 

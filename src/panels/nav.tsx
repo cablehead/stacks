@@ -1,6 +1,5 @@
 import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
-import { useSignal } from "@preact/signals";
 
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
@@ -197,8 +196,7 @@ function Preview({ stack }: { stack: Stack }) {
   }
 
   if (item.content_type == "Stack") {
-    const items = useSignal(item.stack);
-    const subStack = createStack(items);
+    const subStack = createStack(item.stack);
     return <Nav stack={subStack} />;
   }
 

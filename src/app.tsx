@@ -45,7 +45,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
       */
 
-      currStack.selected.value = 0;
+      currStack.value.selected.value = 0;
       modes.deactivate();
       return;
 
@@ -93,12 +93,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      currStack.selected.value += 1;
+      currStack.value.selected.value += 1;
       break;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      currStack.selected.value -= 1;
+      currStack.value.selected.value -= 1;
       break;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -106,14 +106,14 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      if (attemptAction(event, currStack)) return;
+      if (attemptAction(event, currStack.value)) return;
       if (mainMode.state.input !== null) {
         mainMode.state.input.focus();
       }
   }
 }
 
-function Main() {
+export function App() {
   useEffect(() => {
     window.addEventListener("keydown", globalKeyHandler);
     return () => {
@@ -137,40 +137,16 @@ function Main() {
             padding-right:1ch;
             position: relative;
         ">
-        <Nav stack={currStack} />
-        <MetaPanel stack={currStack} />
+        <Nav stack={currStack.value} />
+        <MetaPanel stack={currStack.value} />
         {modes.isActive(addToStackMode) && (
           <addToStackMode.Modal modes={modes} />
         )}
-        {modes.isActive(actionsMode) && <Actions stack={currStack} />}
-        {modes.isActive(editorMode) && <Editor stack={currStack} />}
+        {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
+        {modes.isActive(editorMode) && <Editor stack={currStack.value} />}
       </div>
       <StatusBar />
     </main>
   );
 }
 
-export function App() {
-  useEffect(() => {
-    /*
-    // set selection back to the top onBlur
-    const onBlur = () => {
-        console.log("BLURRRR", 0);
-      currStack.value.selected.value = 0;
-    };
-    const onFocus = () => {
-      focusSelected(100);
-    };
-    */
-
-    // window.addEventListener("blur", onBlur);
-    // window.addEventListener("focus", onFocus);
-
-    return () => {
-      // window.removeEventListener("blur", onBlur);
-      // window.removeEventListener("focus", onFocus);
-    };
-  }, []);
-
-  return <Main />;
-}
