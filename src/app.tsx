@@ -136,7 +136,7 @@ export function App() {
         <Nav stack={currStack.value} />
         <MetaPanel stack={currStack.value} />
         {modes.isActive(addToStackMode) && (
-          <addToStackMode.Modal modes={modes} />
+          <addToStackMode.Modal stack={currStack.value} modes={modes} />
         )}
         {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
         {modes.isActive(editorMode) && <Editor stack={currStack.value} />}

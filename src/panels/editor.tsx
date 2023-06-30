@@ -63,7 +63,7 @@ export function Editor({ stack }: {
             case event.metaKey && event.key === "Enter":
               if (inputRef.current !== null) {
                 writeText(inputRef.current.value);
-              modes.deactivate();
+                modes.deactivate();
               }
               break;
           }
