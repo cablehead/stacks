@@ -81,6 +81,19 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
 }
 
 #[tauri::command]
+async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
+    let data = serde_json::json!({
+        "name": name,
+        "id": id
+    }).to_string();
+    println!("ADD TO STACK: {}", &data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
+}
+
+#[tauri::command]
 async fn store_list_items(
     stack: Option<String>,
     filter: String,
@@ -396,6 +409,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             store_list_items,
             store_delete,
+            store_add_to_stack,
             store_get_content,
             store_list_stacks,
             open_docs,

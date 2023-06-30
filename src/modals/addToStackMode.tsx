@@ -38,10 +38,12 @@ const state = (() => {
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
       if (!id) return;
-      const choice = options.value[normalizedSelected.value]?.terse;
-      if (!choice) return;
-      console.log("CHOICE", choice, id);
-      modes.deactivate();
+      const name = options.value[normalizedSelected.value]?.terse;
+      if (!name) return;
+      (async () => {
+        await invoke("store_add_to_stack", { name: name, id: id });
+        modes.deactivate();
+      })();
     },
 
     accept_meta: (stack: Stack, modes: Modes) => {
@@ -49,10 +51,12 @@ const state = (() => {
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
       if (!id) return;
-      const choice = currFilter.value;
-      if (choice === "") return;
-      console.log("CHOICE", choice, id);
-      modes.deactivate();
+      const name = currFilter.value;
+      if (name === "") return;
+      (async () => {
+        await invoke("store_add_to_stack", { name: name, id: id });
+        modes.deactivate();
+      })();
     },
   };
 })();
