@@ -7,33 +7,24 @@ import { borderRight } from "../ui/app.css";
 import { Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
-/*
-export function RenderStack({ stack }: { stack: Stack }) {
-  const parent = stack.parents[0];
+export function Parent({ stack }: { stack: Stack }) {
   return (
-    <div style="display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {parent &&
-        (
-          <div
-            className={borderRight}
-            style="
+    <div
+      className={borderRight}
+      style="
       flex: 1;
       max-width: 10ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
-          >
-            {parent.items.value
-              .map((item, index) => {
-                return <TerseRow stack={parent} item={item} index={index} />;
-              })}
-          </div>
-        )}
-    <Nav stack={stack} />
+    >
+      {stack.items.value
+        .map((item, index) => {
+          return <TerseRow stack={stack} item={item} index={index} />;
+        })}
     </div>
   );
 }
-*/
 
 export function Nav({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -73,6 +64,7 @@ export function Nav({ stack }: { stack: Stack }) {
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+      {stack == currStack.value && stack.parent && <Parent stack={stack.parent} />}
       <div
         className={borderRight}
         style="
@@ -133,12 +125,9 @@ const TerseRow = forwardRef<
       onMouseDown={() => {
         if (currStack.value != stack) {
           console.log("Switcheroo");
-          const subStack = createStack((currStack.value.item.value as Item).stack, currStack.value);
-          currStack.value = subStack;
-          subStack.selected.value = index;
-        } else {
-          stack.selected.value = index;
+          currStack.value = stack;
         }
+        stack.selected.value = index;
       }}
       style="
           display: flex;
@@ -197,7 +186,7 @@ function Preview({ stack }: { stack: Stack }) {
   }
 
   if (item.content_type == "Stack") {
-    const subStack = createStack(item.stack);
+    const subStack = createStack(item.stack, currStack.value);
     return <Nav stack={subStack} />;
   }
 
