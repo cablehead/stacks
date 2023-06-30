@@ -33,18 +33,20 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Escape":
       event.preventDefault();
+
+      // attempt to clear filter first
       if (mainMode.state.dirty()) {
         mainMode.state.clear();
         return;
       }
 
-      /*
-      if (currStack.parents.length >= 1) {
-        currStack.value = currStack.value.parents[0];
+      // attempt to pop the current stack
+      if (currStack.value.parent) {
+        currStack.value = currStack.value.parent;
         return;
       }
-      */
 
+      // otherwise, hide the window
       currStack.value.selected.value = 0;
       modes.deactivate();
       return;

@@ -27,6 +27,7 @@ export interface Stack {
   normalizedSelected: Signal<number>;
   item: Signal<Item | undefined>;
   get content(): undefined | Signal<string | undefined>;
+  parent?: Stack;
 }
 
 export interface Action {

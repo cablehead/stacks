@@ -5,7 +5,7 @@ import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
-import { createStack } from "../stacks";
+import { createStack, currStack } from "../stacks";
 
 /*
 export function RenderStack({ stack }: { stack: Stack }) {
@@ -130,14 +130,15 @@ const TerseRow = forwardRef<
       ref={ref}
       className={"terserow" +
         (index === stack.normalizedSelected.value ? " selected" : "")}
-      onClick={() => {
-        /* todo:
+      onMouseDown={() => {
         if (currStack.value != stack) {
           console.log("Switcheroo");
-          currStack.value = stack;
+          const subStack = createStack((currStack.value.item.value as Item).stack, currStack.value);
+          currStack.value = subStack;
+          subStack.selected.value = index;
+        } else {
+          stack.selected.value = index;
         }
-        */
-        stack.selected.value = index;
       }}
       style="
           display: flex;

@@ -39,7 +39,7 @@ export const CAS = (() => {
   };
 })();
 
-export const createStack = (initItems?: Item[]): Stack => {
+export const createStack = (initItems?: Item[], parent?: Stack): Stack => {
   const items = signal(initItems || []);
   const selected = signal(0);
 
@@ -64,6 +64,7 @@ export const createStack = (initItems?: Item[]): Stack => {
       }
       return undefined;
     },
+    parent,
   };
 };
 
@@ -74,6 +75,10 @@ export const currStack: Signal<Stack> = signal(root);
 // Wire filter, and server refresh notifications, to update the current stacks
 // items
 const updateItems = async (filter: string, contentType: string) => {
+  if (currStack.value != root) {
+    return;
+  }
+  console.log("updateItems", filter, contentType);
   currStack.value.items.value = await invoke<Item[]>("store_list_items", {
     filter: filter,
     contentType: contentType,
