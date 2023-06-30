@@ -37,7 +37,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Todo
 
 - Wire up filter to substacks
-- Bring back delete
 
 - bugs:
     - nested stacks don't see all items for some reasons
@@ -45,6 +44,8 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
     - click on Capture doesn't work
 
 - shift-enter to copy but keep stacks open
+
+- Delete inside a stack should just remove the item from the stack
 
 - Editor
     - access clips while editor is open

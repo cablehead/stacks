@@ -64,7 +64,6 @@ async fn store_list_stacks(filter: String) -> Vec<Item> {
     ret
 }
 
-/*
 #[tauri::command]
 async fn store_delete(app: tauri::AppHandle, hash: String) {
     println!("DEL: {}", &hash);
@@ -78,13 +77,11 @@ async fn store_delete(app: tauri::AppHandle, hash: String) {
     }
     state.cas.remove(&hash);
     drop(state);
-    app.emit_all("recent-items", recent_items()).unwrap();
+    app.emit_all("refresh-items", true).unwrap();
 }
-*/
 
 #[tauri::command]
 async fn store_list_items(
-    app: tauri::AppHandle,
     stack: Option<String>,
     filter: String,
     content_type: String,
@@ -92,7 +89,11 @@ async fn store_list_items(
     println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
     let store = &STORE.lock().unwrap();
 
-    let filter = if filter.is_empty() { None } else { Some(filter) };
+    let filter = if filter.is_empty() {
+        None
+    } else {
+        Some(filter)
+    };
     let content_type = if content_type == "All" {
         None
     } else {
@@ -388,6 +389,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             store_list_items,
+            store_delete,
             store_get_content,
             store_list_stacks,
             open_docs,
