@@ -85,7 +85,8 @@ async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
     let data = serde_json::json!({
         "name": name,
         "id": id
-    }).to_string();
+    })
+    .to_string();
     println!("ADD TO STACK: {}", &data);
     let data_dir = app.path_resolver().app_data_dir().unwrap();
     let data_dir = data_dir.join("stream");
