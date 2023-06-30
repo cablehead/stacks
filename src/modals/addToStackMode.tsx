@@ -1,5 +1,5 @@
 import { computed, effect, Signal, signal } from "@preact/signals";
-import { useEffect, useMemo, useRef } from "preact/hooks";
+import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -9,31 +9,69 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Item, Stack } from "../types";
 
+const state = (() => {
+  const selected = signal(0);
+  const currFilter = signal("");
+  const options: Signal<Item[]> = signal([]);
+
+  const normalizedSelected = computed(() => {
+    let val = selected.value % (options.value.length);
+    if (val < 0) val = options.value.length + val;
+    return val;
+  });
+
+  async function fetchOptions(filter: string) {
+    options.value = await invoke("store_list_stacks", { filter: filter });
+  }
+
+  effect(() => {
+    console.log("EFFECT", currFilter.value);
+    fetchOptions(currFilter.value);
+  });
+
+  return {
+    selected,
+    currFilter,
+    options,
+    normalizedSelected,
+  };
+})();
+
 export default {
   name: "Add to stack",
 
-  hotKeys: (_: Stack, modes: Modes) => [
-    {
+  hotKeys: (_: Stack, modes: Modes) => {
+    const ret = [];
+
+    ret.push({
       name: "Select",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
       },
-    },
-    {
-      name: "Create new",
-      keys: [
-        <Icon name="IconCommandKey" />,
-        <Icon name="IconReturnKey" />,
-      ],
-      onMouseDown: () => {
+    });
+
+    if (state.currFilter.value !== "") {
+      ret.push({
+        name: "Create new",
+        keys: [
+          <Icon name="IconCommandKey" />,
+          <Icon name="IconReturnKey" />,
+        ],
+        onMouseDown: () => {
+        },
+      });
+    }
+
+    ret.push(
+      {
+        name: "Back",
+        keys: ["ESC"],
+        onMouseDown: () => modes.deactivate(),
       },
-    },
-    {
-      name: "Back",
-      keys: ["ESC"],
-      onMouseDown: () => modes.deactivate(),
-    },
-  ],
+    );
+
+    return ret;
+  },
 
   Modal: ({ modes }: { modes: Modes }) => {
     const inputRef = useRef<HTMLInputElement>(null);
@@ -42,34 +80,6 @@ export default {
       if (inputRef.current != null) {
         inputRef.current.focus();
       }
-    }, []);
-
-    const state = useMemo(() => {
-      const selected = signal(0);
-      const currFilter = signal("");
-      const options: Signal<Item[]> = signal([]);
-
-      const normalizedSelected = computed(() => {
-        let val = selected.value % (options.value.length);
-        if (val < 0) val = options.value.length + val;
-        return val;
-      });
-
-      async function fetchOptions(filter: string) {
-        options.value = await invoke("store_list_stacks", { filter: filter });
-      }
-
-      effect(() => {
-        console.log("EFFECT", currFilter.value);
-        fetchOptions(currFilter.value);
-      });
-
-      return {
-        selected,
-        currFilter,
-        options,
-        normalizedSelected,
-      };
     }, []);
 
     return (
