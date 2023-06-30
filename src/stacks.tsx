@@ -42,7 +42,7 @@ export const CAS = (() => {
 
 const createFilter = () => {
   const curr = signal("");
-  const content_type = signal("");
+  const content_type = signal("All");
   return {
     curr,
     content_type,
