@@ -15,6 +15,14 @@ export function Filter({ stack }: { stack: Stack }) {
     }
   }, []);
 
+  useEffect(() => {
+    if (inputRef.current != null) {
+      if (inputRef.current.value != stack.filter.curr.value) {
+        inputRef.current.value = stack.filter.curr.value;
+      }
+    }
+  }, [stack.filter.curr.value]);
+
   return (
     <div
       className={borderBottom}
@@ -41,7 +49,6 @@ export function Filter({ stack }: { stack: Stack }) {
           ref={inputRef}
           onInput={(event) =>
             stack.filter.curr.value = (event.target as HTMLInputElement).value}
-          value={stack.filter.curr.value}
         />
       </div>
 
