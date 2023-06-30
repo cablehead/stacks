@@ -1,10 +1,12 @@
 import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
+import { useSignal } from "@preact/signals";
 
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
+import { createStack } from "../stacks";
 
 /*
 export function RenderStack({ stack }: { stack: Stack }) {
@@ -178,9 +180,7 @@ function Preview({ stack }: { stack: Stack }) {
   const content = stack.content?.value;
   if (!item || !content) return <div>loading...</div>;
 
-
   if (item.mime_type === "image/png") {
-
     return (
       <img
         src={"data:image/png;base64," + content}
@@ -196,12 +196,11 @@ function Preview({ stack }: { stack: Stack }) {
     );
   }
 
-  /* todo:
-  if (loaded && loaded.item.content_type == "Stack") {
-    const subStack = createStack(useSignal(loaded.item.stack), stack);
-    if (subStack.parents.length <= 1) return <Nav stack={subStack} />;
+  if (item.content_type == "Stack") {
+    const items = useSignal(item.stack);
+    const subStack = createStack(items);
+    return <Nav stack={subStack} />;
   }
-  */
 
   if (item.link) {
     return (

@@ -48,7 +48,7 @@ export interface Stack {
 }
 */
 
-const createStack = (items: Signal<Item[]>): Stack => {
+export const createStack = (items: Signal<Item[]>): Stack => {
   const selected = signal(0);
 
   const normalizedSelected = computed(() => {
