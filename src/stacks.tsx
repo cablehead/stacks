@@ -8,6 +8,7 @@ import { filterContentTypeMode, mainMode } from "./modals";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
+  const signalCache: Map<string, Signal<string>> = new Map();
 
   async function get(hash: string): Promise<string> {
     const cachedItem = cache.get(hash);
@@ -20,10 +21,15 @@ export const CAS = (() => {
   }
 
   function getSignal(hash: string): Signal<string> {
+    const cachedSignal = signalCache.get(hash);
+    if (cachedSignal !== undefined) {
+      return cachedSignal;
+    }
     const ret: Signal<string> = signal("");
     (async () => {
       ret.value = await get(hash);
     })();
+    signalCache.set(hash, ret);
     return ret;
   }
 
