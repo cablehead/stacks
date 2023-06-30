@@ -20,7 +20,7 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { currStack, triggerCopy } from "./stacks";
+import { createStack, currStack, triggerCopy } from "./stacks";
 
 import { themeMode } from "./modals/mainMode";
 
@@ -57,33 +57,25 @@ async function globalKeyHandler(event: KeyboardEvent) {
       break;
 
     case event.shiftKey && event.key === "Tab": {
-      /* todo:
-      const parents = currStack.value.parents;
-      if (parents.length > 0) {
-          console.log("switch", currStack.value);
-        currStack.value = parents[0];
+      if (currStack.value.parent) {
+        currStack.value = currStack.value.parent;
+        return;
       }
-      */
       return;
     }
 
     case event.key === "Tab": {
       event.preventDefault();
 
-      /* todo:
-      const loaded = currStack.loaded.value;
-      if (!loaded) return;
-      if (loaded.item.content_type == "Stack") {
-        const subStack = createStack(
-          signal(loaded.item.stack),
-          currStack,
-        );
+      // if this is a stack, open it
+      const item = currStack.value.item.value;
+      if (item) {
+        const subStack = createStack(item.stack, currStack.value);
         currStack.value = subStack;
-
         return;
       }
-      */
 
+      // otherwise, add to stack
       modes.activate(addToStackMode);
       return;
     }
