@@ -92,14 +92,16 @@ export const currStack: Signal<Stack> = signal(root);
 // Wire filter, and server refresh notifications, to update the current stacks
 // items
 const updateItems = async (filter: string, contentType: string) => {
-  if (currStack.value != root) {
-    return;
-  }
-  console.log("updateItems", filter, contentType);
-  currStack.value.items.value = await invoke<Item[]>("store_list_items", {
+  const args: { filter: string; contentType: string; stack?: string } = {
     filter: filter,
     contentType: contentType,
-  });
+  };
+  const parent = currStack.value.parent;
+  if (parent) {
+    args.stack = parent.item.value?.hash;
+  }
+  console.log("updateItems", args);
+  currStack.value.items.value = await invoke<Item[]>("store_list_items", args);
 };
 
 const d1 = await listen("refresh-items", () => {

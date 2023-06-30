@@ -102,9 +102,15 @@ async fn store_list_items(
         Some(content_type)
     };
 
-    let mut recent_items: Vec<Item> = store
-        .items
-        .values()
+    let base_items = if let Some(hash) = stack {
+        let item = store.items.get(&hash).unwrap();
+        item.stack.clone()
+    } else {
+        store.items.values().cloned().collect()
+    };
+
+    let mut recent_items: Vec<Item> = base_items
+        .iter()
         .filter(|item| {
             if let Some(curr) = &filter {
                 // match case insensitive, unless the filter has upper case, in which, match case

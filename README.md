@@ -36,8 +36,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
-- Wire up filter to substacks
-
 - bugs:
     - nested stacks don't see all items for some reasons
     - clicking on Copy doesn't work
