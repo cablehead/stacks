@@ -165,6 +165,18 @@ export default {
                     event.preventDefault();
                     modes.deactivate();
                     return;
+
+                  case (event.ctrlKey && event.key === "n") ||
+                    event.key === "ArrowDown":
+                    event.preventDefault();
+                    state.selected.value += 1;
+                    break;
+
+                  case event.ctrlKey && event.key === "p" ||
+                    event.key === "ArrowUp":
+                    event.preventDefault();
+                    state.selected.value -= 1;
+                    break;
                 }
               }}
             />

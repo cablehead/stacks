@@ -49,13 +49,9 @@ _ Polish UX around adding a new Stack item
     - Which I think just means focusing item 0
     - once items are ordered, this will care of the first item in the stack is
       the newly added item
-
-
-- bugs:
-    - nested stacks don't see all items for some reasons
-    - clicking on Copy doesn't work
-    - click on Capture doesn't work
-    - ctrl-n ctrl-p inside add to stack modal
+- nested stacks don't see all items for some reasons
+- clicking on Copy doesn't work
+- click on Capture doesn't work
 
 
 ### and then
