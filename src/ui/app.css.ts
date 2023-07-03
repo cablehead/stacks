@@ -5,7 +5,9 @@ import { createTheme, globalStyle, style } from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
   textColor: "#bebebe",
+  textColorReverse: "#333",
   backgroundColor: "#1F1F1F",
+  backgroundColorHighlight: "#EBAEAC",
   backgroundColorTransparent: "#1F1F1FEF",
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
@@ -16,7 +18,9 @@ export const [darkThemeClass, vars] = createTheme({
 
 export const lightThemeClass = createTheme(vars, {
   textColor: "#2d334a",
+  textColorReverse: "#2d334a",
   backgroundColor: "#FFFFFF",
+  backgroundColorHighlight: "#9BD1DB",
   backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
@@ -63,10 +67,10 @@ globalStyle("input", {
 });
 
 globalStyle("a", {
-    color: vars.textColor,
-    textDecoration: "underline",
-    textDecorationColor: vars.borderColor,
-    textUnderlineOffset: "3px",
+  color: vars.textColor,
+  textDecoration: "underline",
+  textDecorationColor: vars.borderColor,
+  textUnderlineOffset: "3px",
 });
 
 globalStyle(".terserow:hover", {
@@ -79,6 +83,11 @@ globalStyle(".terserow.hover", {
 
 globalStyle(".terserow.selected", {
   backgroundColor: vars.backgroundColorSelected,
+});
+
+globalStyle(".terserow.highlight", {
+  backgroundColor: vars.backgroundColorHighlight,
+  color: vars.textColorReverse,
 });
 
 export const footer = style({
@@ -100,12 +109,12 @@ export const overlay = style({
 });
 
 export const card = style({
-    backgroundColor: vars.backgroundColorTransparent,
-    height: "100%",
-    width: "auto",
-    display: "flex",
-    borderRadius: "1ch",
-    flexDirection: "column",
+  backgroundColor: vars.backgroundColorTransparent,
+  height: "100%",
+  width: "auto",
+  display: "flex",
+  borderRadius: "1ch",
+  flexDirection: "column",
 });
 
 export const borderRight = style({
