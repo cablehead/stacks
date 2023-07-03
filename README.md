@@ -36,14 +36,35 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
+
+### To release
+
+- Delete inside a stack should just remove the item from the stack
+- Deleting a Stack should first take away Stack-hood, and then actually delete
+- Ctrl-h ctrl-l to navigate stacks
+- Additional highligt color in navigation
+- Order items inside a Stack by last touch time
+- Handle Adding the same item to a Stack more than once
+- Add some actions for New Stack gestures?
+_ Polish UX around adding a new Stack item
+    - Which I think just means focusing item 0
+    - once items are ordered, this will care of the first item in the stack is
+      the newly added item
+
+
 - bugs:
     - nested stacks don't see all items for some reasons
     - clicking on Copy doesn't work
     - click on Capture doesn't work
+    - ctrl-n ctrl-p inside add to stack modal
 
-- shift-enter to copy but keep stacks open
 
-- Delete inside a stack should just remove the item from the stack
+### and then
+
+- Going to want multi-select to add
+
+- shift-enter to copy but keep stacks open: maybe
+- or shift-ever: replace
 
 - Editor
     - access clips while editor is open
@@ -70,7 +91,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - meta panel. add: image info
 
 - handle clipboard images
-    - in preview: improve transparency
     - when the user hits enter
 
 - customize key press
@@ -78,8 +98,3 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - add filter: number of times copied
 
 - Actions menu: Add icons to options
-
-- Microlink action: done, but
-    - need UI to indicate scrape is in progress
-    - need to surface errors
-    - feels heavy
