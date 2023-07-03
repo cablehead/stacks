@@ -42,6 +42,7 @@ const state = (() => {
       if (!name) return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
+        stack.selected.value = 0;
         modes.deactivate();
       })();
     },
@@ -55,6 +56,7 @@ const state = (() => {
       if (name === "") return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
+        stack.selected.value = 0;
         modes.deactivate();
       })();
     },
