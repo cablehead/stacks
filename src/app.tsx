@@ -55,9 +55,23 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.toggle(currStack.value, actionsMode);
       return;
 
-    case event.shiftKey && event.key === "Tab": {
+    case (event.shiftKey && event.key === "Tab") ||
+      (event.ctrlKey && event.key === "h"): {
       if (currStack.value.parent) {
         currStack.value = currStack.value.parent;
+        return;
+      }
+      return;
+    }
+
+    case event.ctrlKey && event.key === "l": {
+      event.preventDefault();
+
+      // if this is a stack, open it
+      const item = currStack.value.item.value;
+      if (item && item.content_type == "Stack") {
+        const subStack = createStack(item.stack, currStack.value);
+        currStack.value = subStack;
         return;
       }
       return;

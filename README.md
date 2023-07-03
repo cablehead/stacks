@@ -41,7 +41,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - Delete inside a stack should just remove the item from the stack
 - Deleting a Stack should first take away Stack-hood, and then actually delete
-- Ctrl-h ctrl-l to navigate stacks
 - Additional highligt color in navigation
 - Order items inside a Stack by last touch time
 - Handle Adding the same item to a Stack more than once
