@@ -41,4 +41,5 @@ export interface Action {
   keys?: (string | JSXInternal.Element)[];
   trigger?: (stack: Stack) => void;
   canApply?: (stack: Stack) => boolean;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }

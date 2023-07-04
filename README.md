@@ -39,11 +39,8 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- Delete inside a stack should just remove the item from the stack
-- Deleting a Stack should first take away Stack-hood, and then actually delete
+- Copying an item should put it at the top of stacks
 - Add Actions for New Stack gestures
-- nested stacks don't see all items for some reasons
-- build in recurse protection into nested stacks
 - clicking on Copy doesn't work
 - click on Capture doesn't work
 

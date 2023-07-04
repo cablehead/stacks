@@ -95,6 +95,20 @@ async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
 }
 
 #[tauri::command]
+async fn store_delete_from_stack(app: tauri::AppHandle, name: String, id: String) {
+    let data = serde_json::json!({
+        "name": name,
+        "id": id
+    })
+    .to_string();
+    println!("ADD TO STACK: {}", &data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
+}
+
+#[tauri::command]
 async fn store_list_items(
     stack: Option<String>,
     filter: String,
@@ -284,6 +298,18 @@ impl Store {
                 let mut target = target.unwrap();
 
                 let content = data["name"].as_str().unwrap();
+
+                if let Some(attr) = &frame.attribute {
+                    if attr == "delete" {
+                        let hash = format!("{:x}", Sha256::digest(&content));
+                        if let Some(stack) = self.items.get_mut(&hash) {
+                            let id = id.parse::<scru128::Scru128Id>().ok().unwrap();
+                            stack.stack.retain(|_, item| !item.ids.contains(&id));
+                        }
+                        return;
+                    }
+                }
+
                 let hash = self.create_or_merge(
                     frame.id,
                     "text/plain",
@@ -411,6 +437,7 @@ fn main() {
             store_list_items,
             store_delete,
             store_add_to_stack,
+            store_delete_from_stack,
             store_get_content,
             store_list_stacks,
             open_docs,
