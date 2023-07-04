@@ -116,9 +116,9 @@ async fn store_list_items(
         Some(content_type)
     };
 
-    let base_items = if let Some(hash) = stack {
+    let base_items: Vec<Item> = if let Some(hash) = stack {
         let item = store.items.get(&hash).unwrap();
-        item.stack.clone()
+        item.stack.values().cloned().collect()
     } else {
         store.items.values().cloned().collect()
     };
@@ -200,7 +200,7 @@ impl Store {
                         mime_type: mime_type.to_string(),
                         terse,
                         link: None,
-                        stack: Vec::new(),
+                        stack: HashMap::new(),
                         content_type: content_type.to_string(),
                     },
                 );
@@ -270,7 +270,6 @@ impl Store {
 
             Some(topic) if topic == "stack" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
-                println!("topic: {} {:?}", topic, data);
 
                 let id = data["id"].as_str();
                 if let None = id {
@@ -295,7 +294,12 @@ impl Store {
 
                 let item = self.items.get_mut(&hash).unwrap();
                 item.content_type = "Stack".to_string();
-                item.stack.push(target);
+
+                if let Some(curr) = item.stack.get_mut(&target.hash.to_string()) {
+                    curr.ids.push(frame.id);
+                } else {
+                    item.stack.insert(target.hash.to_string(), target);
+                }
             }
 
             Some(_) => {
@@ -334,7 +338,7 @@ struct Item {
     content_type: String,
     terse: String,
     link: Option<Link>,
-    stack: Vec<Item>,
+    stack: HashMap<String, Item>,
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {

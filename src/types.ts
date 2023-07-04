@@ -18,7 +18,7 @@ export interface Item {
   content_type: string;
   terse: string;
   link?: Link;
-  stack: Item[];
+  stack: Record<string, Item>;
 }
 
 export interface Stack {

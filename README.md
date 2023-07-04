@@ -41,10 +41,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - Delete inside a stack should just remove the item from the stack
 - Deleting a Stack should first take away Stack-hood, and then actually delete
-- Order items inside a Stack by last touch time
-- Handle Adding the same item to a Stack more than once
-- Add some actions for New Stack gestures?
+- Add Actions for New Stack gestures
 - nested stacks don't see all items for some reasons
+- build in recurse protection into nested stacks
 - clicking on Copy doesn't work
 - click on Capture doesn't work
 
