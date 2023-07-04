@@ -32,6 +32,7 @@ const state = (() => {
     currFilter,
     options,
     normalizedSelected,
+    fetchOptions,
 
     accept: (stack: Stack, modes: Modes) => {
       const item = stack.item.value;
@@ -104,7 +105,11 @@ export default {
   },
 
   activate: (_: Stack) => {
-    state.currFilter.value = "";
+    if (state.currFilter.value == "") {
+      state.fetchOptions("");
+    } else {
+      state.currFilter.value = "";
+    }
     state.selected.value = 0;
   },
 
