@@ -281,7 +281,7 @@ impl Store {
                 if let None = target {
                     return;
                 }
-                let target = target.unwrap();
+                let mut target = target.unwrap();
 
                 let content = data["name"].as_str().unwrap();
                 let hash = self.create_or_merge(
@@ -294,12 +294,8 @@ impl Store {
 
                 let item = self.items.get_mut(&hash).unwrap();
                 item.content_type = "Stack".to_string();
-
-                if let Some(curr) = item.stack.get_mut(&target.hash.to_string()) {
-                    curr.ids.push(frame.id);
-                } else {
-                    item.stack.insert(target.hash.to_string(), target);
-                }
+                target.ids.push(frame.id);
+                item.stack.insert(target.hash.to_string(), target);
             }
 
             Some(_) => {
