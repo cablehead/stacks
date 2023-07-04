@@ -40,8 +40,11 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ### To release
 
 - Copying an item should put it at the top of stacks
-- Add Actions for New Stack gestures
-- clicking on Copy doesn't work
+
+- Add Actions
+    - Copy
+    - Tab
+
 - click on Capture doesn't work
 
 

@@ -5,6 +5,7 @@ import { Modes } from "./types";
 import { default as actionsMode } from "./actionsMode";
 
 import { Stack } from "../types";
+import { triggerCopy } from "../stacks";
 
 export default {
   name: "Clipboard",
@@ -13,6 +14,7 @@ export default {
       name: "Copy",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
+          triggerCopy();
       },
     },
 
