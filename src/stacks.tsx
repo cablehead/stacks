@@ -117,12 +117,18 @@ const updateItems = async (filter: string, contentType: string) => {
   currStack.value.items.value = await invoke<Item[]>("store_list_items", args);
 };
 
-const d1 = await listen("refresh-items", () => {
-  updateItems(
-    currStack.value.filter.curr.value,
-    currStack.value.filter.content_type.value,
-  );
-});
+let d1: (() => void) | undefined;
+
+async function initRefresh() {
+  d1 = await listen("refresh-items", () => {
+    updateItems(
+      currStack.value.filter.curr.value,
+      currStack.value.filter.content_type.value,
+    );
+  });
+}
+
+initRefresh();
 
 effect(() => {
   updateItems(
@@ -150,6 +156,6 @@ export async function triggerCopy() {
 if (import.meta.hot) {
   import.meta.hot.accept(() => {});
   import.meta.hot.dispose(() => {
-    d1();
+    if (d1) d1();
   });
 }

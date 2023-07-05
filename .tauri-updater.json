@@ -1,11 +1,11 @@
 {
-  "version": "0.6.1",
-  "notes": "- You can now filter by Content Type, e.g. by Links or by Images\n- A bunch of small fixes and UX tweaks. My favorite, if the filter is currently active, but not focused: it'll now automatically refocus when you start typing.\n- Not very exciting, but, under the hood the frontend bundler has been switched from parcel to vite, and the code base has been given a fair spruce up. Thank goodness for Typescript.\n",
-  "pub_date": "2023-06-17T21:04:00-04:00",
+  "version": "0.7.1",
+  "notes": "This is the biggest release of Stacks, yet!\n\nThe headline feature is the first iteration of Stacks namesake feature: Stacks.\n\nYou can now begin assembling a basic Stack of clips. Hit 'TAB' to add a clip to a Stack.\n\nAdditional changes:\n\n- The filter bar is now always visible. ESC clears the current filter.\n- The light / dark themes have been tweaked slightly.\n\n",
+  "pub_date": "2023-07-05T09:33:47-04:00",
   "platforms": {
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcFA0ZG1QOXpBaHlpc3dtZkc5ODliOGZDdVNmS2dQRE1GdFNZblB1MTJoN25meHZqd0RXYkcybTJnQjkya29tbVRpTy9HUzZCOWRmVW5nRytZaS85dHdjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg3MDUwMjAzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKbnpvbWxwYzZOckkvUXJZZG9OZllmMkIwSE5kRytKblNDQ1BrMXRXM3JDRUNBaG9YdjY5a0tHdFFDMCtIR2gvaXNqNllvZjZ6RTJ3MUlRc2Q1WHNOQlE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.6.1/Stacks_0.6.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFvMzM0aDJjMDlkTjczazcyUWZML0dlRTR4RG9PNjVidFZrc2FSaTFWa2xHVU5vMXpNUXhrcGlwc0t6UDUveFppOTFKTGtxVmN1OC9UT2hMVUFzc2c4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTYzODQwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKUGpsaldhb3pUUTV1UXZzZXFBZnlVVWRtYTVvNC9HcWEzbERsTWVWRm83TVNvK0FpN1hrcTNhYVQ1QjhpcXppSnVNWkt6ZGZ3V3U4UllTVEtEcU9TRHc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.1/Stacks_0.7.1_aarch64.app.tar.gz"
     }
   }
 }
