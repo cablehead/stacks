@@ -36,13 +36,22 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
+### Next release
 
+- Edit inside a Stack should:
+    - replace the item that's in the Stack
+    - preserve the old and new copies in the root Stack
+
+- Should be able to Copy an entire Stack
 
 - Test against a clean empty state
 
 - Add ability to create a Note
 
 - Potentially rename Clipboard to.. /?
+
+### And then
+
 
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
