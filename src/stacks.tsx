@@ -113,8 +113,15 @@ const updateItems = async (filter: string, contentType: string) => {
   if (parent) {
     args.stack = parent.item.value?.hash;
   }
-  console.log("updateItems", args);
+
+  const curr = currStack.value.item.peek()?.terse;
   currStack.value.items.value = await invoke<Item[]>("store_list_items", args);
+
+  const index = currStack.value.items.peek().findIndex((item) =>
+    item.terse == curr
+  );
+  console.log("updateItems: Refocus:", curr, index);
+  if (index >= 0) currStack.value.selected.value = index;
 };
 
 let d1: (() => void) | undefined;
@@ -127,7 +134,6 @@ async function initRefresh() {
     );
   });
 }
-
 initRefresh();
 
 effect(() => {
@@ -149,7 +155,6 @@ export async function triggerCopy() {
   } else {
     await writeText(content);
   }
-  currStack.value.selected.value = 0;
   hide();
 }
 
