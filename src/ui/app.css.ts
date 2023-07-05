@@ -28,8 +28,8 @@ export const lightThemeClass = createTheme(vars, {
   textColor: "#1d1f21",
   backgroundColor: "#f5f5f5",
 
-  textColorReverse: "#3F4B5B",
-  backgroundColorHighlight: "#FFFACD",
+  textColorReverse: "#1d1f21",
+  backgroundColorHighlight: "#B0C4DE",
 
   backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
