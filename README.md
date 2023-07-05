@@ -37,7 +37,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Todo
 
 
-- Build with intel macOS
 
 - Test against a clean empty state
 
