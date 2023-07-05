@@ -79,6 +79,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.key === "Tab": {
       event.preventDefault();
 
+      if (currStack.value.parent) return;
+
       // if this is a stack, open it
       const item = currStack.value.item.value;
       if (item && item.content_type == "Stack") {

@@ -39,8 +39,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- Add Actions
-    - Tab
+- Clicking trigger in the Actions Modal doesn't trigger the action
 
 - Copying an item should put it at the top of stacks
 
