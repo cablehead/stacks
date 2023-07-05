@@ -4,17 +4,26 @@ set -eu
 
 temp_dir=$(mktemp -d)
 
-# Find dmg files
-dmg_files=$(find ./src-tauri/target/ -name "*.dmg")
+# Define architectures
+archs=("x86_64" "aarch64")
 
 # Initialize platforms JSON object
 platforms_json=""
 
-# Loop over each dmg file
-for dmg_file in $dmg_files; do
-    # Extract version and architecture from dmg file name
+# Loop over each architecture
+for arch in "${archs[@]}"; do
+    echo $arch
+    # Find dmg file for this architecture
+    dmg_file=$(find ./src-tauri/target/${arch}-apple-darwin/release/bundle -name "*.dmg")
+
+    # Extract version from dmg file name
     version=$(basename "$dmg_file" | cut -d'_' -f2)
-    arch=$(basename "$dmg_file" | cut -d'_' -f3 | cut -d'.' -f1)
+
+    # Rename the dmg file if the architecture is x86_64
+    if [ "$arch" == "x86_64" ]; then
+        mv "$dmg_file" "${dmg_file/_x64/_x86_64}"
+        dmg_file="${dmg_file/_x64/_x86_64}"
+    fi
 
     # Copy dmg file to temporary directory
     cp "$dmg_file" "$temp_dir"

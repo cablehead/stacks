@@ -1,10 +1,15 @@
 {
   "version": "0.7.1",
   "notes": "This is the biggest release of Stacks, yet!\n\nThe headline feature is the first iteration of Stacks namesake feature: Stacks.\n\nYou can now begin assembling a basic Stack of clips. Hit 'TAB' to add a clip to a Stack.\n\nAdditional changes:\n\n- The filter bar is now always visible. ESC clears the current filter.\n- The light / dark themes have been tweaked slightly.\n\n",
-  "pub_date": "2023-07-05T09:33:47-04:00",
+  "pub_date": "2023-07-05T14:20:09-04:00",
   "platforms": {
+    
+    "darwin-x86_64": {
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEtxWnBtSERlaENsOVUvVDJGUnFKSlRBMDg3NXNRYXo2ekdPQVo5WTU3M3dqd3JiQ0Z4SWlFVDA5QXFOTEx6Y3dkN09jUlpHVENNanFwKzgxOGU1V0FZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTc4MjYzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKTDlERUVPdzRCR0Y1VlhEQWJXQ0VJN1UvWU1sUEs1YTR5RUF3VG9BckRGb3FSZ1hCNzBVbU9xcjRNaktZWi9Ram1jbEx6U3hVbFRTTTFYY0FsckJnQUE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.1/Stacks_0.7.1_x86_64.app.tar.gz"
+    },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFvMzM0aDJjMDlkTjczazcyUWZML0dlRTR4RG9PNjVidFZrc2FSaTFWa2xHVU5vMXpNUXhrcGlwc0t6UDUveFppOTFKTGtxVmN1OC9UT2hMVUFzc2c4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTYzODQwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKUGpsaldhb3pUUTV1UXZzZXFBZnlVVWRtYTVvNC9HcWEzbERsTWVWRm83TVNvK0FpN1hrcTNhYVQ1QjhpcXppSnVNWkt6ZGZ3V3U4UllTVEtEcU9TRHc9PQo=",
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVBUDBMa3RSVms2Ym5DbkMwa001QmpZeCtueGN4MzJiR09NODBTSWxsODVHdUZZdkRPVkZkL0VuTHp0anpVcmY1YVFuc1lseG5DZkVlWkduSkFkYlEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTc4MDk4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYy9GSHgrQVdScmREbnY0ZXdBYTc2U0czazVrc202cDFzc1BSWFNvNmx4cytaTEc4cnBzakVoWTNXaEVzVU9KKzFraTBVNHlOOTBkNENYNmdHVnMwQ0E9PQo=",
       "url": "https://github.com/cablehead/stacks/releases/download/v0.7.1/Stacks_0.7.1_aarch64.app.tar.gz"
     }
   }
