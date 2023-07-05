@@ -44,7 +44,7 @@ const state = (() => {
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = 0;
-        modes.deactivate();
+        modes.active.value = modes.get("Clipboard");
       })();
     },
 
@@ -58,7 +58,7 @@ const state = (() => {
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = 0;
-        modes.deactivate();
+        modes.active.value = modes.get("Clipboard");
       })();
     },
   };
