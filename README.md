@@ -37,19 +37,22 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Todo
 
 
-### To release
+- Build with intel macOS
+
+- Test against a clean empty state
+
+- Add ability to create a Note
+
+- Potentially rename Clipboard to.. /?
 
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
 - Copying an item should put it at the top of stacks
 
-
-### and then
-
 - Going to want multi-select to add
 
 - shift-enter to copy but keep stacks open: maybe
-- or shift-ever: replace
+- or shift-enter: replace
 
 - Editor
     - access clips while editor is open
