@@ -39,13 +39,10 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- Copying an item should put it at the top of stacks
-
 - Add Actions
-    - Copy
     - Tab
 
-- click on Capture doesn't work
+- Copying an item should put it at the top of stacks
 
 
 ### and then

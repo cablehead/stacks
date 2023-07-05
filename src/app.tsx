@@ -14,7 +14,6 @@ import { Nav } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions } from "./panels/actions";
-import { Editor } from "./panels/editor";
 import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
@@ -153,7 +152,9 @@ export function App() {
           <addToStackMode.Modal stack={currStack.value} modes={modes} />
         )}
         {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
-        {modes.isActive(editorMode) && <Editor stack={currStack.value} />}
+        {modes.isActive(editorMode) && (
+          <editorMode.Modal stack={currStack.value} modes={modes} />
+        )}
       </div>
       <StatusBar stack={currStack.value} />
     </main>
