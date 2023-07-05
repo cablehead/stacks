@@ -1,6 +1,6 @@
 import { signal } from "@preact/signals";
 
-const themeMode = signal("light");
+const themeMode = signal("dark");
 
 export default {
     themeMode,

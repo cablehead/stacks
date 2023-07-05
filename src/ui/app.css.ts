@@ -4,10 +4,15 @@
 import { createTheme, globalStyle, style } from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
-  textColor: "#bebebe",
-  textColorReverse: "#333",
-  backgroundColor: "#1F1F1F",
-  backgroundColorHighlight: "#EBAEAC",
+  // textColor: "#bebebe",
+  // backgroundColor: "#1F1F1F",
+
+  textColor: "#c5c6c7",
+  backgroundColor: "#232323",
+
+  backgroundColorHighlight: "#3F4B5B",
+  textColorReverse: "#C0C0C0",
+
   backgroundColorTransparent: "#1F1F1FEF",
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
@@ -17,10 +22,15 @@ export const [darkThemeClass, vars] = createTheme({
 });
 
 export const lightThemeClass = createTheme(vars, {
-  textColor: "#2d334a",
-  textColorReverse: "#2d334a",
-  backgroundColor: "#FFFFFF",
-  backgroundColorHighlight: "#9BD1DB",
+  // textColor: "#2d334a",
+  // backgroundColor: "#FFFFFF",
+
+  textColor: "#1d1f21",
+  backgroundColor: "#f5f5f5",
+
+  textColorReverse: "#3F4B5B",
+  backgroundColorHighlight: "#FFFACD",
+
   backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
