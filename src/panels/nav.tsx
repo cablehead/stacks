@@ -64,7 +64,9 @@ export function Nav({ stack }: { stack: Stack }) {
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {stack == currStack.value && stack.parent && <Parent stack={stack.parent} />}
+      {stack == currStack.value && stack.parent && (
+        <Parent stack={stack.parent} />
+      )}
       <div
         className={borderRight}
         style="
@@ -121,7 +123,9 @@ const TerseRow = forwardRef<
     <div
       ref={ref}
       className={"terserow" +
-        (index === stack.normalizedSelected.value ? " selected" : "")}
+        (index === stack.normalizedSelected.value
+          ? (currStack.value === stack ? " highlight" : " selected")
+          : "")}
       onMouseDown={() => {
         if (currStack.value != stack) {
           console.log("Switcheroo");

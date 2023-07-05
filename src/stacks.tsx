@@ -54,9 +54,22 @@ const createFilter = () => {
   };
 };
 
-export const createStack = (initItems?: Item[], parent?: Stack): Stack => {
+export const createStack = (
+  initItems?: Record<string, Item>,
+  parent?: Stack,
+): Stack => {
   const filter = createFilter();
-  const items = signal(initItems || []);
+  const items = signal(
+    initItems
+      ? Object.values(initItems).sort((a, b) => {
+        const lastIdA = a.ids[a.ids.length - 1];
+        const lastIdB = b.ids[b.ids.length - 1];
+        if (lastIdA < lastIdB) return 1;
+        if (lastIdA > lastIdB) return -1;
+        return 0;
+      })
+      : [],
+  );
   const selected = signal(0);
 
   const normalizedSelected = computed(() => {

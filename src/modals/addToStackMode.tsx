@@ -32,6 +32,7 @@ const state = (() => {
     currFilter,
     options,
     normalizedSelected,
+    fetchOptions,
 
     accept: (stack: Stack, modes: Modes) => {
       const item = stack.item.value;
@@ -42,7 +43,8 @@ const state = (() => {
       if (!name) return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
-        modes.deactivate();
+        stack.selected.value = 0;
+        modes.active.value = modes.get("Clipboard");
       })();
     },
 
@@ -55,7 +57,8 @@ const state = (() => {
       if (name === "") return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
-        modes.deactivate();
+        stack.selected.value = 0;
+        modes.active.value = modes.get("Clipboard");
       })();
     },
   };
@@ -102,7 +105,11 @@ export default {
   },
 
   activate: (_: Stack) => {
-    state.currFilter.value = "";
+    if (state.currFilter.value == "") {
+      state.fetchOptions("");
+    } else {
+      state.currFilter.value = "";
+    }
     state.selected.value = 0;
   },
 
@@ -165,6 +172,18 @@ export default {
                     event.preventDefault();
                     modes.deactivate();
                     return;
+
+                  case (event.ctrlKey && event.key === "n") ||
+                    event.key === "ArrowDown":
+                    event.preventDefault();
+                    state.selected.value += 1;
+                    break;
+
+                  case event.ctrlKey && event.key === "p" ||
+                    event.key === "ArrowUp":
+                    event.preventDefault();
+                    state.selected.value -= 1;
+                    break;
                 }
               }}
             />

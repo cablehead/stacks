@@ -14,7 +14,6 @@ import { Nav } from "./panels/nav";
 import { StatusBar } from "./panels/statusbar";
 import { MetaPanel } from "./panels/meta";
 import { Actions } from "./panels/actions";
-import { Editor } from "./panels/editor";
 import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
@@ -55,7 +54,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.toggle(currStack.value, actionsMode);
       return;
 
-    case event.shiftKey && event.key === "Tab": {
+    case (event.shiftKey && event.key === "Tab") ||
+      (event.ctrlKey && event.key === "h"): {
       if (currStack.value.parent) {
         currStack.value = currStack.value.parent;
         return;
@@ -63,8 +63,23 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case event.ctrlKey && event.key === "l": {
+      event.preventDefault();
+
+      // if this is a stack, open it
+      const item = currStack.value.item.value;
+      if (item && item.content_type == "Stack") {
+        const subStack = createStack(item.stack, currStack.value);
+        currStack.value = subStack;
+        return;
+      }
+      return;
+    }
+
     case event.key === "Tab": {
       event.preventDefault();
+
+      if (currStack.value.parent) return;
 
       // if this is a stack, open it
       const item = currStack.value.item.value;
@@ -139,7 +154,9 @@ export function App() {
           <addToStackMode.Modal stack={currStack.value} modes={modes} />
         )}
         {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
-        {modes.isActive(editorMode) && <Editor stack={currStack.value} />}
+        {modes.isActive(editorMode) && (
+          <editorMode.Modal stack={currStack.value} modes={modes} />
+        )}
       </div>
       <StatusBar stack={currStack.value} />
     </main>

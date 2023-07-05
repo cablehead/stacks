@@ -36,14 +36,20 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
-- bugs:
-    - nested stacks don't see all items for some reasons
-    - clicking on Copy doesn't work
-    - click on Capture doesn't work
 
-- shift-enter to copy but keep stacks open
+### To release
 
-- Delete inside a stack should just remove the item from the stack
+- Clicking trigger in the Actions Modal doesn't trigger the action
+
+- Copying an item should put it at the top of stacks
+
+
+### and then
+
+- Going to want multi-select to add
+
+- shift-enter to copy but keep stacks open: maybe
+- or shift-ever: replace
 
 - Editor
     - access clips while editor is open
@@ -70,7 +76,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - meta panel. add: image info
 
 - handle clipboard images
-    - in preview: improve transparency
     - when the user hits enter
 
 - customize key press
@@ -78,8 +83,3 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - add filter: number of times copied
 
 - Actions menu: Add icons to options
-
-- Microlink action: done, but
-    - need UI to indicate scrape is in progress
-    - need to surface errors
-    - feels heavy

@@ -95,6 +95,20 @@ async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
 }
 
 #[tauri::command]
+async fn store_delete_from_stack(app: tauri::AppHandle, name: String, id: String) {
+    let data = serde_json::json!({
+        "name": name,
+        "id": id
+    })
+    .to_string();
+    println!("ADD TO STACK: {}", &data);
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+    xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
+}
+
+#[tauri::command]
 async fn store_list_items(
     stack: Option<String>,
     filter: String,
@@ -116,9 +130,9 @@ async fn store_list_items(
         Some(content_type)
     };
 
-    let base_items = if let Some(hash) = stack {
+    let base_items: Vec<Item> = if let Some(hash) = stack {
         let item = store.items.get(&hash).unwrap();
-        item.stack.clone()
+        item.stack.values().cloned().collect()
     } else {
         store.items.values().cloned().collect()
     };
@@ -200,7 +214,7 @@ impl Store {
                         mime_type: mime_type.to_string(),
                         terse,
                         link: None,
-                        stack: Vec::new(),
+                        stack: HashMap::new(),
                         content_type: content_type.to_string(),
                     },
                 );
@@ -270,7 +284,6 @@ impl Store {
 
             Some(topic) if topic == "stack" => {
                 let data: Value = serde_json::from_str(&frame.data).unwrap();
-                println!("topic: {} {:?}", topic, data);
 
                 let id = data["id"].as_str();
                 if let None = id {
@@ -282,9 +295,21 @@ impl Store {
                 if let None = target {
                     return;
                 }
-                let target = target.unwrap();
+                let mut target = target.unwrap();
 
                 let content = data["name"].as_str().unwrap();
+
+                if let Some(attr) = &frame.attribute {
+                    if attr == "delete" {
+                        let hash = format!("{:x}", Sha256::digest(&content));
+                        if let Some(stack) = self.items.get_mut(&hash) {
+                            let id = id.parse::<scru128::Scru128Id>().ok().unwrap();
+                            stack.stack.retain(|_, item| !item.ids.contains(&id));
+                        }
+                        return;
+                    }
+                }
+
                 let hash = self.create_or_merge(
                     frame.id,
                     "text/plain",
@@ -295,7 +320,8 @@ impl Store {
 
                 let item = self.items.get_mut(&hash).unwrap();
                 item.content_type = "Stack".to_string();
-                item.stack.push(target);
+                target.ids.push(frame.id);
+                item.stack.insert(target.hash.to_string(), target);
             }
 
             Some(_) => {
@@ -334,7 +360,7 @@ struct Item {
     content_type: String,
     terse: String,
     link: Option<Link>,
-    stack: Vec<Item>,
+    stack: HashMap<String, Item>,
 }
 
 fn start_child_process(app: tauri::AppHandle, path: &Path) {
@@ -411,6 +437,7 @@ fn main() {
             store_list_items,
             store_delete,
             store_add_to_stack,
+            store_delete_from_stack,
             store_get_content,
             store_list_stacks,
             open_docs,
@@ -434,7 +461,7 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            window.open_devtools();
+            // window.open_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

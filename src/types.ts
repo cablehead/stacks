@@ -18,7 +18,7 @@ export interface Item {
   content_type: string;
   terse: string;
   link?: Link;
-  stack: Item[];
+  stack: Record<string, Item>;
 }
 
 export interface Stack {
@@ -41,4 +41,5 @@ export interface Action {
   keys?: (string | JSXInternal.Element)[];
   trigger?: (stack: Stack) => void;
   canApply?: (stack: Stack) => boolean;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
