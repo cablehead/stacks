@@ -24,6 +24,9 @@ import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
+
+  if (attemptAction(event, currStack.value)) return;
+
   switch (true) {
     case event.key === "Enter":
       await triggerCopy();
@@ -114,8 +117,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      if (attemptAction(event, currStack.value)) return;
-
       // fallback to sending the key stroke to the filter input
       const filterInput = document.getElementById("filter-input");
       if (filterInput) filterInput.focus();
@@ -132,9 +133,7 @@ export function App() {
 
   return (
     <main
-      className={theme.value === "light"
-        ? lightThemeClass
-        : darkThemeClass}
+      className={theme.value === "light" ? lightThemeClass : darkThemeClass}
     >
       <Filter stack={currStack.value} />
       <div style="

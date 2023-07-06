@@ -108,7 +108,7 @@ const updateItems = async (stack: Stack) => {
   const filter = stack.filter.curr.value;
   const contentType = stack.filter.content_type.value;
 
-  const args= {
+  const args = {
     filter: filter,
     contentType: contentType,
     stack: stack.parent?.item.value?.hash,
@@ -154,6 +154,24 @@ export async function triggerCopy() {
     await writeText(content);
   }
   hide();
+}
+
+export async function triggerCopyEntireStack(stack: Stack) {
+  const item = stack.item.value;
+  if (item) {
+    const sortedStackItems = Object.values(item.stack).sort((a, b) => {
+      const lastIdA = a.ids[a.ids.length - 1];
+      const lastIdB = b.ids[b.ids.length - 1];
+      return lastIdB.localeCompare(lastIdA);
+    });
+    const contents = await Promise.all(
+      sortedStackItems
+        .filter((item) => item.mime_type === "text/plain")
+        .map((item) => CAS.get(item.hash)),
+    );
+    const entireString = contents.join("\n");
+    await writeText(entireString);
+  }
 }
 
 if (import.meta.hot) {
