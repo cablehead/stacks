@@ -108,14 +108,11 @@ const updateItems = async (stack: Stack) => {
   const filter = stack.filter.curr.value;
   const contentType = stack.filter.content_type.value;
 
-  const args: { filter: string; contentType: string; stack?: string } = {
+  const args= {
     filter: filter,
     contentType: contentType,
+    stack: stack.parent?.item.value?.hash,
   };
-  const parent = stack.parent;
-  if (parent) {
-    args.stack = parent.item.value?.hash;
-  }
 
   const curr = stack.item.peek()?.terse;
   stack.items.value = await invoke<Item[]>("store_list_items", args);

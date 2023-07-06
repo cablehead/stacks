@@ -1,6 +1,9 @@
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
+
 import { writeText } from "@tauri-apps/api/clipboard";
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
@@ -10,7 +13,20 @@ const state = (() => {
   const curr = signal("");
   return {
     curr,
-    accept_meta: (_: Stack, modes: Modes) => {
+
+    accept_meta: (stack: Stack, modes: Modes) => {
+      const source_ids = stack.item.value?.ids;
+      const args = {
+        item: curr.value,
+        sourceId: (source_ids && source_ids.length > 0)
+          ? source_ids[source_ids.length - 1]
+          : undefined,
+        stackName: stack.parent?.item.value?.terse,
+      };
+
+      console.log("CAPTURE", args);
+      invoke("store_capture", args);
+
       writeText(curr.value);
       modes.deactivate();
     },
