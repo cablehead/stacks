@@ -20,7 +20,7 @@ import { attemptAction } from "./actions";
 
 import { createStack, currStack, triggerCopy } from "./stacks";
 
-import { default as state } from "./state";
+import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
@@ -132,7 +132,7 @@ export function App() {
 
   return (
     <main
-      className={state.themeMode.value === "light"
+      className={theme.value === "light"
         ? lightThemeClass
         : darkThemeClass}
     >
