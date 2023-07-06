@@ -8,6 +8,30 @@ import { Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
 export function Parent({ stack }: { stack: Stack }) {
+  const theRef = useRef<HTMLDivElement>(null);
+
+  let focusSelectedTimeout: number | undefined;
+
+  function focusSelected(delay: number) {
+    if (focusSelectedTimeout !== undefined) {
+      return;
+    }
+
+    focusSelectedTimeout = window.setTimeout(() => {
+      focusSelectedTimeout = undefined;
+      if (theRef.current) {
+        console.log("SCROLL INTO VIEW");
+        theRef.current.scrollIntoView({
+          block: "start",
+        });
+      }
+    }, delay);
+  }
+
+  useEffect(() => {
+    focusSelected(100);
+  }, []);
+
   return (
     <div
       className={borderRight}
@@ -20,7 +44,14 @@ export function Parent({ stack }: { stack: Stack }) {
     >
       {stack.items.value
         .map((item, index) => {
-          return <TerseRow stack={stack} item={item} index={index} />;
+          return (
+            <TerseRow
+              ref={index === stack.normalizedSelected.value ? theRef : null}
+              stack={stack}
+              item={item}
+              index={index}
+            />
+          );
         })}
     </div>
   );
@@ -127,11 +158,11 @@ const TerseRow = forwardRef<
           ? (currStack.value === stack ? " highlight" : " selected")
           : "")}
       onMouseDown={() => {
+        stack.selected.value = index;
         if (currStack.value != stack) {
           console.log("Switcheroo");
           currStack.value = stack;
         }
-        stack.selected.value = index;
       }}
       style="
           display: flex;

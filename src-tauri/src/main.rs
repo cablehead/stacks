@@ -101,11 +101,58 @@ async fn store_delete_from_stack(app: tauri::AppHandle, name: String, id: String
         "id": id
     })
     .to_string();
-    println!("ADD TO STACK: {}", &data);
+    println!("DELETE FROM STACK: {}", &data);
     let data_dir = app.path_resolver().app_data_dir().unwrap();
     let data_dir = data_dir.join("stream");
     let env = xs_lib::store_open(&data_dir).unwrap();
     xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
+}
+
+// Saves item to the cas
+// If source_id is present creates a link to the source
+// If stack_name is present, adds item to the stack
+// if stack_name and source are present, removes source from stack
+#[tauri::command]
+async fn store_capture(
+    app: tauri::AppHandle,
+    item: String,
+    source_id: Option<String>,
+    stack_name: Option<String>,
+) {
+    println!("CAPTURE: {} {:?} {:?}", item, source_id, stack_name);
+
+    let data_dir = app.path_resolver().app_data_dir().unwrap();
+    let data_dir = data_dir.join("stream");
+    let env = xs_lib::store_open(&data_dir).unwrap();
+
+    let id = xs_lib::store_put(&env, Some("item".into()), None, item).unwrap();
+
+    if let Some(source_id) = &source_id {
+        let data = serde_json::json!({
+            "source_id": source_id,
+            "id": id
+        })
+        .to_string();
+        xs_lib::store_put(&env, Some("link".into()), None, data).unwrap();
+    }
+
+    if let Some(stack_name) = stack_name {
+        let data = serde_json::json!({
+            "name": stack_name,
+            "id": id
+        })
+        .to_string();
+        xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
+
+        if let Some(source_id) = &source_id {
+            let data = serde_json::json!({
+                "name": stack_name,
+                "id": source_id
+            })
+            .to_string();
+            xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
+        }
+    }
 }
 
 #[tauri::command]
@@ -324,14 +371,17 @@ impl Store {
                 item.stack.insert(target.hash.to_string(), target);
             }
 
-            Some(_) => {
-                let _ = self.create_or_merge(
-                    frame.id,
-                    "text/plain",
-                    "Text",
-                    frame.data.chars().take(100).collect(),
-                    frame.data.as_bytes().to_vec(),
-                );
+            Some(topic) => {
+                log::info!("add_frame TODO: topic: {} id: {}", topic, frame.id,);
+                if topic != "link" {
+                    let _ = self.create_or_merge(
+                        frame.id,
+                        "text/plain",
+                        "Text",
+                        frame.data.chars().take(100).collect(),
+                        frame.data.as_bytes().to_vec(),
+                    );
+                }
             }
             None => (),
         };
@@ -436,6 +486,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             store_list_items,
             store_delete,
+            store_capture,
             store_add_to_stack,
             store_delete_from_stack,
             store_get_content,
@@ -461,7 +512,7 @@ fn main() {
         .setup(|app| {
             #[allow(unused_variables)]
             let window = app.get_window("main").unwrap();
-            // window.open_devtools();
+            window.open_devtools();
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

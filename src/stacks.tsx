@@ -104,37 +104,41 @@ export const currStack: Signal<Stack> = signal(root);
 //
 // Wire filter, and server refresh notifications, to update the current stacks
 // items
-const updateItems = async (filter: string, contentType: string) => {
-  const args: { filter: string; contentType: string; stack?: string } = {
+const updateItems = async (stack: Stack) => {
+  const filter = stack.filter.curr.value;
+  const contentType = stack.filter.content_type.value;
+
+  const args= {
     filter: filter,
     contentType: contentType,
+    stack: stack.parent?.item.value?.hash,
   };
-  const parent = currStack.value.parent;
-  if (parent) {
-    args.stack = parent.item.value?.hash;
-  }
-  console.log("updateItems", args);
-  currStack.value.items.value = await invoke<Item[]>("store_list_items", args);
+
+  const curr = stack.item.peek()?.terse;
+  stack.items.value = await invoke<Item[]>("store_list_items", args);
+
+  const index = stack.items.peek().findIndex((item) => item.terse == curr);
+  console.log("updateItems: Refocus:", curr, index);
+  if (index >= 0) stack.selected.value = index;
 };
 
 let d1: (() => void) | undefined;
 
 async function initRefresh() {
   d1 = await listen("refresh-items", () => {
-    updateItems(
-      currStack.value.filter.curr.value,
-      currStack.value.filter.content_type.value,
-    );
+    console.log("LISTEN");
+    updateItems(currStack.value);
+    const parent = currStack.value.parent;
+    if (parent) {
+      updateItems(parent);
+    }
   });
 }
-
 initRefresh();
 
 effect(() => {
-  updateItems(
-    currStack.value.filter.curr.value,
-    currStack.value.filter.content_type.value,
-  );
+  console.log("EFFECT");
+  updateItems(currStack.value);
 });
 // End items
 
@@ -149,7 +153,6 @@ export async function triggerCopy() {
   } else {
     await writeText(content);
   }
-  currStack.value.selected.value = 0;
   hide();
 }
 
