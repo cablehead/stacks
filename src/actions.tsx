@@ -6,7 +6,20 @@ import { editorMode, modes } from "./modals";
 import { Icon } from "./ui/icons";
 import { Action, Stack } from "./types";
 
+import { triggerCopyEntireStack } from "./stacks";
+
 export const actions: Action[] = [
+  {
+    name: "Copy entire stack",
+    keys: [
+      <Icon name="IconCommandKey" />,
+      <Icon name="IconReturnKey" />,
+    ],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      event.metaKey && event.key === "Enter",
+    canApply: (stack: Stack) => stack.item.value?.content_type === "Stack",
+    trigger: (stack: Stack) => triggerCopyEntireStack(stack),
+  },
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
