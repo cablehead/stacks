@@ -195,27 +195,10 @@ export default {
         ">
           {state.options.value
             .map((item, index) => (
-              <Row
-                item={item}
-                isSelected={state.normalizedSelected.value == index}
-              />
-            ))}
-        </div>
-      </div>
-    );
-  },
-};
-
-function Row(
-  { item, isSelected }: {
-    item: Item;
-    isSelected: boolean;
-  },
-) {
-  return (
-    <div
-      className={"terserow" + (isSelected ? " hover" : "")}
-      style="
+              <div
+                className={"terserow" +
+                  (state.normalizedSelected.value == index ? " hover" : "")}
+                style="
         display: flex;
         width: 100%;
         overflow: hidden;
@@ -224,12 +207,17 @@ function Row(
         border-radius: 6px;
         cursor: pointer;
         "
-      onMouseDown={() => {
-      }}
-    >
-      <div>
-        {item.terse}
+                onMouseDown={() => {
+                  state.accept(stack, modes);
+                }}
+              >
+                <div>
+                  {item.terse}
+                </div>
+              </div>
+            ))}
+        </div>
       </div>
-    </div>
-  );
-}
+    );
+  },
+};
