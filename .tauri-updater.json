@@ -1,16 +1,16 @@
 {
-  "version": "0.7.1",
-  "notes": "This is the biggest release of Stacks, yet!\n\nThe headline feature is the first iteration of Stacks namesake feature: Stacks.\n\nYou can now begin assembling a basic Stack of clips. Hit 'TAB' to add a clip to a Stack.\n\nAdditional changes:\n\n- The filter bar is now always visible. ESC clears the current filter.\n- The light / dark themes have been tweaked slightly.\n\n",
-  "pub_date": "2023-07-05T14:20:09-04:00",
+  "version": "0.7.2",
+  "notes": "\nThis releases begins to improve basic UX around Stacks\n\nFeatures:\n\n- A new action has been added for Stack: command-Enter, which copies all content in the stack, seperated by new lines\n- When editing an item within a Stack, the new version replaces the old version. The old version is still preserved in global stack. A link is now create between the new and old items: this link isn't visible yet though\n- The light / dark theme now defaults to the user's system's preference\n- We're now generating builds for Intel Macs! (for Toby).\n\nBug fixes:\n\n- Improved navigation: keep focus on the currently selected item, when items are added\n- The parent Stack now sees new items in real time\n- When adding to a Stack, clicking on a target Stack name now works\n",
+  "pub_date": "2023-07-06T10:43:56-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEtxWnBtSERlaENsOVUvVDJGUnFKSlRBMDg3NXNRYXo2ekdPQVo5WTU3M3dqd3JiQ0Z4SWlFVDA5QXFOTEx6Y3dkN09jUlpHVENNanFwKzgxOGU1V0FZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTc4MjYzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKTDlERUVPdzRCR0Y1VlhEQWJXQ0VJN1UvWU1sUEs1YTR5RUF3VG9BckRGb3FSZ1hCNzBVbU9xcjRNaktZWi9Ram1jbEx6U3hVbFRTTTFYY0FsckJnQUE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.1/Stacks_0.7.1_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE5mTVFVMzI5SDlMUlBIYXJjSmRSRFJOUFRjTGt1MWpuWnRjejdVWndTSEN6YU0ya0MzSzM1OGNpYXlnL1dZUUtTR09DZTkzZko3WnFualFWdXM4TUFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NjU0NDQ5CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKdGR0Z2tTYmp5ek1saEN4MUM5alR4akVGMDIzRHNUVlNPODkzeWE1RURXQm9zZ2dmUDVpbjBrNEJYTGJvNmROTDJwMlBZdytMdThWRnBEOUJERXBLQ0E9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.2/Stacks_0.7.2_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVBUDBMa3RSVms2Ym5DbkMwa001QmpZeCtueGN4MzJiR09NODBTSWxsODVHdUZZdkRPVkZkL0VuTHp0anpVcmY1YVFuc1lseG5DZkVlWkduSkFkYlEwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NTc4MDk4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYy9GSHgrQVdScmREbnY0ZXdBYTc2U0czazVrc202cDFzc1BSWFNvNmx4cytaTEc4cnBzakVoWTNXaEVzVU9KKzFraTBVNHlOOTBkNENYNmdHVnMwQ0E9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.1/Stacks_0.7.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE9DWGZaYmZ6RHdkQ0grQzcyS3lwNHZCY0Q4ajJNQ2FSYUlza3ZkUytBZEltN0toWkZhL1lSRjV5ZndXWitsVmplV2JlYm9oWTdVYkd0M283NHN0UndrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NjU0MzU1CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKQzY3d1BJRDg3Z3krMUR1a3NZMzZhMDIvS2ozMkh0UlcySTMxZldVeXBhTlZqZkJBalBOSXdrSDZxZUV1dFRwZDhvZ1Q3SVMwZzhiUXpaR1VIcHE2REE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.2/Stacks_0.7.2_aarch64.app.tar.gz"
     }
   }
 }

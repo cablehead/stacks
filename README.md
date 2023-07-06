@@ -25,12 +25,21 @@ tsc
 ## Release
 
 ```
+# make sure dev console is disabled
+
 # update Cargo.toml and tauri.conf.json for new version
 # set RELEASE to the new version, e.g
 RELEASE=v0.5.2
-./build.sh
+
+./scripts/build.sh
+# while that builds
+vi changes/$RELEASE
+
+# after build completes
 cat changes/$RELEASE | ./scripts/release.sh
+
 # commit and push
+
 gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ```
 
@@ -62,17 +71,12 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - Preference panel
 
-- Theme: initialize theme to the system preference
-    - set a time limit when manually set
-
 - Editor capture should create an xs.add row: with parent set to the id the
   editor was triggered on: this should be merged version that's put on the
   clipboard
 
 - better cursor handling
     - dedicated focus handling when the filter changes
-    - if the first item isn't selected and an item is added, move the cursor
-      down one to keep focus steady
     - unless the item being added is the item focused, in which case, jump to
       the first?? - maybe
     - reset to start state of 1 minute
