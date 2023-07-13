@@ -208,6 +208,7 @@ export default {
         cursor: pointer;
         "
                 onMouseDown={() => {
+                  state.selected.value = index;
                   state.accept(stack, modes);
                 }}
               >
