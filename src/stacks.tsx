@@ -117,6 +117,13 @@ const updateItems = async (stack: Stack) => {
   const curr = stack.item.peek()?.terse;
   stack.items.value = await invoke<Item[]>("store_list_items", args);
 
+  // focus the newly added item, if Stacks doesn't have focus
+  if (!document.hasFocus()) {
+    stack.selected.value = 0;
+    return;
+  }
+
+  // otherwise, try to preserve the current focus
   const index = stack.items.peek().findIndex((item) => item.terse == curr);
   console.log("updateItems: Refocus:", curr, index);
   if (index >= 0) stack.selected.value = index;
