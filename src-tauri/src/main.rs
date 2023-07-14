@@ -14,8 +14,8 @@ mod stack;
 mod state;
 mod store;
 
-use store::MimeType;
 use state::{SharedState, State};
+use store::MimeType;
 
 fn main() {
     let context = tauri::generate_context!();
