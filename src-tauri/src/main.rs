@@ -4,12 +4,11 @@
 #[allow(deprecated)]
 use base64::decode;
 
-use lazy_static::lazy_static;
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::path::Path;
-use std::sync::Mutex;
+use std::path::{Path, PathBuf};
+use std::sync::{Arc, Mutex};
 use tauri::CustomMenuItem;
 use tauri::Manager;
 use tauri::SystemTrayMenu;
@@ -24,18 +23,19 @@ mod xs_lib;
 const POLL_INTERVAL: u64 = 10;
 
 #[tauri::command]
-async fn store_get_content(hash: String) -> Option<String> {
+fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
+    let store = store.lock().unwrap();
     println!("CACHE MISS: {}", &hash);
-    let state = STORE.lock().unwrap();
-    state
+    store
         .cas
         .get(&hash)
         .map(|content| String::from_utf8(content.clone()).unwrap())
 }
 
 #[tauri::command]
-async fn store_list_stacks(filter: String) -> Vec<Item> {
-    let store = &STORE.lock().unwrap();
+fn store_list_stacks(filter: String, store: tauri::State<SharedStore>) -> Vec<Item> {
+    let store = store.lock().unwrap();
+
     let mut ret: Vec<Item> = store
         .items
         .values()
@@ -58,46 +58,49 @@ async fn store_list_stacks(filter: String) -> Vec<Item> {
 }
 
 #[tauri::command]
-async fn store_delete(app: tauri::AppHandle, hash: String) {
+fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<SharedStore>) {
+    let mut store = store.lock().unwrap();
     println!("DEL: {}", &hash);
-    let mut state = STORE.lock().unwrap();
-    if let Some(item) = state.items.remove(&hash) {
+    if let Some(item) = store.items.remove(&hash) {
         println!("item: {:?}", item);
-        let data_dir = app.path_resolver().app_data_dir().unwrap();
-        let data_dir = data_dir.join("stream");
-        let env = xs_lib::store_open(&data_dir).unwrap();
+        let env = xs_lib::store_open(&store.db_path).unwrap();
         xs_lib::store_delete(&env, item.ids).unwrap();
     }
-    state.cas.remove(&hash);
-    drop(state);
+    store.cas.remove(&hash);
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
-async fn store_add_to_stack(app: tauri::AppHandle, name: String, id: String) {
+fn store_add_to_stack(
+    name: String,
+    id: String,
+    store: tauri::State<SharedStore>,
+) {
+    let store = store.lock().unwrap();
     let data = serde_json::json!({
         "name": name,
         "id": id
     })
     .to_string();
     println!("ADD TO STACK: {}", &data);
-    let data_dir = app.path_resolver().app_data_dir().unwrap();
-    let data_dir = data_dir.join("stream");
-    let env = xs_lib::store_open(&data_dir).unwrap();
+    let env = xs_lib::store_open(&store.db_path).unwrap();
     xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
 }
 
 #[tauri::command]
-async fn store_delete_from_stack(app: tauri::AppHandle, name: String, id: String) {
+fn store_delete_from_stack(
+    name: String,
+    id: String,
+    store: tauri::State<SharedStore>,
+) {
+    let store = store.lock().unwrap();
     let data = serde_json::json!({
         "name": name,
         "id": id
     })
     .to_string();
     println!("DELETE FROM STACK: {}", &data);
-    let data_dir = app.path_resolver().app_data_dir().unwrap();
-    let data_dir = data_dir.join("stream");
-    let env = xs_lib::store_open(&data_dir).unwrap();
+    let env = xs_lib::store_open(&store.db_path).unwrap();
     xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
 }
 
@@ -106,17 +109,16 @@ async fn store_delete_from_stack(app: tauri::AppHandle, name: String, id: String
 // If stack_name is present, adds item to the stack
 // if stack_name and source are present, removes source from stack
 #[tauri::command]
-async fn store_capture(
-    app: tauri::AppHandle,
+fn store_capture(
     item: String,
     source_id: Option<String>,
     stack_name: Option<String>,
+    store: tauri::State<SharedStore>,
 ) {
     println!("CAPTURE: {} {:?} {:?}", item, source_id, stack_name);
+    let store = store.lock().unwrap();
 
-    let data_dir = app.path_resolver().app_data_dir().unwrap();
-    let data_dir = data_dir.join("stream");
-    let env = xs_lib::store_open(&data_dir).unwrap();
+    let env = xs_lib::store_open(&store.db_path).unwrap();
 
     let id = xs_lib::store_put(&env, Some("item".into()), None, item).unwrap();
 
@@ -149,14 +151,14 @@ async fn store_capture(
 }
 
 #[tauri::command]
-async fn store_list_items(
+fn store_list_items(
     stack: Option<String>,
     filter: String,
     content_type: String,
+    store: tauri::State<SharedStore>,
 ) -> Vec<Item> {
+    let store = store.lock().unwrap();
     println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
-    let store = &STORE.lock().unwrap();
-
     let filter = if filter.is_empty() {
         None
     } else {
@@ -209,13 +211,15 @@ async fn store_list_items(
 struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
+    db_path: PathBuf,
 }
 
 impl Store {
-    fn new() -> Self {
+    fn new(db_path: PathBuf) -> Self {
         Self {
             items: HashMap::new(),
             cas: HashMap::new(),
+            db_path,
         }
     }
 
@@ -370,10 +374,6 @@ impl Store {
     }
 }
 
-lazy_static! {
-    static ref STORE: Mutex<Store> = Mutex::new(Store::new());
-}
-
 #[derive(PartialEq, Debug, Clone, serde::Serialize)]
 struct Link {
     provider: String,
@@ -395,7 +395,9 @@ struct Item {
     stack: HashMap<String, Item>,
 }
 
-fn start_child_process(app: tauri::AppHandle, path: &Path) {
+type SharedStore = Arc<Mutex<Store>>;
+
+fn start_child_process(app: tauri::AppHandle, path: &Path, store: SharedStore) {
     let path = path.to_path_buf();
     std::thread::spawn(move || {
         let mut last_id = None;
@@ -407,8 +409,8 @@ fn start_child_process(app: tauri::AppHandle, path: &Path) {
                 if !frames.is_empty() {
                     for frame in frames {
                         last_id = Some(frame.id);
-                        let mut state = STORE.lock()?;
-                        state.add_frame(&frame);
+                        let mut store = store.lock().unwrap();
+                        store.add_frame(&frame);
                     }
                     app.emit_all("refresh-items", true)?;
                 }
@@ -497,12 +499,20 @@ fn main() {
 
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            let data_dir = app.path_resolver().app_data_dir().unwrap();
-            let data_dir = data_dir.join("stream");
-            log::info!("PR: {:?}", data_dir);
+            let db_path = match std::env::var("STACK_DB_PATH") {
+                Ok(path) => PathBuf::from(path),
+                Err(_) => {
+                    let data_dir = app.path_resolver().app_data_dir().unwrap();
+                    data_dir.join("stream")
+                }
+            };
+            log::info!("PR: {:?}", db_path);
 
-            clipboard::start(&data_dir);
-            start_child_process(app.handle(), &data_dir);
+            let store: SharedStore = Arc::new(Mutex::new(Store::new(db_path.clone())));
+            app.manage(store.clone());
+
+            clipboard::start(&db_path);
+            start_child_process(app.handle(), &db_path, store.clone());
 
             Ok(())
         })
