@@ -18,13 +18,6 @@ use tauri_plugin_log::LogTarget;
 mod clipboard;
 mod xs_lib;
 
-#[derive(Clone, serde::Serialize)]
-pub struct CommandOutput {
-    pub stdout: String,
-    pub stderr: String,
-    pub exit_code: i32,
-}
-
 // POLL_INTERVAL is the number of milliseconds to wait between polls when watching for
 // additions to the stream
 // todo: investigate switching to: https://docs.rs/notify/latest/notify/
