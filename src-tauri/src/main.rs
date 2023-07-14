@@ -100,6 +100,12 @@ fn main() {
                 .put(Some("Hi there".into()), MimeType::TextPlain, b"oh hai");
             state.stack.create_or_merge(&state.store, &frame);
 
+            let data = std::fs::read("/tmp/out5.png").unwrap();
+            let frame = state
+                .store
+                .put(Some("ze image".into()), MimeType::ImagePng, &data);
+            state.stack.create_or_merge(&state.store, &frame);
+
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
 
