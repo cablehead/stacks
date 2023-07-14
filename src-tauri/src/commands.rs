@@ -1,6 +1,8 @@
 use crate::stack::Item;
 use crate::state::SharedState;
 
+use base64::{engine::general_purpose, Engine as _};
+
 #[tauri::command]
 pub fn store_get_content(
     state: tauri::State<SharedState>,
@@ -8,7 +10,10 @@ pub fn store_get_content(
 ) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
     let state = state.lock().unwrap();
-    state.store.cat(&hash).map(|vec| base64::encode(&vec))
+    state
+        .store
+        .cat(&hash)
+        .map(|vec| general_purpose::STANDARD.encode(&vec))
 }
 
 #[tauri::command]
