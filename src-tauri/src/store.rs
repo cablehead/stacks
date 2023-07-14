@@ -8,7 +8,7 @@ use crate::xs_lib;
 
 pub struct Store {
     pub items: HashMap<String, Item>,
-    pub cas: HashMap<String, Vec<u8>>,
+    cas: HashMap<String, Vec<u8>>,
     db_path: PathBuf,
 }
 
@@ -19,6 +19,12 @@ impl Store {
             cas: HashMap::new(),
             db_path,
         }
+    }
+
+    pub fn cat(&self, hash: &str) -> Option<String> {
+        self.cas
+            .get(hash)
+            .map(|content| String::from_utf8(content.clone()).unwrap())
     }
 
     fn create_or_merge(

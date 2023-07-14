@@ -1,15 +1,10 @@
-
 use crate::store::{Item, SharedStore};
-
 
 #[tauri::command]
 pub fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
-    let store = store.lock().unwrap();
     println!("CACHE MISS: {}", &hash);
-    store
-        .cas
-        .get(&hash)
-        .map(|content| String::from_utf8(content.clone()).unwrap())
+    let store = store.lock().unwrap();
+    store.cat(&hash)
 }
 
 #[tauri::command]
@@ -36,7 +31,6 @@ pub fn store_list_stacks(filter: String, store: tauri::State<SharedStore>) -> Ve
     ret.truncate(400);
     ret
 }
-
 
 #[tauri::command]
 pub fn store_list_items(
@@ -95,7 +89,6 @@ pub fn store_list_items(
     recent_items.truncate(400);
     recent_items
 }
-
 
 /*
 #[tauri::command]
