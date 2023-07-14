@@ -85,15 +85,15 @@ fn main() {
             }
 
             let db_path = match std::env::var("STACK_DB_PATH") {
-                Ok(path) => PathBuf::from(path),
+                Ok(path) => path,
                 Err(_) => {
                     let data_dir = app.path_resolver().app_data_dir().unwrap();
-                    data_dir.join("stream")
+                    data_dir.join("stream").to_str().unwrap().to_string()
                 }
             };
             log::info!("PR: {:?}", db_path);
 
-            let state: SharedState = Arc::new(Mutex::new(State::new()));
+            let state: SharedState = Arc::new(Mutex::new(State::new(&db_path)));
             app.manage(state.clone());
 
             // clipboard::start(&db_path);
