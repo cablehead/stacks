@@ -77,11 +77,12 @@ fn main() {
                 .build(),
         )
         .setup(|app| {
-            #[allow(unused_variables)]
-            let window = app.get_window("main").unwrap();
-            window.open_devtools();
-
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+
+            if let Ok(_) = std::env::var("STACK_DEVTOOLS") {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+            }
 
             let db_path = match std::env::var("STACK_DB_PATH") {
                 Ok(path) => PathBuf::from(path),
