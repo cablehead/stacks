@@ -245,7 +245,11 @@ function Preview({ stack }: { stack: Stack }) {
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content }
+    { b64ToUtf8(content) }
     </pre>
   );
+}
+
+function b64ToUtf8(str) {
+  return decodeURIComponent(escape(window.atob(str)));
 }
