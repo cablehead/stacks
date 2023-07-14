@@ -13,7 +13,8 @@ mod clipboard;
 mod store;
 mod xs_lib;
 
-use store::{SharedStore, Store, start_child_process};
+use store::{SharedStore, Store};
+use clipboard::{start_child_process};
 
 fn main() {
     let context = tauri::generate_context!();

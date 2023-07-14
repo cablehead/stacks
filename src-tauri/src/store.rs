@@ -1,16 +1,12 @@
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::path::{Path, PathBuf};
+use std::path::{PathBuf};
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
 use crate::xs_lib;
 
-// POLL_INTERVAL is the number of milliseconds to wait between polls when watching for
-// additions to the stream
-// todo: investigate switching to: https://docs.rs/notify/latest/notify/
-const POLL_INTERVAL: u64 = 10;
 
 #[tauri::command]
 pub fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
@@ -250,7 +246,7 @@ impl Store {
         None
     }
 
-    fn add_frame(&mut self, frame: &xs_lib::Frame) {
+    pub fn add_frame(&mut self, frame: &xs_lib::Frame) {
         match &frame.topic {
             Some(topic) if topic == "clipboard" => {
                 let clipped: Value = serde_json::from_str(&frame.data).unwrap();
@@ -379,41 +375,6 @@ pub struct Item {
 
 pub type SharedStore = Arc<Mutex<Store>>;
 
-pub fn start_child_process(app: tauri::AppHandle, path: &Path, store: SharedStore) {
-    let path = path.to_path_buf();
-    std::thread::spawn(move || {
-        let mut last_id = None;
-        let mut counter = 0;
-        loop {
-            let pump = (|| -> Result<(), Box<dyn std::error::Error>> {
-                let env = xs_lib::store_open(&path)?;
-                let frames = xs_lib::store_cat(&env, last_id)?;
-                if !frames.is_empty() {
-                    for frame in frames {
-                        last_id = Some(frame.id);
-                        let mut store = store.lock().unwrap();
-                        store.add_frame(&frame);
-                    }
-                    app.emit_all("refresh-items", true)?;
-                }
-                Ok(())
-            })();
-
-            if let Err(e) = pump {
-                log::error!("Error processing frames: {}", e);
-            }
-
-            if counter % 1000 == 0 {
-                log::info!(
-                    "start_child_process::last_id: {}",
-                    last_id.map_or(String::from("None"), |id| id.to_string())
-                );
-            }
-            counter += 1;
-            std::thread::sleep(std::time::Duration::from_millis(POLL_INTERVAL));
-        }
-    });
-}
 
 fn is_valid_https_url(url: &[u8]) -> bool {
     let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
