@@ -3,8 +3,8 @@ use std::path::Path;
 use tauri::api::process::{Command, CommandEvent};
 use tauri::Manager;
 
+use crate::store::SharedStore;
 use crate::xs_lib;
-use crate::store::{SharedStore};
 
 pub fn start(path: &Path) {
     let path = path.to_path_buf();

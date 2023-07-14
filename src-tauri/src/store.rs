@@ -1,12 +1,11 @@
 use serde_json::Value;
 use sha2::{Digest, Sha256};
 use std::collections::HashMap;
-use std::path::{PathBuf};
+use std::path::PathBuf;
 use std::sync::{Arc, Mutex};
 use tauri::Manager;
 
 use crate::xs_lib;
-
 
 #[tauri::command]
 pub fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
@@ -374,7 +373,6 @@ pub struct Item {
 }
 
 pub type SharedStore = Arc<Mutex<Store>>;
-
 
 fn is_valid_https_url(url: &[u8]) -> bool {
     let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
