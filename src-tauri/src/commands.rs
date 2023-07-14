@@ -13,7 +13,9 @@ pub fn store_get_content(hash: String, state: tauri::State<SharedState>) -> Opti
 pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
     let state = state.lock().unwrap();
 
-    let mut ret: Vec<Item> = state.stack.items
+    let mut ret: Vec<Item> = state
+        .stack
+        .items
         .values()
         .filter(|item| {
             if &item.content_type != "Stack" {
@@ -35,7 +37,7 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
 
 #[tauri::command]
 pub fn store_list_items(
-    stack: Option<String>,
+    stack: Option<ssri::Integrity>,
     filter: String,
     content_type: String,
     state: tauri::State<SharedState>,
