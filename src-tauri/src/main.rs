@@ -52,10 +52,10 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             store::store_list_items,
-            store::store_delete,
-            store::store_capture,
-            store::store_add_to_stack,
-            store::store_delete_from_stack,
+            // store::store_delete,
+            // store::store_capture,
+            // store::store_add_to_stack,
+            // store::store_delete_from_stack,
             store::store_get_content,
             store::store_list_stacks,
         ])

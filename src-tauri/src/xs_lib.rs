@@ -77,19 +77,6 @@ fn store_get(
     }
 }
 
-pub fn store_delete(
-    env: &lmdb::Environment,
-    ids: Vec<scru128::Scru128Id>,
-) -> Result<(), Box<dyn std::error::Error>> {
-    let db = env.open_db(None)?;
-    let mut txn = env.begin_rw_txn()?;
-    for id in ids {
-        txn.del(db, &id.to_u128().to_be_bytes(), None)?;
-    }
-    txn.commit()?;
-    Ok(())
-}
-
 pub fn store_cat(
     env: &lmdb::Environment,
     last_id: Option<scru128::Scru128Id>,
