@@ -1,4 +1,3 @@
-use sha2::{Digest, Sha256};
 use std::collections::HashMap;
 
 
@@ -23,6 +22,8 @@ impl Stack {
         }
     }
 
+    /*
+     * Todo:
     fn create_or_merge(
         &mut self,
         id: scru128::Scru128Id,
@@ -56,6 +57,7 @@ impl Stack {
 
         hash
     }
+    */
 
 }
 
