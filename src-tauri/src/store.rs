@@ -6,7 +6,6 @@ use std::sync::{Arc, Mutex};
 
 use crate::xs_lib;
 
-
 pub struct Store {
     pub items: HashMap<String, Item>,
     pub cas: HashMap<String, Vec<u8>>,
