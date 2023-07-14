@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::store::{Frame, MimeType};
+use crate::store::{Frame, MimeType, Store};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
@@ -23,15 +23,35 @@ impl Stack {
         }
     }
 
-    fn create_or_merge(&mut self, frame: &Frame) {
+    fn create_or_merge(&mut self, store: &Store, frame: &Frame) {
         match self.items.get_mut(&frame.hash) {
             Some(curr) => {
                 assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
                 curr.ids.push(frame.id);
             }
             None => {
-                let content_type = "Text".to_string();
-                let terse = "terse".to_string();
+                let (content_type, terse) = match frame.mime_type {
+                    MimeType::TextPlain => {
+                        let content = store.cat(&frame.hash).unwrap_or_else(Vec::new);
+                        let terse = String::from_utf8_lossy(&content)
+                            .chars()
+                            .take(100)
+                            .collect::<String>();
+                        let content_type = if is_valid_https_url(&content) {
+                            "Link".to_string()
+                        } else {
+                            "Text".to_string()
+                        };
+                        (content_type, terse)
+                    }
+                    MimeType::ImagePng => {
+                        let terse = frame
+                            .source
+                            .clone()
+                            .unwrap_or_else(|| "an image".to_string());
+                        ("Image".to_string(), terse)
+                    }
+                };
                 self.items.insert(
                     frame.hash.clone(),
                     Item {
@@ -40,7 +60,7 @@ impl Stack {
                         mime_type: frame.mime_type.clone(),
                         terse,
                         stack: HashMap::new(),
-                        content_type: content_type.to_string(),
+                        content_type,
                     },
                 );
             }
