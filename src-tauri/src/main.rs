@@ -11,9 +11,9 @@ use tauri_plugin_log::LogTarget;
 
 // mod clipboard;
 mod commands;
-mod store;
-mod state;
 mod stack;
+mod state;
+mod store;
 
 use state::{SharedState, State};
 
@@ -74,6 +74,7 @@ fn main() {
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
                 .level_for("tao", log::LevelFilter::Debug)
+                .level_for("sled", log::LevelFilter::Debug)
                 .build(),
         )
         .setup(|app| {
