@@ -6,6 +6,29 @@ use std::sync::{Arc, Mutex};
 
 use crate::xs_lib;
 
+pub type SharedStore = Arc<Mutex<Store>>;
+
+#[derive(PartialEq, Debug, Clone, serde::Serialize)]
+struct Link {
+    provider: String,
+    screenshot: String,
+    title: String,
+    description: String,
+    url: String,
+    icon: String,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+pub struct Item {
+    hash: String,
+    pub ids: Vec<scru128::Scru128Id>,
+    mime_type: String,
+    pub content_type: String,
+    pub terse: String,
+    link: Option<Link>,
+    pub stack: HashMap<String, Item>,
+}
+
 pub struct Store {
     pub items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
@@ -177,29 +200,6 @@ impl Store {
         };
     }
 }
-
-#[derive(PartialEq, Debug, Clone, serde::Serialize)]
-struct Link {
-    provider: String,
-    screenshot: String,
-    title: String,
-    description: String,
-    url: String,
-    icon: String,
-}
-
-#[derive(Debug, Clone, serde::Serialize)]
-pub struct Item {
-    hash: String,
-    pub ids: Vec<scru128::Scru128Id>,
-    mime_type: String,
-    pub content_type: String,
-    pub terse: String,
-    link: Option<Link>,
-    pub stack: HashMap<String, Item>,
-}
-
-pub type SharedStore = Arc<Mutex<Store>>;
 
 fn is_valid_https_url(url: &[u8]) -> bool {
     let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
