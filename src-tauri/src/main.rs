@@ -10,6 +10,7 @@ use tauri::SystemTrayMenu;
 use tauri_plugin_log::LogTarget;
 
 mod clipboard;
+mod commands;
 mod store;
 mod xs_lib;
 
@@ -51,13 +52,13 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            store::store_list_items,
+            commands::store_list_items,
             // store::store_delete,
             // store::store_capture,
             // store::store_add_to_stack,
             // store::store_delete_from_stack,
-            store::store_get_content,
-            store::store_list_stacks,
+            commands::store_get_content,
+            commands::store_list_stacks,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

@@ -6,103 +6,10 @@ use std::sync::{Arc, Mutex};
 
 use crate::xs_lib;
 
-#[tauri::command]
-pub fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
-    let store = store.lock().unwrap();
-    println!("CACHE MISS: {}", &hash);
-    store
-        .cas
-        .get(&hash)
-        .map(|content| String::from_utf8(content.clone()).unwrap())
-}
-
-#[tauri::command]
-pub fn store_list_stacks(filter: String, store: tauri::State<SharedStore>) -> Vec<Item> {
-    let store = store.lock().unwrap();
-
-    let mut ret: Vec<Item> = store
-        .items
-        .values()
-        .filter(|item| {
-            if &item.content_type != "Stack" {
-                return false;
-            }
-
-            return if filter == filter.to_lowercase() {
-                item.terse.to_lowercase().contains(&filter)
-            } else {
-                item.terse.contains(&filter)
-            };
-        })
-        .cloned()
-        .collect();
-    ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    ret.truncate(400);
-    ret
-}
-
-
-#[tauri::command]
-pub fn store_list_items(
-    stack: Option<String>,
-    filter: String,
-    content_type: String,
-    store: tauri::State<SharedStore>,
-) -> Vec<Item> {
-    let store = store.lock().unwrap();
-    println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
-    let filter = if filter.is_empty() {
-        None
-    } else {
-        Some(filter)
-    };
-    let content_type = if content_type == "All" {
-        None
-    } else {
-        let mut content_type = content_type;
-        content_type.truncate(content_type.len() - 1);
-        Some(content_type)
-    };
-
-    let base_items: Vec<Item> = if let Some(hash) = stack {
-        let item = store.items.get(&hash).unwrap();
-        item.stack.values().cloned().collect()
-    } else {
-        store.items.values().cloned().collect()
-    };
-
-    let mut recent_items: Vec<Item> = base_items
-        .iter()
-        .filter(|item| {
-            if let Some(curr) = &filter {
-                // match case insensitive, unless the filter has upper case, in which, match case
-                // sensitive
-                if curr == &curr.to_lowercase() {
-                    item.terse.to_lowercase().contains(curr)
-                } else {
-                    item.terse.contains(curr)
-                }
-            } else {
-                true
-            }
-        })
-        .filter(|item| {
-            if let Some(content_type) = &content_type {
-                &item.content_type == content_type
-            } else {
-                true
-            }
-        })
-        .cloned()
-        .collect();
-    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    recent_items.truncate(400);
-    recent_items
-}
 
 pub struct Store {
-    items: HashMap<String, Item>,
-    cas: HashMap<String, Vec<u8>>,
+    pub items: HashMap<String, Item>,
+    pub cas: HashMap<String, Vec<u8>>,
     db_path: PathBuf,
 }
 
@@ -279,12 +186,12 @@ struct Link {
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
     hash: String,
-    ids: Vec<scru128::Scru128Id>,
+    pub ids: Vec<scru128::Scru128Id>,
     mime_type: String,
-    content_type: String,
-    terse: String,
+    pub content_type: String,
+    pub terse: String,
     link: Option<Link>,
-    stack: HashMap<String, Item>,
+    pub stack: HashMap<String, Item>,
 }
 
 pub type SharedStore = Arc<Mutex<Store>>;
