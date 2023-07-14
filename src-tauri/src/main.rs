@@ -13,8 +13,9 @@ use tauri_plugin_log::LogTarget;
 mod commands;
 mod store;
 mod state;
+mod stack;
 
-use store::{SharedStore, Store};
+use state::{SharedState, State};
 
 fn main() {
     let context = tauri::generate_context!();
@@ -92,8 +93,8 @@ fn main() {
             };
             log::info!("PR: {:?}", db_path);
 
-            let store: SharedStore = Arc::new(Mutex::new(Store::new(db_path.clone())));
-            app.manage(store.clone());
+            let state: SharedState = Arc::new(Mutex::new(State::new()));
+            app.manage(state.clone());
 
             // clipboard::start(&db_path);
             // start_child_process(app.handle(), &db_path, store.clone());

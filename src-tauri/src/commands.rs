@@ -1,18 +1,19 @@
-use crate::store::{Item, SharedStore};
+use crate::stack::Item;
+use crate::state::SharedState;
 
 #[tauri::command]
-pub fn store_get_content(hash: String, store: tauri::State<SharedStore>) -> Option<String> {
+pub fn store_get_content(hash: String, state: tauri::State<SharedState>) -> Option<String> {
     println!("CACHE MISS: {}", &hash);
-    let store = store.lock().unwrap();
-    store.cat(&hash)
+    let state = state.lock().unwrap();
+    // TODO: state.cat(&hash)
+    None
 }
 
 #[tauri::command]
-pub fn store_list_stacks(filter: String, store: tauri::State<SharedStore>) -> Vec<Item> {
-    let store = store.lock().unwrap();
+pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
+    let state = state.lock().unwrap();
 
-    let mut ret: Vec<Item> = store
-        .items
+    let mut ret: Vec<Item> = state.stack.items
         .values()
         .filter(|item| {
             if &item.content_type != "Stack" {
@@ -37,9 +38,9 @@ pub fn store_list_items(
     stack: Option<String>,
     filter: String,
     content_type: String,
-    store: tauri::State<SharedStore>,
+    state: tauri::State<SharedState>,
 ) -> Vec<Item> {
-    let store = store.lock().unwrap();
+    let state = state.lock().unwrap();
     println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
     let filter = if filter.is_empty() {
         None
@@ -55,10 +56,10 @@ pub fn store_list_items(
     };
 
     let base_items: Vec<Item> = if let Some(hash) = stack {
-        let item = store.items.get(&hash).unwrap();
+        let item = state.stack.items.get(&hash).unwrap();
         item.stack.values().cloned().collect()
     } else {
-        store.items.values().cloned().collect()
+        state.stack.items.values().cloned().collect()
     };
 
     let mut recent_items: Vec<Item> = base_items
