@@ -213,17 +213,6 @@ async fn store_list_items(
     recent_items
 }
 
-#[tauri::command]
-async fn open_docs(handle: tauri::AppHandle) {
-    let _ = tauri::WindowBuilder::new(
-        &handle,
-        "external", /* the unique window label */
-        tauri::WindowUrl::App("second.html".into()),
-    )
-    .build()
-    .unwrap();
-}
-
 struct Store {
     items: HashMap<String, Item>,
     cas: HashMap<String, Vec<u8>>,
@@ -491,7 +480,6 @@ fn main() {
             store_delete_from_stack,
             store_get_content,
             store_list_stacks,
-            open_docs,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
