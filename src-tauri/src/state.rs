@@ -9,16 +9,13 @@ pub struct State {
 }
 
 impl State {
-        pub fn new(db_path: &str) -> Self {
+    pub fn new(db_path: &str) -> Self {
         let store = Store::new(db_path);
         let mut stack = Stack::new();
         for frame in store.list() {
             stack.create_or_merge(&store, &frame);
         }
-        Self {
-            stack,
-            store,
-        }
+        Self { stack, store }
     }
 }
 
