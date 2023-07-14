@@ -14,6 +14,7 @@ mod stack;
 mod state;
 mod store;
 
+use store::MimeType;
 use state::{SharedState, State};
 
 fn main() {
@@ -93,7 +94,13 @@ fn main() {
             };
             log::info!("PR: {:?}", db_path);
 
-            let state: SharedState = Arc::new(Mutex::new(State::new(&db_path)));
+            let mut state = State::new(&db_path);
+            let frame = state
+                .store
+                .put(Some("Hi there".into()), MimeType::TextPlain, b"oh hai");
+            state.stack.create_or_merge(&state.store, &frame);
+
+            let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
 
             // clipboard::start(&db_path);

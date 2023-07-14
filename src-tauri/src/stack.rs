@@ -23,7 +23,7 @@ impl Stack {
         }
     }
 
-    fn create_or_merge(&mut self, store: &Store, frame: &Frame) {
+    pub fn create_or_merge(&mut self, store: &Store, frame: &Frame) {
         match self.items.get_mut(&frame.hash) {
             Some(curr) => {
                 assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
