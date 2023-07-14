@@ -1,8 +1,17 @@
 use serde::{Deserialize, Serialize};
 
 #[derive(PartialEq, Debug, Serialize, Deserialize)]
+pub enum MimeType {
+    #[serde(rename = "text/plain")]
+    TextPlain,
+    #[serde(rename = "image/png")]
+    ImagePng,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize)]
 pub struct Frame {
     pub id: scru128::Scru128Id,
+    pub mime_type: MimeType,
     pub hash: ssri::Integrity,
 }
 
@@ -22,10 +31,11 @@ impl Store {
         Store { db, cache_path }
     }
 
-    pub fn put(&mut self, content: &[u8]) -> Frame {
+    pub fn put(&mut self, mime_type: MimeType, content: &[u8]) -> Frame {
         let h = cacache::write_hash_sync(&self.cache_path, content).unwrap();
         let frame = Frame {
             id: scru128::new(),
+            mime_type,
             hash: h,
         };
         let encoded: Vec<u8> = bincode::serialize(&frame).unwrap();
