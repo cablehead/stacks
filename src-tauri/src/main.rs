@@ -12,6 +12,7 @@ use tauri_plugin_log::LogTarget;
 // mod clipboard;
 mod commands;
 mod store;
+mod state;
 
 use store::{SharedStore, Store};
 

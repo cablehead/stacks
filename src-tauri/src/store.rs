@@ -5,15 +5,6 @@ use std::sync::{Arc, Mutex};
 
 pub type SharedStore = Arc<Mutex<Store>>;
 
-#[derive(PartialEq, Debug, Clone, serde::Serialize)]
-struct Link {
-    provider: String,
-    screenshot: String,
-    title: String,
-    description: String,
-    url: String,
-    icon: String,
-}
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
@@ -22,7 +13,6 @@ pub struct Item {
     mime_type: String,
     pub content_type: String,
     pub terse: String,
-    link: Option<Link>,
     pub stack: HashMap<String, Item>,
 }
 
@@ -70,7 +60,6 @@ impl Store {
                         ids: vec![id],
                         mime_type: mime_type.to_string(),
                         terse,
-                        link: None,
                         stack: HashMap::new(),
                         content_type: content_type.to_string(),
                     },
