@@ -9,12 +9,11 @@ use tauri::Manager;
 use tauri::SystemTrayMenu;
 use tauri_plugin_log::LogTarget;
 
-mod clipboard;
+// mod clipboard;
 mod commands;
 mod store;
 mod xs_lib;
 
-use clipboard::start_child_process;
 use store::{SharedStore, Store};
 
 fn main() {
@@ -96,8 +95,8 @@ fn main() {
             let store: SharedStore = Arc::new(Mutex::new(Store::new(db_path.clone())));
             app.manage(store.clone());
 
-            clipboard::start(&db_path);
-            start_child_process(app.handle(), &db_path, store.clone());
+            // clipboard::start(&db_path);
+            // start_child_process(app.handle(), &db_path, store.clone());
 
             Ok(())
         })

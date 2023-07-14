@@ -122,7 +122,9 @@ export function Nav({ stack }: { stack: Stack }) {
       </div>
 
       <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} />
+        {stack.items.value.length > 0
+          ? <Preview stack={stack} />
+          : <i>no matches</i>}
       </div>
     </div>
   );
