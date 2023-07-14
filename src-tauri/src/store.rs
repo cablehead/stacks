@@ -42,4 +42,11 @@ impl Store {
         self.db.insert(frame.id.to_bytes(), encoded).unwrap();
         frame
     }
+
+    pub fn list(&self) -> impl Iterator<Item = Frame> {
+        self.db.iter().filter_map(|item| {
+            item.ok()
+                .and_then(|(key, value)| bincode::deserialize::<Frame>(&value).ok())
+        })
+    }
 }
