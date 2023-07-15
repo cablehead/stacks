@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::store::{Frame, MimeType, Store};
+use crate::store::{Frame, MimeType};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
@@ -23,7 +23,7 @@ impl Stack {
         }
     }
 
-    pub fn create_or_merge(&mut self, store: &Store, frame: &Frame) {
+    pub fn create_or_merge(&mut self, frame: &Frame, content: &Vec<u8>) {
         match self.items.get_mut(&frame.hash) {
             Some(curr) => {
                 assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
@@ -32,7 +32,6 @@ impl Stack {
             None => {
                 let (content_type, terse) = match frame.mime_type {
                     MimeType::TextPlain => {
-                        let content = store.cat(&frame.hash).unwrap_or_else(Vec::new);
                         let terse = String::from_utf8_lossy(&content)
                             .chars()
                             .take(100)

@@ -15,7 +15,6 @@ mod state;
 mod store;
 
 use state::{SharedState, State};
-use store::MimeType;
 
 fn main() {
     let context = tauri::generate_context!();
@@ -94,7 +93,8 @@ fn main() {
             };
             log::info!("PR: {:?}", db_path);
 
-            let mut state = State::new(&db_path);
+            let state = State::new(&db_path);
+            /*
             let frame = state
                 .store
                 .put(Some("Hi there".into()), MimeType::TextPlain, b"oh hai");
@@ -105,11 +105,12 @@ fn main() {
                 .store
                 .put(Some("ze image".into()), MimeType::ImagePng, &data);
             state.stack.create_or_merge(&state.store, &frame);
+            */
 
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
 
-            clipboard::start(&state);
+            clipboard::start(app.handle(), &state);
             // start_child_process(app.handle(), &db_path, store.clone());
 
             Ok(())

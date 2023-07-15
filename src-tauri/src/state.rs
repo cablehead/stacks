@@ -13,7 +13,12 @@ impl State {
         let store = Store::new(db_path);
         let mut stack = Stack::new();
         for frame in store.list() {
-            stack.create_or_merge(&store, &frame);
+            let content = store.cat(&frame.hash);
+            if let Some(content) = content {
+                stack.create_or_merge(&frame, &content);
+            } else {
+                log::warn!("frame with no content: {:?}", frame);
+            }
         }
         Self { stack, store }
     }

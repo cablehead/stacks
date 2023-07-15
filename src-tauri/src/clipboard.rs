@@ -1,11 +1,12 @@
 use tauri::api::process::{Command, CommandEvent};
+use tauri::Manager;
 
 use serde_json::Value;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
 
-pub fn start(state: &SharedState) {
+pub fn start(app: tauri::AppHandle, state: &SharedState) {
     let (mut rx, _child) = Command::new_sidecar("x-macos-pasteboard")
         .unwrap()
         .spawn()
@@ -26,16 +27,16 @@ pub fn start(state: &SharedState) {
                     #[allow(deprecated)]
                     let content =
                         base64::decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
+
                     let frame = state.store.put(source, MimeType::TextPlain, &content);
-                    // TODO:
-                    // store.add_frame(&frame);
-                    // app.emit_all("refresh-items", true)?;
+                    state.stack.create_or_merge(&frame, &content);
+
+                    app.emit_all("refresh-items", true).unwrap();
                 }
             }
         }
     });
 }
-
 
 /*
  * TO PORT:
