@@ -6,6 +6,12 @@ use serde_json::Value;
 use crate::state::SharedState;
 use crate::store::MimeType;
 
+use base64::{engine::general_purpose, Engine as _};
+
+fn b64decode(encoded: &str) -> Vec<u8> {
+    general_purpose::STANDARD.decode(encoded).unwrap()
+}
+
 pub fn start(app: tauri::AppHandle, state: &SharedState) {
     let (mut rx, _child) = Command::new_sidecar("x-macos-pasteboard")
         .unwrap()
@@ -24,15 +30,14 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let source = source.map(|s| s.to_string());
 
                 if types.contains_key("public.utf8-plain-text") {
-                    let content =
-                        base64::decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
+                    let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
                     let frame = state
                         .store
                         .put(source.clone(), MimeType::TextPlain, &content);
                     state.stack.create_or_merge(&frame, &content);
                     app.emit_all("refresh-items", true).unwrap();
                 } else if types.contains_key("public.png") {
-                    let content = base64::decode(types["public.png"].as_str().unwrap()).unwrap();
+                    let content = b64decode(types["public.png"].as_str().unwrap());
                     let frame = state
                         .store
                         .put(source.clone(), MimeType::ImagePng, &content);
