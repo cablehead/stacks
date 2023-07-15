@@ -24,13 +24,19 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let source = source.map(|s| s.to_string());
 
                 if types.contains_key("public.utf8-plain-text") {
-                    #[allow(deprecated)]
                     let content =
                         base64::decode(types["public.utf8-plain-text"].as_str().unwrap()).unwrap();
-
-                    let frame = state.store.put(source, MimeType::TextPlain, &content);
+                    let frame = state
+                        .store
+                        .put(source.clone(), MimeType::TextPlain, &content);
                     state.stack.create_or_merge(&frame, &content);
-
+                    app.emit_all("refresh-items", true).unwrap();
+                } else if types.contains_key("public.png") {
+                    let content = base64::decode(types["public.png"].as_str().unwrap()).unwrap();
+                    let frame = state
+                        .store
+                        .put(source.clone(), MimeType::ImagePng, &content);
+                    state.stack.create_or_merge(&frame, &content);
                     app.emit_all("refresh-items", true).unwrap();
                 }
             }
@@ -55,15 +61,6 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
     pub fn add_frame(&mut self, frame: &xs_lib::Frame) {
         match &frame.topic {
             Some(topic) if topic == "clipboard" => {
-                } else if types.contains_key("public.png") {
-                    let content = types["public.png"].as_str().unwrap().as_bytes();
-                    self.create_or_merge(
-                        frame.id,
-                        "image/png",
-                        "Image",
-                        clipped["source"].to_string(),
-                        content.to_vec(),
-                    );
                 } else {
                     log::info!(
                         "add_frame TODO: topic: clipboard id: {}, types: {:?}, frame.data size: {}",
