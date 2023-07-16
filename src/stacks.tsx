@@ -152,14 +152,7 @@ effect(() => {
 export async function triggerCopy() {
   const item = currStack.value.item.value;
   if (!item) return;
-  const content = currStack.value.content?.value;
-  if (!content) return;
-
-  if (item.mime_type != "text/plain") {
-    console.log("MIEM", item.mime_type);
-  } else {
-    await writeText(content);
-  }
+  await invoke("store_copy_to_clipboard", { sourceId: item.ids[0] });
   hide();
 }
 

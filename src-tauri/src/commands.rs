@@ -1,5 +1,6 @@
 use crate::stack::Item;
 use crate::state::SharedState;
+use crate::store::MimeType;
 
 use base64::{engine::general_purpose, Engine as _};
 
@@ -98,6 +99,54 @@ pub fn store_list_items(
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
     recent_items
+}
+
+use cocoa::base::nil;
+use cocoa::foundation::NSString;
+use objc::{msg_send, sel, sel_impl};
+
+pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<()> {
+    unsafe {
+        let nsdata: *mut objc::runtime::Object = msg_send![objc::class!(NSData), alloc];
+        let nsdata: *mut objc::runtime::Object =
+            msg_send![nsdata, initWithBytes:data.as_ptr() length:data.len()];
+
+        let pasteboard: *mut objc::runtime::Object =
+            msg_send![objc::class!(NSPasteboard), generalPasteboard];
+
+        let png_type = NSString::alloc(nil).init_str(mime_type);
+
+        let i: i32 = msg_send![pasteboard, clearContents];
+        let success: bool = msg_send![pasteboard, setData: nsdata forType: png_type];
+
+        println!("int: {:?}", i);
+
+        // After the data is set, release the nsdata object to prevent a memory leak.
+        let () = msg_send![nsdata, release];
+        let () = msg_send![png_type, release];
+
+        if !success {
+            return None;
+        }
+    }
+    Some(())
+}
+
+#[tauri::command]
+pub fn store_copy_to_clipboard(
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) -> Option<()> {
+    println!("COPY_TO_CLIPBOARD : {}", &source_id);
+    let mut state = state.lock().unwrap();
+    let frame = state.store.get(&source_id)?;
+    let content = state.store.cat(&frame.hash)?;
+
+    let mime_type = match &frame.mime_type {
+        MimeType::TextPlain => "public.utf8-plain-text",
+        MimeType::ImagePng => "public.png",
+    };
+    write_to_clipboard(mime_type, &content)
 }
 
 /*

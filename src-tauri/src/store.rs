@@ -32,6 +32,14 @@ impl Store {
         Store { db, cache_path }
     }
 
+    pub fn get(&mut self, id: &scru128::Scru128Id) -> Option<Frame> {
+        self.db
+            .get(id.to_bytes())
+            .ok()
+            .and_then(|maybe_value| maybe_value)
+            .and_then(|value| bincode::deserialize::<Frame>(&value).ok())
+    }
+
     pub fn put(&mut self, source: Option<String>, mime_type: MimeType, content: &[u8]) -> Frame {
         let h = cacache::write_hash_sync(&self.cache_path, content).unwrap();
         let frame = Frame {

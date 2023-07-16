@@ -58,6 +58,7 @@ fn main() {
             // store::store_delete_from_stack,
             commands::store_get_content,
             commands::store_list_stacks,
+            commands::store_copy_to_clipboard,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
