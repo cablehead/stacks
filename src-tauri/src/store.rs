@@ -12,6 +12,8 @@ pub enum MimeType {
 pub struct Frame {
     pub id: scru128::Scru128Id,
     pub source: Option<String>,
+    pub source_id: Option<scru128::Scru128Id>,
+    pub parent_id: Option<scru128::Scru128Id>,
     pub mime_type: MimeType,
     pub hash: ssri::Integrity,
 }
@@ -45,6 +47,8 @@ impl Store {
         let frame = Frame {
             id: scru128::new(),
             source,
+            source_id: None,
+            parent_id: None,
             mime_type,
             hash: h,
         };

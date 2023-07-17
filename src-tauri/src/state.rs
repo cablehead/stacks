@@ -15,7 +15,7 @@ impl State {
         for frame in store.list() {
             let content = store.cat(&frame.hash);
             if let Some(content) = content {
-                stack.create_or_merge(&frame, &content);
+                stack.merge(&frame, &content);
             } else {
                 log::warn!("frame with no content: {:?}", frame);
             }
