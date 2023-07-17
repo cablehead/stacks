@@ -52,9 +52,13 @@ impl Store {
             mime_type,
             hash: h,
         };
+        self.insert(&frame);
+        frame
+    }
+
+    pub fn insert(&mut self, frame: &Frame) {
         let encoded: Vec<u8> = bincode::serialize(&frame).unwrap();
         self.db.insert(frame.id.to_bytes(), encoded).unwrap();
-        frame
     }
 
     pub fn list(&self) -> impl Iterator<Item = Frame> {

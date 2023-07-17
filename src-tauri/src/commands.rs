@@ -1,3 +1,5 @@
+use tauri::Manager;
+
 use crate::stack::Item;
 use crate::state::SharedState;
 use crate::store::MimeType;
@@ -14,15 +16,15 @@ pub fn store_get_content(
     state
         .store
         .cat(&hash)
-        .map(|vec| general_purpose::STANDARD.encode(&vec))
+        .map(|vec| general_purpose::STANDARD.encode(vec))
 }
 
 #[tauri::command]
 pub fn store_list_items(
+    state: tauri::State<SharedState>,
     stack: Option<ssri::Integrity>,
     filter: String,
     content_type: String,
-    state: tauri::State<SharedState>,
 ) -> Vec<Item> {
     let state = state.lock().unwrap();
     println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
@@ -142,10 +144,31 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 // Stack related commands
 
 #[tauri::command]
-pub fn store_add_to_stack(state: tauri::State<SharedState>, name: String, id: scru128::Scru128Id) {
-    let state = state.lock().unwrap();
-    let data = "foo";
-    println!("ADD TO STACK: {}", &data);
+pub fn store_add_to_stack(
+    state: tauri::State<SharedState>,
+    app: tauri::AppHandle,
+    name: String,
+    id: scru128::Scru128Id,
+) {
+    let name = name.as_bytes().to_vec();
+    let mut state = state.lock().unwrap();
+
+    let stack_frame = state.store.put(
+        Some("stream.cross.stacks".into()),
+        MimeType::TextPlain,
+        &name,
+    );
+    state.stack.merge(&stack_frame, &name);
+
+    let mut frame = state.store.get(&id).unwrap();
+    frame.source_id = Some(stack_frame.id);
+    frame.parent_id = Some(frame.id);
+    frame.id = scru128::new();
+    let content = state.store.cat(&frame.hash).unwrap();
+    state.store.insert(&frame);
+    state.stack.merge(&frame, &content);
+
+    app.emit_all("refresh-items", true).unwrap();
 }
 
 /*
@@ -176,11 +199,11 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
                 return false;
             }
 
-            return if filter == filter.to_lowercase() {
+            if filter == filter.to_lowercase() {
                 item.terse.to_lowercase().contains(&filter)
             } else {
                 item.terse.contains(&filter)
-            };
+            }
         })
         .cloned()
         .collect();
@@ -235,6 +258,33 @@ pub fn store_capture(
             .to_string();
             xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
         }
+    }
+}
+*/
+
+/*
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    use crate::state::State;
+    use std::sync::{Arc, Mutex};
+
+    #[test]
+    fn test_commands() {
+        let state = State::new("/tmp/foo.db");
+        let state: SharedState = Arc::new(Mutex::new(state));
+
+        {
+            let mut state = state.lock().unwrap();
+            let c = "f1".as_bytes().to_vec();
+            let f1 = state.store.put(None, MimeType::TextPlain, &c);
+            state.stack.merge(&f1, &c);
+            println!("FOO: {:?}", state.stack.items);
+        }
+
+        let items = store_list_items(state, None, "".into(), "All".into());
+            println!("ITEMS: {:?}", items);
     }
 }
 */

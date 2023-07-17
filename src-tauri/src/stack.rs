@@ -9,7 +9,50 @@ pub struct Item {
     mime_type: MimeType,
     pub content_type: String,
     pub terse: String,
-    pub stack: HashMap<String, Item>,
+    pub stack: HashMap<ssri::Integrity, Item>,
+}
+
+fn merge_into(stack: &mut HashMap<ssri::Integrity, Item>, frame: &Frame, content: &[u8]) {
+    match stack.get_mut(&frame.hash) {
+        Some(curr) => {
+            assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
+            curr.ids.push(frame.id);
+        }
+        None => {
+            let (content_type, terse) = match frame.mime_type {
+                MimeType::TextPlain => {
+                    let terse = String::from_utf8_lossy(content)
+                        .chars()
+                        .take(100)
+                        .collect::<String>();
+                    let content_type = if is_valid_https_url(content) {
+                        "Link".to_string()
+                    } else {
+                        "Text".to_string()
+                    };
+                    (content_type, terse)
+                }
+                MimeType::ImagePng => {
+                    let terse = frame
+                        .source
+                        .clone()
+                        .unwrap_or_else(|| "an image".to_string());
+                    ("Image".to_string(), terse)
+                }
+            };
+            stack.insert(
+                frame.hash.clone(),
+                Item {
+                    hash: frame.hash.clone(),
+                    ids: vec![frame.id],
+                    mime_type: frame.mime_type.clone(),
+                    terse,
+                    stack: HashMap::new(),
+                    content_type,
+                },
+            );
+        }
+    };
 }
 
 pub struct Stack {
@@ -27,15 +70,6 @@ impl Stack {
      * TO PORT:
      *
 
-        fn find_item_by_id(&mut self, id: &str) -> Option<Item> {
-            let id = id.parse::<scru128::Scru128Id>().ok()?;
-            for item in self.items.values() {
-                if item.ids.contains(&id) {
-                    return Some(item.clone());
-                }
-            }
-            None
-        }
 
         pub fn add_frame(&mut self, frame: &xs_lib::Frame) {
             match &frame.topic {
@@ -109,47 +143,26 @@ impl Stack {
         }
     */
 
-    pub fn merge(&mut self, frame: &Frame, content: &Vec<u8>) {
-        match self.items.get_mut(&frame.hash) {
-            Some(curr) => {
-                assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
-                curr.ids.push(frame.id);
+    fn find_item_by_id(&mut self, id: &scru128::Scru128Id) -> Option<Item> {
+        for item in self.items.values() {
+            if item.ids.contains(id) {
+                return Some(item.clone());
             }
-            None => {
-                let (content_type, terse) = match frame.mime_type {
-                    MimeType::TextPlain => {
-                        let terse = String::from_utf8_lossy(&content)
-                            .chars()
-                            .take(100)
-                            .collect::<String>();
-                        let content_type = if is_valid_https_url(&content) {
-                            "Link".to_string()
-                        } else {
-                            "Text".to_string()
-                        };
-                        (content_type, terse)
-                    }
-                    MimeType::ImagePng => {
-                        let terse = frame
-                            .source
-                            .clone()
-                            .unwrap_or_else(|| "an image".to_string());
-                        ("Image".to_string(), terse)
-                    }
-                };
-                self.items.insert(
-                    frame.hash.clone(),
-                    Item {
-                        hash: frame.hash.clone(),
-                        ids: vec![frame.id],
-                        mime_type: frame.mime_type.clone(),
-                        terse,
-                        stack: HashMap::new(),
-                        content_type,
-                    },
-                );
+        }
+        None
+    }
+
+    pub fn merge(&mut self, frame: &Frame, content: &[u8]) {
+        if let Some(source_id) = frame.source_id {
+            if let Some(mut source) = self.find_item_by_id(&source_id) {
+                source.ids.push(frame.id);
+                source.content_type = "Stack".into();
+                merge_into(&mut source.stack, frame, content);
+                self.items.insert(source.hash.clone(), source);
             }
-        };
+        } else {
+            merge_into(&mut self.items, frame, content);
+        }
     }
 }
 

@@ -74,13 +74,14 @@ fn main() {
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
                 .level_for("tao", log::LevelFilter::Debug)
-                .level_for("sled", log::LevelFilter::Debug)
+                .level_for("sled", log::LevelFilter::Info)
+                .level_for("attohttpc", log::LevelFilter::Info)
                 .build(),
         )
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-            if let Ok(_) = std::env::var("STACK_DEVTOOLS") {
+            if std::env::var("STACK_DEVTOOLS").is_ok() {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
             }
