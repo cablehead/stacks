@@ -1,15 +1,16 @@
 import { signal } from "@preact/signals";
 
-function preferredMode(): string {
-  return window.matchMedia("(prefers-color-scheme: dark)").matches
-    ? "dark"
-    : "light";
+let matchMedia = window.matchMedia("(prefers-color-scheme: dark)");
+
+function preferredMode(mql: MediaQueryList): string {
+  return mql.matches ? "dark" : "light";
 }
 
-const themeMode = signal(preferredMode());
+const themeMode = signal(preferredMode(matchMedia));
 
-setInterval(() => {
-  themeMode.value = preferredMode();
-}, 60 * 60 * 1000); // 1 hour
+matchMedia.addEventListener("change", (e: MediaQueryListEvent) => {
+  themeMode.value = preferredMode(e.target as MediaQueryList);
+  console.log("SYSTEM PREFERRED COLOR SCHEME CHANGED:", themeMode.value);
+});
 
 export default themeMode;
