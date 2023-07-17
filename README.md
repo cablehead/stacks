@@ -79,10 +79,21 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
-### Next release
+### To release
 
-- Test against a clean empty state
-- Overhaul storage
+- open is broken
+- truncate long urls
+- limit height for status pane
+- add to stack
+- delete from stack
+- capture
+- delete
+- while in stack, new items go to that stack
+- editting within stack: fork instead of replace
+- when adding to stack, focus stack
+- Copy entire stack puts the entire stack on the clipboard, but doesn't save it
+  to the store
+
 
 ### Next release
 
