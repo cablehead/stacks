@@ -17,31 +17,6 @@ pub fn store_get_content(
         .map(|vec| general_purpose::STANDARD.encode(&vec))
 }
 
-#[tauri::command]
-pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
-    let state = state.lock().unwrap();
-
-    let mut ret: Vec<Item> = state
-        .stack
-        .items
-        .values()
-        .filter(|item| {
-            if &item.content_type != "Stack" {
-                return false;
-            }
-
-            return if filter == filter.to_lowercase() {
-                item.terse.to_lowercase().contains(&filter)
-            } else {
-                item.terse.contains(&filter)
-            };
-        })
-        .cloned()
-        .collect();
-    ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    ret.truncate(400);
-    ret
-}
 
 #[tauri::command]
 pub fn store_list_items(
@@ -162,7 +137,9 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
     store.cas.remove(&hash);
     app.emit_all("refresh-items", true).unwrap();
 }
+*/
 
+/*
 #[tauri::command]
 pub fn store_add_to_stack(name: String, id: String, store: tauri::State<SharedStore>) {
     let store = store.lock().unwrap();
@@ -188,7 +165,36 @@ pub fn store_delete_from_stack(name: String, id: String, store: tauri::State<Sha
     let env = xs_lib::store_open(&store.db_path).unwrap();
     xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
 }
+*/
 
+#[tauri::command]
+pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
+    let state = state.lock().unwrap();
+
+    let mut ret: Vec<Item> = state
+        .stack
+        .items
+        .values()
+        .filter(|item| {
+            if &item.content_type != "Stack" {
+                return false;
+            }
+
+            return if filter == filter.to_lowercase() {
+                item.terse.to_lowercase().contains(&filter)
+            } else {
+                item.terse.contains(&filter)
+            };
+        })
+        .cloned()
+        .collect();
+    ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+    ret.truncate(400);
+    ret
+}
+
+
+/*
 // Saves item to the cas
 // If source_id is present creates a link to the source
 // If stack_name is present, adds item to the stack
