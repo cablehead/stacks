@@ -51,14 +51,14 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            commands::store_get_content,
             commands::store_list_items,
             // store::store_delete,
-            // store::store_capture,
-            // store::store_add_to_stack,
-            // store::store_delete_from_stack,
-            commands::store_get_content,
             commands::store_list_stacks,
+            commands::store_add_to_stack,
+            // store::store_delete_from_stack,
             commands::store_copy_to_clipboard,
+            // store::store_capture,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
