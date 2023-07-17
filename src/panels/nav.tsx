@@ -1,11 +1,14 @@
 import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
 
+import { b64ToUtf8 } from "../utils";
+
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
+
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -248,8 +251,4 @@ function Preview({ stack }: { stack: Stack }) {
     { b64ToUtf8(content) }
     </pre>
   );
-}
-
-function b64ToUtf8(str) {
-  return decodeURIComponent(escape(window.atob(str)));
 }

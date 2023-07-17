@@ -1,6 +1,8 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
+import { b64ToUtf8 } from "./utils";
+
 import { editorMode, modes } from "./modals";
 
 import { Icon } from "./ui/icons";
@@ -35,7 +37,8 @@ export const actions: Action[] = [
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
       const content = stack.content?.value;
-      if (content) open(content);
+      console.log("OPEN", content);
+      if (content) open(b64ToUtf8(content));
     },
     canApply: (stack: Stack) => stack.item.value?.content_type === "Link",
   },

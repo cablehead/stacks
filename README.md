@@ -81,7 +81,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- open is broken
 - truncate long urls
 - limit height for status pane
 - add to stack
