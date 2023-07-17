@@ -17,7 +17,6 @@ pub fn store_get_content(
         .map(|vec| general_purpose::STANDARD.encode(&vec))
 }
 
-
 #[tauri::command]
 pub fn store_list_items(
     stack: Option<ssri::Integrity>,
@@ -142,20 +141,14 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 //
 // Stack related commands
 
-/*
 #[tauri::command]
-pub fn store_add_to_stack(name: String, id: String, store: tauri::State<SharedStore>) {
-    let store = store.lock().unwrap();
-    let data = serde_json::json!({
-        "name": name,
-        "id": id
-    })
-    .to_string();
+pub fn store_add_to_stack(state: tauri::State<SharedState>, name: String, id: scru128::Scru128Id) {
+    let state = state.lock().unwrap();
+    let data = "foo";
     println!("ADD TO STACK: {}", &data);
-    let env = xs_lib::store_open(&store.db_path).unwrap();
-    xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
 }
 
+/*
 #[tauri::command]
 pub fn store_delete_from_stack(name: String, id: String, store: tauri::State<SharedStore>) {
     let store = store.lock().unwrap();
@@ -197,7 +190,6 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
 }
 
 // End stack commands
-
 
 /*
 // Saves item to the cas
