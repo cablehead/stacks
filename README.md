@@ -81,8 +81,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- truncate long urls
-- limit height for status pane
 - add to stack
 - delete from stack
 - capture
@@ -95,6 +93,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 
 ### Next release
+
+- truncate long urls
+- limit height for status pane
 
 - Incorporate: /Users/andy/.s/sessions/039VQC9VTZ3PCDW3TL9YTVE6L/png-clip
 
