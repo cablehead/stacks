@@ -139,6 +139,9 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 }
 */
 
+//
+// Stack related commands
+
 /*
 #[tauri::command]
 pub fn store_add_to_stack(name: String, id: String, store: tauri::State<SharedStore>) {
@@ -192,6 +195,8 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
     ret.truncate(400);
     ret
 }
+
+// End stack commands
 
 
 /*
