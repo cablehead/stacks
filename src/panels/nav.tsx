@@ -9,7 +9,6 @@ import { borderRight } from "../ui/app.css";
 import { Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
-
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
 
@@ -23,10 +22,12 @@ export function Parent({ stack }: { stack: Stack }) {
     focusSelectedTimeout = window.setTimeout(() => {
       focusSelectedTimeout = undefined;
       if (theRef.current) {
-        console.log("SCROLL INTO VIEW");
+        console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
+        /*
         theRef.current.scrollIntoView({
           block: "start",
         });
+        */
       }
     }, delay);
   }
