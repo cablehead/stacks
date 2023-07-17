@@ -77,17 +77,41 @@ git commit -a -m "chore: release $RELEASE"
 gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ```
 
+## Review: Daily/2022-08-11.md
+
+```
+        "CREATE TABLE IF NOT EXISTS stream (
+           id INTEGER PRIMARY KEY,
+           topic TEXT NOT NULL,
+           stamp BLOB NOT NULL,
+           source_id INTEGER,
+           parent_id INTEGER,
+           data TEXT,
+           err TEXT,
+           code INTEGER NOT NULL
+```
+
 ## Todo
 
 ### To release
 
+id source_id parent_id
+
 - add to stack
+- when adding to stack, focus stack
+- this should fork the item by default
+
+- the added item shouldn't be marked as touched: result of being forked
+
 - delete from stack
+    - and because its fork by default: that just means from the stack, not the
+      outer item
+
 - capture
 - delete
+
 - while in stack, new items go to that stack
 - editting within stack: fork instead of replace
-- when adding to stack, focus stack
 - Copy entire stack puts the entire stack on the clipboard, but doesn't save it
   to the store
 
