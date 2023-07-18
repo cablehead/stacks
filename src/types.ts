@@ -36,6 +36,12 @@ export interface Stack {
   parent?: Stack;
 }
 
+// sentinel for stack.selected.value which forces the focus to the first item
+// in the stack. This is usually used be actions that know they have trigger
+// adding an item to the stack, and so focusing that newly added item feels
+// right.
+export const FOCUS_FIRST = Number.MIN_SAFE_INTEGER;
+
 export interface Action {
   name: string;
   keys?: (string | JSXInternal.Element)[];

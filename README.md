@@ -98,10 +98,13 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 id source_id parent_id
 
 - add to stack
-- when adding to stack, focus stack
-- this should fork the item by default
-
-- the added item shouldn't be marked as touched: result of being forked
+    - they're tied together: able to tell what context something is from when
+      rendering in a another given content
+    - so maybe, the item is touched: but the parent version ignores that, in
+      terms of sorting by most recently touched.
+    - or:
+    - this should fork the item by default
+    - the added item shouldn't be marked as touched: result of being forked
 
 - delete from stack
     - and because its fork by default: that just means from the stack, not the
@@ -114,6 +117,9 @@ id source_id parent_id
 - editting within stack: fork instead of replace
 - Copy entire stack puts the entire stack on the clipboard, but doesn't save it
   to the store
+
+- Use the above mechanism so that write_to_clipboard only needs to record a
+  touch record: if that's useful at all
 
 
 ### Next release

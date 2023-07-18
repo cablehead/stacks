@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Item, Stack } from "./types";
+import { FOCUS_FIRST, Item, Stack } from "./types";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -101,31 +101,38 @@ export const createStack = (
 const root = createStack();
 export const currStack: Signal<Stack> = signal(root);
 
-//
-// Wire filter, and server refresh notifications, to update the current stacks
-// items
+// updateItems maintains the provided stack's items: reactively, based on the stack's
+// current filter and content type
 const updateItems = async (stack: Stack) => {
+  // Depend on the current filter and content type from the stack, so we react
+  // to filter changes
   const filter = stack.filter.curr.value;
   const contentType = stack.filter.content_type.value;
 
   const args = {
     filter: filter,
     contentType: contentType,
+    // Include the hash of the focused parent stack item, if it exists
     stack: stack.parent?.item.value?.hash,
   };
 
-  const curr = stack.item.peek()?.terse;
+  // Get the hash of the currently focused item
+  const currItem = stack.item.peek()?.hash;
+
+  // Set the new list of items from the backend
   stack.items.value = await invoke<Item[]>("store_list_items", args);
 
-  // focus the newly added item, if Stacks doesn't have focus
-  if (!document.hasFocus()) {
+  // If the app doesn't currently have focus, focus the first (newly touched)
+  // item in the stack, or if stack.selected.value is the focus first sentinel
+  if (!document.hasFocus() || stack.selected.value == FOCUS_FIRST) {
     stack.selected.value = 0;
     return;
   }
 
-  // otherwise, try to preserve the current focus
-  const index = stack.items.peek().findIndex((item) => item.terse == curr);
-  console.log("updateItems: Refocus:", curr, index);
+  // If the app does have focus, try to find the previously focused item, in
+  // order to preserve focus
+  const index = stack.items.peek().findIndex((item) => item.hash == currItem);
+  console.log("updateItems: Refocus:", currItem, index, stack.selected.value);
   if (index >= 0) stack.selected.value = index;
 };
 
