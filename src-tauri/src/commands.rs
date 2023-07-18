@@ -81,7 +81,7 @@ use cocoa::base::nil;
 use cocoa::foundation::NSString;
 use objc::{msg_send, sel, sel_impl};
 
-pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<()> {
+pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
     unsafe {
         let nsdata: *mut objc::runtime::Object = msg_send![objc::class!(NSData), alloc];
         let nsdata: *mut objc::runtime::Object =
@@ -92,10 +92,8 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<()> {
 
         let png_type = NSString::alloc(nil).init_str(mime_type);
 
-        let i: i32 = msg_send![pasteboard, clearContents];
+        let i: i64 = msg_send![pasteboard, clearContents];
         let success: bool = msg_send![pasteboard, setData: nsdata forType: png_type];
-
-        println!("int: {:?}", i);
 
         // After the data is set, release the nsdata object to prevent a memory leak.
         let () = msg_send![nsdata, release];
@@ -104,8 +102,8 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<()> {
         if !success {
             return None;
         }
+        Some(i)
     }
-    Some(())
 }
 
 #[tauri::command]
@@ -113,7 +111,6 @@ pub fn store_copy_to_clipboard(
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
-    println!("COPY_TO_CLIPBOARD : {}", &source_id);
     let mut state = state.lock().unwrap();
     let frame = state.store.get(&source_id)?;
     let content = state.store.cat(&frame.hash)?;
@@ -122,7 +119,9 @@ pub fn store_copy_to_clipboard(
         MimeType::TextPlain => "public.utf8-plain-text",
         MimeType::ImagePng => "public.png",
     };
-    write_to_clipboard(mime_type, &content)
+    let change_num = write_to_clipboard(mime_type, &content)?;
+    state.skip_change_num = Some(change_num);
+    Some(())
 }
 
 /*

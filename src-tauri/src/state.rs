@@ -6,6 +6,11 @@ use crate::store::Store;
 pub struct State {
     pub stack: Stack,
     pub store: Store,
+    // skip_change_num is used to prevent double processing of clipboard items.
+    // When our app pushes an item to the clipboard, it also records detailed information
+    // about the item in the store. To avoid the clipboard poller from duplicating this
+    // information, we use skip_change_num to ignore the change id associated with the item.
+    pub skip_change_num: Option<i64>,
 }
 
 impl State {
@@ -20,7 +25,11 @@ impl State {
                 log::warn!("frame with no content: {:?}", frame);
             }
         }
-        Self { stack, store }
+        Self {
+            stack,
+            store,
+            skip_change_num: None,
+        }
     }
 }
 
