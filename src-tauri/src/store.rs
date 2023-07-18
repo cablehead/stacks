@@ -12,8 +12,7 @@ pub enum MimeType {
 pub struct Frame {
     pub id: scru128::Scru128Id,
     pub source: Option<String>,
-    pub source_id: Option<scru128::Scru128Id>,
-    pub parent_id: Option<scru128::Scru128Id>,
+    pub stack_hash: Option<ssri::Integrity>,
     pub mime_type: MimeType,
     pub hash: ssri::Integrity,
 }
@@ -34,26 +33,16 @@ impl Store {
         Store { db, cache_path }
     }
 
+    pub fn cas_write(&self, content: &[u8]) -> ssri::Integrity {
+        cacache::write_hash_sync(&self.cache_path, content).unwrap()
+    }
+
     pub fn get(&mut self, id: &scru128::Scru128Id) -> Option<Frame> {
         self.db
             .get(id.to_bytes())
             .ok()
             .and_then(|maybe_value| maybe_value)
             .and_then(|value| bincode::deserialize::<Frame>(&value).ok())
-    }
-
-    pub fn put(&mut self, source: Option<String>, mime_type: MimeType, content: &[u8]) -> Frame {
-        let h = cacache::write_hash_sync(&self.cache_path, content).unwrap();
-        let frame = Frame {
-            id: scru128::new(),
-            source,
-            source_id: None,
-            parent_id: None,
-            mime_type,
-            hash: h,
-        };
-        self.insert(&frame);
-        frame
     }
 
     pub fn insert(&mut self, frame: &Frame) {

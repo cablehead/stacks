@@ -159,7 +159,10 @@ effect(() => {
 export async function triggerCopy() {
   const item = currStack.value.item.value;
   if (!item) return;
-  await invoke("store_copy_to_clipboard", { sourceId: item.ids[0] });
+  await invoke("store_copy_to_clipboard", {
+    sourceId: item.ids[0],
+    stackHash: currStack.value.parent?.item.value?.hash,
+  });
   hide();
 }
 

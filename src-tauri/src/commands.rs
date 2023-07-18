@@ -110,19 +110,28 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 pub fn store_copy_to_clipboard(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    source_id: Option<scru128::Scru128Id>,
-    parent_id: scru128::Scru128Id,
+    stack_hash: Option<ssri::Integrity>,
+    source_id: scru128::Scru128Id,
 ) -> Option<()> {
     let mut state = state.lock().unwrap();
-    let frame = state.store.get(&parent_id)?;
+    let mut frame = state.store.get(&source_id)?;
     let content = state.store.cat(&frame.hash)?;
 
     let mime_type = match &frame.mime_type {
         MimeType::TextPlain => "public.utf8-plain-text",
         MimeType::ImagePng => "public.png",
     };
+
     let change_num = write_to_clipboard(mime_type, &content)?;
     state.skip_change_num = Some(change_num);
+
+    frame.id = scru128::new();
+    frame.source = Some("stream.cross.stacks".into());
+    frame.stack_hash = stack_hash;
+    state.store.insert(&frame);
+    state.merge(&frame);
+
+    app.emit_all("refresh-items", true).unwrap();
     Some(())
 }
 
@@ -151,24 +160,22 @@ pub fn store_add_to_stack(
     name: String,
     id: scru128::Scru128Id,
 ) {
-    let name = name.as_bytes().to_vec();
     let mut state = state.lock().unwrap();
 
-    let stack_frame = state.store.put(
+    let name = name.as_bytes().to_vec();
+    let stack_frame = state.add_content(
         Some("stream.cross.stacks".into()),
+        None,
         MimeType::TextPlain,
-        &name,
+        name,
     );
-    state.stack.merge(&stack_frame, &name);
 
     let mut frame = state.store.get(&id).unwrap();
-    frame.source_id = Some(stack_frame.id);
-    frame.parent_id = Some(frame.id);
     frame.id = scru128::new();
-    let content = state.store.cat(&frame.hash).unwrap();
+    frame.source = Some("stream.cross.stacks".into());
+    frame.stack_hash = Some(stack_frame.hash);
     state.store.insert(&frame);
-    state.stack.merge(&frame, &content);
-
+    state.merge(&frame);
     app.emit_all("refresh-items", true).unwrap();
 }
 

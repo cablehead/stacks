@@ -15,7 +15,10 @@ pub struct Item {
 fn merge_into(stack: &mut HashMap<ssri::Integrity, Item>, frame: &Frame, content: &[u8]) {
     match stack.get_mut(&frame.hash) {
         Some(curr) => {
-            assert_eq!(curr.mime_type, frame.mime_type, "Mime types don't match");
+            assert_eq!(
+                curr.mime_type, frame.mime_type,
+                "Mime types don't match"
+            );
             curr.ids.push(frame.id);
         }
         None => {
@@ -153,12 +156,11 @@ impl Stack {
     }
 
     pub fn merge(&mut self, frame: &Frame, content: &[u8]) {
-        if let Some(source_id) = frame.source_id {
-            if let Some(mut source) = self.find_item_by_id(&source_id) {
-                source.ids.push(frame.id);
-                source.content_type = "Stack".into();
-                merge_into(&mut source.stack, frame, content);
-                self.items.insert(source.hash.clone(), source);
+        if let Some(stack_hash) = &frame.stack_hash {
+            if let Some(mut stack) = self.items.get_mut(&stack_hash) {
+                stack.ids.push(frame.id);
+                stack.content_type = "Stack".into();
+                merge_into(&mut stack.stack, frame, content);
             }
         } else {
             merge_into(&mut self.items, frame, content);

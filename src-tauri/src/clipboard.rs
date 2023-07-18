@@ -40,17 +40,11 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
-                    let frame = state
-                        .store
-                        .put(source.clone(), MimeType::TextPlain, &content);
-                    state.stack.merge(&frame, &content);
+                    state.add_content(source, None, MimeType::TextPlain, content);
                     app.emit_all("refresh-items", true).unwrap();
                 } else if types.contains_key("public.png") {
                     let content = b64decode(types["public.png"].as_str().unwrap());
-                    let frame = state
-                        .store
-                        .put(source.clone(), MimeType::ImagePng, &content);
-                    state.stack.merge(&frame, &content);
+                    state.add_content(source, None, MimeType::ImagePng, content);
                     app.emit_all("refresh-items", true).unwrap();
                 }
             }

@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::stack::Stack;
-use crate::store::Store;
+use crate::store::{Frame, MimeType, Store};
 
 pub struct State {
     pub stack: Stack,
@@ -16,19 +16,44 @@ pub struct State {
 impl State {
     pub fn new(db_path: &str) -> Self {
         let store = Store::new(db_path);
-        let mut stack = Stack::new();
-        for frame in store.list() {
-            let content = store.cat(&frame.hash);
-            if let Some(content) = content {
-                stack.merge(&frame, &content);
-            } else {
-                log::warn!("frame with no content: {:?}", frame);
-            }
-        }
-        Self {
-            stack,
+        let mut state = Self {
+            stack: Stack::new(),
             store,
             skip_change_num: None,
+        };
+        for frame in state.store.list() {
+            state.merge(&frame);
+        }
+        state
+    }
+
+    pub fn add_content(
+        &mut self,
+        source: Option<String>,
+        stack_hash: Option<ssri::Integrity>,
+        mime_type: MimeType,
+        content: Vec<u8>,
+    ) -> Frame {
+        let hash = self.store.cas_write(&content);
+
+        let frame = Frame {
+            id: scru128::new(),
+            source,
+            stack_hash,
+            mime_type,
+            hash,
+        };
+        self.store.insert(&frame);
+        self.merge(&frame);
+        frame
+    }
+
+    pub fn merge(&mut self, frame: &Frame) {
+        let content = self.store.cat(&frame.hash);
+        if let Some(content) = content {
+            self.stack.merge(&frame, &content);
+        } else {
+            log::warn!("frame with no content: {:?}", frame);
         }
     }
 }
