@@ -98,6 +98,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 id source_id parent_id
 
 - add to stack
+    - it feels weird the new item in the stack has no touches
     - they're tied together: able to tell what context something is from when
       rendering in a another given content
     - so maybe, the item is touched: but the parent version ignores that, in
