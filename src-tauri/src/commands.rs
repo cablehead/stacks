@@ -108,11 +108,13 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 
 #[tauri::command]
 pub fn store_copy_to_clipboard(
+    app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    source_id: scru128::Scru128Id,
+    source_id: Option<scru128::Scru128Id>,
+    parent_id: scru128::Scru128Id,
 ) -> Option<()> {
     let mut state = state.lock().unwrap();
-    let frame = state.store.get(&source_id)?;
+    let frame = state.store.get(&parent_id)?;
     let content = state.store.cat(&frame.hash)?;
 
     let mime_type = match &frame.mime_type {
@@ -144,8 +146,8 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 
 #[tauri::command]
 pub fn store_add_to_stack(
-    state: tauri::State<SharedState>,
     app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
     name: String,
     id: scru128::Scru128Id,
 ) {
