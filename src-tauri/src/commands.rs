@@ -269,30 +269,3 @@ pub fn store_capture(
     }
 }
 */
-
-/*
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    use crate::state::State;
-    use std::sync::{Arc, Mutex};
-
-    #[test]
-    fn test_commands() {
-        let state = State::new("/tmp/foo.db");
-        let state: SharedState = Arc::new(Mutex::new(state));
-
-        {
-            let mut state = state.lock().unwrap();
-            let c = "f1".as_bytes().to_vec();
-            let f1 = state.store.put(None, MimeType::TextPlain, &c);
-            state.stack.merge(&f1, &c);
-            println!("FOO: {:?}", state.stack.items);
-        }
-
-        let items = store_list_items(state, None, "".into(), "All".into());
-            println!("ITEMS: {:?}", items);
-    }
-}
-*/
