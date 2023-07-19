@@ -7,6 +7,7 @@ import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { FOCUS_FIRST, Stack } from "../types";
+import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
@@ -102,7 +103,7 @@ export default {
             }
           }}
         >
-          {content}
+          {b64ToUtf8(content)}
         </textarea>
       </div>
     );
