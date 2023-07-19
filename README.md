@@ -95,12 +95,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-- delete
-
-- delete from stack
-    - and because its fork by default: that just means from the stack, not the
-      outer item
-
 - while in stack, new items go to that stack
 
 - Copy entire stack puts the entire stack on the clipboard, but doesn't save it
@@ -111,8 +105,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 - truncate long urls
 - limit height for status pane
-
-- Reset to the first item after some period of inactivity (30 secs?)
 
 - Add ability to create a Note
 
@@ -135,12 +127,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - Editor capture should create an xs.add row: with parent set to the id the
   editor was triggered on: this should be merged version that's put on the
   clipboard
-
-- better cursor handling
-    - dedicated focus handling when the filter changes
-    - unless the item being added is the item focused, in which case, jump to
-      the first?? - maybe
-    - reset to start state of 1 minute
 
 - mark a source as don't track (for password managers, etc).
 

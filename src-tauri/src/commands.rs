@@ -114,7 +114,13 @@ pub fn store_copy_to_clipboard(
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
     let mut state = state.lock().unwrap();
-    let mut frame = state.store.get(&source_id)?;
+    let mut frame = match state.store.get_frame(&source_id) {
+        Some(frame) => frame,
+        None => {
+            log::warn!("No frame found with id: {:?}", source_id);
+            return None;
+        }
+    };
     let content = state.store.cat(&frame.hash)?;
 
     let mime_type = match &frame.mime_type {
@@ -128,8 +134,8 @@ pub fn store_copy_to_clipboard(
     frame.id = scru128::new();
     frame.source = Some("stream.cross.stacks".into());
     frame.stack_hash = stack_hash;
-    state.store.insert(&frame);
-    state.merge(&frame);
+    let packet = state.store.insert_frame(&frame);
+    state.merge(&packet);
 
     app.emit_all("refresh-items", true).unwrap();
     Some(())
@@ -157,20 +163,18 @@ pub fn store_capture(
     app.emit_all("refresh-items", true).unwrap();
 }
 
-/*
 #[tauri::command]
-pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<SharedStore>) {
-    let mut store = store.lock().unwrap();
-    println!("DEL: {}", &hash);
-    if let Some(item) = store.items.remove(&hash) {
-        println!("item: {:?}", item);
-        let env = xs_lib::store_open(&store.db_path).unwrap();
-        xs_lib::store_delete(&env, item.ids).unwrap();
-    }
-    store.cas.remove(&hash);
+pub fn store_delete(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    hash: ssri::Integrity,
+    stack_hash: Option<ssri::Integrity>,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.delete(&hash, &stack_hash);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
-*/
 
 //
 // Stack related commands
@@ -191,29 +195,21 @@ pub fn store_add_to_stack(
         name.as_bytes(),
     );
 
-    let mut frame = state.store.get(&id).unwrap();
+    let mut frame = match state.store.get_frame(&id) {
+        Some(frame) => frame,
+        None => {
+            log::warn!("No frame found with id: {:?}", id);
+            return;
+        }
+    };
+
     frame.id = scru128::new();
     frame.source = Some("stream.cross.stacks".into());
     frame.stack_hash = Some(stack_frame.hash);
-    state.store.insert(&frame);
-    state.merge(&frame);
+    let packet = state.store.insert_frame(&frame);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
-
-/*
-#[tauri::command]
-pub fn store_delete_from_stack(name: String, id: String, store: tauri::State<SharedStore>) {
-    let store = store.lock().unwrap();
-    let data = serde_json::json!({
-        "name": name,
-        "id": id
-    })
-    .to_string();
-    println!("DELETE FROM STACK: {}", &data);
-    let env = xs_lib::store_open(&store.db_path).unwrap();
-    xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
-}
-*/
 
 #[tauri::command]
 pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {

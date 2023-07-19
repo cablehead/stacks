@@ -50,7 +50,12 @@ export const actions: Action[] = [
     canApply: (stack: Stack) => !stack.parent,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
-      if (item) invoke("store_delete", { hash: item.hash });
+      if (item) {
+        invoke("store_delete", {
+          hash: item.hash,
+          stackHash: stack.parent?.item.value?.hash,
+        });
+      }
     },
   },
   {
@@ -60,13 +65,13 @@ export const actions: Action[] = [
       event.ctrlKey && event.key === "Backspace",
     canApply: (stack: Stack) => !!stack.parent,
     trigger: (stack: Stack) => {
-      const name = stack.parent?.item.value?.terse;
-      if (!name) return;
       const item = stack.item.value;
-      if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
-      invoke("store_delete_from_stack", { name: name, id: id });
+      if (item) {
+        invoke("store_delete", {
+          hash: item.hash,
+          stackHash: stack.parent?.item.value?.hash,
+        });
+      }
     },
   },
 ];

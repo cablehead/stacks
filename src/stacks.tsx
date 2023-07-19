@@ -117,8 +117,10 @@ function debounce<T>(
 // updateItems maintains the provided stack's items: reactively, based on the
 // stack's current filter and content type
 const innerUpdateItems = async (stack: Stack) => {
-  // Depend on the current filter and content type from the stack, so we react
-  // to filter changes
+  if (stack.parent) {
+    innerUpdateItems(stack.parent);
+  }
+
   const filter = stack.filter.curr.value;
   const contentType = stack.filter.content_type.value;
 
@@ -155,18 +157,15 @@ let d1: (() => void) | undefined;
 
 async function initRefresh() {
   d1 = await listen("refresh-items", () => {
-    console.log("LISTEN");
     updateItems(currStack.value);
-    const parent = currStack.value.parent;
-    if (parent) {
-      updateItems(parent);
-    }
   });
 }
 initRefresh();
 
 effect(() => {
   const stack = currStack.value;
+  // Depend on the current filter and content type from the stack, so we react
+  // to filter changes
   console.log(
     "currStack: updateItems",
     stack.filter.curr.value,

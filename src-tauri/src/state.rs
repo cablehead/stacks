@@ -1,7 +1,7 @@
 use std::sync::{Arc, Mutex};
 
 use crate::stack::Stack;
-use crate::store::{Frame, MimeType, Store};
+use crate::store::{Frame, MimeType, Packet, Store};
 
 pub struct State {
     pub stack: Stack,
@@ -43,17 +43,24 @@ impl State {
             mime_type,
             hash,
         };
-        self.store.insert(&frame);
-        self.merge(&frame);
+        let packet = self.store.insert_frame(&frame);
+        self.merge(&packet);
         frame
     }
 
-    pub fn merge(&mut self, frame: &Frame) {
-        let content = self.store.cat(&frame.hash);
-        if let Some(content) = content {
-            self.stack.merge(&frame, &content);
-        } else {
-            log::warn!("frame with no content: {:?}", frame);
+    pub fn merge(&mut self, packet: &Packet) {
+        match packet {
+            Packet::Frame(frame) => {
+                let content = self.store.cat(&frame.hash);
+                if let Some(content) = content {
+                    self.stack.merge(&frame, &content);
+                } else {
+                    log::warn!("frame with no content: {:?}", frame);
+                }
+            }
+            Packet::DeleteFrame(frame) => {
+                self.stack.merge_delete(frame);
+            }
         }
     }
 }

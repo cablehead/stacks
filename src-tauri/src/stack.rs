@@ -1,6 +1,6 @@
 use std::collections::HashMap;
 
-use crate::store::{Frame, MimeType};
+use crate::store::{DeleteFrame, Frame, MimeType};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
@@ -74,6 +74,19 @@ impl Stack {
             }
         } else {
             merge_into(&mut self.items, frame, content);
+        }
+    }
+
+    pub fn merge_delete(&mut self, frame: &DeleteFrame) {
+        match &frame.stack_hash {
+            Some(stack_hash) => {
+                if let Some(item) = self.items.get_mut(&stack_hash) {
+                    item.stack.remove(&frame.hash);
+                }
+            }
+            None => {
+                self.items.remove(&frame.hash);
+            }
         }
     }
 }
