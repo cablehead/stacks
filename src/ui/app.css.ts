@@ -10,8 +10,8 @@ export const [darkThemeClass, vars] = createTheme({
   textColor: "#c5c6c7",
   backgroundColor: "#232323",
 
-  backgroundColorHighlight: "#3F4B5B",
-  textColorReverse: "#C0C0C0",
+  textColorReverse: "#D0D0D0",
+  backgroundColorHighlight: "#4F5C6C",
 
   backgroundColorTransparent: "#1F1F1FEF",
   backgroundColorSelected: "#4A4A4A",

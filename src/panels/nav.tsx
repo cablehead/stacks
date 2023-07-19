@@ -41,7 +41,7 @@ export function Parent({ stack }: { stack: Stack }) {
       className={borderRight}
       style="
       flex: 1;
-      max-width: 10ch;
+      max-width: 8ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
