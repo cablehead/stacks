@@ -53,12 +53,12 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
             commands::store_list_items,
+            commands::store_copy_to_clipboard,
+            commands::store_capture,
             // store::store_delete,
             commands::store_list_stacks,
             commands::store_add_to_stack,
             // store::store_delete_from_stack,
-            commands::store_copy_to_clipboard,
-            // store::store_capture,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

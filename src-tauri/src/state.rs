@@ -32,9 +32,9 @@ impl State {
         source: Option<String>,
         stack_hash: Option<ssri::Integrity>,
         mime_type: MimeType,
-        content: Vec<u8>,
+        content: &[u8],
     ) -> Frame {
-        let hash = self.store.cas_write(&content);
+        let hash = self.store.cas_write(content);
 
         let frame = Frame {
             id: scru128::new(),

@@ -135,6 +135,27 @@ pub fn store_copy_to_clipboard(
     Some(())
 }
 
+#[tauri::command]
+pub fn store_capture(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    stack_hash: Option<ssri::Integrity>,
+    content: Vec<u8>,
+) {
+    let mut state = state.lock().unwrap();
+    state.add_content(
+        Some("stream.cross.stacks".into()),
+        stack_hash,
+        MimeType::TextPlain,
+        &content,
+    );
+
+    let change_num = write_to_clipboard("public.utf8-plain-text", &content).unwrap();
+    state.skip_change_num = Some(change_num);
+
+    app.emit_all("refresh-items", true).unwrap();
+}
+
 /*
 #[tauri::command]
 pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<SharedStore>) {
@@ -157,17 +178,16 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    name: String,
+    name: Vec<u8>,
     id: scru128::Scru128Id,
 ) {
     let mut state = state.lock().unwrap();
 
-    let name = name.as_bytes().to_vec();
     let stack_frame = state.add_content(
         Some("stream.cross.stacks".into()),
         None,
         MimeType::TextPlain,
-        name,
+        &name,
     );
 
     let mut frame = state.store.get(&id).unwrap();
@@ -221,51 +241,3 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
 }
 
 // End stack commands
-
-/*
-// Saves item to the cas
-// If source_id is present creates a link to the source
-// If stack_name is present, adds item to the stack
-// if stack_name and source are present, removes source from stack
-#[tauri::command]
-pub fn store_capture(
-    item: String,
-    source_id: Option<String>,
-    stack_name: Option<String>,
-    store: tauri::State<SharedStore>,
-) {
-    println!("CAPTURE: {} {:?} {:?}", item, source_id, stack_name);
-    let store = store.lock().unwrap();
-
-    let env = xs_lib::store_open(&store.db_path).unwrap();
-
-    let id = xs_lib::store_put(&env, Some("item".into()), None, item).unwrap();
-
-    if let Some(source_id) = &source_id {
-        let data = serde_json::json!({
-            "source_id": source_id,
-            "id": id
-        })
-        .to_string();
-        xs_lib::store_put(&env, Some("link".into()), None, data).unwrap();
-    }
-
-    if let Some(stack_name) = stack_name {
-        let data = serde_json::json!({
-            "name": stack_name,
-            "id": id
-        })
-        .to_string();
-        xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
-
-        if let Some(source_id) = &source_id {
-            let data = serde_json::json!({
-                "name": stack_name,
-                "id": source_id
-            })
-            .to_string();
-            xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
-        }
-    }
-}
-*/
