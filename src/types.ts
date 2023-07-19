@@ -21,6 +21,58 @@ export interface Item {
   stack: Record<string, Item>;
 }
 
+enum FocusType {
+  INDEX,
+  FIRST,
+}
+
+export class Focus {
+  type: FocusType;
+  n: number;
+
+  constructor(type: FocusType, n: number = 0) {
+    this.type = type;
+    this.n = n;
+  }
+
+  static first(): Focus {
+    return new Focus(FocusType.FIRST);
+  }
+
+  static index(n: number): Focus {
+    return new Focus(FocusType.INDEX, n);
+  }
+
+  isFocusFirst(): boolean {
+    return this.type === FocusType.FIRST;
+  }
+
+  down() {
+    if (this.type === FocusType.FIRST) {
+      return Focus.index(1);
+    } else if (this.type === FocusType.INDEX) {
+      return Focus.index(this.n + 1);
+    }
+    return this;
+  }
+
+  up() {
+    if (this.type === FocusType.FIRST) {
+      return Focus.index(-1);
+    } else if (this.type === FocusType.INDEX) {
+      return Focus.index(this.n - 1);
+    }
+    return this;
+  }
+
+  currIndex() {
+    if (this.type === FocusType.FIRST) {
+      return 0;
+    }
+    return this.n;
+  }
+}
+
 export interface Stack {
   filter: {
     curr: Signal<string>;
@@ -29,18 +81,12 @@ export interface Stack {
     clear: () => void;
   };
   items: Signal<Item[]>;
-  selected: Signal<number>;
+  selected: Signal<Focus>;
   normalizedSelected: Signal<number>;
   item: Signal<Item | undefined>;
   get content(): undefined | Signal<string | undefined>;
   parent?: Stack;
 }
-
-// sentinel for stack.selected.value which forces the focus to the first item
-// in the stack. This is usually used be actions that know they have trigger
-// adding an item to the stack, and so focusing that newly added item feels
-// right.
-export const FOCUS_FIRST = Number.MIN_SAFE_INTEGER;
 
 export interface Action {
   name: string;

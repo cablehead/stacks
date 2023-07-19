@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
+import { Focus, Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
 export function Parent({ stack }: { stack: Stack }) {
@@ -22,7 +22,7 @@ export function Parent({ stack }: { stack: Stack }) {
     focusSelectedTimeout = window.setTimeout(() => {
       focusSelectedTimeout = undefined;
       if (theRef.current) {
-        console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
+        // console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
         /*
         theRef.current.scrollIntoView({
           block: "start",
@@ -74,7 +74,6 @@ export function Nav({ stack }: { stack: Stack }) {
     focusSelectedTimeout = window.setTimeout(() => {
       focusSelectedTimeout = undefined;
       if (theRef.current) {
-        console.log("SCROLL INTO VIEW");
         theRef.current.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
@@ -164,7 +163,7 @@ const TerseRow = forwardRef<
           ? (currStack.value === stack ? " highlight" : " selected")
           : "")}
       onMouseDown={() => {
-        stack.selected.value = index;
+        stack.selected.value = Focus.index(index);
         if (currStack.value != stack) {
           console.log("Switcheroo");
           currStack.value = stack;

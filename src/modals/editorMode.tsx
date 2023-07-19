@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { FOCUS_FIRST, Stack } from "../types";
+import { Focus, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -20,7 +20,7 @@ const state = (() => {
       };
 
       invoke("store_capture", args);
-      stack.selected.value = FOCUS_FIRST;
+      stack.selected.value = Focus.first();
       modes.deactivate();
     },
   };

@@ -5,7 +5,7 @@ import { listen } from "@tauri-apps/api/event";
 import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { FOCUS_FIRST, Item, Stack } from "./types";
+import { Focus, Item, Stack } from "./types";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -70,10 +70,10 @@ export const createStack = (
       })
       : [],
   );
-  const selected = signal(0);
+  const selected = signal(Focus.first());
 
   const normalizedSelected = computed(() => {
-    let val = selected.value % (items.value.length);
+    let val = selected.value.currIndex() % (items.value.length);
     if (val < 0) val = items.value.length + val;
     return val;
   });
@@ -101,9 +101,22 @@ export const createStack = (
 const root = createStack();
 export const currStack: Signal<Stack> = signal(root);
 
-// updateItems maintains the provided stack's items: reactively, based on the stack's
-// current filter and content type
-const updateItems = async (stack: Stack) => {
+function debounce<T>(
+  this: T,
+  func: (...args: any[]) => void,
+  delay: number,
+): (...args: any[]) => void {
+  let debounceTimer: NodeJS.Timeout;
+  return function (this: T, ...args: any[]) {
+    const context = this;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+}
+
+// updateItems maintains the provided stack's items: reactively, based on the
+// stack's current filter and content type
+const innerUpdateItems = async (stack: Stack) => {
   // Depend on the current filter and content type from the stack, so we react
   // to filter changes
   const filter = stack.filter.curr.value;
@@ -124,8 +137,8 @@ const updateItems = async (stack: Stack) => {
 
   // If the app doesn't currently have focus, focus the first (newly touched)
   // item in the stack, or if stack.selected.value is the focus first sentinel
-  if (!document.hasFocus() || stack.selected.value == FOCUS_FIRST) {
-    stack.selected.value = 0;
+  if (!document.hasFocus() || stack.selected.value.isFocusFirst()) {
+    stack.selected.value = Focus.index(0);
     return;
   }
 
@@ -133,8 +146,10 @@ const updateItems = async (stack: Stack) => {
   // order to preserve focus
   const index = stack.items.peek().findIndex((item) => item.hash == currItem);
   console.log("updateItems: Refocus:", currItem, index, stack.selected.value);
-  if (index >= 0) stack.selected.value = index;
+  if (index >= 0) stack.selected.value = Focus.index(index);
 };
+
+const updateItems = debounce(innerUpdateItems, 50);
 
 let d1: (() => void) | undefined;
 
@@ -151,10 +166,19 @@ async function initRefresh() {
 initRefresh();
 
 effect(() => {
-  console.log("EFFECT");
-  updateItems(currStack.value);
+  const stack = currStack.value;
+  console.log(
+    "currStack: updateItems",
+    stack.filter.curr.value,
+    stack.filter.content_type.value,
+  );
+  updateItems(stack);
 });
 // End items
+
+effect(() => {
+  console.log("SELECTED:", currStack.value.selected.value);
+});
 
 export async function triggerCopy() {
   const item = currStack.value.item.value;

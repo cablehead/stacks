@@ -7,7 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { FOCUS_FIRST, Item, Stack } from "../types";
+import { Focus, Item, Stack } from "../types";
 
 const state = (() => {
   const selected = signal(0);
@@ -43,7 +43,7 @@ const state = (() => {
       if (!name) return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
-        stack.selected.value = FOCUS_FIRST;
+        stack.selected.value = Focus.first();
         modes.active.value = modes.get("Clipboard");
       })();
     },
@@ -57,7 +57,7 @@ const state = (() => {
       if (name === "") return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
-        stack.selected.value = FOCUS_FIRST;
+        stack.selected.value = Focus.first();
         modes.active.value = modes.get("Clipboard");
       })();
     },
