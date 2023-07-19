@@ -1,6 +1,6 @@
 import { Icon } from "../ui/icons";
 
-import { Modes } from "./types";
+import { HotKey, Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 import { default as addToStackMode } from "./addToStackMode";
@@ -60,12 +60,14 @@ export default {
     });
 
     let action = actions.find((action) => action.name === "Copy entire stack");
-    if (action && action.canApply(stack)) {
+    if (action && action.canApply && action.canApply(stack)) {
       ret.push({
         name: action.name,
         keys: action.keys,
-        onMouseDown: () => action.trigger(stack),
-      });
+        onMouseDown: () => {
+          if (action && action.trigger) action.trigger(stack);
+        },
+      } as HotKey);
     }
 
     ret.push({

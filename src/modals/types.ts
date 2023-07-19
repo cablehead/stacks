@@ -3,7 +3,7 @@ import { Signal } from "@preact/signals";
 
 import { Stack } from "../types";
 
-interface HotKey {
+export interface HotKey {
   name: string;
   keys: (string | JSXInternal.Element)[];
   onMouseDown: (event: any) => void;
