@@ -68,7 +68,7 @@ impl Stack {
 
     pub fn merge(&mut self, frame: &Frame, content: &[u8]) {
         if let Some(stack_hash) = &frame.stack_hash {
-            if let Some(mut stack) = self.items.get_mut(&stack_hash) {
+            if let Some(mut stack) = self.items.get_mut(stack_hash) {
                 stack.content_type = "Stack".into();
                 merge_into(&mut stack.stack, frame, content);
             }
@@ -80,7 +80,7 @@ impl Stack {
     pub fn merge_delete(&mut self, frame: &DeleteFrame) {
         match &frame.stack_hash {
             Some(stack_hash) => {
-                if let Some(item) = self.items.get_mut(&stack_hash) {
+                if let Some(item) = self.items.get_mut(stack_hash) {
                     item.stack.remove(&frame.hash);
                 }
             }

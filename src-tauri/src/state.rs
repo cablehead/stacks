@@ -55,7 +55,7 @@ impl State {
             Packet::Frame(frame) => {
                 let content = self.store.cat(&frame.hash);
                 if let Some(content) = content {
-                    self.stack.merge(&frame, &content);
+                    self.stack.merge(frame, &content);
                 } else {
                     log::warn!("frame with no content: {:?}", frame);
                 }
