@@ -17,6 +17,7 @@ const state = (() => {
         stackHash: stack.parent?.item.value?.hash,
         content: curr.value,
       };
+
       invoke("store_capture", args);
       stack.selected.value = FOCUS_FIRST;
       modes.deactivate();

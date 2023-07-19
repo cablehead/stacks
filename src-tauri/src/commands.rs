@@ -140,17 +140,18 @@ pub fn store_capture(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     stack_hash: Option<ssri::Integrity>,
-    content: Vec<u8>,
+    content: String,
 ) {
     let mut state = state.lock().unwrap();
+    let content = content.as_bytes();
     state.add_content(
         Some("stream.cross.stacks".into()),
         stack_hash,
         MimeType::TextPlain,
-        &content,
+        content,
     );
 
-    let change_num = write_to_clipboard("public.utf8-plain-text", &content).unwrap();
+    let change_num = write_to_clipboard("public.utf8-plain-text", content).unwrap();
     state.skip_change_num = Some(change_num);
 
     app.emit_all("refresh-items", true).unwrap();
@@ -178,7 +179,7 @@ pub fn store_delete(app: tauri::AppHandle, hash: String, store: tauri::State<Sha
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    name: Vec<u8>,
+    name: String,
     id: scru128::Scru128Id,
 ) {
     let mut state = state.lock().unwrap();
@@ -187,7 +188,7 @@ pub fn store_add_to_stack(
         Some("stream.cross.stacks".into()),
         None,
         MimeType::TextPlain,
-        &name,
+        name.as_bytes(),
     );
 
     let mut frame = state.store.get(&id).unwrap();
