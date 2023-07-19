@@ -8,6 +8,8 @@ import { default as addToStackMode } from "./addToStackMode";
 import { Stack } from "../types";
 import { createStack, currStack, triggerCopy } from "../stacks";
 
+import { actions } from "../actions";
+
 export default {
   name: "Clipboard",
   hotKeys: (stack: Stack, modes: Modes) => {
@@ -56,6 +58,15 @@ export default {
         triggerCopy();
       },
     });
+
+    let action = actions.find((action) => action.name === "Copy entire stack");
+    if (action && action.canApply(stack)) {
+      ret.push({
+        name: action.name,
+        keys: action.keys,
+        onMouseDown: () => action.trigger(stack),
+      });
+    }
 
     ret.push({
       name: "Actions",
