@@ -26,35 +26,6 @@ tsc
 
 https://github.com/cablehead/workspace/blob/x-macos-pasteboard/Sources/Clip/main.swift
 
-## Storage
-
-content.add: id, hash  # need to be able give a type
-
-content_type is:
-
-- Text
-- Link
-- Stack
-- Image
-
-mime_type is:
-
-- text/plain
-- image/png
-
-Potentially source
-
-stack.add: id, id
-stack.del: id, id
-edit.add: id, id
-
-xs_lib::store_put(&env, Some("clipboard".into()), None, line.clone())
-xs_lib::store_put(&env, Some("stack".into()), None, data).unwrap();
-xs_lib::store_put(&env, Some("stack".into()), Some("delete".into()), data).unwrap();
-xs_lib::store_put(&env, Some("item".into()), None, item).unwrap();
-xs_lib::store_put(&env, Some("link".into()), None, data).unwrap();
-
-
 ## Release
 
 ```
