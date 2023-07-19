@@ -8,6 +8,7 @@ import { default as mainMode } from "./mainMode";
 import { default as filterContentTypeMode } from "./filterContentTypeMode";
 import { default as addToStackMode } from "./addToStackMode";
 import { default as editorMode } from "./editorMode";
+import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
 
 import { Stack } from "../types";
@@ -16,6 +17,7 @@ export {
   actionsMode,
   addToStackMode,
   editorMode,
+  newNoteMode,
   filterContentTypeMode,
   mainMode,
 };

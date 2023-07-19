@@ -69,8 +69,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - truncate long urls
 - limit height for status pane
 
-- Add ability to create a Note
-
 - Potentially rename Clipboard to.. /?
 
 ### And then

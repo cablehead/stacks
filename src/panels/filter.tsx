@@ -4,7 +4,7 @@ import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
 import { Stack } from "../types";
-import { filterContentTypeMode, modes } from "../modals";
+import { filterContentTypeMode, modes, newNoteMode } from "../modals";
 
 export function Filter({ stack }: { stack: Stack }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -69,8 +69,19 @@ export function Filter({ stack }: { stack: Stack }) {
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
       </div>
 
-      {modes.isActive(filterContentTypeMode) &&
-        <filterContentTypeMode.Modal stack={stack} modes={modes} />}
+      <VertDiv />
+      <div
+        class="hoverable"
+        onMouseDown={() => modes.toggle(stack, newNoteMode)}
+        style={{
+          fontSize: "0.9rem",
+          display: "flex",
+          alignItems: "center",
+        }}
+      >
+        New note&nbsp;
+        <RenderKeys keys={[<Icon name="IconCommandKey" />, "N"]} />
+      </div>
     </div>
   );
 }

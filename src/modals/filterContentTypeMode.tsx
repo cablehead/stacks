@@ -65,12 +65,12 @@ export default {
         style={{
           position: "absolute",
           width: "20ch",
-          overflow: "auto",
-          top: "7.5ch",
+          overflow: "hidden",
+          top: "0",
           fontSize: "0.9rem",
           padding: "1ch",
-          right: "4.2ch",
-          borderRadius: "0.5rem",
+          right: "19ch",
+          borderRadius: "0 0 0.5rem 0.5rem",
           zIndex: 100,
         }}
       >

@@ -6,6 +6,7 @@ import {
   editorMode,
   filterContentTypeMode,
   modes,
+  newNoteMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -99,6 +100,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case (event.metaKey && event.key === "n"):
+      event.preventDefault();
+      modes.toggle(currStack.value, newNoteMode);
+      return;
+
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
       modes.toggle(currStack.value, filterContentTypeMode);
@@ -179,6 +185,11 @@ export function App() {
         {modes.isActive(editorMode) && (
           <editorMode.Modal stack={currStack.value} modes={modes} />
         )}
+        {modes.isActive(newNoteMode) && (
+          <newNoteMode.Modal stack={currStack.value} modes={modes} />
+        )}
+        {modes.isActive(filterContentTypeMode) &&
+          <filterContentTypeMode.Modal stack={currStack.value} modes={modes} />}
       </div>
       <StatusBar stack={currStack.value} />
     </main>
