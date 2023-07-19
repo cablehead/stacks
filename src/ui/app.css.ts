@@ -4,9 +4,6 @@
 import { createTheme, globalStyle, style } from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
-  // textColor: "#bebebe",
-  // backgroundColor: "#1F1F1F",
-
   textColor: "#c5c6c7",
   backgroundColor: "#232323",
 
@@ -22,14 +19,11 @@ export const [darkThemeClass, vars] = createTheme({
 });
 
 export const lightThemeClass = createTheme(vars, {
-  // textColor: "#2d334a",
-  // backgroundColor: "#FFFFFF",
-
   textColor: "#1d1f21",
   backgroundColor: "#f5f5f5",
 
-  textColorReverse: "#1d1f21",
-  backgroundColorHighlight: "#B0C4DE",
+  textColorReverse: "#1a1c1e",
+  backgroundColorHighlight: "#C0D4EE",
 
   backgroundColorTransparent: "#FFFFFFEF",
   backgroundColorSelected: "#D1D1D1",
