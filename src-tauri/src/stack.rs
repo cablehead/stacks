@@ -4,9 +4,9 @@ use crate::store::{DeleteFrame, Frame, MimeType};
 
 #[derive(Debug, Clone, serde::Serialize)]
 pub struct Item {
-    hash: ssri::Integrity,
+    pub hash: ssri::Integrity,
     pub ids: Vec<scru128::Scru128Id>,
-    mime_type: MimeType,
+    pub mime_type: MimeType,
     pub content_type: String,
     pub terse: String,
     pub stack: HashMap<ssri::Integrity, Item>,

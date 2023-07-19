@@ -1,5 +1,6 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
+import { hide } from "tauri-plugin-spotlight-api";
 
 import { b64ToUtf8 } from "./utils";
 
@@ -7,8 +8,6 @@ import { editorMode, modes } from "./modals";
 
 import { Icon } from "./ui/icons";
 import { Action, Stack } from "./types";
-
-import { triggerCopyEntireStack } from "./stacks";
 
 export const actions: Action[] = [
   {
@@ -19,8 +18,19 @@ export const actions: Action[] = [
     ],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Enter",
-    canApply: (stack: Stack) => stack.item.value?.content_type === "Stack",
-    trigger: (stack: Stack) => triggerCopyEntireStack(stack),
+    canApply: (stack: Stack) =>
+      stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
+    trigger: (stack: Stack) => {
+      let item = stack.item.value?.content_type === "Stack"
+        ? stack.item.value
+        : stack.parent?.item.value;
+      if (item) {
+        invoke("store_copy_entire_stack_to_clipboard", {
+          stackHash: item.hash,
+        });
+        hide();
+      }
+    },
   },
   {
     name: "Edit",

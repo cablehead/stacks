@@ -51,26 +51,18 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ## Review: Daily/2022-08-11.md
 
 ```
-        "CREATE TABLE IF NOT EXISTS stream (
-           id INTEGER PRIMARY KEY,
-           topic TEXT NOT NULL,
-           stamp BLOB NOT NULL,
-           source_id INTEGER,
-           parent_id INTEGER,
-           data TEXT,
-           err TEXT,
-           code INTEGER NOT NULL
+"CREATE TABLE IF NOT EXISTS stream (
+   id INTEGER PRIMARY KEY,
+   topic TEXT NOT NULL,
+   stamp BLOB NOT NULL,
+   source_id INTEGER,
+   parent_id INTEGER,
+   data TEXT,
+   err TEXT,
+   code INTEGER NOT NULL
 ```
 
 ## Todo
-
-### To release
-
-- while in stack, new items go to that stack
-
-- Copy entire stack puts the entire stack on the clipboard, but doesn't save it
-  to the store
-
 
 ### Next release
 

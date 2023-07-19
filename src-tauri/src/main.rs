@@ -59,6 +59,7 @@ fn main() {
             commands::store_set_current_stack,
             commands::store_list_stacks,
             commands::store_add_to_stack,
+            commands::store_copy_entire_stack_to_clipboard,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

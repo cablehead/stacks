@@ -2,7 +2,7 @@ use tauri::Manager;
 
 use crate::stack::Item;
 use crate::state::SharedState;
-use crate::store::MimeType;
+use crate::store::{Frame, MimeType};
 
 use base64::{engine::general_purpose, Engine as _};
 
@@ -246,4 +246,47 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
     ret
 }
 
+#[tauri::command]
+pub fn store_copy_entire_stack_to_clipboard(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    stack_hash: ssri::Integrity,
+) -> Option<()> {
+    let mut state = state.lock().unwrap();
+
+    let stack = state.stack.items.get(&stack_hash)?.clone();
+
+    let mut items: Vec<&Item> = stack
+        .stack
+        .values()
+        .filter(|item| !item.ids.is_empty())
+        .collect();
+
+    items.sort_by(|a, b| b.ids.last().cmp(&a.ids.last()));
+
+    let content: Vec<String> = items
+        .into_iter()
+        .filter(|item| item.mime_type == MimeType::TextPlain)
+        .map(|item| item.hash.clone())
+        .filter_map(|hash| state.store.cat(&hash))
+        .map(|bytes| String::from_utf8(bytes).unwrap_or_default())
+        .collect();
+
+    let content = content.join("\n");
+    let change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes())?;
+    state.skip_change_num = Some(change_num);
+
+    let frame = Frame {
+        id: scru128::new(),
+        source: Some("stream.cross.stacks".into()),
+        stack_hash: None,
+        mime_type: MimeType::TextPlain,
+        hash: stack.hash.clone(),
+    };
+    let packet = state.store.insert_frame(&frame);
+    state.merge(&packet);
+
+    app.emit_all("refresh-items", true).unwrap();
+    Some(())
+}
 // End stack commands

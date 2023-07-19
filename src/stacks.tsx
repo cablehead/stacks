@@ -2,7 +2,6 @@ import { computed, effect, Signal, signal } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
-import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { Focus, Item, Stack } from "./types";
@@ -192,24 +191,6 @@ export async function triggerCopy() {
     stackHash: currStack.value.parent?.item.value?.hash,
   });
   hide();
-}
-
-export async function triggerCopyEntireStack(stack: Stack) {
-  const item = stack.item.value;
-  if (item) {
-    const sortedStackItems = Object.values(item.stack).sort((a, b) => {
-      const lastIdA = a.ids[a.ids.length - 1];
-      const lastIdB = b.ids[b.ids.length - 1];
-      return lastIdB.localeCompare(lastIdA);
-    });
-    const contents = await Promise.all(
-      sortedStackItems
-        .filter((item) => item.mime_type === "text/plain")
-        .map((item) => CAS.get(item.hash)),
-    );
-    const entireString = contents.join("\n");
-    await writeText(entireString);
-  }
 }
 
 if (import.meta.hot) {
