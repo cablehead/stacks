@@ -107,7 +107,6 @@ id source_id parent_id
     - this should fork the item by default
     - the added item shouldn't be marked as touched: result of being forked
 
-- capture
 - delete
 
 - delete from stack
@@ -115,12 +114,9 @@ id source_id parent_id
       outer item
 
 - while in stack, new items go to that stack
-- editting within stack: fork instead of replace
+
 - Copy entire stack puts the entire stack on the clipboard, but doesn't save it
   to the store
-
-- Use the above mechanism so that write_to_clipboard only needs to record a
-  touch record: if that's useful at all
 
 
 ### Next release
