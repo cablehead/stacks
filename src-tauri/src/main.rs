@@ -82,6 +82,7 @@ fn main() {
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+            #[cfg(debug_assertions)]
             if std::env::var("STACK_DEVTOOLS").is_ok() {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
@@ -91,7 +92,7 @@ fn main() {
                 Ok(path) => path,
                 Err(_) => {
                     let data_dir = app.path_resolver().app_data_dir().unwrap();
-                    data_dir.join("stream").to_str().unwrap().to_string()
+                    data_dir.join("store-v2.0").to_str().unwrap().to_string()
                 }
             };
             log::info!("PR: {:?}", db_path);

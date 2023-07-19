@@ -1,16 +1,16 @@
 {
-  "version": "0.7.2",
-  "notes": "\nThis releases begins to improve basic UX around Stacks\n\nFeatures:\n\n- A new action has been added for Stack: command-Enter, which copies all content in the stack, seperated by new lines\n- When editing an item within a Stack, the new version replaces the old version. The old version is still preserved in global stack. A link is now create between the new and old items: this link isn't visible yet though\n- The light / dark theme now defaults to the user's system's preference\n- We're now generating builds for Intel Macs! (for Toby).\n\nBug fixes:\n\n- Improved navigation: keep focus on the currently selected item, when items are added\n- The parent Stack now sees new items in real time\n- When adding to a Stack, clicking on a target Stack name now works\n",
-  "pub_date": "2023-07-06T10:43:56-04:00",
+  "version": "0.8.1",
+  "notes": "This is another significant release of Stacks! This release is focused on polish.\n\nThe headline feature is the overhaul of local storage to become more effective and robust. Unfortunately, this means your storage will be reset once you upgrade, resulting in the loss of your old clippings.\n\nWe've introduced a new note action, allowing you to quickly capture your thoughts. And yes, finally, you can now re-copy images in your clipboard history!\n\nAn interesting new feature: when you're currently inside a Stack, new clippings will go to that Stack. This allows you to pick a Stack, and then copy several things, collecting them all into one place.\n\nWe've continued to iterate on focus control, making it feel more fluid and effective. The clipboard poller now skips items written to the clipboard by Stacks, and focus/filter resets after 30 seconds of being in the background.\n\nWe've also made some tweaks to the light / dark themes.\n\nEnjoy the new features and improvements!\n",
+  "pub_date": "2023-07-19T16:50:09-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE5mTVFVMzI5SDlMUlBIYXJjSmRSRFJOUFRjTGt1MWpuWnRjejdVWndTSEN6YU0ya0MzSzM1OGNpYXlnL1dZUUtTR09DZTkzZko3WnFualFWdXM4TUFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NjU0NDQ5CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKdGR0Z2tTYmp5ek1saEN4MUM5alR4akVGMDIzRHNUVlNPODkzeWE1RURXQm9zZ2dmUDVpbjBrNEJYTGJvNmROTDJwMlBZdytMdThWRnBEOUJERXBLQ0E9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.2/Stacks_0.7.2_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE9HOUN6UFZpaDI4UWs5Zktjbk5zbEhNVUY2Rm1FaHkzSHcwbXhDeXZpS0oydUYxdkF0eFVSODBiR01kaVg1M3pZMU5MaXJoQWhjZ0tYZFFNK1FLS0E0PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg5Nzk5NzgwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKekE3Sjgzcm5FYUpUMGVJOEVUR2RVck5yNVdXVTZkSFJjQlBPb1Y0TW9yck53K1hUanRWVzhtaE9uODZ4U3krMllPZkNLdU0vRG12YzhiMVpWTUxnQmc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.1/Stacks_0.8.1_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE9DWGZaYmZ6RHdkQ0grQzcyS3lwNHZCY0Q4ajJNQ2FSYUlza3ZkUytBZEltN0toWkZhL1lSRjV5ZndXWitsVmplV2JlYm9oWTdVYkd0M283NHN0UndrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg4NjU0MzU1CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKQzY3d1BJRDg3Z3krMUR1a3NZMzZhMDIvS2ozMkh0UlcySTMxZldVeXBhTlZqZkJBalBOSXdrSDZxZUV1dFRwZDhvZ1Q3SVMwZzhiUXpaR1VIcHE2REE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.7.2/Stacks_0.7.2_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcExsMjQyK0xNY2FKdGozZjhzMWFWOExIUm82MkU3S1VDdGt1b00ydUhzdWpOYlYvZDVJR2hiZnJYN1lyZFdPaVNKNU9IdktveldYYXZ4eFVWdWhWYWdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjg5Nzk5NjYyCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKZDVWOEFuTnMwbDFnTjkxSlNua2RoUk1DdVRxR0w2K1EyNng1cVkxRDVwS0RjNkJvNHpwTEU4Rk5Cc3RVZ1EwTVZKNjZnQjRya2p6NWdkSEdKOElRQWc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.1/Stacks_0.8.1_aarch64.app.tar.gz"
     }
   }
 }
