@@ -65,15 +65,11 @@ export function Nav({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
 
   let focusSelectedTimeout: number | undefined;
-
   function focusSelected(delay: number) {
-    if (focusSelectedTimeout !== undefined) {
-      return;
-    }
-
+    clearTimeout(focusSelectedTimeout);
     focusSelectedTimeout = window.setTimeout(() => {
-      focusSelectedTimeout = undefined;
       if (theRef.current) {
+        console.log("STACK: SCROLL INTO VIEW");
         theRef.current.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
@@ -83,8 +79,8 @@ export function Nav({ stack }: { stack: Stack }) {
   }
 
   useEffect(() => {
-    focusSelected(5);
-  }, [theRef.current]);
+    focusSelected(10);
+  }, [theRef.current, stack.selected.value]);
 
   useEffect(() => {
     const onFocus = () => {
