@@ -11,6 +11,7 @@ pub struct State {
     // about the item in the store. To avoid the clipboard poller from duplicating this
     // information, we use skip_change_num to ignore the change id associated with the item.
     pub skip_change_num: Option<i64>,
+    pub curr_stack: Option<ssri::Integrity>,
 }
 
 impl State {
@@ -20,6 +21,7 @@ impl State {
             stack: Stack::new(),
             store,
             skip_change_num: None,
+            curr_stack: None,
         };
         for frame in state.store.list() {
             state.merge(&frame);

@@ -180,6 +180,15 @@ pub fn store_delete(
 // Stack related commands
 
 #[tauri::command]
+pub fn store_set_current_stack(
+    state: tauri::State<SharedState>,
+    stack_hash: Option<ssri::Integrity>,
+) {
+    let mut state = state.lock().unwrap();
+    state.curr_stack = stack_hash;
+}
+
+#[tauri::command]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

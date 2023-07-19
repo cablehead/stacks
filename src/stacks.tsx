@@ -173,10 +173,15 @@ effect(() => {
   );
   updateItems(stack);
 });
-// End items
 
 effect(() => {
   console.log("SELECTED:", currStack.value.selected.value);
+});
+
+effect(() => {
+  invoke("store_set_current_stack", {
+    stackHash: currStack.value.parent?.item.value?.hash,
+  });
 });
 
 export async function triggerCopy() {

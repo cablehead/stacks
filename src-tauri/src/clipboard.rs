@@ -37,14 +37,15 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let types = clipped["types"].as_object().unwrap();
                 let source = clipped["source"].as_str();
                 let source = source.map(|s| s.to_string());
+                let curr_stack = state.curr_stack.clone();
 
                 if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
-                    state.add_content(source, None, MimeType::TextPlain, &content);
+                    state.add_content(source, curr_stack, MimeType::TextPlain, &content);
                     app.emit_all("refresh-items", true).unwrap();
                 } else if types.contains_key("public.png") {
                     let content = b64decode(types["public.png"].as_str().unwrap());
-                    state.add_content(source, None, MimeType::ImagePng, &content);
+                    state.add_content(source, curr_stack, MimeType::ImagePng, &content);
                     app.emit_all("refresh-items", true).unwrap();
                 }
             }
