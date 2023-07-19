@@ -1,10 +1,12 @@
 import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
 
+import { b64ToUtf8 } from "../utils";
+
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
+import { Focus, Item, Stack } from "../types";
 import { createStack, currStack } from "../stacks";
 
 export function Parent({ stack }: { stack: Stack }) {
@@ -20,10 +22,12 @@ export function Parent({ stack }: { stack: Stack }) {
     focusSelectedTimeout = window.setTimeout(() => {
       focusSelectedTimeout = undefined;
       if (theRef.current) {
-        console.log("SCROLL INTO VIEW");
+        // console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
+        /*
         theRef.current.scrollIntoView({
           block: "start",
         });
+        */
       }
     }, delay);
   }
@@ -37,7 +41,7 @@ export function Parent({ stack }: { stack: Stack }) {
       className={borderRight}
       style="
       flex: 1;
-      max-width: 10ch;
+      max-width: 8ch;
       overflow-y: auto;
       padding-right: 0.5rem;
     "
@@ -61,16 +65,11 @@ export function Nav({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
 
   let focusSelectedTimeout: number | undefined;
-
   function focusSelected(delay: number) {
-    if (focusSelectedTimeout !== undefined) {
-      return;
-    }
-
+    clearTimeout(focusSelectedTimeout);
     focusSelectedTimeout = window.setTimeout(() => {
-      focusSelectedTimeout = undefined;
       if (theRef.current) {
-        console.log("SCROLL INTO VIEW");
+        console.log("STACK: SCROLL INTO VIEW");
         theRef.current.scrollIntoView({
           behavior: "smooth",
           block: "nearest",
@@ -80,8 +79,8 @@ export function Nav({ stack }: { stack: Stack }) {
   }
 
   useEffect(() => {
-    focusSelected(5);
-  }, [theRef.current]);
+    focusSelected(10);
+  }, [theRef.current, stack.selected.value]);
 
   useEffect(() => {
     const onFocus = () => {
@@ -122,7 +121,9 @@ export function Nav({ stack }: { stack: Stack }) {
       </div>
 
       <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} />
+        {stack.items.value.length > 0
+          ? <Preview stack={stack} />
+          : <i>no matches</i>}
       </div>
     </div>
   );
@@ -158,7 +159,7 @@ const TerseRow = forwardRef<
           ? (currStack.value === stack ? " highlight" : " selected")
           : "")}
       onMouseDown={() => {
-        stack.selected.value = index;
+        stack.selected.value = Focus.index(index);
         if (currStack.value != stack) {
           console.log("Switcheroo");
           currStack.value = stack;
@@ -243,7 +244,7 @@ function Preview({ stack }: { stack: Stack }) {
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { content }
+    { b64ToUtf8(content) }
     </pre>
   );
 }

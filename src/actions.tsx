@@ -1,12 +1,13 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
+import { hide } from "tauri-plugin-spotlight-api";
+
+import { b64ToUtf8 } from "./utils";
 
 import { editorMode, modes } from "./modals";
 
 import { Icon } from "./ui/icons";
 import { Action, Stack } from "./types";
-
-import { triggerCopyEntireStack } from "./stacks";
 
 export const actions: Action[] = [
   {
@@ -17,8 +18,19 @@ export const actions: Action[] = [
     ],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Enter",
-    canApply: (stack: Stack) => stack.item.value?.content_type === "Stack",
-    trigger: (stack: Stack) => triggerCopyEntireStack(stack),
+    canApply: (stack: Stack) =>
+      stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
+    trigger: (stack: Stack) => {
+      let item = stack.item.value?.content_type === "Stack"
+        ? stack.item.value
+        : stack.parent?.item.value;
+      if (item) {
+        invoke("store_copy_entire_stack_to_clipboard", {
+          stackHash: item.hash,
+        });
+        hide();
+      }
+    },
   },
   {
     name: "Edit",
@@ -35,7 +47,8 @@ export const actions: Action[] = [
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
       const content = stack.content?.value;
-      if (content) open(content);
+      console.log("OPEN", content);
+      if (content) open(b64ToUtf8(content));
     },
     canApply: (stack: Stack) => stack.item.value?.content_type === "Link",
   },
@@ -47,7 +60,12 @@ export const actions: Action[] = [
     canApply: (stack: Stack) => !stack.parent,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
-      if (item) invoke("store_delete", { hash: item.hash });
+      if (item) {
+        invoke("store_delete", {
+          hash: item.hash,
+          stackHash: stack.parent?.item.value?.hash,
+        });
+      }
     },
   },
   {
@@ -57,13 +75,13 @@ export const actions: Action[] = [
       event.ctrlKey && event.key === "Backspace",
     canApply: (stack: Stack) => !!stack.parent,
     trigger: (stack: Stack) => {
-      const name = stack.parent?.item.value?.terse;
-      if (!name) return;
       const item = stack.item.value;
-      if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
-      invoke("store_delete_from_stack", { name: name, id: id });
+      if (item) {
+        invoke("store_delete", {
+          hash: item.hash,
+          stackHash: stack.parent?.item.value?.hash,
+        });
+      }
     },
   },
 ];

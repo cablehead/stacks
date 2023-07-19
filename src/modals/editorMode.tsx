@@ -1,33 +1,26 @@
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { writeText } from "@tauri-apps/api/clipboard";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { Focus, Stack } from "../types";
+import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
-
     accept_meta: (stack: Stack, modes: Modes) => {
-      const source_ids = stack.item.value?.ids;
       const args = {
-        item: curr.value,
-        sourceId: (source_ids && source_ids.length > 0)
-          ? source_ids[source_ids.length - 1]
-          : undefined,
-        stackName: stack.parent?.item.value?.terse,
+        stackHash: stack.parent?.item.value?.hash,
+        content: curr.value,
       };
 
-      console.log("CAPTURE", args);
       invoke("store_capture", args);
-
-      writeText(curr.value);
+      stack.selected.value = Focus.first();
       modes.deactivate();
     },
   };
@@ -110,7 +103,7 @@ export default {
             }
           }}
         >
-          {content}
+          {b64ToUtf8(content)}
         </textarea>
       </div>
     );

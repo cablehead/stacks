@@ -20,6 +20,8 @@ import { attemptAction } from "./actions";
 
 import { createStack, currStack, triggerCopy } from "./stacks";
 
+import { Focus } from "./types";
+
 import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
@@ -48,7 +50,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       }
 
       // otherwise, hide the window
-      currStack.value.selected.value = 0;
+      currStack.value.selected.value = Focus.first();
       modes.deactivate();
       return;
 
@@ -104,12 +106,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      currStack.value.selected.value += 1;
+      currStack.value.selected.value = currStack.value.selected.value.down();
       return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      currStack.value.selected.value -= 1;
+      currStack.value.selected.value = currStack.value.selected.value.up();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -124,10 +126,31 @@ async function globalKeyHandler(event: KeyboardEvent) {
 }
 
 export function App() {
+  const NAV_TIMEOUT = 30 * 1000; // 30 seconds
+
+  let blurTime: number | null = null;
+
+  const onBlurHandler = () => {
+    blurTime = Date.now();
+  };
+
+  const onFocusHandler = () => {
+    if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
+      console.log("NAV_TIMEOUT: reset");
+      currStack.value.filter.clear();
+      currStack.value.selected.value = Focus.first();
+    }
+  };
+
   useEffect(() => {
     window.addEventListener("keydown", globalKeyHandler);
+    window.addEventListener("blur", onBlurHandler);
+    window.addEventListener("focus", onFocusHandler);
+
     return () => {
       window.removeEventListener("keydown", globalKeyHandler);
+      window.removeEventListener("blur", onBlurHandler);
+      window.removeEventListener("focus", onFocusHandler);
     };
   }, []);
 
