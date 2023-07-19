@@ -95,18 +95,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### To release
 
-id source_id parent_id
-
-- add to stack
-    - it feels weird the new item in the stack has no touches
-    - they're tied together: able to tell what context something is from when
-      rendering in a another given content
-    - so maybe, the item is touched: but the parent version ignores that, in
-      terms of sorting by most recently touched.
-    - or:
-    - this should fork the item by default
-    - the added item shouldn't be marked as touched: result of being forked
-
 - delete
 
 - delete from stack
