@@ -66,38 +66,69 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
+- Add default name for Add to stack to quickly create a new dn
+- Potentially rename Clipboard to.. /?
+    - Append Stack name
+
+
+- Remove ID and Touch details from meta: YAGNI
 - truncate long urls
 - limit height for status pane
+- Link in status is broken (base64)
 
-- Potentially rename Clipboard to.. /?
-
-### And then
 
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
+
+### Stretch
+
+- Ability to order a Stack
+
+- Rework data store to allow for different Stacks to have the same name
+    - Bonus: use a backwards compatible serialization format
+- Add a fork action for stacks
+
+### Also
+
+- Write script for testing the app
+- Work out a way to document the script in the source code: preferably in a way
+  a parser can check
+- Perform the script
+- Record performing the script
+- Slice up the portions of the recording
+- Export to various formats: gif (but right), png, video (youtube)?
+- Overlay subitles
+- Overlay voice over # stretch
+- Stand up cross.stream
+- Host a page for stacks.cross.stream
+- Overview page of Stacks, the app
+
+### And then
+
+- Add directory stack
+    - Inside directory stacks you can run commands
+
+- Surface info about the Stack in Meta Panel
+
 - Going to want multi-select to add
 
-- shift-enter to copy but keep stacks open: maybe
-- or shift-enter: replace
+- Meta-N opens choice: Note / Shell command
+    - We have Note
+    - Now need Shell command
 
 - Editor
     - access clips while editor is open
 
 - Preference panel
 
+- Customize key presses: particularly leader key press
+- Add activate Stacks (and document keypress) in the menu bar menu.
+
 - Editor capture should create an xs.add row: with parent set to the id the
   editor was triggered on: this should be merged version that's put on the
   clipboard
 
-- mark a source as don't track (for password managers, etc).
+- mark a clipboard source as don't track (for password managers, etc).
 
-- meta panel. add: image info
+- Meta panel. add: image info
 
-- handle clipboard images
-    - when the user hits enter
-
-- customize key press
-- meta-n opens choice: note / command
-- add filter: number of times copied
-
-- Actions menu: Add icons to options
