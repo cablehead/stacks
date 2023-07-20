@@ -64,7 +64,7 @@ const state = (() => {
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = Focus.first();
-        modes.active.value = modes.get("Clipboard");
+        modes.deactivate();
       })();
     },
 
@@ -79,14 +79,14 @@ const state = (() => {
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = Focus.first();
-        modes.active.value = modes.get("Clipboard");
+        modes.deactivate();
       })();
     },
   };
 })();
 
 export default {
-  name: "Add to stack",
+  name: () => "Add to stack",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];

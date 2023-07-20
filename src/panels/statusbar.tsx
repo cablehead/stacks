@@ -46,7 +46,7 @@ const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
-        {mode.name}
+        { mode.name(stack) }
       </div>
       <div style="
         display: flex;

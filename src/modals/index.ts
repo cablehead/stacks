@@ -46,7 +46,4 @@ export const modes = {
     }
     this.active.value = mainMode;
   },
-  get(name: string) {
-    return this.modes.find((mode) => mode.name === name) || mainMode;
-  },
 };

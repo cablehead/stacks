@@ -27,7 +27,7 @@ const state = (() => {
 })();
 
 export default {
-  name: "Filter by content type",
+  name: () => "Filter by content type",
 
   hotKeys: (stack: Stack, modes: Modes) => [
     {

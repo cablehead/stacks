@@ -11,7 +11,10 @@ import { createStack, currStack, triggerCopy } from "../stacks";
 import { actions } from "../actions";
 
 export default {
-  name: "Clipboard",
+  name: (stack: Stack): string => { 
+      const parent = stack.parent?.item.value?.terse; 
+      return ":: " + (parent ? parent.substring(0, 10) : "");
+  },
   hotKeys: (stack: Stack, modes: Modes) => {
     let ret = [];
 

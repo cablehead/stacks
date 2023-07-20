@@ -66,10 +66,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Potentially rename Clipboard to.. /?
-    - Append Stack name
-
-
 
 - Remove ID and Touch details from meta: YAGNI
 - truncate long urls
