@@ -5,6 +5,7 @@ import {
   addToStackMode,
   editorMode,
   filterContentTypeMode,
+  mainMode,
   modes,
   newNoteMode,
 } from "./modals";
@@ -143,6 +144,7 @@ export function App() {
   const onFocusHandler = () => {
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
+      modes.activate(currStack.value, mainMode);
       currStack.value.filter.clear();
       currStack.value.selected.value = Focus.first();
     }

@@ -66,8 +66,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Inactivity reset should go back to main modal
-
 - Esc should unfocus before leaving the current stack
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
