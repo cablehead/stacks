@@ -6,6 +6,7 @@ import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
+import { b64ToUtf8 } from "../utils";
 
 interface MetaValue {
   name: string;
@@ -26,11 +27,12 @@ function getMeta(item: Item, content: string): MetaValue[] {
   ];
 
   if (item.content_type == "Link") {
+    const url = b64ToUtf8(content);
     meta.push({
       name: "Url",
       value: (
-        <a href={content} target="_blank">
-          {content}
+        <a href={url} target="_blank">
+          {url}
           <span
             style={{
               display: "inline-block",
