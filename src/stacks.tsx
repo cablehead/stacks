@@ -138,9 +138,11 @@ const innerUpdateItems = async (stack: Stack) => {
 
   // If the app doesn't currently have focus, focus the first (newly touched)
   // item in the stack, or if stack.selected.value is the focus first sentinel
-  if (!document.hasFocus() || stack.selected.value.isFocusFirst()) {
-    stack.selected.value = Focus.index(0);
-    return;
+  if (currStack.value == stack) {
+    if (!document.hasFocus() || stack.selected.value.isFocusFirst()) {
+      stack.selected.value = Focus.index(0);
+      return;
+    }
   }
 
   // If the app does have focus, try to find the previously focused item, in
