@@ -1,27 +1,22 @@
 import { assertEquals } from "https://deno.land/std@0.106.0/testing/asserts.ts";
-import { truncateUrl, b64ToUtf8 } from "./utils.ts";
+import { b64ToUtf8, truncateUrl } from "./utils.ts";
 
 Deno.test("should b64ToUtf8", () => {
-  const result = b64ToUtf8('SGFp');
-  assertEquals(result, 'Hai');
+  const result = b64ToUtf8("SGFp");
+  assertEquals(result, "Hai");
 });
 
-Deno.test("truncateUrl should replace http[s]:// with ht:/ and strip leading www.", () => {
-  const result = truncateUrl('https://www.example.com', 50);
-  assertEquals(result, 'ht:/example.com');
-});
-
-Deno.test("truncateUrl should truncate the domain name with .. if it exceeds the specified length", () => {
-  const result = truncateUrl('https://www.verylongdomainname.com', 10);
-  assertEquals(result, 'ht:/verylo..');
-});
-
-Deno.test("truncateUrl should include as much of the path as possible, keeping the end and working backwards", () => {
-  const result = truncateUrl('https://www.example.com/path/to/resource', 30);
-  assertEquals(result, 'ht:/example.com/path/to/resource');
-});
-
-Deno.test("truncateUrl should truncate the path with .. if it exceeds the remaining length", () => {
-  const result = truncateUrl('https://www.example.com/path/to/resource', 20);
-  assertEquals(result, 'ht:/example.com/../to/resource');
+Deno.test("should truncateUrl", () => {
+  const url = "https://www.example.com/a/long/path?q=important";
+  assertEquals( truncateUrl(url, 50), "https://www.example.com/a/long/path?q=important",);
+  assertEquals( truncateUrl(url, 46), "https://example.com/a/long/path?q=important");
+  assertEquals( truncateUrl(url, 35), "example.com/a/long/path?q=important");
+  assertEquals( truncateUrl(url, 33), "example.com/a/long/path?q=impor..");
+  assertEquals( truncateUrl(url, 27), "example.com/a/long/path?q..");
+  assertEquals( truncateUrl(url, 25), "example.com/a/long/path");
+  assertEquals( truncateUrl(url, 20), "example.com/..g/path");
+  assertEquals( truncateUrl(url, 15), "example.com/..h");
+  assertEquals( truncateUrl(url, 14), "example.com/..");
+  assertEquals( truncateUrl(url, 13), "example.com..");
+  assertEquals( truncateUrl(url, 8), "exampl..");
 });

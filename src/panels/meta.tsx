@@ -6,7 +6,7 @@ import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
-import { b64ToUtf8 } from "../utils";
+import { b64ToUtf8, truncateUrl } from "../utils";
 
 interface MetaValue {
   name: string;
@@ -34,7 +34,7 @@ function getMeta(item: Item, content: string): MetaValue[] {
       name: "Url",
       value: (
         <a href={url} target="_blank">
-          {url}
+          {truncateUrl(url, 54)}
           <span
             style={{
               display: "inline-block",
