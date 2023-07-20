@@ -13,7 +13,7 @@ import { actions } from "../actions";
 export default {
   name: (stack: Stack): string => { 
       const parent = stack.parent?.item.value?.terse; 
-      return ":: " + (parent ? parent.substring(0, 10) : "");
+      return parent ? parent.substring(0, 20) : "";
   },
   hotKeys: (stack: Stack, modes: Modes) => {
     let ret = [];

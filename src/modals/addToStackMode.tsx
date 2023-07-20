@@ -149,6 +149,7 @@ export default {
           position: "absolute",
           width: "40ch",
           overflow: "auto",
+          maxHeight: "10lh",
           //bottom: "0.25lh",
           bottom: "0",
           fontSize: "0.9rem",
