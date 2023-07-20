@@ -66,9 +66,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Add default name for Add to stack to quickly create a new dn
 - Potentially rename Clipboard to.. /?
     - Append Stack name
+
 
 
 - Remove ID and Touch details from meta: YAGNI
@@ -76,8 +76,11 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - limit height for status pane
 - Link in status is broken (base64)
 
+-
 
 - Clicking trigger in the Actions Modal doesn't trigger the action
+
+-
 
 
 ### Stretch
