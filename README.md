@@ -66,17 +66,14 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-
 - Remove ID and Touch details from meta: YAGNI
 - truncate long urls
 - limit height for status pane
 - Link in status is broken (base64)
 
--
+- Esc should unfocus before leaving the current stack
 
 - Clicking trigger in the Actions Modal doesn't trigger the action
-
--
 
 
 ### Stretch
