@@ -141,9 +141,9 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         bottom: "0",
         fontSize: "0.9rem",
         right: "0",
-        paddingTop: "0.5lh",
+        paddingTop: "0.25lh",
         paddingLeft: "1ch",
-        paddingBottom: "0.5lh",
+        paddingBottom: "0.25lh",
         borderRadius: "0.5em 0 0 0",
         zIndex: 10,
       }}
