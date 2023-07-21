@@ -64,14 +64,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ## Todo
 
-### Next release
-
-- Show token count
-
 ### Stretch
-
-- Investigate macOS clipboard schema when copying files and images in different
-  locations
 
 - Ability to order a Stack
 
@@ -81,6 +74,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
     - Revert to saving the raw clipboard data, which is mapped to the current
       form
 - Add a fork action for stacks
+
+- Investigate macOS clipboard schema when copying files and images in different
+  locations
 
 ### Direction Change
 

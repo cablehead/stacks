@@ -19,6 +19,7 @@ export interface Item {
   terse: string;
   link?: Link;
   stack: Record<string, Item>;
+  tiktokens?: number;
 }
 
 enum FocusType {
