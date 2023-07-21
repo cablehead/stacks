@@ -67,15 +67,21 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ### Next release
 
 - Esc should unfocus before leaving the current stack
-- Clicking trigger in the Actions Modal doesn't trigger the action
+- Resurrect meta panel
+- Show word count and token count
 
 ### Stretch
+
+- Investigate macOS clipboard schema when copying files and images in different
+  locations
 
 - Ability to order a Stack
 
 - Rework data store to allow for different Stacks to have the same name
     - Want to be able to rename Stacks
     - Bonus: use a backwards compatible serialization format
+    - Revert to saving the raw clipboard data, which is mapped to the current
+      form
 - Add a fork action for stacks
 
 ### Also
@@ -94,6 +100,8 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - Overview page of Stacks, the app
 
 ### And then
+
+- Clicking trigger in the Actions Modal doesn't trigger the action
 
 - Add directory stack
     - Inside directory stacks you can run commands
