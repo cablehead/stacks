@@ -66,7 +66,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Show word count and token count
+- Show token count
 
 ### Stretch
 
