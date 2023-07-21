@@ -4,7 +4,7 @@ import { Modes } from "./types";
 import { Stack } from "../types";
 
 export default {
-  name: "Actions",
+  name: () => "Actions",
   hotKeys: (_: Stack, modes: Modes) => [
     {
       name: "Trigger",

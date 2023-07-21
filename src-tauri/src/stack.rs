@@ -10,6 +10,13 @@ pub struct Item {
     pub content_type: String,
     pub terse: String,
     pub stack: HashMap<ssri::Integrity, Item>,
+    pub tiktokens: Option<usize>,
+}
+
+pub fn count_tiktokens(content: &str) -> usize {
+    let bpe = tiktoken_rs::cl100k_base().unwrap();
+    let tokens = bpe.encode_with_special_tokens(content);
+    tokens.len()
 }
 
 fn merge_into(stack: &mut HashMap<ssri::Integrity, Item>, frame: &Frame, content: &[u8]) {
@@ -19,38 +26,53 @@ fn merge_into(stack: &mut HashMap<ssri::Integrity, Item>, frame: &Frame, content
             curr.ids.push(frame.id);
         }
         None => {
-            let (content_type, terse) = match frame.mime_type {
+            let hash = frame.hash.clone();
+            let ids = vec![frame.id];
+            let mime_type = frame.mime_type.clone();
+
+            let item = match frame.mime_type {
                 MimeType::TextPlain => {
-                    let terse = String::from_utf8_lossy(content)
-                        .chars()
-                        .take(100)
-                        .collect::<String>();
-                    let content_type = if is_valid_https_url(content) {
-                        "Link".to_string()
-                    } else {
-                        "Text".to_string()
-                    };
-                    (content_type, terse)
+                    let is_link = is_valid_https_url(content);
+                    let content = String::from_utf8_lossy(content);
+
+                    Item {
+                        hash,
+                        ids,
+                        mime_type,
+                        terse: content
+                            .chars()
+                            .take(100)
+                            .collect::<String>(),
+                        stack: HashMap::new(),
+                        content_type: if is_link {
+                            "Link".to_string()
+                        } else {
+                            "Text".to_string()
+                        },
+                        tiktokens: if is_link {
+                            None
+                        } else {
+                            Some(count_tiktokens(&content))
+                        }
+                    }
                 }
                 MimeType::ImagePng => {
                     let terse = frame
                         .source
                         .clone()
                         .unwrap_or_else(|| "an image".to_string());
-                    ("Image".to_string(), terse)
+                    Item {
+                        hash,
+                        ids,
+                        mime_type,
+                        terse,
+                        stack: HashMap::new(),
+                        content_type: "Image".to_string(),
+                        tiktokens: None,
+                    }
                 }
             };
-            stack.insert(
-                frame.hash.clone(),
-                Item {
-                    hash: frame.hash.clone(),
-                    ids: vec![frame.id],
-                    mime_type: frame.mime_type.clone(),
-                    terse,
-                    stack: HashMap::new(),
-                    content_type,
-                },
-            );
+            stack.insert(frame.hash.clone(), item);
         }
     };
 }

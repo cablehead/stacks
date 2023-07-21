@@ -27,7 +27,7 @@ const state = (() => {
 })();
 
 export default {
-  name: "Editor",
+  name: (_: Stack) => "Editor",
   hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Capture",

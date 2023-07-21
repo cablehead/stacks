@@ -26,7 +26,7 @@ const state = (() => {
 })();
 
 export default {
-  name: "New note",
+  name: () => "New note",
   hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Capture",

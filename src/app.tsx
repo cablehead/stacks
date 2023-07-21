@@ -5,6 +5,7 @@ import {
   addToStackMode,
   editorMode,
   filterContentTypeMode,
+  mainMode,
   modes,
   newNoteMode,
 } from "./modals";
@@ -44,11 +45,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
         return;
       }
 
+      /*
       // attempt to pop the current stack
       if (currStack.value.parent) {
         currStack.value = currStack.value.parent;
         return;
       }
+      */
 
       // otherwise, hide the window
       currStack.value.selected.value = Focus.first();
@@ -143,6 +146,7 @@ export function App() {
   const onFocusHandler = () => {
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
+      modes.activate(currStack.value, mainMode);
       currStack.value.filter.clear();
       currStack.value.selected.value = Focus.first();
     }

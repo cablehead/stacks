@@ -10,7 +10,7 @@ export interface HotKey {
 }
 
 export interface Mode {
-  name: string;
+  name: (stack: Stack) => string;
   hotKeys: (stack: Stack, modes: Modes) => HotKey[];
   activate?: (stack: Stack) => void;
 }
@@ -22,5 +22,4 @@ export interface Modes {
   activate: (stack: Stack, mode: Mode) => void;
   toggle: (stack: Stack, mode: Mode) => void;
   deactivate: () => void;
-  get: (name: string) => Mode;
 }

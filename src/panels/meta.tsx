@@ -6,6 +6,13 @@ import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
+import { b64ToUtf8, truncateUrl } from "../utils";
+
+function getTextMeta(input: string): { words: number; chars: number } {
+  const words = input.trim().split(/\s+/).length;
+  const chars = [...input].length;
+  return { words, chars };
+}
 
 interface MetaValue {
   name: string;
@@ -25,12 +32,39 @@ function getMeta(item: Item, content: string): MetaValue[] {
     { name: "Content Type", value: item.content_type },
   ];
 
+  if (item.content_type == "Text") {
+    const textMeta = getTextMeta(b64ToUtf8(content));
+
+    const pluralize = (s: string, n: number): string => {
+      if (n !== 1) return s + "s";
+      return s;
+    };
+
+    const info = [
+      { s: "word", n: textMeta.words },
+      { s: "char", n: textMeta.chars },
+      { s: "token", n: item.tiktokens },
+    ]
+      .filter((item) => item.n)
+      .map((item) => `${item.n} ${item.s[0]}`);
+
+    meta.push({
+      name: "Info",
+      value: (
+        <span>
+          {info.join(" . ")}
+        </span>
+      ),
+    });
+  }
+
   if (item.content_type == "Link") {
+    const url = b64ToUtf8(content);
     meta.push({
       name: "Url",
       value: (
-        <a href={content} target="_blank">
-          {content}
+        <a href={url} target="_blank">
+          <span>{truncateUrl(url, 54)}</span>
           <span
             style={{
               display: "inline-block",
@@ -102,7 +136,7 @@ function MetaInfoRow(meta: MetaValue) {
   }
 
   return (
-    <div style="display:flex;">
+    <div style="display:flex; width: 100%">
       <div
         style={{
           flexShrink: 0,
@@ -111,7 +145,7 @@ function MetaInfoRow(meta: MetaValue) {
       >
         {meta.name}
       </div>
-      <div style={{ overflowWrap: "anywhere" }}>
+      <div style={{ overflowWrap: "anywhere", wordBreak: "break-all" }}>
         {displayValue}
       </div>
     </div>
@@ -129,13 +163,13 @@ export function MetaPanel({ stack }: { stack: Stack }) {
       style={{
         position: "absolute",
         width: "47ch",
-        overflow: "auto",
+        overflowX: "hidden",
         bottom: "0",
         fontSize: "0.9rem",
         right: "0",
-        paddingTop: "0.5lh",
+        paddingTop: "0.25lh",
         paddingLeft: "1ch",
-        paddingBottom: "0.5lh",
+        paddingBottom: "0.25lh",
         borderRadius: "0.5em 0 0 0",
         zIndex: 10,
       }}

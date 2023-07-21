@@ -9,10 +9,29 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Focus, Item, Stack } from "../types";
 
+function dn(): string {
+  const date = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  };
+  const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
+    date,
+  );
+  return "# " + formattedDate;
+}
+
 const state = (() => {
   const selected = signal(0);
   const currFilter = signal("");
   const options: Signal<Item[]> = signal([]);
+  const dn = signal("");
 
   const normalizedSelected = computed(() => {
     let val = selected.value % (options.value.length);
@@ -31,6 +50,7 @@ const state = (() => {
     selected,
     currFilter,
     options,
+    dn,
     normalizedSelected,
     fetchOptions,
 
@@ -44,7 +64,7 @@ const state = (() => {
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = Focus.first();
-        modes.active.value = modes.get("Clipboard");
+        modes.deactivate();
       })();
     },
 
@@ -53,19 +73,20 @@ const state = (() => {
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
       if (!id) return;
-      const name = currFilter.value;
+      let name = currFilter.value;
+      if (name === "") name = state.dn.value;
       if (name === "") return;
       (async () => {
         await invoke("store_add_to_stack", { name: name, id: id });
         stack.selected.value = Focus.first();
-        modes.active.value = modes.get("Clipboard");
+        modes.deactivate();
       })();
     },
   };
 })();
 
 export default {
-  name: "Add to stack",
+  name: () => "Add to stack",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
@@ -80,18 +101,16 @@ export default {
       });
     }
 
-    if (state.currFilter.value !== "") {
-      ret.push({
-        name: "Create new",
-        keys: [
-          <Icon name="IconCommandKey" />,
-          <Icon name="IconReturnKey" />,
-        ],
-        onMouseDown: () => {
-          state.accept_meta(stack, modes);
-        },
-      });
-    }
+    ret.push({
+      name: "Create new",
+      keys: [
+        <Icon name="IconCommandKey" />,
+        <Icon name="IconReturnKey" />,
+      ],
+      onMouseDown: () => {
+        state.accept_meta(stack, modes);
+      },
+    });
 
     ret.push(
       {
@@ -111,6 +130,7 @@ export default {
       state.currFilter.value = "";
     }
     state.selected.value = 0;
+    state.dn.value = dn();
   },
 
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
@@ -129,6 +149,7 @@ export default {
           position: "absolute",
           width: "40ch",
           overflow: "auto",
+          maxHeight: "10lh",
           //bottom: "0.25lh",
           bottom: "0",
           fontSize: "0.9rem",
@@ -152,7 +173,7 @@ export default {
               type="text"
               ref={inputRef}
               onBlur={() => modes.deactivate()}
-              placeholder="Stack name..."
+              placeholder={state.dn.value}
               onInput={() => {
                 if (inputRef.current == null) return;
                 state.currFilter.value = inputRef.current.value;
