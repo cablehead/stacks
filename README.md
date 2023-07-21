@@ -66,7 +66,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Esc should unfocus before leaving the current stack
 - Resurrect meta panel
 - Show word count and token count
 
