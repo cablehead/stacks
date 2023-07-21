@@ -35,10 +35,12 @@ function getMeta(item: Item, content: string): MetaValue[] {
   if (item.content_type == "Text") {
     const textMeta = getTextMeta(b64ToUtf8(content));
 
+    /*
     const pluralize = (s: string, n: number): string => {
       if (n !== 1) return s + "s";
       return s;
     };
+    */
 
     const info = [
       { s: "word", n: textMeta.words },

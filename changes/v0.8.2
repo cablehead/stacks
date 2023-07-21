@@ -1,0 +1,18 @@
+
+v0.8.2 is a minor quality of life release.
+
+Naming a Stack now provides a default based on the current date/time, supporting daily note style Stack creation.
+
+The Meta Panel for Text items now shows word (w) char (c) and GPT4 / tiktoken (t) counts for the text. facilitating using a Stack to prepare context for LLMs.
+
+Also, hitting 'Esc' will now just deactivate focus rather than exiting your current Stack, hopefully making navigation feel more solid.
+
+Full change notes:
+
+feat: when adding an item to a Stack, add a default to create new Stack name based on the current date / time, to support daily note style Stack creation
+feat: word / char / token (GPT4) now shown in the Meta Panel for Text items
+feat: Esc will now deactiviate focus, instead of popping you out of your current Stack. The hope is this makes entering and leaving a Stack feel more solid.
+feat: show the currently selected Stack in the Status Bar
+fix: inactivity reset dismisses modals
+fix: copy items in the background no longer sets the parent stack focus to the first item
+fix: links now show correctly in the Meta Panel

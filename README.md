@@ -42,6 +42,8 @@ vi changes/$RELEASE
 # after build completes
 cat changes/$RELEASE | ./scripts/release.sh
 
+# copy the tempdir created by release.sh to RELEASE_PATH
+
 # commit and push
 git commit -a -m "chore: release $RELEASE"
 
