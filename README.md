@@ -84,6 +84,15 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
       form
 - Add a fork action for stacks
 
+### Direction Change
+
+- Everything happens inside of a Stack. After an hour of inactivity a new
+  stack is create for you, with the current timestamp: so the top level is all
+  stacks
+    - This removes the difference between clipboard items at the root level or
+      not: clippings are always in at least one stack
+    - We'll still need tooling to copy items between stacks: (link?) (cow?)
+
 ### Also
 
 - Write script for testing the app
