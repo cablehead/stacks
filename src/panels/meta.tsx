@@ -8,6 +8,12 @@ import { overlay } from "../ui/app.css";
 import { Item, Stack } from "../types";
 import { b64ToUtf8, truncateUrl } from "../utils";
 
+function getTextMeta(input: string): { words: number; chars: number } {
+  const words = input.trim().split(/\s+/).length;
+  const chars = [...input].length;
+  return { words, chars };
+}
+
 interface MetaValue {
   name: string;
   value?: string | JSXInternal.Element;
@@ -25,6 +31,18 @@ function getMeta(item: Item, content: string): MetaValue[] {
     { name: "ID", value: item.ids[item.ids.length - 1] },
     { name: "Content Type", value: item.content_type },
   ];
+
+  if (item.content_type == "Text") {
+    const textMeta = getTextMeta(b64ToUtf8(content));
+    meta.push({
+      name: "Info",
+      value: (
+        <span>
+          {`${textMeta.words} word${textMeta.words !== 1 ? "s" : ""}, ${textMeta.chars} char${textMeta.chars !== 1 ? "s" : ""}`}
+        </span>
+      ),
+    });
+  }
 
   if (item.content_type == "Link") {
     const url = b64ToUtf8(content);
@@ -113,7 +131,7 @@ function MetaInfoRow(meta: MetaValue) {
       >
         {meta.name}
       </div>
-      <div style={{ overflowWrap: "anywhere", wordBreak: "break-all", }}>
+      <div style={{ overflowWrap: "anywhere", wordBreak: "break-all" }}>
         {displayValue}
       </div>
     </div>
