@@ -45,11 +45,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
         return;
       }
 
+      /*
       // attempt to pop the current stack
       if (currStack.value.parent) {
         currStack.value = currStack.value.parent;
         return;
       }
+      */
 
       // otherwise, hide the window
       currStack.value.selected.value = Focus.first();
