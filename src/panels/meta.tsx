@@ -1,6 +1,6 @@
 import { JSXInternal } from "preact/src/jsx";
 
-// import { Scru128Id } from "scru128";
+import { Scru128Id } from "scru128";
 
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
@@ -15,16 +15,14 @@ interface MetaValue {
 }
 
 function getMeta(item: Item, content: string): MetaValue[] {
-  /*
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
-  */
 
   if (item.ids.length === 0) return [];
 
   let meta: MetaValue[] = [
-    // { name: "ID", value: item.ids[item.ids.length - 1] },
+    { name: "ID", value: item.ids[item.ids.length - 1] },
     { name: "Content Type", value: item.content_type },
   ];
 
@@ -34,7 +32,7 @@ function getMeta(item: Item, content: string): MetaValue[] {
       name: "Url",
       value: (
         <a href={url} target="_blank">
-          {truncateUrl(url, 54)}
+          <span>{truncateUrl(url, 54)}</span>
           <span
             style={{
               display: "inline-block",
@@ -71,7 +69,6 @@ function getMeta(item: Item, content: string): MetaValue[] {
     ]);
   }
 
-  /*
   if (item.ids.length === 1) {
     return [
       ...meta,
@@ -88,9 +85,6 @@ function getMeta(item: Item, content: string): MetaValue[] {
     },
     { name: "First Touched", timestamp: toTimestamp(item.ids[0]) },
   ];
-  */
-
-  return meta;
 }
 
 function MetaInfoRow(meta: MetaValue) {
@@ -110,7 +104,7 @@ function MetaInfoRow(meta: MetaValue) {
   }
 
   return (
-    <div style="display:flex;">
+    <div style="display:flex; width: 100%">
       <div
         style={{
           flexShrink: 0,
@@ -119,7 +113,7 @@ function MetaInfoRow(meta: MetaValue) {
       >
         {meta.name}
       </div>
-      <div style={{ overflowWrap: "anywhere" }}>
+      <div style={{ overflowWrap: "anywhere", wordBreak: "break-all", }}>
         {displayValue}
       </div>
     </div>
@@ -137,7 +131,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
       style={{
         position: "absolute",
         width: "47ch",
-        overflow: "auto",
+        overflowX: "hidden",
         bottom: "0",
         fontSize: "0.9rem",
         right: "0",

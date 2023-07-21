@@ -66,7 +66,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 ### Next release
 
-- Resurrect meta panel
 - Show word count and token count
 
 ### Stretch
