@@ -10,11 +10,13 @@ import { default as addToStackMode } from "./addToStackMode";
 import { default as editorMode } from "./editorMode";
 import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
+import { default as pipeMode } from "./pipeMode";
 
 import { Stack } from "../types";
 
 export {
   actionsMode,
+  pipeMode,
   addToStackMode,
   editorMode,
   newNoteMode,
