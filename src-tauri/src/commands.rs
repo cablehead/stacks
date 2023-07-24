@@ -25,9 +25,24 @@ pub async fn store_pipe_to_command(
         state.store.cache_path.clone()
     };
 
-    let mut cmd = tokio::process::Command::new("bash")
+    let home_dir = dirs::home_dir().expect("Could not fetch home directory");
+    let shell = match std::env::var("SHELL") {
+        Ok(val) => val,
+        Err(_) => String::from("/bin/sh"), // default to sh if no SHELL variable is set
+    };
+
+    let rc_file = match shell.as_str() {
+        "/bin/bash" => ".bashrc",
+        "/bin/zsh" => ".zshrc",
+        _ => "", // if the shell is neither bash nor zsh, don't source an rc file
+    };
+
+    let rc_path = home_dir.join(rc_file);
+    let rc_command = format!("source {}\n{}", rc_path.to_str().unwrap_or(""), command);
+
+    let mut cmd = tokio::process::Command::new(shell)
         .arg("-c")
-        .arg(command)
+        .arg(rc_command)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
