@@ -45,7 +45,7 @@ cat changes/$RELEASE | ./scripts/release.sh
 # copy the tempdir created by release.sh to RELEASE_PATH
 
 # commit and push
-git commit -a -m "chore: release $RELEASE"
+git commit -a -m "chore: release $RELEASE" && git push
 
 gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ```
@@ -55,16 +55,60 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 ```
 "CREATE TABLE IF NOT EXISTS stream (
    id INTEGER PRIMARY KEY,
-   topic TEXT NOT NULL,
-   stamp BLOB NOT NULL,
    source_id INTEGER,
    parent_id INTEGER,
+
+   topic TEXT NOT NULL,
+
+   -- custom to topic (command)
    data TEXT,
    err TEXT,
    code INTEGER NOT NULL
 ```
 
 ## Todo
+
+### Next release
+
+CURRENTLY HERE
+
+### And then
+
+It's a schema release again.
+
+Moving away from hash based identity. scru128's will be the core id.
+
+What commands will we need?
+
+What do we have?
+
+- hash -> item
+- the hash is the id of the item
+
+So that'll have to change to
+
+id -> item.id
+
+Item types:
+
+- Stack
+    - stack: for the moment all of type Content
+- Content: MimeType, Text / Image / Link
+
+Each source of a content hash actually gets a unique id: You should be able to
+get to all the other instances of the same hash from a given id.
+
+When you edit content:
+    - link to the original id
+    - if we replace that item, set source_id to that original's source_id (we're taking over the
+      source): this seems like a HEAD in git?
+    - to fork: use a new source_id: instantiates a new item (introduces a new head?)
+
+A Stack contains a set of Item::Content
+
+- uses the source_id of the Content as the key: so if the edit command sets to
+  the source_id to another instance: when merge sees source_id == to that, it
+  updates the item in the Stack.
 
 ### Stretch
 
@@ -103,6 +147,15 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 - Stand up cross.stream
 - Host a page for stacks.cross.stream
 - Overview page of Stacks, the app
+
+### Pipe to command
+
+- perserve terminal colors
+- streaming responses
+- improve display of stderr
+- the piped item should be "touched"
+- actions to move command or response to the clipboard
+- access clipbard / stacks inside command editor
 
 ### And then
 

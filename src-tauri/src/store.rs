@@ -41,7 +41,7 @@ impl Packet {
 
 pub struct Store {
     db: sled::Db,
-    cache_path: String,
+    pub cache_path: String,
 }
 
 impl Store {

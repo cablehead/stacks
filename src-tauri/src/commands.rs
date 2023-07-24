@@ -6,6 +6,49 @@ use crate::store::{Frame, MimeType};
 
 use base64::{engine::general_purpose, Engine as _};
 
+#[derive(Debug, serde::Serialize)]
+pub struct CommandOutput {
+    pub out: String,
+    pub err: String,
+    pub code: i32,
+}
+
+#[tauri::command]
+pub async fn store_pipe_to_command(
+    state: tauri::State<'_, SharedState>,
+    hash: ssri::Integrity,
+    command: String,
+) -> Result<CommandOutput, ()> {
+    println!("PIPE: {} {}", &hash, &command);
+    let cache_path = {
+        let state = state.lock().unwrap();
+        state.store.cache_path.clone()
+    };
+
+    let mut cmd = tokio::process::Command::new("bash")
+        .arg("-c")
+        .arg(command)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
+    let mut reader = cacache::Reader::open_hash(cache_path, hash).await.unwrap();
+    tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
+    drop(stdin);
+
+    let output = cmd.wait_with_output().await.unwrap();
+    let output = CommandOutput {
+        out: String::from_utf8_lossy(&output.stdout).into_owned(),
+        err: String::from_utf8_lossy(&output.stderr).into_owned(),
+        code: output.status.code().unwrap_or(-1),
+    };
+    println!("PIPE, RES: {:?}", &output);
+    Ok(output)
+}
+
 #[tauri::command]
 pub fn store_get_content(
     state: tauri::State<SharedState>,

@@ -8,6 +8,7 @@ import {
   mainMode,
   modes,
   newNoteMode,
+  pipeMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -191,6 +192,9 @@ export function App() {
         )}
         {modes.isActive(newNoteMode) && (
           <newNoteMode.Modal stack={currStack.value} modes={modes} />
+        )}
+        {modes.isActive(pipeMode) && (
+          <pipeMode.Modal stack={currStack.value} modes={modes} />
         )}
         {modes.isActive(filterContentTypeMode) &&
           <filterContentTypeMode.Modal stack={currStack.value} modes={modes} />}
