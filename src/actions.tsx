@@ -4,7 +4,7 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { b64ToUtf8 } from "./utils";
 
-import { editorMode, modes } from "./modals";
+import { editorMode, modes, pipeMode } from "./modals";
 
 import { Icon } from "./ui/icons";
 import { Action, Stack } from "./types";
@@ -38,6 +38,14 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "e",
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
+    canApply: (stack: Stack) => stack.item.value?.mime_type === "text/plain",
+  },
+  {
+    name: "Pipe to command",
+    keys: [<Icon name="IconCommandKey" />, "|"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      event.metaKey && event.shiftKey && event.code == "Backslash",
+    trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => stack.item.value?.mime_type === "text/plain",
   },
   {

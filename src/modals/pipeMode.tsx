@@ -76,9 +76,6 @@ export default {
             outline: "none",
             border: "none",
           }}
-          onBlur={() => {
-            modes.deactivate();
-          }}
           placeholder="Enter command..."
           onChange={(event) => {
             state.curr.value = (event.target as HTMLTextAreaElement).value;
