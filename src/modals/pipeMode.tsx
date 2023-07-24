@@ -42,7 +42,10 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Pipe to command",
+  name: () =>
+    `Pipe to command${
+      state.res.value.code != 0 ? ` :: exit code: ${state.res.value.code}` : ""
+    }`,
   hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Execute",
@@ -93,7 +96,7 @@ export default {
           spellcheck={false}
           style={{
             width: "100%",
-            height: "4lh",
+            height: "2lh",
             margin: "2ch",
             outline: "none",
             border: "none",
@@ -121,7 +124,8 @@ export default {
         <div
           style={{
             flexGrow: 1,
-            height: "4lh",
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <div
@@ -138,6 +142,21 @@ export default {
             }}
           >
             {state.res.value.out}
+          </div>
+          <div
+            style={{
+              whiteSpace: "pre",
+              height: "100%",
+              width: "100%",
+              overflow: "auto",
+              padding: "1ch 3ch",
+              boxShadow: `0 -2px 5px ${vars.shadowColor}`,
+              backgroundColor: vars.backgroundColor,
+              color: vars.textColor,
+              borderColor: vars.borderColor,
+            }}
+          >
+            {state.res.value.err}
           </div>
         </div>
       </div>
