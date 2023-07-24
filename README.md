@@ -72,6 +72,17 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
+Pipe action: text only, for the moment
+
+launches Note like modal
+top portion is a text box for the command
+bottom portion is the results of running the command
+meta-enter: runs
+surface stderr and exit code
+shift-meta-enter: Save command, and result back to the stack
+
+### And then
+
 It's a schema release again.
 
 Moving away from hash based identity. scru128's will be the core id.
