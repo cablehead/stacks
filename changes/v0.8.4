@@ -1,0 +1,26 @@
+
+v0.8.4 quick fix to v0.8.3:
+
+Since Stacks is run by the system, the user's SHELL preferences (particularly
+PATH), aren't set. This is a quick fix update to v0.8.3 to attempt to source
+the user's SHELL config, before running the provided command.
+
+Only zsh and bash are attempted so far.
+
+v0.8.3 adds basic ability to pipe text items to shell command
+
+This is a first stab at this feature to start getting a feel for how to
+structure the UX.
+
+Some obvious deficiencies:
+
+- perserve terminal colors
+- streaming responses
+- improve display of stderr
+- the piped item should be "touched"
+- actions to move command or response to the clipboard
+- quick filter for previously used commands
+- once a command is working well, the ability to apply it to a large number of
+  items
+- access clipbard / stacks inside command editor: Mike, as you've pointed out,
+  we need this for the Editor / New note too

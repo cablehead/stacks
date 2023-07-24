@@ -1,16 +1,16 @@
 {
-  "version": "0.8.3",
-  "notes": "\nv0.8.3 adds basic ability to pipe text items to shell command\n\nThis is a first stab at this feature to start getting a feel for how to\nstructure the UX.\n\nSome obvious deficiencies:\n\n- perserve terminal colors\n- streaming responses\n- improve display of stderr\n- the piped item should be \"touched\"\n- actions to move command or response to the clipboard\n- quick filter for previously used commands\n- once a command is working well, the ability apply it to a large number of\n  items\n- access clipbard / stacks inside command editor: Mike, as you've pointed out,\n  we need this for the Editor / New note too\n",
-  "pub_date": "2023-07-24T13:36:33-04:00",
+  "version": "0.8.4",
+  "notes": "\nv0.8.4 quick fix to v0.8.3:\n\nSince Stacks is run by the system, the user's SHELL preferences (particularly\nPATH), aren't set. This is a quick fix update to v0.8.3 to attempt to source\nthe user's SHELL config, before running the provided command.\n\nOnly zsh and bash are attempted so far.\n\nv0.8.3 adds basic ability to pipe text items to shell command\n\nThis is a first stab at this feature to start getting a feel for how to\nstructure the UX.\n\nSome obvious deficiencies:\n\n- perserve terminal colors\n- streaming responses\n- improve display of stderr\n- the piped item should be \"touched\"\n- actions to move command or response to the clipboard\n- quick filter for previously used commands\n- once a command is working well, the ability to apply it to a large number of\n  items\n- access clipbard / stacks inside command editor: Mike, as you've pointed out,\n  we need this for the Editor / New note too\n",
+  "pub_date": "2023-07-24T15:10:36-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVXalpJN0dkWnpDUDY1VFErY21nZno2QXpaTTk4QUJXS3dPZFFJb2JhRVREWmRoeDNpaEFubXNxcUdiYjlNL1VaTHhMQ0E3SS9Cdmt2NUVWTWlOSlFzPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkwMjIwMDMyCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKcUFFd2h0dlBHeEVKWGU4OVdnN0g4L1FHUExYckFmcDgxT085T1hIRFdHOWlwS2lDN0FPekVoT0JtQ1hkQmN2MXhiWERxRC90UmxNbmNBTk8zb2NTQVE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.3/Stacks_0.8.3_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE9HaXNiN0VDdXAvU2g0YnVPQ0o3UTZKWEkzSm5NUzlFMVBjdXRrM0p2L3prT1VjWTNRWWVHMmhVa2loWGVkdHdzWVB4WXM1d0JreDJBZDVyZ2Q1WHdFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkwMjI0MjQyCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKMkc0dkU3Zi9uVnM1cTgvdGh6U0p2WmJ3b1ptaTkvTFQwaEc4Q1B2SkM4Rk1pQm5HYjlISFdXZml4YmlQLzIrNkljaHkvWG5kUzFiVkFvc1VJUGRVQnc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.4/Stacks_0.8.4_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEoyQUllOVJJZWNiTDQxS3BmdUNOeEo3bG1XNW55WHdNdDBhUElxT2dUZUg1cWdZRTh5enU1MlhXVTdLdlpZY0lya2lsdHBsZndHbEExQXN0d1Jkd2cwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkwMjE5OTAzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYktBY0tvdWQyb3VPZXNFNVlzWFBnQWphbTgxSzBTS2I1WXBKQ2NrdWRBd1p2bDI4c3FMVGQzbDBXUHRtcllJWXFBK3VWamYxRGdjU29mcDl1cjQ5QWc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.3/Stacks_0.8.3_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEs4VnJVQkM0dVNJNk9mbEpwaTAwLzdMTEJjSVdBZFNGSVVtTHRValdyVkJSZEordzYrN3EvSUxIZlcwTkwydFc0cWI3eTRRTEgwMHlzVXZKaEYvSkFJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkwMjI0MTA4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKdjAvRDR5bTMxakkrWmtNMEI1YldTWGZMclhMUmlyc0ZOWXhkTHltczZQRnUrUVBQSHZTcmllWEVBSlhXSlRYY0V5V0xGV3NFZTdaQUxoUFFiRTNhQ1E9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.8.4/Stacks_0.8.4_aarch64.app.tar.gz"
     }
   }
 }
