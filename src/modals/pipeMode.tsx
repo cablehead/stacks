@@ -126,8 +126,10 @@ export default {
         >
           <div
             style={{
-              fontFamily: "monospace",
+              whiteSpace: "pre",
               height: "100%",
+              width: "100%",
+              overflow: "auto",
               padding: "1ch 3ch",
               boxShadow: `0 -2px 5px ${vars.shadowColor}`,
               backgroundColor: vars.backgroundColor,
