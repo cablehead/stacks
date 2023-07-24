@@ -155,7 +155,11 @@ A Stack contains a set of Item::Content
 - improve display of stderr
 - the piped item should be "touched"
 - actions to move command or response to the clipboard
-- access clipbard / stacks inside command editor
+- quick filter for previously used commands
+- once a command is working well, the ability apply it to a large number of
+  items
+- access clipbard / stacks inside command editor: Mike, as you've pointed out,
+  we need this for the Editor / New note too
 
 ### And then
 
