@@ -14,13 +14,9 @@ pub struct Item {
 }
 
 pub fn count_tiktokens(content: &str) -> usize {
-    // TODO: REVERT
-    content.len()
-        /*
     let bpe = tiktoken_rs::cl100k_base().unwrap();
     let tokens = bpe.encode_with_special_tokens(content);
     tokens.len()
-    */
 }
 
 fn merge_into(stack: &mut HashMap<ssri::Integrity, Item>, frame: &Frame, content: &[u8]) {
