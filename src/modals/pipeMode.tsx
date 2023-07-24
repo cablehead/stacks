@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals";
+import { Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -6,21 +6,37 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay, vars } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Focus, Stack } from "../types";
+import { Stack } from "../types";
+
+interface CommandOutput {
+  out: string;
+  err: string;
+  code: number;
+}
 
 const state = (() => {
   const curr = signal("");
+
+  const res: Signal<CommandOutput> = signal(
+    {
+      out: "",
+      err: "",
+      code: 0,
+    },
+  );
+
   return {
     curr,
-    accept_meta: (stack: Stack, modes: Modes) => {
+    res,
+    accept_meta: async (stack: Stack, _: Modes) => {
+      console.log(curr.value, stack?.item.value?.hash);
       const args = {
-        stackHash: stack.parent?.item.value?.hash,
-        content: curr.value,
+        hash: stack.item.value?.hash,
+        command: curr.value,
       };
-
-      invoke("store_capture", args);
-      stack.selected.value = Focus.first();
-      modes.deactivate();
+      const res: CommandOutput = await invoke("store_pipe_to_command", args);
+      state.res.value = res;
+      console.log("RES", res);
     },
   };
 })();
@@ -42,11 +58,16 @@ export default {
       onMouseDown: () => modes.deactivate(),
     },
   ],
+
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
       if (inputRef.current != null) {
         inputRef.current.focus();
+        inputRef.current.value = "cat";
+        inputRef.current.select();
+        state.curr.value = "cat";
+        state.accept_meta(stack, modes);
       }
     }, []);
 
@@ -69,6 +90,7 @@ export default {
       >
         <textarea
           ref={inputRef}
+          spellcheck={false}
           style={{
             width: "100%",
             height: "4lh",
@@ -113,7 +135,7 @@ export default {
               borderColor: vars.borderColor,
             }}
           >
-            output
+            {state.res.value.out}
           </div>
         </div>
       </div>

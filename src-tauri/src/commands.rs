@@ -19,13 +19,15 @@ pub async fn store_pipe_to_command(
     hash: ssri::Integrity,
     command: String,
 ) -> Result<CommandOutput, ()> {
-    println!("PIPE: {}", &hash);
+    println!("PIPE: {} {}", &hash, &command);
     let cache_path = {
         let state = state.lock().unwrap();
         state.store.cache_path.clone()
     };
 
-    let mut cmd = tokio::process::Command::new(command)
+    let mut cmd = tokio::process::Command::new("bash")
+        .arg("-c")
+        .arg(command)
         .stdin(std::process::Stdio::piped())
         .stdout(std::process::Stdio::piped())
         .stderr(std::process::Stdio::piped())
@@ -35,6 +37,7 @@ pub async fn store_pipe_to_command(
     let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
     let mut reader = cacache::Reader::open_hash(cache_path, hash).await.unwrap();
     tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
+    drop(stdin);
 
     let output = cmd.wait_with_output().await.unwrap();
     let output = CommandOutput {
@@ -42,6 +45,7 @@ pub async fn store_pipe_to_command(
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
     };
+    println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
 
