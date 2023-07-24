@@ -143,21 +143,24 @@ export default {
           >
             {state.res.value.out}
           </div>
-          <div
-            style={{
-              whiteSpace: "pre",
-              height: "100%",
-              width: "100%",
-              overflow: "auto",
-              padding: "1ch 3ch",
-              boxShadow: `0 -2px 5px ${vars.shadowColor}`,
-              backgroundColor: vars.backgroundColor,
-              color: vars.textColor,
-              borderColor: vars.borderColor,
-            }}
-          >
-            {state.res.value.err}
-          </div>
+          {state.res.value.err != "" &&
+            (
+              <div
+                style={{
+                  whiteSpace: "pre",
+                  height: "100%",
+                  width: "100%",
+                  overflow: "auto",
+                  padding: "1ch 3ch",
+                  boxShadow: `0 -2px 5px ${vars.shadowColor}`,
+                  backgroundColor: vars.backgroundColor,
+                  color: vars.textColor,
+                  borderColor: vars.borderColor,
+                }}
+              >
+                {state.res.value.err}
+              </div>
+            )}
         </div>
       </div>
     );
