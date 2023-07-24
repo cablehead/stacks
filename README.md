@@ -72,15 +72,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-Pipe action: text only, for the moment
-
-launches Note like modal
-top portion is a text box for the command
-bottom portion is the results of running the command
-meta-enter: runs
-surface stderr and exit code
-shift-meta-enter: Save command, and result back to the stack
-
 ### And then
 
 It's a schema release again.
@@ -156,6 +147,15 @@ A Stack contains a set of Item::Content
 - Stand up cross.stream
 - Host a page for stacks.cross.stream
 - Overview page of Stacks, the app
+
+### Pipe to command
+
+- perserve terminal colors
+- streaming responses
+- improve display of stderr
+- the piped item should be "touched"
+- actions to move command or response to the clipboard
+- access clipbard / stacks inside command editor
 
 ### And then
 
