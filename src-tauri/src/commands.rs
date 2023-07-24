@@ -18,7 +18,7 @@ pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
     hash: ssri::Integrity,
     command: String,
-) -> Result<String, ()> {
+) -> Result<CommandOutput, ()> {
     println!("PIPE: {}", &hash);
     let cache_path = {
         let state = state.lock().unwrap();
@@ -42,7 +42,7 @@ pub async fn store_pipe_to_command(
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
     };
-    Ok(output.out)
+    Ok(output)
 }
 
 #[tauri::command]
