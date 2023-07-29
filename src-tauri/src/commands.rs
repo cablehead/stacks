@@ -249,10 +249,10 @@ pub fn store_delete(
 #[tauri::command]
 pub fn store_set_current_stack(
     state: tauri::State<SharedState>,
-    stack_hash: Option<ssri::Integrity>,
+    stack_id: Option<scru128::Scru128Id>,
 ) {
     let mut state = state.lock().unwrap();
-    state.curr_stack = stack_hash;
+    state.curr_stack = stack_id;
 }
 
 /*

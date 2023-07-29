@@ -1,5 +1,8 @@
 use std::sync::{Arc, Mutex};
 
+use chrono::prelude::*;
+use scru128::Scru128Id;
+
 pub use crate::store::{MimeType, Store};
 pub use crate::view::View;
 
@@ -11,7 +14,7 @@ pub struct State {
     // about the item in the store. To avoid the clipboard poller from duplicating this
     // information, we use skip_change_num to ignore the change id associated with the item.
     pub skip_change_num: Option<i64>,
-    pub curr_stack: Option<ssri::Integrity>,
+    pub curr_stack: Option<Scru128Id>,
 }
 
 impl State {
@@ -28,6 +31,47 @@ impl State {
         }
         */
         state
+    }
+
+    pub fn get_curr_stack(&mut self) -> Option<Scru128Id> {
+        println!("HERE");
+
+        let local: DateTime<Local> = Local::now();
+        let stack_name = format!("# {}", local.format("%a, %b %d %Y, %I:%M %p"));
+
+        // Want: ability to view current state from the cli
+
+        println!("{}", stack_name);
+        let id = self
+            .store
+            .add(
+                &stack_name.as_bytes(),
+                MimeType::TextPlain,
+                None,
+                Some("stream.cross.stacks".to_string()),
+            )
+            .id();
+
+        /*
+        content: &[u8],
+        mime_type: MimeType,
+        stack_id: Option<Scru128Id>,
+        source: Option<String>,
+        */
+
+        /*
+        match self.curr_stack {
+            Some(id) => {
+                if let Some(item) = self.view.items.get(&id) {
+                    let now = std::time::SystemTime::now()
+                        .duration_since(std::time::UNIX_EPOCH)
+                        .unwrap()
+                        .as_secs();
+                    let last_touched = item.last_touched.timestamp();
+
+                    if now - last_touched > 3600 {
+                    */
+        None
     }
 }
 
