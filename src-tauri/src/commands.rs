@@ -288,10 +288,15 @@ pub fn store_add_to_stack(
     app.emit_all("refresh-items", true).unwrap();
 }
 
+*/
+
 #[tauri::command]
 pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
     let state = state.lock().unwrap();
 
+    return Vec::new();
+
+    /*
     let mut ret: Vec<Item> = state
         .stack
         .items
@@ -312,7 +317,10 @@ pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Ve
     ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     ret.truncate(400);
     ret
+    */
 }
+
+/*
 
 #[tauri::command]
 pub fn store_copy_entire_stack_to_clipboard(
