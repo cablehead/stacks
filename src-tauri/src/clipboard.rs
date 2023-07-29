@@ -1,13 +1,11 @@
 use tauri::api::process::{Command, CommandEvent};
-use tauri::Manager;
+// use tauri::Manager;
 
-use serde_json::Value;
+// use serde_json::Value;
 
-use crate::state::SharedState;
-use crate::store::MimeType;
+use crate::state::{SharedState};
 
 use base64::{engine::general_purpose, Engine as _};
-
 fn b64decode(encoded: &str) -> Vec<u8> {
     general_purpose::STANDARD.decode(encoded).unwrap()
 }
@@ -22,6 +20,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             if let CommandEvent::Stdout(line) = event {
+                /*
                 let mut state = state.lock().unwrap();
 
                 let clipped: Value = serde_json::from_str(&line).unwrap();
@@ -48,6 +47,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                     state.add_content(source, curr_stack, MimeType::ImagePng, &content);
                     app.emit_all("refresh-items", true).unwrap();
                 }
+                */
             }
         }
     });

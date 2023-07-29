@@ -10,9 +10,9 @@ use tauri_plugin_log::LogTarget;
 
 mod clipboard;
 mod commands;
-mod stack;
 mod state;
 mod store;
+mod view;
 
 use state::{SharedState, State};
 
@@ -51,16 +51,16 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::store_get_content,
+            // commands::store_get_content,
             commands::store_list_items,
-            commands::store_copy_to_clipboard,
-            commands::store_capture,
-            commands::store_delete,
+            // commands::store_copy_to_clipboard,
+            // commands::store_capture,
+            // commands::store_delete,
             commands::store_set_current_stack,
-            commands::store_list_stacks,
-            commands::store_add_to_stack,
-            commands::store_copy_entire_stack_to_clipboard,
-            commands::store_pipe_to_command,
+            // commands::store_list_stacks,
+            // commands::store_add_to_stack,
+            // commands::store_copy_entire_stack_to_clipboard,
+            // commands::store_pipe_to_command,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

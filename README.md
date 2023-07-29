@@ -72,8 +72,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-### And then
-
 It's a schema release again.
 
 Moving away from hash based identity. scru128's will be the core id.
@@ -189,6 +187,7 @@ A Stack contains a set of Item::Content
   clipboard
 
 - mark a clipboard source as don't track (for password managers, etc).
+    - see: http://nspasteboard.org
 
 - Meta panel. add: image info
 

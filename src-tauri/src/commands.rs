@@ -1,11 +1,12 @@
-use tauri::Manager;
+// use tauri::Manager;
 
-use crate::stack::Item;
+// use base64::{engine::general_purpose, Engine as _};
+
 use crate::state::SharedState;
-use crate::store::{Frame, MimeType};
+use crate::view::Item;
 
-use base64::{engine::general_purpose, Engine as _};
 
+/*
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
     pub out: String,
@@ -76,6 +77,7 @@ pub fn store_get_content(
         .cat(&hash)
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
+*/
 
 #[tauri::command]
 pub fn store_list_items(
@@ -99,6 +101,7 @@ pub fn store_list_items(
         Some(content_type)
     };
 
+    /*
     let base_items: Vec<Item> = if let Some(hash) = stack {
         let item = state.stack.items.get(&hash).unwrap();
         item.stack.values().cloned().collect()
@@ -133,7 +136,12 @@ pub fn store_list_items(
     recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
     recent_items.truncate(400);
     recent_items
+    */
+
+    Vec::new()
 }
+
+/*
 
 use cocoa::base::nil;
 use cocoa::foundation::NSString;
@@ -233,6 +241,7 @@ pub fn store_delete(
     state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
+*/
 
 //
 // Stack related commands
@@ -246,6 +255,7 @@ pub fn store_set_current_stack(
     state.curr_stack = stack_hash;
 }
 
+/*
 #[tauri::command]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
@@ -348,3 +358,4 @@ pub fn store_copy_entire_stack_to_clipboard(
     Some(())
 }
 // End stack commands
+*/
