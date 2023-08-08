@@ -270,6 +270,31 @@ mod tests {
     }
 
     #[test]
+    fn test_item_serialize() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+
+        let mut store = Store::new(path);
+        let mut view = View::new();
+
+        let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None, None).id();
+        let item_id_1 = store
+            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+        let _item_id_2 = store
+            .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+
+        store.scan().for_each(|p| view.merge(p));
+        assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["Item 1", "Item 2"])]);
+
+        let root = view.root();
+        let root: Vec<_> = root.iter().map(|item| item.serializer(&view)).collect();
+        let got = serde_json::to_string(&root).unwrap();
+        println!("{}", got);
+    }
+
+    #[test]
     fn test_state() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
