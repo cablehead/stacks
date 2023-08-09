@@ -11,7 +11,7 @@ pub enum MimeType {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct Content {
+pub struct ContentMeta {
     pub hash: Option<Integrity>,
     pub mime_type: MimeType,
     pub terse: String,
@@ -108,6 +108,27 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
+    /*
+       pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
+        let term = tantivy::schema::Term::from_field_text(self.content_field, query);
+        let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
+
+        let searcher = self.reader.searcher();
+        let top_docs = searcher
+            .search(&query, &tantivy::collector::TopDocs::with_limit(400))
+            .unwrap();
+
+        top_docs
+            .into_iter()
+            .map(|(_, doc_address)| {
+                let doc = searcher.doc(doc_address).unwrap();
+                let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
+                let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
+                hash
+            })
+            .collect()
+    }
+    */
     pub fn query(&self, query: &str) -> Vec<(f32, ssri::Integrity)> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
@@ -131,7 +152,8 @@ impl Index {
 
 pub struct Store {
     packets: sled::Tree,
-    content: sled::Tree,
+    content_meta: sled::Tree,
+    content_meta_cache: std::collections::HashMap<ssri::Integrity, ContentMeta>,
     cache_path: String,
     pub index: Index,
 }
@@ -141,21 +163,37 @@ impl Store {
         let path = std::path::Path::new(path);
         let db = sled::open(path.join("sled")).unwrap();
         let packets = db.open_tree("packets").unwrap();
-        let content = db.open_tree("content").unwrap();
+        let content_meta = db.open_tree("content_meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
+
+        let mut content_meta_cache = std::collections::HashMap::new();
+        for item in content_meta.iter() {
+            if let Ok((key, value)) = item {
+                if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
+                    if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+                        content_meta_cache.insert(hash, meta);
+                    }
+                }
+            }
+        }
 
         Store {
             packets,
-            content,
+            content_meta,
+            content_meta_cache,
             cache_path,
             index: Index::new(path.join("index")),
         }
     }
 
+    pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
+        self.content_meta_cache.get(hash).cloned()
+    }
+
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
 
-        let meta = Content {
+        let meta = ContentMeta {
             hash: Some(hash.clone()),
             mime_type: mime_type.clone(),
             terse: String::from_utf8_lossy(content).into_owned(),
@@ -163,7 +201,10 @@ impl Store {
         };
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
-        self.content.insert(bytes, encoded).unwrap();
+        self.content_meta.insert(bytes, encoded).unwrap();
+
+        // Update the cache
+        self.content_meta_cache.insert(hash.clone(), meta.clone());
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),

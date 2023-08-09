@@ -1,10 +1,13 @@
 use std::sync::{Arc, Mutex};
 
+use serde::ser::SerializeStruct;
+use serde::{Serialize, Serializer};
+
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
 pub use crate::store::{MimeType, Store};
-pub use crate::view::View;
+pub use crate::view::{Item, View};
 
 pub struct State {
     pub view: View,
@@ -62,6 +65,36 @@ impl State {
         self.curr_stack = Some(packet.id());
         self.view.merge(packet);
         self.curr_stack
+    }
+
+    pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
+        ViewItemSerializer {
+            item: item,
+            state: self,
+        }
+    }
+}
+
+pub struct ViewItemSerializer<'a> {
+    item: &'a Item,
+    state: &'a State,
+}
+
+impl<'a> Serialize for ViewItemSerializer<'a> {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let content_meta = self.state.store.get_content_meta(&self.item.hash);
+
+        let mut s = serializer.serialize_struct("Item", 6)?;
+        s.serialize_field("id", &self.item.id)?;
+        s.serialize_field("last_touched", &self.item.last_touched)?;
+        s.serialize_field("touched", &self.item.touched)?;
+        s.serialize_field("content_meta", &content_meta)?;
+        s.serialize_field("stack_id", &self.item.stack_id)?;
+        s.serialize_field("children", &self.state.view.children(self.item))?;
+        s.end()
     }
 }
 
@@ -270,32 +303,7 @@ mod tests {
     }
 
     #[test]
-    fn test_item_serialize() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut store = Store::new(path);
-        let mut view = View::new();
-
-        let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None, None).id();
-        let item_id_1 = store
-            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-        let _item_id_2 = store
-            .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-
-        store.scan().for_each(|p| view.merge(p));
-        assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["Item 1", "Item 2"])]);
-
-        let root = view.root();
-        let root: Vec<_> = root.iter().map(|item| item.serializer(&view)).collect();
-        let got = serde_json::to_string(&root).unwrap();
-        println!("{}", got);
-    }
-
-    #[test]
-    fn test_state() {
+    fn test_state_get_curr_stack() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
 
@@ -306,5 +314,41 @@ mod tests {
 
         let curr_stack = state.get_curr_stack();
         println!("OH Hai: {:?}", curr_stack);
+    }
+
+    #[test]
+    fn test_state_view_item_serializer() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+
+        let mut state = State::new(path);
+
+        let stack_id = state
+            .store
+            .add(b"Stack 1", MimeType::TextPlain, None, None)
+            .id();
+        let item_id_1 = state
+            .store
+            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+        let _item_id_2 = state
+            .store
+            .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+
+        state.store.scan().for_each(|p| state.view.merge(p));
+        assert_view_as_expected(
+            &state.store,
+            &state.view,
+            vec![("Stack 1", vec!["Item 1", "Item 2"])],
+        );
+
+        let root = state.view.root();
+        let root: Vec<_> = root
+            .iter()
+            .map(|item| state.view_item_serializer(&item))
+            .collect();
+        let got = serde_json::to_string(&root).unwrap();
+        println!("{}", got);
     }
 }

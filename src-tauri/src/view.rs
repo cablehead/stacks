@@ -1,8 +1,5 @@
 use std::collections::HashMap;
 
-use serde::{Serialize, Serializer};
-use serde::ser::SerializeStruct;
-
 use scru128::Scru128Id;
 use ssri::Integrity;
 
@@ -17,33 +14,6 @@ pub struct Item {
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
     pub forked_children: Vec<Scru128Id>,
-}
-
-pub struct ItemSerializer<'a> {
-    item: &'a Item,
-    view: &'a View,
-}
-
-impl<'a> Serialize for ItemSerializer<'a> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("Item", 6)?;
-        s.serialize_field("id", &self.item.id)?;
-        s.serialize_field("last_touched", &self.item.last_touched)?;
-        s.serialize_field("touched", &self.item.touched)?;
-        s.serialize_field("hash", &self.item.hash)?;
-        s.serialize_field("stack_id", &self.item.stack_id)?;
-        s.serialize_field("children", &self.view.children(self.item))?;
-        s.end()
-    }
-}
-
-impl Item {
-    pub fn serializer<'a>(&'a self, view: &'a View) -> ItemSerializer<'a> {
-        ItemSerializer { item: self, view }
-    }
 }
 
 pub struct View {
