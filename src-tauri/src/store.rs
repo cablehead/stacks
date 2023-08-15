@@ -153,7 +153,6 @@ impl Index {
 pub struct Store {
     packets: sled::Tree,
     content_meta: sled::Tree,
-    content_meta_cache: std::collections::HashMap<ssri::Integrity, ContentMeta>,
     cache_path: String,
     pub index: Index,
 }
@@ -166,8 +165,17 @@ impl Store {
         let content_meta = db.open_tree("content_meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
+        Store {
+            packets,
+            content_meta,
+            cache_path,
+            index: Index::new(path.join("index")),
+        }
+    }
+
+    pub fn get_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
         let mut content_meta_cache = std::collections::HashMap::new();
-        for item in content_meta.iter() {
+        for item in self.content_meta.iter() {
             if let Ok((key, value)) = item {
                 if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
                     if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
@@ -176,18 +184,7 @@ impl Store {
                 }
             }
         }
-
-        Store {
-            packets,
-            content_meta,
-            content_meta_cache,
-            cache_path,
-            index: Index::new(path.join("index")),
-        }
-    }
-
-    pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        self.content_meta_cache.get(hash).cloned()
+        content_meta_cache
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
@@ -202,9 +199,6 @@ impl Store {
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
         self.content_meta.insert(bytes, encoded).unwrap();
-
-        // Update the cache
-        self.content_meta_cache.insert(hash.clone(), meta.clone());
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),

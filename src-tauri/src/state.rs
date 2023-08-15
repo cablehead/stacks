@@ -20,6 +20,39 @@ pub struct State {
     pub curr_stack: Option<Scru128Id>,
 }
 
+impl Serialize for State {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: Serializer,
+    {
+        let mut s = serializer.serialize_struct("State", 4)?;
+        s.serialize_field(
+            "root",
+            &self
+                .view
+                .root()
+                .iter()
+                .map(|item| item.id)
+                .collect::<Vec<_>>(),
+        )?;
+        s.serialize_field(
+            "items",
+            &self
+                .view
+                .items
+                .iter()
+                .map(|(_, item)| self.view_item_serializer(item))
+                .collect::<Vec<_>>(),
+        )?;
+        s.serialize_field("content_meta", &self.store.get_content_meta())?;
+        s.serialize_field(
+            "matches",
+            &std::collections::HashSet::<ssri::Integrity>::new(),
+        )?;
+        s.end()
+    }
+}
+
 impl State {
     pub fn new(db_path: &str) -> Self {
         let mut state = Self {
@@ -85,13 +118,11 @@ impl<'a> Serialize for ViewItemSerializer<'a> {
     where
         S: Serializer,
     {
-        let content_meta = self.state.store.get_content_meta(&self.item.hash);
-
         let mut s = serializer.serialize_struct("Item", 6)?;
         s.serialize_field("id", &self.item.id)?;
         s.serialize_field("last_touched", &self.item.last_touched)?;
         s.serialize_field("touched", &self.item.touched)?;
-        s.serialize_field("content_meta", &content_meta)?;
+        s.serialize_field("hash", &self.item.hash)?;
         s.serialize_field("stack_id", &self.item.stack_id)?;
         s.serialize_field("children", &self.state.view.children(self.item))?;
         s.end()
@@ -349,6 +380,9 @@ mod tests {
             .map(|item| state.view_item_serializer(&item))
             .collect();
         let got = serde_json::to_string(&root).unwrap();
+        println!("{}", got);
+
+        let got = serde_json::to_string(&state).unwrap();
         println!("{}", got);
     }
 }
