@@ -20,19 +20,19 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(item: Item, content: string): MetaValue[] {
+function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
+  const contentMeta = stack.getContentMeta(item);
+
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
 
-  if (item.ids.length === 0) return [];
-
   let meta: MetaValue[] = [
-    { name: "ID", value: item.ids[item.ids.length - 1] },
-    { name: "Content Type", value: item.content_type },
+    { name: "ID", value: item.id },
+    { name: "Content Type", value: contentMeta.content_type },
   ];
 
-  if (item.content_type == "Text") {
+  if (contentMeta.content_type == "Text") {
     const textMeta = getTextMeta(b64ToUtf8(content));
 
     /*
@@ -45,7 +45,7 @@ function getMeta(item: Item, content: string): MetaValue[] {
     const info = [
       { s: "word", n: textMeta.words },
       { s: "char", n: textMeta.chars },
-      { s: "token", n: item.tiktokens },
+      { s: "token", n: contentMeta.tiktokens },
     ]
       .filter((item) => item.n)
       .map((item) => `${item.n} ${item.s[0]}`);
@@ -60,7 +60,7 @@ function getMeta(item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.content_type == "Link") {
+  if (contentMeta.content_type == "Link") {
     const url = b64ToUtf8(content);
     meta.push({
       name: "Url",
@@ -83,21 +83,21 @@ function getMeta(item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.ids.length === 1) {
+  if (item.touched.length === 1) {
     return [
       ...meta,
-      { name: "Touched", timestamp: toTimestamp(item.ids[0]) },
+      { name: "Touched", timestamp: toTimestamp(item.id) },
     ];
   }
 
   return [
     ...meta,
-    { name: "Times Touched", value: item.ids.length.toString() },
+    { name: "Times Touched", value: item.touched.length.toString() },
     {
       name: "Last Touched",
-      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
+      timestamp: toTimestamp(item.last_touched),
     },
-    { name: "First Touched", timestamp: toTimestamp(item.ids[0]) },
+    { name: "First Touched", timestamp: toTimestamp(item.id) },
   ];
 }
 
@@ -156,7 +156,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         zIndex: 10,
       }}
     >
-      {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
+      {getMeta(stack, item, content).map((info) => <MetaInfoRow {...info} />)}
     </div>
   );
 }

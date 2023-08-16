@@ -6,8 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { ContentMeta, Item } from "../types";
-import { Stack } from "../stacks";
+import { Stack, ContentMeta, Item } from "../types";
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);

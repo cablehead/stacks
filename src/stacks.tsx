@@ -1,91 +1,10 @@
-import { JSXInternal } from "preact/src/jsx";
-
-import { effect, Signal, signal } from "@preact/signals";
+import { effect } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Item, State, ContentMeta } from "./types";
-
-export const CAS = (() => {
-  const cache: Map<string, string> = new Map();
-  const signalCache: Map<string, Signal<string>> = new Map();
-
-  async function get(hash: string): Promise<string> {
-    const cachedItem = cache.get(hash);
-    if (cachedItem !== undefined) {
-      return cachedItem;
-    }
-    const content: string = await invoke("store_get_content", { hash: hash });
-    cache.set(hash, content);
-    return content;
-  }
-
-  function getSignal(hash: string): Signal<string> {
-    const cachedSignal = signalCache.get(hash);
-    if (cachedSignal !== undefined) {
-      return cachedSignal;
-    }
-    const ret: Signal<string> = signal("");
-    (async () => {
-      ret.value = await get(hash);
-    })();
-    signalCache.set(hash, ret);
-    return ret;
-  }
-
-  return {
-    get,
-    getSignal,
-  };
-})();
-
-const createFilter = () => {
-  const curr = signal("");
-  const content_type = signal("All");
-  return {
-    curr,
-    content_type,
-    dirty: () => curr.value != "" || content_type.value != "All",
-    clear: () => {
-      curr.value = "";
-      content_type.value = "All";
-    },
-  };
-};
-
-export class Stack {
-  filter: {
-    curr: Signal<string>;
-    content_type: Signal<string>;
-    dirty: () => boolean;
-    clear: () => void;
-  };
-  state: Signal<State>;
-  selected: Signal<string>;
-  normalizedSelected: Signal<string>;
-  item: Signal<Item | undefined>;
-
-  constructor(initialState: State) {
-    this.state = signal(initialState);
-    this.filter = createFilter();
-    this.selected = signal("");
-    this.normalizedSelected = signal("");
-    this.item = signal(undefined);
-  }
-
-  get content(): undefined | Signal<string | undefined> {
-    if (this.item.value) {
-      return CAS.getSignal(this.item.value.hash);
-    }
-    return undefined;
-  }
-
-  getContentMeta(item: Item): ContentMeta {
-      return this.state.value.content_meta[item.id];
-  }
-}
+import { Stack, State } from "./types";
 
 export const stack = new Stack(await invoke<State>("store_list_items", {}));
 
@@ -168,12 +87,4 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     if (d1) d1();
   });
-}
-
-export interface Action {
-  name: string;
-  keys?: (string | JSXInternal.Element)[];
-  trigger?: (stack: Stack) => void;
-  canApply?: (stack: Stack) => boolean;
-  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
