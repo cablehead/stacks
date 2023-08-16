@@ -1,6 +1,6 @@
 import { JSXInternal } from "preact/src/jsx";
 
-import { Signal, signal } from "@preact/signals";
+import { computed, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -146,7 +146,10 @@ export class Stack {
     this.filter = createFilter();
     this.selected = signal("");
     this.normalizedSelected = signal("");
-    this.item = signal(undefined);
+    this.item = computed((): Item | undefined => {
+      const id = this.state.value.root[0];
+      return this.state.value.items[id];
+    });
   }
 
   get content(): undefined | Signal<string | undefined> {

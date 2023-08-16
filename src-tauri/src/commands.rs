@@ -1,6 +1,6 @@
 // use tauri::Manager;
 
-// use base64::{engine::general_purpose, Engine as _};
+use base64::{engine::general_purpose, Engine as _};
 
 use crate::state::SharedState;
 
@@ -63,6 +63,7 @@ pub async fn store_pipe_to_command(
     println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
+*/
 
 #[tauri::command]
 pub fn store_get_content(
@@ -73,10 +74,9 @@ pub fn store_get_content(
     let state = state.lock().unwrap();
     state
         .store
-        .cat(&hash)
+        .cas_read(&hash)
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
-*/
 
 #[tauri::command]
 pub fn store_list_items(
