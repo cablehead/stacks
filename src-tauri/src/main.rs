@@ -78,6 +78,7 @@ fn main() {
                 .level_for("tao", log::LevelFilter::Debug)
                 .level_for("sled", log::LevelFilter::Info)
                 .level_for("attohttpc", log::LevelFilter::Info)
+                .level_for("tantivy", log::LevelFilter::Info)
                 .build(),
         )
         .setup(|app| {
