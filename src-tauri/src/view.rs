@@ -133,6 +133,7 @@ impl View {
             .cloned()
             .collect::<Vec<_>>();
         root_items.sort_by_key(|item| item.last_touched);
+        root_items.reverse();
         root_items
     }
 
