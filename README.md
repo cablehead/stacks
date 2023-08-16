@@ -161,6 +161,8 @@ A Stack contains a set of Item::Content
 
 ### And then
 
+- Status bar shouldn't show any actions when "no matches"
+
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
 - Add directory stack
