@@ -46,13 +46,12 @@ export function Parent({ stack }: { stack: Stack }) {
     "
     >
       {stack.state.value.root.map((id) => stack.state.value.items[id])
-        .map((item, index) => {
+        .map((item) => {
           return (
             <TerseRow
               ref={/* index === stack.normalizedSelected.value ? theRef :*/ null}
               stack={stack}
               item={item}
-              index={index}
             />
           );
         })}
@@ -109,7 +108,6 @@ export function Nav({ stack }: { stack: Stack }) {
               <TerseRow
                 stack={stack}
                 item={item}
-                index={index}
                 ref={/* index === stack.normalizedSelected.value ? theRef : */ null}
                 key={index}
               />
@@ -150,9 +148,9 @@ const RowIcon = ({ contentMeta }: { contentMeta: ContentMeta }) => {
 
 const TerseRow = forwardRef<
   HTMLDivElement,
-  { stack: Stack; item: Item; index: number }
+  { stack: Stack; item: Item }
 >(
-  ({ stack, item, index }, ref) => {
+  ({ stack, item }, ref) => {
     const meta = stack.getContentMeta(item);
 
     return (
@@ -166,14 +164,7 @@ const TerseRow = forwardRef<
           */
           ""}
         onMouseDown={() => {
-          console.log(index);
-          /*
-          stack.selected.value = Focus.index(index);
-          if (currStack.value != stack) {
-            console.log("Switcheroo");
-            currStack.value = stack;
-          }
-          */
+          stack.selected.value = item.id;
         }}
         style="
           display: flex;
@@ -233,12 +224,14 @@ function Preview({ stack }: { stack: Stack }) {
     );
   }
 
-  /*
-  if (meta.content_type == "Stack") {
-    const subStack = createStack(item.stack, currStack.value);
-    return <Nav stack={subStack} />;
+  if (!item.stack_id) {
+    return <div>
+    {meta.terse}
+    <br/>
+    <br/>
+    Stack: {item.children.length}
+    </div>;
   }
-  */
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">

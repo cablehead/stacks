@@ -147,8 +147,7 @@ export class Stack {
     this.selected = signal("");
     this.normalizedSelected = signal("");
     this.item = computed((): Item | undefined => {
-      const id = this.state.value.root[0];
-      return this.state.value.items[id];
+      return this.state.value.items[this.selected.value];
     });
   }
 
