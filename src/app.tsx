@@ -21,16 +21,14 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { createStack, currStack, triggerCopy } from "./stacks";
-
-import { Focus } from "./types";
+import { stack, triggerCopy } from "./stacks";
 
 import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
 
-  if (attemptAction(event, currStack.value)) return;
+  if (attemptAction(event, stack)) return;
 
   switch (true) {
     case event.key === "Enter":
@@ -41,87 +39,92 @@ async function globalKeyHandler(event: KeyboardEvent) {
       event.preventDefault();
 
       // attempt to clear filter first
-      if (currStack.value.filter.dirty()) {
-        currStack.value.filter.clear();
+      if (stack.filter.dirty()) {
+        stack.filter.clear();
         return;
       }
 
       /*
       // attempt to pop the current stack
-      if (currStack.value.parent) {
-        currStack.value = currStack.value.parent;
+      if (stack.parent) {
+        stack = stack.parent;
         return;
       }
       */
 
       // otherwise, hide the window
-      currStack.value.selected.value = Focus.first();
+      // stack.selected.value = Focus.first();
       modes.deactivate();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      modes.toggle(currStack.value, actionsMode);
+      modes.toggle(stack, actionsMode);
       return;
 
     case (event.shiftKey && event.key === "Tab") ||
       (event.ctrlKey && event.key === "h"): {
-      if (currStack.value.parent) {
-        currStack.value = currStack.value.parent;
-        return;
-      }
+      event.preventDefault();
       return;
     }
 
     case event.ctrlKey && event.key === "l": {
       event.preventDefault();
 
+      /*
       // if this is a stack, open it
-      const item = currStack.value.item.value;
-      if (item && item.content_type == "Stack") {
-        const subStack = createStack(item.stack, currStack.value);
-        currStack.value = subStack;
+      const item = stack.item.value;
+
+      if (!item) return;
+      const meta = stack.getContentMeta(item);
+
+      if (meta.content_type == "Stack") {
+        // const subStack = createStack(item.stack, stack);
+        // stack = subStack;
         return;
       }
       return;
+      */
     }
 
     case event.key === "Tab": {
       event.preventDefault();
 
-      if (currStack.value.parent) return;
+      /*
+      if (stack.parent) return;
 
       // if this is a stack, open it
-      const item = currStack.value.item.value;
+      const item = stack.item.value;
       if (item && item.content_type == "Stack") {
-        const subStack = createStack(item.stack, currStack.value);
-        currStack.value = subStack;
+        // const subStack = createStack(item.stack, stack);
+        // stack = subStack;
         return;
       }
 
       // otherwise, add to stack
-      modes.activate(currStack.value, addToStackMode);
+      modes.activate(stack, addToStackMode);
       return;
+      */
     }
 
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
-      modes.toggle(currStack.value, newNoteMode);
+      modes.toggle(stack, newNoteMode);
       return;
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      modes.toggle(currStack.value, filterContentTypeMode);
+      modes.toggle(stack, filterContentTypeMode);
       return;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      currStack.value.selected.value = currStack.value.selected.value.down();
+      // stack.selected.value = stack.selected.value.down();
       return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      currStack.value.selected.value = currStack.value.selected.value.up();
+      // stack.selected.value = stack.selected.value.up();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -147,9 +150,9 @@ export function App() {
   const onFocusHandler = () => {
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
-      modes.activate(currStack.value, mainMode);
-      currStack.value.filter.clear();
-      currStack.value.selected.value = Focus.first();
+      modes.activate(stack, mainMode);
+      stack.filter.clear();
+      // stack.selected.value = Focus.first();
     }
   };
 
@@ -169,7 +172,7 @@ export function App() {
     <main
       className={theme.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      <Filter stack={currStack.value} />
+      <Filter stack={stack} />
       <div style="
             display: flex;
             flex-direction: column;
@@ -181,25 +184,25 @@ export function App() {
             padding-right:1ch;
             position: relative;
         ">
-        <Nav stack={currStack.value} />
-        <MetaPanel stack={currStack.value} />
+        <Nav stack={stack} />
+        <MetaPanel stack={stack} />
         {modes.isActive(addToStackMode) && (
-          <addToStackMode.Modal stack={currStack.value} modes={modes} />
+          <addToStackMode.Modal stack={stack} modes={modes} />
         )}
-        {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
+        {modes.isActive(actionsMode) && <Actions stack={stack} />}
         {modes.isActive(editorMode) && (
-          <editorMode.Modal stack={currStack.value} modes={modes} />
+          <editorMode.Modal stack={stack} modes={modes} />
         )}
         {modes.isActive(newNoteMode) && (
-          <newNoteMode.Modal stack={currStack.value} modes={modes} />
+          <newNoteMode.Modal stack={stack} modes={modes} />
         )}
         {modes.isActive(pipeMode) && (
-          <pipeMode.Modal stack={currStack.value} modes={modes} />
+          <pipeMode.Modal stack={stack} modes={modes} />
         )}
         {modes.isActive(filterContentTypeMode) &&
-          <filterContentTypeMode.Modal stack={currStack.value} modes={modes} />}
+          <filterContentTypeMode.Modal stack={stack} modes={modes} />}
       </div>
-      <StatusBar stack={currStack.value} />
+      <StatusBar stack={stack} />
     </main>
   );
 }

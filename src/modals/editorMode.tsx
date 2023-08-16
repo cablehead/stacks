@@ -1,19 +1,20 @@
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { invoke } from "@tauri-apps/api/tauri";
+// import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Focus, Stack } from "../types";
+import { Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
-    accept_meta: (stack: Stack, modes: Modes) => {
+    accept_meta: (_: Stack, __: Modes) => {
+        /*
       const args = {
         stackHash: stack.parent?.item.value?.hash,
         content: curr.value,
@@ -22,6 +23,7 @@ const state = (() => {
       invoke("store_capture", args);
       stack.selected.value = Focus.first();
       modes.deactivate();
+      */
     },
   };
 })();

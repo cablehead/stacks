@@ -1,6 +1,6 @@
-import { invoke } from "@tauri-apps/api/tauri";
+// import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
-import { hide } from "tauri-plugin-spotlight-api";
+// import { hide } from "tauri-plugin-spotlight-api";
 
 import { b64ToUtf8 } from "./utils";
 
@@ -18,9 +18,10 @@ export const actions: Action[] = [
     ],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Enter",
-    canApply: (stack: Stack) =>
-      stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
-    trigger: (stack: Stack) => {
+    canApply: (_: Stack) => false,
+      // stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
+    trigger: (_: Stack) => {
+        /*
       let item = stack.item.value?.content_type === "Stack"
         ? stack.item.value
         : stack.parent?.item.value;
@@ -30,6 +31,7 @@ export const actions: Action[] = [
         });
         hide();
       }
+        */
     },
   },
   {
@@ -38,7 +40,7 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "e",
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
-    canApply: (stack: Stack) => stack.item.value?.mime_type === "text/plain",
+    canApply: (_: Stack) => false,
   },
   {
     name: "Pipe to command",
@@ -46,7 +48,7 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
-    canApply: (stack: Stack) => stack.item.value?.mime_type === "text/plain",
+    canApply: (_: Stack) => false,
   },
   {
     name: "Open",
@@ -58,21 +60,23 @@ export const actions: Action[] = [
       console.log("OPEN", content);
       if (content) open(b64ToUtf8(content));
     },
-    canApply: (stack: Stack) => stack.item.value?.content_type === "Link",
+    canApply: (_: Stack) => false,
   },
   {
     name: "Delete",
     keys: ["Ctrl", "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.ctrlKey && event.key === "Backspace",
-    canApply: (stack: Stack) => !stack.parent,
+    canApply: (_: Stack) => false,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
       if (item) {
+          /*
         invoke("store_delete", {
           hash: item.hash,
           stackHash: stack.parent?.item.value?.hash,
         });
+        */
       }
     },
   },
@@ -81,14 +85,16 @@ export const actions: Action[] = [
     keys: ["Ctrl", "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.ctrlKey && event.key === "Backspace",
-    canApply: (stack: Stack) => !!stack.parent,
+    canApply: (_: Stack) => false,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
       if (item) {
+          /*
         invoke("store_delete", {
           hash: item.hash,
           stackHash: stack.parent?.item.value?.hash,
         });
+        */
       }
     },
   },

@@ -7,7 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Focus, Item, Stack } from "../types";
+import { Item, Stack } from "../types";
 
 function dn(): string {
   const date = new Date();
@@ -54,7 +54,8 @@ const state = (() => {
     normalizedSelected,
     fetchOptions,
 
-    accept: (stack: Stack, modes: Modes) => {
+    accept: (_stack: Stack, _modes: Modes) => {
+        /*
       const item = stack.item.value;
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
@@ -66,9 +67,11 @@ const state = (() => {
         stack.selected.value = Focus.first();
         modes.deactivate();
       })();
+      */
     },
 
-    accept_meta: (stack: Stack, modes: Modes) => {
+    accept_meta: (_stack: Stack, _modes: Modes) => {
+        /*
       const item = stack.item.value;
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
@@ -81,6 +84,7 @@ const state = (() => {
         stack.selected.value = Focus.first();
         modes.deactivate();
       })();
+        */
     },
   };
 })();
@@ -214,7 +218,7 @@ export default {
         <div style="
         padding:1ch;
         ">
-          {state.options.value
+          {/* state.options.value
             .map((item, index) => (
               <div
                 className={"terserow" +
@@ -237,7 +241,7 @@ export default {
                   {item.terse}
                 </div>
               </div>
-            ))}
+            )) */}
         </div>
       </div>
     );
