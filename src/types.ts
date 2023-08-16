@@ -28,29 +28,29 @@ export interface State {
   matches: string[];
 }
 
-/*
 enum FocusType {
-  INDEX,
+  ID,
   FIRST,
 }
 
 export class Focus {
   type: FocusType;
-  item: string;
+  id: string;
 
-  constructor(type: FocusType, n: number = 0) {
+  constructor(type: FocusType, id: string = "") {
     this.type = type;
-    this.n = n;
+    this.id = id;
   }
 
   static first(): Focus {
     return new Focus(FocusType.FIRST);
   }
 
-  static index(n: number): Focus {
-    return new Focus(FocusType.INDEX, n);
+  static index(id: string): Focus {
+    return new Focus(FocusType.ID, id);
   }
 
+  /*
   isFocusFirst(): boolean {
     return this.type === FocusType.FIRST;
   }
@@ -58,7 +58,7 @@ export class Focus {
   down() {
     if (this.type === FocusType.FIRST) {
       return Focus.index(1);
-    } else if (this.type === FocusType.INDEX) {
+    } else if (this.type === FocusType.ID) {
       return Focus.index(this.n + 1);
     }
     return this;
@@ -67,20 +67,20 @@ export class Focus {
   up() {
     if (this.type === FocusType.FIRST) {
       return Focus.index(-1);
-    } else if (this.type === FocusType.INDEX) {
+    } else if (this.type === FocusType.ID) {
       return Focus.index(this.n - 1);
     }
     return this;
   }
+  */
 
-  currIndex() {
+  curr(stack: Stack) {
     if (this.type === FocusType.FIRST) {
-      return 0;
+      return stack.state.value.root[0];
     }
-    return this.n;
+    return this.id;
   }
 }
-*/
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -137,17 +137,17 @@ export class Stack {
     clear: () => void;
   };
   state: Signal<State>;
-  selected: Signal<string>;
+  selected: Signal<Focus>;
   normalizedSelected: Signal<string>;
   item: Signal<Item | undefined>;
 
   constructor(initialState: State) {
     this.state = signal(initialState);
     this.filter = createFilter();
-    this.selected = signal("");
+    this.selected = signal(Focus.first());
     this.normalizedSelected = signal("");
     this.item = computed((): Item | undefined => {
-      return this.state.value.items[this.selected.value];
+      return this.state.value.items[this.selected.value.curr(this)];
     });
   }
 

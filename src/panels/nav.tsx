@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { ContentMeta, Item, Stack } from "../types";
+import { ContentMeta, Item, Stack, Focus } from "../types";
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -164,7 +164,7 @@ const TerseRow = forwardRef<
           */
           ""}
         onMouseDown={() => {
-          stack.selected.value = item.id;
+          stack.selected.value = Focus.index(item.id);
         }}
         style="
           display: flex;
