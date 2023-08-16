@@ -35,15 +35,15 @@ impl Serialize for State {
                 .map(|item| item.id)
                 .collect::<Vec<_>>(),
         )?;
-        s.serialize_field(
-            "items",
-            &self
-                .view
-                .items
-                .iter()
-                .map(|(_, item)| self.view_item_serializer(item))
-                .collect::<Vec<_>>(),
-        )?;
+
+        let serialized_items: std::collections::HashMap<_, _> = self
+            .view
+            .items
+            .iter()
+            .map(|(id, item)| (id, self.view_item_serializer(item)))
+            .collect();
+        s.serialize_field("items", &serialized_items)?;
+
         s.serialize_field("content_meta", &self.store.get_content_meta())?;
         s.serialize_field(
             "matches",

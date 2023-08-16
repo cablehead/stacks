@@ -14,6 +14,7 @@ pub enum MimeType {
 pub struct ContentMeta {
     pub hash: Option<Integrity>,
     pub mime_type: MimeType,
+    pub content_type: String,
     pub terse: String,
     pub tiktokens: usize,
 }
@@ -190,9 +191,21 @@ impl Store {
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
 
+        let content_type = match mime_type {
+            MimeType::TextPlain => {
+                if is_valid_https_url(content) {
+                    "Link".to_string()
+                } else {
+                    "Text".to_string()
+                }
+            }
+            MimeType::ImagePng => "Image".to_string(),
+        };
+
         let meta = ContentMeta {
             hash: Some(hash.clone()),
             mime_type: mime_type.clone(),
+            content_type,
             terse: String::from_utf8_lossy(content).into_owned(),
             tiktokens: content.len(),
         };
@@ -292,6 +305,11 @@ impl Store {
         self.insert_packet(&packet);
         packet
     }
+}
+
+fn is_valid_https_url(url: &[u8]) -> bool {
+    let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
+    re.is_match(url)
 }
 
 #[cfg(test)]
@@ -417,5 +435,11 @@ mod tests {
             .collect();
 
         assert_eq!(results, vec![b"Hello, fuzzy world!".to_vec()]);
+    }
+
+    #[test]
+    fn test_is_valid_https_url() {
+        assert!(is_valid_https_url(b"https://www.example.com"));
+        assert!(!is_valid_https_url(b"Good afternoon"));
     }
 }
