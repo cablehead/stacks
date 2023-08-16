@@ -6,8 +6,8 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Focus, Item, Stack } from "../types";
-import { createStack, currStack } from "../stacks";
+import { ContentMeta, Item } from "../types";
+import { Stack } from "../stacks";
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -46,11 +46,11 @@ export function Parent({ stack }: { stack: Stack }) {
       padding-right: 0.5rem;
     "
     >
-      {stack.items.value
+      {stack.state.value.root.map((id) => stack.state.value.items[id])
         .map((item, index) => {
           return (
             <TerseRow
-              ref={index === stack.normalizedSelected.value ? theRef : null}
+              ref={ /* index === stack.normalizedSelected.value ? theRef :*/ null}
               stack={stack}
               item={item}
               index={index}
@@ -94,9 +94,7 @@ export function Nav({ stack }: { stack: Stack }) {
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {stack == currStack.value && stack.parent && (
-        <Parent stack={stack.parent} />
-      )}
+      {false && <Parent stack={stack} />}
       <div
         className={borderRight}
         style="
@@ -106,14 +104,14 @@ export function Nav({ stack }: { stack: Stack }) {
       padding-right: 0.5rem;
     "
       >
-        {stack.items.value
+        {stack.state.value.root.map((id) => stack.state.value.items[id])
           .map((item, index) => {
             return (
               <TerseRow
                 stack={stack}
                 item={item}
                 index={index}
-                ref={index === stack.normalizedSelected.value ? theRef : null}
+                ref={/* index === stack.normalizedSelected.value ? theRef : */ null}
                 key={index}
               />
             );
@@ -121,16 +119,20 @@ export function Nav({ stack }: { stack: Stack }) {
       </div>
 
       <div style="flex: 3; overflow: auto; height: 100%">
-        {stack.items.value.length > 0
+        <Preview stack={stack} />
+
+        {
+          /*stack.items.value.length > 0
           ? <Preview stack={stack} />
-          : <i>no matches</i>}
+          : <i>no matches</i> */
+        }
       </div>
     </div>
   );
 }
 
-const RowIcon = ({ item }: { item: Item }) => {
-  switch (item.content_type) {
+const RowIcon = ({ contentMeta }: { contentMeta: ContentMeta }) => {
+  switch (contentMeta.content_type) {
     case "Stack":
       return <Icon name="IconStack" />;
 
@@ -151,21 +153,30 @@ const TerseRow = forwardRef<
   HTMLDivElement,
   { stack: Stack; item: Item; index: number }
 >(
-  ({ stack, item, index }, ref) => (
-    <div
-      ref={ref}
-      className={"terserow" +
-        (index === stack.normalizedSelected.value
-          ? (currStack.value === stack ? " highlight" : " selected")
-          : "")}
-      onMouseDown={() => {
-        stack.selected.value = Focus.index(index);
-        if (currStack.value != stack) {
-          console.log("Switcheroo");
-          currStack.value = stack;
-        }
-      }}
-      style="
+  ({ stack, item, index }, ref) => {
+    const meta = stack.getContentMeta(item);
+
+    return (
+      <div
+        ref={ref}
+        className={"terserow" +
+          /*
+          (index === stack.normalizedSelected.value
+            ? (currStack.value === stack ? " highlight" : " selected")
+            : "")
+          */
+          ""}
+        onMouseDown={() => {
+          console.log(index);
+          /*
+          stack.selected.value = Focus.index(index);
+          if (currStack.value != stack) {
+            console.log("Switcheroo");
+            currStack.value = stack;
+          }
+          */
+        }}
+        style="
           display: flex;
           width: 100%;
           gap: 0.5ch;
@@ -174,38 +185,40 @@ const TerseRow = forwardRef<
           border-radius: 6px;
           cursor: pointer;
           "
-    >
-      <div
-        style={{
-          flexShrink: 0,
-          width: "2ch",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-        }}
       >
-        <RowIcon item={item} />
-      </div>
+        <div
+          style={{
+            flexShrink: 0,
+            width: "2ch",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          <RowIcon contentMeta={meta} />
+        </div>
 
-      <div
-        style={{
-          flexGrow: 1,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {item.terse}
+        <div
+          style={{
+            flexGrow: 1,
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {meta.terse}
+        </div>
       </div>
-    </div>
-  ),
+    );
+  },
 );
 
 function Preview({ stack }: { stack: Stack }) {
   const item = stack.item.value;
   const content = stack.content?.value;
   if (!item || !content) return <div>loading...</div>;
+  const meta = stack.getContentMeta(item);
 
-  if (item.mime_type === "image/png") {
+  if (meta.mime_type === "image/png") {
     return (
       <img
         src={"data:image/png;base64," + content}
@@ -221,26 +234,12 @@ function Preview({ stack }: { stack: Stack }) {
     );
   }
 
-  if (item.content_type == "Stack") {
+  /*
+  if (meta.content_type == "Stack") {
     const subStack = createStack(item.stack, currStack.value);
     return <Nav stack={subStack} />;
   }
-
-  if (item.link) {
-    return (
-      <img
-        src={item.link.screenshot}
-        style={{
-          opacity: 0.95,
-          borderRadius: "0.5rem",
-          maxHeight: "100%",
-          height: "auto",
-          width: "auto",
-          objectFit: "contain",
-        }}
-      />
-    );
-  }
+  */
 
   return (
     <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">

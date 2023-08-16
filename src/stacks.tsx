@@ -1,10 +1,12 @@
-import { computed, effect, Signal, signal } from "@preact/signals";
+import { JSXInternal } from "preact/src/jsx";
+
+import { effect, Signal, signal } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Focus, Item, Stack } from "./types";
+import { Item, State, ContentMeta } from "./types";
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -53,52 +55,39 @@ const createFilter = () => {
   };
 };
 
-export const createStack = (
-  initItems?: Record<string, Item>,
-  parent?: Stack,
-): Stack => {
-  const filter = createFilter();
-  const items = signal(
-    initItems
-      ? Object.values(initItems).sort((a, b) => {
-        const lastIdA = a.ids[a.ids.length - 1];
-        const lastIdB = b.ids[b.ids.length - 1];
-        if (lastIdA < lastIdB) return 1;
-        if (lastIdA > lastIdB) return -1;
-        return 0;
-      })
-      : [],
-  );
-  const selected = signal(Focus.first());
-
-  const normalizedSelected = computed(() => {
-    let val = selected.value.currIndex() % (items.value.length);
-    if (val < 0) val = items.value.length + val;
-    return val;
-  });
-
-  const item = computed((): Item | undefined =>
-    items.value[normalizedSelected.value]
-  );
-
-  return {
-    filter,
-    items,
-    selected,
-    normalizedSelected,
-    item,
-    get content(): undefined | Signal<string | undefined> {
-      if (item.value) {
-        return CAS.getSignal(item.value.hash);
-      }
-      return undefined;
-    },
-    parent,
+export class Stack {
+  filter: {
+    curr: Signal<string>;
+    content_type: Signal<string>;
+    dirty: () => boolean;
+    clear: () => void;
   };
-};
+  state: Signal<State>;
+  selected: Signal<string>;
+  normalizedSelected: Signal<string>;
+  item: Signal<Item | undefined>;
 
-const root = createStack();
-export const currStack: Signal<Stack> = signal(root);
+  constructor(initialState: State) {
+    this.state = signal(initialState);
+    this.filter = createFilter();
+    this.selected = signal("");
+    this.normalizedSelected = signal("");
+    this.item = signal(undefined);
+  }
+
+  get content(): undefined | Signal<string | undefined> {
+    if (this.item.value) {
+      return CAS.getSignal(this.item.value.hash);
+    }
+    return undefined;
+  }
+
+  getContentMeta(item: Item): ContentMeta {
+      return this.state.value.content_meta[item.id];
+  }
+}
+
+export const stack = new Stack(await invoke<State>("store_list_items", {}));
 
 function debounce<T>(
   this: T,
@@ -116,10 +105,6 @@ function debounce<T>(
 // updateItems maintains the provided stack's items: reactively, based on the
 // stack's current filter and content type
 const innerUpdateItems = async (stack: Stack) => {
-  if (stack.parent) {
-    innerUpdateItems(stack.parent);
-  }
-
   const filter = stack.filter.curr.value;
   const contentType = stack.filter.content_type.value;
 
@@ -127,29 +112,15 @@ const innerUpdateItems = async (stack: Stack) => {
     filter: filter,
     contentType: contentType,
     // Include the hash of the focused parent stack item, if it exists
-    stack: stack.parent?.item.value?.hash,
+    // stack: stack.parent?.item.value?.hash,
   };
 
   // Get the hash of the currently focused item
-  const currItem = stack.item.peek()?.hash;
+  // const currItem = stack.item.peek()?.hash;
 
   // Set the new list of items from the backend
-  stack.items.value = await invoke<Item[]>("store_list_items", args);
-
-  // If the app doesn't currently have focus, focus the first (newly touched)
-  // item in the stack, or if stack.selected.value is the focus first sentinel
-  if (currStack.value == stack) {
-    if (!document.hasFocus() || stack.selected.value.isFocusFirst()) {
-      stack.selected.value = Focus.index(0);
-      return;
-    }
-  }
-
-  // If the app does have focus, try to find the previously focused item, in
-  // order to preserve focus
-  const index = stack.items.peek().findIndex((item) => item.hash == currItem);
-  console.log("updateItems: Refocus:", currItem, index, stack.selected.value);
-  if (index >= 0) stack.selected.value = Focus.index(index);
+  stack.state.value = await invoke<State>("store_list_items", args);
+  console.log("store_list_items", stack.state.value);
 };
 
 const updateItems = debounce(innerUpdateItems, 50);
@@ -158,15 +129,12 @@ let d1: (() => void) | undefined;
 
 async function initRefresh() {
   d1 = await listen("refresh-items", () => {
-    updateItems(currStack.value);
+    updateItems(stack);
   });
 }
 initRefresh();
 
 effect(() => {
-  const stack = currStack.value;
-  // Depend on the current filter and content type from the stack, so we react
-  // to filter changes
   console.log(
     "currStack: updateItems",
     stack.filter.curr.value,
@@ -175,23 +143,23 @@ effect(() => {
   updateItems(stack);
 });
 
-effect(() => {
-  console.log("SELECTED:", currStack.value.selected.value);
-});
-
+/*
 effect(() => {
   invoke("store_set_current_stack", {
     stackHash: currStack.value.parent?.item.value?.hash,
   });
 });
+*/
 
 export async function triggerCopy() {
+  /*
   const item = currStack.value.item.value;
   if (!item) return;
   await invoke("store_copy_to_clipboard", {
-    sourceId: item.ids[0],
+    sourceId: item.id,
     stackHash: currStack.value.parent?.item.value?.hash,
   });
+  */
   hide();
 }
 
@@ -200,4 +168,12 @@ if (import.meta.hot) {
   import.meta.hot.dispose(() => {
     if (d1) d1();
   });
+}
+
+export interface Action {
+  name: string;
+  keys?: (string | JSXInternal.Element)[];
+  trigger?: (stack: Stack) => void;
+  canApply?: (stack: Stack) => boolean;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }

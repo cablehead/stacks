@@ -7,7 +7,7 @@ import { default as theme } from "../theme";
 
 import { modes } from "../modals";
 import { Mode } from "../modals/types";
-import { Stack } from "../types";
+import { Stack } from "../stacks";
 
 const VertDiv = () => (
   <div

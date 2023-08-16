@@ -1,27 +1,29 @@
-import { JSXInternal } from "preact/src/jsx";
-
-import { Signal } from "@preact/signals";
-
-interface Link {
-  provider: string;
-  screenshot: string;
-  title: string;
-  description: string;
-  url: string;
-  icon: string;
-}
 
 export interface Item {
+  id: string;
+  last_touched: string;
+  touched: string[];
   hash: string;
-  ids: string[];
+  stack_id: string | null;
+  children: string[];
+}
+
+export interface ContentMeta {
+  hash: string | null;
   mime_type: string;
   content_type: string;
   terse: string;
-  link?: Link;
-  stack: Record<string, Item>;
-  tiktokens?: number;
+  tiktokens: number;
 }
 
+export interface State {
+  root: string[];
+  items: { [id: string]: Item };
+  content_meta: { [key: string]: ContentMeta };
+  matches: string[];
+}
+
+/*
 enum FocusType {
   INDEX,
   FIRST,
@@ -29,7 +31,7 @@ enum FocusType {
 
 export class Focus {
   type: FocusType;
-  n: number;
+  item: string;
 
   constructor(type: FocusType, n: number = 0) {
     this.type = type;
@@ -73,26 +75,5 @@ export class Focus {
     return this.n;
   }
 }
+*/
 
-export interface Stack {
-  filter: {
-    curr: Signal<string>;
-    content_type: Signal<string>;
-    dirty: () => boolean;
-    clear: () => void;
-  };
-  items: Signal<Item[]>;
-  selected: Signal<Focus>;
-  normalizedSelected: Signal<number>;
-  item: Signal<Item | undefined>;
-  get content(): undefined | Signal<string | undefined>;
-  parent?: Stack;
-}
-
-export interface Action {
-  name: string;
-  keys?: (string | JSXInternal.Element)[];
-  trigger?: (stack: Stack) => void;
-  canApply?: (stack: Stack) => boolean;
-  matchKeyEvent?: (event: KeyboardEvent) => boolean;
-}

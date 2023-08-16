@@ -83,26 +83,6 @@ function getMeta(item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.link) {
-    meta.push(...[
-      { name: "Title", value: item.link.title },
-      {
-        name: "Description",
-        value: (
-          <div
-            style={{
-              maxHeight: "3.2lh",
-              overflow: "auto",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {item.link.description}
-          </div>
-        ),
-      },
-    ]);
-  }
-
   if (item.ids.length === 1) {
     return [
       ...meta,
