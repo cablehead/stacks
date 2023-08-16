@@ -5,7 +5,6 @@ import {
   addToStackMode,
   editorMode,
   filterContentTypeMode,
-  mainMode,
   modes,
   newNoteMode,
   pipeMode,
@@ -21,12 +20,15 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { stack, triggerCopy } from "./stacks";
+import { currStack, triggerCopy } from "./stacks";
 
 import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
   console.log("GLOBAL", event);
+
+  const stack = currStack.value;
+  if (!stack) return;
 
   if (attemptAction(event, stack)) return;
 
@@ -150,8 +152,8 @@ export function App() {
   const onFocusHandler = () => {
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
-      modes.activate(stack, mainMode);
-      stack.filter.clear();
+      // modes.activate(stack, mainMode);
+      // stack.filter.clear();
       // stack.selected.value = Focus.first();
     }
   };
@@ -168,12 +170,17 @@ export function App() {
     };
   }, []);
 
+  const stack = currStack.value;
+
   return (
     <main
       className={theme.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      <Filter stack={stack} />
-      <div style="
+      {stack
+        ? (
+          <>
+            <Filter stack={stack} />
+            <div style="
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -184,25 +191,28 @@ export function App() {
             padding-right:1ch;
             position: relative;
         ">
-        <Nav stack={stack} />
-        <MetaPanel stack={stack} />
-        {modes.isActive(addToStackMode) && (
-          <addToStackMode.Modal stack={stack} modes={modes} />
-        )}
-        {modes.isActive(actionsMode) && <Actions stack={stack} />}
-        {modes.isActive(editorMode) && (
-          <editorMode.Modal stack={stack} modes={modes} />
-        )}
-        {modes.isActive(newNoteMode) && (
-          <newNoteMode.Modal stack={stack} modes={modes} />
-        )}
-        {modes.isActive(pipeMode) && (
-          <pipeMode.Modal stack={stack} modes={modes} />
-        )}
-        {modes.isActive(filterContentTypeMode) &&
-          <filterContentTypeMode.Modal stack={stack} modes={modes} />}
-      </div>
-      <StatusBar stack={stack} />
+              <Nav stack={stack} />
+              <MetaPanel stack={stack} />
+              {modes.isActive(addToStackMode) && (
+                <addToStackMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(actionsMode) && <Actions stack={stack} />}
+              {modes.isActive(editorMode) && (
+                <editorMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(newNoteMode) && (
+                <newNoteMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(pipeMode) && (
+                <pipeMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(filterContentTypeMode) &&
+                <filterContentTypeMode.Modal stack={stack} modes={modes} />}
+            </div>
+            <StatusBar stack={stack} />
+          </>
+        )
+        : "loading"}
     </main>
   );
 }

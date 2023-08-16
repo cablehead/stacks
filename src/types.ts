@@ -157,7 +157,7 @@ export class Stack {
   }
 
   getContentMeta(item: Item): ContentMeta {
-    return this.state.value.content_meta[item.id];
+    return this.state.value.content_meta[item.hash];
   }
 }
 

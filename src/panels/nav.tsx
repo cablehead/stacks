@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Stack, ContentMeta, Item } from "../types";
+import { ContentMeta, Item, Stack } from "../types";
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -49,7 +49,7 @@ export function Parent({ stack }: { stack: Stack }) {
         .map((item, index) => {
           return (
             <TerseRow
-              ref={ /* index === stack.normalizedSelected.value ? theRef :*/ null}
+              ref={/* index === stack.normalizedSelected.value ? theRef :*/ null}
               stack={stack}
               item={item}
               index={index}
