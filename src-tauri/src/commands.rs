@@ -3,7 +3,6 @@
 // use base64::{engine::general_purpose, Engine as _};
 
 use crate::state::SharedState;
-use crate::view::Item;
 
 
 /*
@@ -85,60 +84,9 @@ pub fn store_list_items(
     stack: Option<ssri::Integrity>,
     filter: String,
     content_type: String,
-) -> Vec<Item> {
+) -> String {
     let state = state.lock().unwrap();
-    println!("FILTER : {:?} {} {}", &stack, &filter, &content_type);
-    let filter = if filter.is_empty() {
-        None
-    } else {
-        Some(filter)
-    };
-    let content_type = if content_type == "All" {
-        None
-    } else {
-        let mut content_type = content_type;
-        content_type.truncate(content_type.len() - 1);
-        Some(content_type)
-    };
-
-    /*
-    let base_items: Vec<Item> = if let Some(hash) = stack {
-        let item = state.stack.items.get(&hash).unwrap();
-        item.stack.values().cloned().collect()
-    } else {
-        state.stack.items.values().cloned().collect()
-    };
-
-    let mut recent_items: Vec<Item> = base_items
-        .iter()
-        .filter(|item| {
-            if let Some(curr) = &filter {
-                // match case insensitive, unless the filter has upper case, in which, match case
-                // sensitive
-                if curr == &curr.to_lowercase() {
-                    item.terse.to_lowercase().contains(curr)
-                } else {
-                    item.terse.contains(curr)
-                }
-            } else {
-                true
-            }
-        })
-        .filter(|item| {
-            if let Some(content_type) = &content_type {
-                &item.content_type == content_type
-            } else {
-                true
-            }
-        })
-        .cloned()
-        .collect();
-    recent_items.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    recent_items.truncate(400);
-    recent_items
-    */
-
-    Vec::new()
+    serde_json::to_string(&*state).unwrap()
 }
 
 /*
@@ -291,7 +239,8 @@ pub fn store_add_to_stack(
 */
 
 #[tauri::command]
-pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<Item> {
+// s/String/Item
+pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<String> {
     let state = state.lock().unwrap();
 
     return Vec::new();
