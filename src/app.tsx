@@ -67,26 +67,14 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case (event.shiftKey && event.key === "Tab") ||
       (event.ctrlKey && event.key === "h"): {
       event.preventDefault();
+      stack.selectLeft();
       return;
     }
 
     case event.ctrlKey && event.key === "l": {
       event.preventDefault();
-
-      /*
-      // if this is a stack, open it
-      const item = stack.item.value;
-
-      if (!item) return;
-      const meta = stack.getContentMeta(item);
-
-      if (meta.content_type == "Stack") {
-        // const subStack = createStack(item.stack, stack);
-        // stack = subStack;
-        return;
-      }
+      stack.selectRight();
       return;
-      */
     }
 
     case event.key === "Tab": {

@@ -165,6 +165,20 @@ export class Stack {
     }
   }
 
+  selectRight(): void {
+    const currentItem = this.state.value.items[this.selected.value.curr(this)];
+    if (currentItem.children.length > 0) {
+      this.selected.value = Focus.id(currentItem.children[0]);
+    }
+  }
+
+  selectLeft(): void {
+    const currentItem = this.state.value.items[this.selected.value.curr(this)];
+    if (currentItem.stack_id) {
+      this.selected.value = Focus.id(currentItem.stack_id);
+    }
+  }
+
   getPeers(item: Item): Scru128Id[] {
     return item.stack_id
       ? this.state.value.items[item.stack_id].children
