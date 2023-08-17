@@ -51,7 +51,7 @@ export class Focus {
     return new Focus(FocusType.FIRST);
   }
 
-  static index(id: Scru128Id): Focus {
+  static id(id: Scru128Id): Focus {
     return new Focus(FocusType.ID, id);
   }
 

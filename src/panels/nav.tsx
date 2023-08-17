@@ -164,7 +164,7 @@ const TerseRow = forwardRef<
           */
           ""}
         onMouseDown={() => {
-          stack.selected.value = Focus.index(item.id);
+          stack.selected.value = Focus.id(item.id);
         }}
         style="
           display: flex;
