@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { ContentMeta, Focus, Item, Stack } from "../types";
+import { Focus, Item, Stack } from "../types";
 
 const renderItems = (
   stack: Stack,
@@ -92,11 +92,12 @@ export function Nav({ stack }: { stack: Stack }) {
   );
 }
 
-const RowIcon = ({ contentMeta }: { contentMeta: ContentMeta }) => {
-  switch (contentMeta.content_type) {
-    case "Stack":
-      return <Icon name="IconStack" />;
+const RowIcon = ({ stack, item }: { stack: Stack, item: Item }) => {
+  if (!item.stack_id) return <Icon name="IconStack" />;
 
+  const contentMeta = stack.getContentMeta(item);
+
+  switch (contentMeta.content_type) {
     case "Image":
       return <Icon name="IconImage" />;
 
@@ -144,7 +145,7 @@ const TerseRow = forwardRef<
             overflow: "hidden",
           }}
         >
-          <RowIcon contentMeta={meta} />
+          <RowIcon stack={stack} item={item} />
         </div>
 
         <div

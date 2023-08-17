@@ -191,22 +191,29 @@ impl Store {
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
 
-        let content_type = match mime_type {
+        let (content_type, terse) = match mime_type {
             MimeType::TextPlain => {
-                if is_valid_https_url(content) {
-                    "Link".to_string()
+                let text_content = String::from_utf8_lossy(content).into_owned();
+                let terse = if text_content.len() > 100 {
+                    text_content.chars().take(100).collect()
                 } else {
-                    "Text".to_string()
+                    text_content
+                };
+
+                if is_valid_https_url(content) {
+                    ("Link".to_string(), terse)
+                } else {
+                    ("Text".to_string(), terse)
                 }
             }
-            MimeType::ImagePng => "Image".to_string(),
+            MimeType::ImagePng => ("Image".to_string(), "Image".to_string()),
         };
 
         let meta = ContentMeta {
             hash: Some(hash.clone()),
             mime_type: mime_type.clone(),
             content_type,
-            terse: String::from_utf8_lossy(content).into_owned(),
+            terse, // Updated terse assignment
             tiktokens: content.len(),
         };
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
