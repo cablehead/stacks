@@ -86,7 +86,7 @@ impl State {
         }
 
         let local: DateTime<Local> = Local::now();
-        let stack_name = format!("# {}", local.format("%a, %b %d %Y, %I:%M %p"));
+        let stack_name = format!("{}", local.format("%a, %b %d %Y, %I:%M %p"));
 
         let packet = self.store.add(
             &stack_name.as_bytes(),
