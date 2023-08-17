@@ -187,6 +187,10 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
   }
 
   if (!item.stack_id) {
+    if (item.children.length === 0) {
+      return <i>no items</i>;
+    }
+
     const childrenItems = item.children.map((childId) =>
       stack.state.value.items[childId]
     );
@@ -195,9 +199,11 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
     );
 
     return (
-      <div style="flex: 3; overflow: auto; height: 100%">
+      <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
         {renderItems(stack, item.children, "20ch", item.children[0])}
-        {firstChildPreview}
+        <div style="flex: 3; overflow: auto; height: 100%">
+          {firstChildPreview}
+        </div>
       </div>
     );
   }
