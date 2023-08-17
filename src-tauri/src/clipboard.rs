@@ -39,26 +39,28 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 let curr_stack = state.get_curr_stack();
 
-                let packet = state.store.add(
-                    &line.as_bytes(),
-                    MimeType::TextPlain,
-                    curr_stack,
-                    None,
-                );
-
-                state.view.merge(packet);
-
-                /*
-                if types.contains_key("public.utf8-plain-text") {
+                let packet = if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
-                    state.add_content(source, curr_stack, MimeType::TextPlain, &content);
-                    app.emit_all("refresh-items", true).unwrap();
-
+                    Some(
+                        state
+                            .store
+                            .add(&content, MimeType::TextPlain, curr_stack, source),
+                    )
                 } else if types.contains_key("public.png") {
                     let content = b64decode(types["public.png"].as_str().unwrap());
-                    state.add_content(source, curr_stack, MimeType::ImagePng, &content);
+                    Some(
+                        state
+                            .store
+                            .add(&content, MimeType::ImagePng, curr_stack, source),
+                    )
+                } else {
+                    None
+                };
+
+                if let Some(packet) = packet {
+                    state.view.merge(packet);
                 }
-                */
+
                 app.emit_all("refresh-items", true).unwrap();
             }
         }

@@ -146,6 +146,7 @@ impl View {
                 .map(|item| item.last_touched)
                 .unwrap_or_default()
         });
+        children.reverse();
         children
     }
 }
