@@ -35,12 +35,9 @@ const renderItems = (
   </div>
 );
 
-export function Nav(
-  { stack, preview }: {
-    stack: Stack;
-    preview: string | undefined;
-  },
-) {
+export function Nav({ stack }: { stack: Stack }) {
+  const preview = stack.item.value?.id;
+
   const theRef = useRef<HTMLDivElement>(null);
 
   let focusSelectedTimeout: number | undefined;

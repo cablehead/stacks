@@ -191,7 +191,7 @@ export function App() {
             padding-right:1ch;
             position: relative;
         ">
-              <Nav stack={stack}  preview={stack.item.value?.id} />
+              <Nav stack={stack} />
 
               <MetaPanel stack={stack} />
 
