@@ -229,6 +229,14 @@ function Preview({ stack }: { stack: Stack }) {
         <br />
         <br />
         Stack: {item.children.length}
+
+        <div>
+          {item.children.map((child_id) => {
+            const child = stack.state.value.items[child_id];
+            const meta = stack.getContentMeta(child);
+            return meta;
+          }).map((meta) => <div>{meta.terse}</div>)}
+        </div>
       </div>
     );
   }
