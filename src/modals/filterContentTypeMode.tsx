@@ -8,7 +8,7 @@ import { Modes } from "./types";
 import { Stack } from "../types";
 
 const state = (() => {
-  const options = ["All", "Stacks", "Links", "Images"];
+  const options = ["All", "Links", "Images"];
   const selected = signal(0);
   const normalizedSelected = computed(() => {
     let val = selected.value % (options.length);
