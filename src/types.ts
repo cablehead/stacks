@@ -177,7 +177,14 @@ export class Stack {
   selectRight(): void {
     const currentItem = this.state.value.items[this.selected.value.curr(this)];
     if (currentItem.children.length > 0) {
-      this.selected.value = Focus.id(currentItem.children[0]);
+      const lastSelectedChild = this.lastSelected.get(currentItem.id);
+      if (
+        lastSelectedChild && currentItem.children.includes(lastSelectedChild)
+      ) {
+        this.selected.value = Focus.id(lastSelectedChild);
+      } else {
+        this.selected.value = Focus.id(currentItem.children[0]);
+      }
     }
   }
 
