@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { ContentMeta, Item, Stack, Focus } from "../types";
+import { ContentMeta, Focus, Item, Stack } from "../types";
 
 export function Parent({ stack }: { stack: Stack }) {
   const theRef = useRef<HTMLDivElement>(null);
@@ -157,12 +157,10 @@ const TerseRow = forwardRef<
       <div
         ref={ref}
         className={"terserow" +
-          /*
-          (index === stack.normalizedSelected.value
-            ? (currStack.value === stack ? " highlight" : " selected")
-            : "")
-          */
-          ""}
+          (stack.selected.value.curr(stack) === item.id
+            // ? (currStack.value === stack ? " highlight" : " selected")
+            ? " highlight"
+            : "")}
         onMouseDown={() => {
           stack.selected.value = Focus.id(item.id);
         }}
@@ -225,12 +223,14 @@ function Preview({ stack }: { stack: Stack }) {
   }
 
   if (!item.stack_id) {
-    return <div>
-    {meta.terse}
-    <br/>
-    <br/>
-    Stack: {item.children.length}
-    </div>;
+    return (
+      <div>
+        {meta.terse}
+        <br />
+        <br />
+        Stack: {item.children.length}
+      </div>
+    );
   }
 
   return (

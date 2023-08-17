@@ -3,7 +3,8 @@ use tauri::Manager;
 
 use serde_json::Value;
 
-use crate::state::{SharedState};
+use crate::state::SharedState;
+use crate::store::MimeType;
 
 use base64::{engine::general_purpose, Engine as _};
 fn b64decode(encoded: &str) -> Vec<u8> {
@@ -38,6 +39,15 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 let curr_stack = state.get_curr_stack();
 
+                let packet = state.store.add(
+                    &line.as_bytes(),
+                    MimeType::TextPlain,
+                    curr_stack,
+                    None,
+                );
+
+                state.view.merge(packet);
+
                 /*
                 if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
@@ -49,7 +59,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                     state.add_content(source, curr_stack, MimeType::ImagePng, &content);
                 }
                 */
-                    app.emit_all("refresh-items", true).unwrap();
+                app.emit_all("refresh-items", true).unwrap();
             }
         }
     });
