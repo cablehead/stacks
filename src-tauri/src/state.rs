@@ -220,7 +220,7 @@ mod tests {
         assert_view_as_expected(
             &store,
             &view,
-            vec![("Stack 1", vec!["Item 1", "Item 1 - forked"])],
+            vec![("Stack 1", vec!["Item 1 - forked", "Item 1"])],
         );
     }
 
@@ -247,7 +247,7 @@ mod tests {
         assert_view_as_expected(
             &store,
             &view,
-            vec![("Stack 1", vec![]), ("Stack 2", vec!["Item 1"])],
+            vec![("Stack 2", vec!["Item 1"]), ("Stack 1", vec![])],
         );
     }
 
@@ -300,8 +300,8 @@ mod tests {
             &store,
             &view,
             vec![
-                ("Stack 1", vec!["Item 1", "Item 2"]),
-                ("Stack 2", vec!["Item 1", "Item 2"]),
+                ("Stack 2", vec!["Item 2", "Item 1"]),
+                ("Stack 1", vec!["Item 2", "Item 1"]),
             ],
         );
 
@@ -327,8 +327,8 @@ mod tests {
             &store,
             &view,
             vec![
-                ("Stack 1", vec!["Item 1", "Item 2"]),
-                ("Stack 2", vec!["Item 1", "Item 2"]),
+                ("Stack 2", vec!["Item 2", "Item 1"]),
+                ("Stack 1", vec!["Item 2", "Item 1"]),
             ],
         );
     }
@@ -371,7 +371,7 @@ mod tests {
         assert_view_as_expected(
             &state.store,
             &state.view,
-            vec![("Stack 1", vec!["Item 1", "Item 2"])],
+            vec![("Stack 1", vec!["Item 2", "Item 1"])],
         );
 
         let root = state.view.root();
@@ -385,4 +385,39 @@ mod tests {
         let got = serde_json::to_string(&state).unwrap();
         println!("{}", got);
     }
+
+    /*
+    #[test]
+    fn test_no_duplicate_entry_on_same_hash() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+
+        let mut state = State::new(path);
+
+        let stack_id = state
+            .store
+            .add(b"Stack 1", MimeType::TextPlain, None, None)
+            .id();
+        let id1 = state
+            .store
+            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+
+        // Add second item with same hash
+        let id2 = state
+            .store
+            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
+            .id();
+
+        state.store.scan().for_each(|p| state.view.merge(p));
+
+        // Check that the stack item only has one child and that the item has been updated correctly
+        assert_view_as_expected(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
+
+        // Check that the item has been updated correctly
+        let item = state.view.items.get(&id1).unwrap();
+        assert_eq!(item.touched, vec![id1, id2]);
+        assert_eq!(item.last_touched, id2);
+    }
+    */
 }
