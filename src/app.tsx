@@ -64,14 +64,13 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.toggle(stack, actionsMode);
       return;
 
-    case (event.shiftKey && event.key === "Tab") ||
-      (event.ctrlKey && event.key === "h"): {
+    case (event.ctrlKey && event.key === "h") || event.key === "ArrowLeft": {
       event.preventDefault();
       stack.selectLeft();
       return;
     }
 
-    case event.ctrlKey && event.key === "l": {
+    case event.ctrlKey && event.key === "l" || event.key === "ArrowRight": {
       event.preventDefault();
       stack.selectRight();
       return;
@@ -79,6 +78,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case event.key === "Tab": {
       event.preventDefault();
+      return;
 
       /*
       if (stack.parent) return;
