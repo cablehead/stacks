@@ -192,15 +192,20 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
     const childrenItems = item.children.map((childId) =>
       stack.state.value.items[childId]
     );
-    const firstChildPreview = childrenItems[0] && (
-      <Preview stack={stack} item={childrenItems[0]} />
+
+    const lastSelectedChildId = stack.lastSelected.get(item.id);
+    const previewChild = lastSelectedChildId
+      ? stack.state.value.items[lastSelectedChildId]
+      : childrenItems[0];
+    const previewChildPreview = previewChild && (
+      <Preview stack={stack} item={previewChild} />
     );
 
     return (
       <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-        {renderItems(stack, item.children, "20ch", item.children[0])}
+        {renderItems(stack, item.children, "20ch", previewChild.id)}
         <div style="flex: 3; overflow: auto; height: 100%">
-          {firstChildPreview}
+          {previewChildPreview}
         </div>
       </div>
     );

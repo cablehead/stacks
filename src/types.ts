@@ -127,6 +127,7 @@ export class Stack {
   selected: Signal<Focus>;
   normalizedSelected: Signal<string>;
   item: Signal<Item | undefined>;
+  lastSelected: Map<Scru128Id, Scru128Id> = new Map();
 
   constructor(initialState: State) {
     this.state = signal(initialState);
@@ -147,12 +148,20 @@ export class Stack {
     return this.state.value.content_meta[item.hash];
   }
 
+  select(id: Scru128Id): void {
+    const currentItem = this.state.value.items[this.selected.value.curr(this)];
+    if (currentItem.stack_id) {
+      this.lastSelected.set(currentItem.stack_id, id);
+    }
+    this.selected.value = Focus.id(id);
+  }
+
   selectUp(): void {
     const currentItem = this.state.value.items[this.selected.value.curr(this)];
     const peers = this.getPeers(currentItem);
     const currentIndex = peers.indexOf(currentItem.id);
     if (currentIndex > 0) {
-      this.selected.value = Focus.id(peers[currentIndex - 1]);
+      this.select(peers[currentIndex - 1]);
     }
   }
 
@@ -161,7 +170,7 @@ export class Stack {
     const peers = this.getPeers(currentItem);
     const currentIndex = peers.indexOf(currentItem.id);
     if (currentIndex < peers.length - 1) {
-      this.selected.value = Focus.id(peers[currentIndex + 1]);
+      this.select(peers[currentIndex + 1]);
     }
   }
 
