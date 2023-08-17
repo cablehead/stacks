@@ -73,15 +73,18 @@ export function Nav(
 
   const selectedId = stack.selected.value.curr(stack);
   const selectedItem = stack.state.value.items[selectedId];
-  const items = selectedItem.stack_id
-    ? selectedItem.children
-    : stack.state.value.root;
+
+  const parentItem = selectedItem.stack_id &&
+    stack.state.value.items[selectedItem.stack_id];
+
+  const items = parentItem ? parentItem.children : stack.state.value.root;
 
   const previewItem = preview && stack.state.value.items[preview];
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {selectedItem.stack_id && renderItems(stack, [selectedId], "8ch")}
+      {parentItem &&
+        renderItems(stack, stack.state.value.root, "8ch", parentItem.id)}
       {renderItems(stack, items, "20ch")}
       <div style="flex: 3; overflow: auto; height: 100%">
         {previewItem
