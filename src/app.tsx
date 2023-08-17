@@ -191,8 +191,10 @@ export function App() {
             padding-right:1ch;
             position: relative;
         ">
-              <Nav stack={stack} />
+              <Nav stack={stack}  preview={stack.item.value?.id} />
+
               <MetaPanel stack={stack} />
+
               {modes.isActive(addToStackMode) && (
                 <addToStackMode.Modal stack={stack} modes={modes} />
               )}

@@ -8,58 +8,33 @@ import { borderRight } from "../ui/app.css";
 
 import { ContentMeta, Focus, Item, Stack } from "../types";
 
-export function Parent({ stack }: { stack: Stack }) {
-  const theRef = useRef<HTMLDivElement>(null);
-
-  let focusSelectedTimeout: number | undefined;
-
-  function focusSelected(delay: number) {
-    if (focusSelectedTimeout !== undefined) {
-      return;
-    }
-
-    focusSelectedTimeout = window.setTimeout(() => {
-      focusSelectedTimeout = undefined;
-      if (theRef.current) {
-        // console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
-        /*
-        theRef.current.scrollIntoView({
-          block: "start",
-        });
-        */
-      }
-    }, delay);
-  }
-
-  useEffect(() => {
-    focusSelected(100);
-  }, []);
-
-  return (
-    <div
-      className={borderRight}
-      style="
+const renderItems = (stack: Stack, items: string[], maxWidth: string) => (
+  <div
+    className={borderRight}
+    style={`
       flex: 1;
-      max-width: 8ch;
+      max-width: ${maxWidth};
       overflow-y: auto;
       padding-right: 0.5rem;
-    "
-    >
-      {stack.state.value.root.map((id) => stack.state.value.items[id])
-        .map((item) => {
-          return (
-            <TerseRow
-              ref={/* index === stack.normalizedSelected.value ? theRef :*/ null}
-              stack={stack}
-              item={item}
-            />
-          );
-        })}
-    </div>
-  );
-}
+    `}
+  >
+    {items.map((id) => stack.state.value.items[id])
+      .map((item) => (
+        <TerseRow
+          stack={stack}
+          item={item}
+          key={item.id}
+        />
+      ))}
+  </div>
+);
 
-export function Nav({ stack }: { stack: Stack }) {
+export function Nav(
+  { stack, preview }: {
+    stack: Stack;
+    preview: string | undefined;
+  },
+) {
   const theRef = useRef<HTMLDivElement>(null);
 
   let focusSelectedTimeout: number | undefined;
@@ -90,39 +65,20 @@ export function Nav({ stack }: { stack: Stack }) {
     };
   }, []);
 
+  const selectedId = stack.selected.value.curr(stack);
+  const selectedItem = stack.state.value.items[selectedId];
+  const items = selectedItem.stack_id ? selectedItem.children : stack.state.value.root;
+
+  const previewItem = preview && stack.state.value.items[preview];
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {false && <Parent stack={stack} />}
-      <div
-        className={borderRight}
-        style="
-      flex: 1;
-      max-width: 20ch;
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    "
-      >
-        {stack.state.value.root.map((id) => stack.state.value.items[id])
-          .map((item, index) => {
-            return (
-              <TerseRow
-                stack={stack}
-                item={item}
-                ref={/* index === stack.normalizedSelected.value ? theRef : */ null}
-                key={index}
-              />
-            );
-          })}
-      </div>
-
+      {selectedItem.stack_id && renderItems(stack, [selectedId], "8ch")}
+      {renderItems(stack, items, "20ch")}
       <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} />
-
-        {
-          /*stack.items.value.length > 0
-          ? <Preview stack={stack} />
-          : <i>no matches</i> */
-        }
+        {previewItem
+          ? <Preview stack={stack} item={previewItem} />
+          : <i>no matches</i>}
       </div>
     </div>
   );
@@ -200,10 +156,9 @@ const TerseRow = forwardRef<
   },
 );
 
-function Preview({ stack }: { stack: Stack }) {
-  const item = stack.item.value;
-  const content = stack.content?.value;
-  if (!item || !content) return <div>loading...</div>;
+function Preview({ stack, item }: { stack: Stack; item: Item }) {
+  const content = stack.getContent(item.hash).value;
+  if (!content) return <div>loading...</div>;
   const meta = stack.getContentMeta(item);
 
   if (meta.mime_type === "image/png") {
@@ -223,20 +178,17 @@ function Preview({ stack }: { stack: Stack }) {
   }
 
   if (!item.stack_id) {
-    return (
-      <div>
-        {meta.terse}
-        <br />
-        <br />
-        Stack: {item.children.length}
+    const childrenItems = item.children.map((childId) =>
+      stack.state.value.items[childId]
+    );
+    const firstChildPreview = childrenItems[0] && (
+      <Preview stack={stack} item={childrenItems[0]} />
+    );
 
-        <div>
-          {item.children.map((child_id) => {
-            const child = stack.state.value.items[child_id];
-            const meta = stack.getContentMeta(child);
-            return meta;
-          }).map((meta) => <div>{meta.terse}</div>)}
-        </div>
+    return (
+      <div style="flex: 3; overflow: auto; height: 100%">
+        {renderItems(stack, item.children, "20ch")}
+        {firstChildPreview}
       </div>
     );
   }

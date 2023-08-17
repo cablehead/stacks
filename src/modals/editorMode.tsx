@@ -6,7 +6,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { Stack, Item } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -53,7 +53,9 @@ export default {
       }
     }, []);
 
-    const content = stack.content?.value || "";
+    const item = stack.item.value as Item;
+
+    const content = stack.getContent(item.hash).value || "";
 
     return (
       <div

@@ -136,8 +136,9 @@ function MetaInfoRow(meta: MetaValue) {
 
 export function MetaPanel({ stack }: { stack: Stack }) {
   const item = stack.item.value;
-  const content = stack.content?.value;
-  if (!item || !content) return <></>;
+  if (!item) return <></>;
+  const content = stack.getContent(item.hash).value;
+  if (!content) return <></>;
 
   return (
     <div

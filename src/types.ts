@@ -157,11 +157,8 @@ export class Stack {
     });
   }
 
-  get content(): undefined | Signal<string | undefined> {
-    if (this.item.value) {
-      return CAS.getSignal(this.item.value.hash);
-    }
-    return undefined;
+  getContent(hash: SSRI): Signal<string | undefined> {
+    return CAS.getSignal(hash);
   }
 
   getContentMeta(item: Item): ContentMeta {

@@ -1,8 +1,8 @@
 // import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/shell";
+// import { open } from "@tauri-apps/api/shell";
 // import { hide } from "tauri-plugin-spotlight-api";
 
-import { b64ToUtf8 } from "./utils";
+// import { b64ToUtf8 } from "./utils";
 
 import { editorMode, modes, pipeMode } from "./modals";
 
@@ -55,10 +55,10 @@ export const actions: Action[] = [
     keys: [<Icon name="IconCommandKey" />, "O"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
-    trigger: (stack: Stack) => {
-      const content = stack.content?.value;
-      console.log("OPEN", content);
-      if (content) open(b64ToUtf8(content));
+    trigger: (_: Stack) => {
+      // const content = stack.content?.value;
+      // console.log("OPEN", content);
+      // if (content) open(b64ToUtf8(content));
     },
     canApply: (_: Stack) => false,
   },
