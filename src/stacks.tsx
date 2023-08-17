@@ -4,13 +4,15 @@ import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Stack} from "./types";
+import { Stack } from "./types";
 
 export const currStack: Signal<Stack | null> = signal(null);
 
-invoke<string>("store_list_items", {filter: "", contentType: ""}).then((state) => {
-  currStack.value = new Stack(JSON.parse(state));
-});
+invoke<string>("store_list_items", { filter: "", contentType: "" }).then(
+  (state) => {
+    currStack.value = new Stack(JSON.parse(state));
+  },
+);
 
 function debounce<T>(
   this: T,
@@ -42,7 +44,9 @@ const innerUpdateItems = async (stack: Stack) => {
   // const currItem = stack.item.peek()?.hash;
 
   // Set the new list of items from the backend
-  stack.state.value = JSON.parse(await invoke<string>("store_list_items", args));
+  stack.state.value = JSON.parse(
+    await invoke<string>("store_list_items", args),
+  );
   console.log("store_list_items", stack.state.value);
 };
 
@@ -51,9 +55,9 @@ const updateItems = debounce(innerUpdateItems, 50);
 let d1: (() => void) | undefined;
 
 async function initRefresh() {
-  if (!currStack.value) return;
-  const stack = currStack.value;
   d1 = await listen("refresh-items", () => {
+    if (!currStack.value) return;
+    const stack = currStack.value;
     updateItems(stack);
   });
 }

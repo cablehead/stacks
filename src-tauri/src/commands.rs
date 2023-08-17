@@ -87,7 +87,7 @@ pub fn store_list_items(
 ) -> String {
     let state = state.lock().unwrap();
     let ret = serde_json::to_string(&*state).unwrap();
-    println!("store_list_items:\n{}\n", &ret);
+    println!("store_list_items:\n{}\n", &ret.len());
     ret
 }
 
