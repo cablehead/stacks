@@ -8,7 +8,12 @@ import { borderRight } from "../ui/app.css";
 
 import { ContentMeta, Focus, Item, Stack } from "../types";
 
-const renderItems = (stack: Stack, items: string[], maxWidth: string) => (
+const renderItems = (
+  stack: Stack,
+  items: string[],
+  maxWidth: string,
+  selectedId?: string,
+) => (
   <div
     className={borderRight}
     style={`
@@ -24,6 +29,7 @@ const renderItems = (stack: Stack, items: string[], maxWidth: string) => (
           stack={stack}
           item={item}
           key={item.id}
+          selectedId={selectedId}
         />
       ))}
   </div>
@@ -67,7 +73,9 @@ export function Nav(
 
   const selectedId = stack.selected.value.curr(stack);
   const selectedItem = stack.state.value.items[selectedId];
-  const items = selectedItem.stack_id ? selectedItem.children : stack.state.value.root;
+  const items = selectedItem.stack_id
+    ? selectedItem.children
+    : stack.state.value.root;
 
   const previewItem = preview && stack.state.value.items[preview];
 
@@ -104,19 +112,17 @@ const RowIcon = ({ contentMeta }: { contentMeta: ContentMeta }) => {
 
 const TerseRow = forwardRef<
   HTMLDivElement,
-  { stack: Stack; item: Item }
+  { stack: Stack; item: Item; selectedId?: string }
 >(
-  ({ stack, item }, ref) => {
+  ({ stack, item, selectedId }, ref) => {
     const meta = stack.getContentMeta(item);
 
     return (
       <div
         ref={ref}
         className={"terserow" +
-          (stack.selected.value.curr(stack) === item.id
-            // ? (currStack.value === stack ? " highlight" : " selected")
-            ? " highlight"
-            : "")}
+          (stack.selected.value.curr(stack) === item.id ? " highlight" : "") +
+          (item.id === selectedId ? " selected" : "")}
         onMouseDown={() => {
           stack.selected.value = Focus.id(item.id);
         }}
@@ -187,7 +193,7 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
 
     return (
       <div style="flex: 3; overflow: auto; height: 100%">
-        {renderItems(stack, item.children, "20ch")}
+        {renderItems(stack, item.children, "20ch", item.children[0])}
         {firstChildPreview}
       </div>
     );
