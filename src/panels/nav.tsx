@@ -6,7 +6,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Focus, Item, Stack } from "../types";
+import { Item, Stack } from "../types";
 
 const renderItems = (
   stack: Stack,
@@ -92,7 +92,7 @@ export function Nav({ stack }: { stack: Stack }) {
   );
 }
 
-const RowIcon = ({ stack, item }: { stack: Stack, item: Item }) => {
+const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
   if (!item.stack_id) return <Icon name="IconStack" />;
 
   const contentMeta = stack.getContentMeta(item);
@@ -125,7 +125,7 @@ const TerseRow = forwardRef<
           (stack.selected.value.curr(stack) === item.id ? " highlight" : "") +
           (item.id === selectedId ? " selected" : "")}
         onMouseDown={() => {
-          stack.selected.value = Focus.id(item.id);
+          stack.select(item.id);
         }}
         style="
           display: flex;

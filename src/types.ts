@@ -149,9 +149,9 @@ export class Stack {
   }
 
   select(id: Scru128Id): void {
-    const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    if (currentItem.stack_id) {
-      this.lastSelected.set(currentItem.stack_id, id);
+    const targetItem = this.state.value.items[id];
+    if (targetItem.stack_id) {
+      this.lastSelected.set(targetItem.stack_id, id);
     }
     this.selected.value = Focus.id(id);
   }
