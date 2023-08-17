@@ -4,11 +4,16 @@ import { computed, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
+const Scru128IdBrand = Symbol("Scru128Id");
+export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
+const SSRIBrand = Symbol("SSRI");
+export type SSRI = string & { readonly brand: typeof SSRIBrand };
+
 export interface Item {
-  id: string;
+  id: Scru128Id;
   last_touched: string;
   touched: string[];
-  hash: string;
+  hash: SSRI;
   stack_id: string | null;
   children: string[];
 }
@@ -35,9 +40,9 @@ enum FocusType {
 
 export class Focus {
   type: FocusType;
-  id: string;
+  id?: Scru128Id;
 
-  constructor(type: FocusType, id: string = "") {
+  constructor(type: FocusType, id?: Scru128Id) {
     this.type = type;
     this.id = id;
   }
@@ -46,7 +51,7 @@ export class Focus {
     return new Focus(FocusType.FIRST);
   }
 
-  static index(id: string): Focus {
+  static index(id: Scru128Id): Focus {
     return new Focus(FocusType.ID, id);
   }
 
@@ -75,7 +80,7 @@ export class Focus {
   */
 
   curr(stack: Stack) {
-    if (this.type === FocusType.FIRST) {
+    if (!this.id || this.type === FocusType.FIRST) {
       return stack.state.value.root[0];
     }
     return this.id;
@@ -86,7 +91,7 @@ export const CAS = (() => {
   const cache: Map<string, string> = new Map();
   const signalCache: Map<string, Signal<string>> = new Map();
 
-  async function get(hash: string): Promise<string> {
+  async function get(hash: SSRI): Promise<string> {
     const cachedItem = cache.get(hash);
     if (cachedItem !== undefined) {
       return cachedItem;
@@ -96,7 +101,7 @@ export const CAS = (() => {
     return content;
   }
 
-  function getSignal(hash: string): Signal<string> {
+  function getSignal(hash: SSRI): Signal<string> {
     const cachedSignal = signalCache.get(hash);
     if (cachedSignal !== undefined) {
       return cachedSignal;
@@ -146,6 +151,7 @@ export class Stack {
     this.filter = createFilter();
     this.selected = signal(Focus.first());
     this.normalizedSelected = signal("");
+
     this.item = computed((): Item | undefined => {
       return this.state.value.items[this.selected.value.curr(this)];
     });
