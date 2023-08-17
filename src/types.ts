@@ -14,8 +14,8 @@ export interface Item {
   last_touched: string;
   touched: string[];
   hash: SSRI;
-  stack_id: string | null;
-  children: string[];
+  stack_id: Scru128Id | null;
+  children: Scru128Id[];
 }
 
 export interface ContentMeta {
@@ -27,7 +27,7 @@ export interface ContentMeta {
 }
 
 export interface State {
-  root: string[];
+  root: Scru128Id[];
   items: { [id: string]: Item };
   content_meta: { [key: string]: ContentMeta };
   matches: string[];
@@ -58,24 +58,6 @@ export class Focus {
   /*
   isFocusFirst(): boolean {
     return this.type === FocusType.FIRST;
-  }
-
-  down() {
-    if (this.type === FocusType.FIRST) {
-      return Focus.index(1);
-    } else if (this.type === FocusType.ID) {
-      return Focus.index(this.n + 1);
-    }
-    return this;
-  }
-
-  up() {
-    if (this.type === FocusType.FIRST) {
-      return Focus.index(-1);
-    } else if (this.type === FocusType.ID) {
-      return Focus.index(this.n - 1);
-    }
-    return this;
   }
   */
 
@@ -163,6 +145,30 @@ export class Stack {
 
   getContentMeta(item: Item): ContentMeta {
     return this.state.value.content_meta[item.hash];
+  }
+
+  selectUp(): void {
+    const currentItem = this.state.value.items[this.selected.value.curr(this)];
+    const peers = this.getPeers(currentItem);
+    const currentIndex = peers.indexOf(currentItem.id);
+    if (currentIndex > 0) {
+      this.selected.value = Focus.id(peers[currentIndex - 1]);
+    }
+  }
+
+  selectDown(): void {
+    const currentItem = this.state.value.items[this.selected.value.curr(this)];
+    const peers = this.getPeers(currentItem);
+    const currentIndex = peers.indexOf(currentItem.id);
+    if (currentIndex < peers.length - 1) {
+      this.selected.value = Focus.id(peers[currentIndex + 1]);
+    }
+  }
+
+  getPeers(item: Item): Scru128Id[] {
+    return item.stack_id
+      ? this.state.value.items[item.stack_id].children
+      : this.state.value.root;
   }
 }
 

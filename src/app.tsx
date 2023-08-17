@@ -121,12 +121,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      // stack.selected.value = stack.selected.value.down();
+      stack.selectDown();
       return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      // stack.selected.value = stack.selected.value.up();
+      stack.selectUp();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
