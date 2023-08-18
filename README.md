@@ -72,41 +72,14 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-It's a schema release again.
-
-Moving away from hash based identity. scru128's will be the core id.
-
-What commands will we need?
-
-What do we have?
-
-- hash -> item
-- the hash is the id of the item
-
-So that'll have to change to
-
-id -> item.id
-
-Item types:
-
-- Stack
-    - stack: for the moment all of type Content
-- Content: MimeType, Text / Image / Link
-
-Each source of a content hash actually gets a unique id: You should be able to
-get to all the other instances of the same hash from a given id.
-
-When you edit content:
-    - link to the original id
-    - if we replace that item, set source_id to that original's source_id (we're taking over the
-      source): this seems like a HEAD in git?
-    - to fork: use a new source_id: instantiates a new item (introduces a new head?)
-
-A Stack contains a set of Item::Content
-
-- uses the source_id of the Content as the key: so if the edit command sets to
-  the source_id to another instance: when merge sees source_id == to that, it
-  updates the item in the Stack.
+- Show current selection in statusbar
+- Bring back triggerCopy
+- Edit a stack name
+- Edit an item
+- New items
+- Restore filter
+- Track focused Stack backend-side
+- New copies / notes go to the currently focused Stack
 
 ### Stretch
 
