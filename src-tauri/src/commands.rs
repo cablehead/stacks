@@ -1,9 +1,9 @@
-// use tauri::Manager;
+use tauri::Manager;
 
 use base64::{engine::general_purpose, Engine as _};
 
 use crate::state::SharedState;
-
+use crate::store::MimeType;
 
 /*
 #[derive(Debug, serde::Serialize)]
@@ -91,8 +91,6 @@ pub fn store_list_items(
     ret
 }
 
-/*
-
 use cocoa::base::nil;
 use cocoa::foundation::NSString;
 use objc::{msg_send, sel, sel_impl};
@@ -126,36 +124,28 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 pub fn store_copy_to_clipboard(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    stack_hash: Option<ssri::Integrity>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
     let mut state = state.lock().unwrap();
-    let mut frame = match state.store.get_frame(&source_id) {
-        Some(frame) => frame,
-        None => {
-            log::warn!("No frame found with id: {:?}", source_id);
-            return None;
-        }
-    };
-    let content = state.store.cat(&frame.hash)?;
 
-    let mime_type = match &frame.mime_type {
-        MimeType::TextPlain => "public.utf8-plain-text",
-        MimeType::ImagePng => "public.png",
-    };
+    if let Some(item) = state.view.items.get(&source_id) {
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
 
-    let change_num = write_to_clipboard(mime_type, &content)?;
-    state.skip_change_num = Some(change_num);
+        let mime_type = match &meta.mime_type {
+            MimeType::TextPlain => "public.utf8-plain-text",
+            MimeType::ImagePng => "public.png",
+        };
+        let content = state.store.cas_read(&item.hash).unwrap();
 
-    frame.id = scru128::new();
-    frame.source = Some("stream.cross.stacks".into());
-    frame.stack_hash = stack_hash;
-    let packet = state.store.insert_frame(&frame);
-    state.merge(&packet);
-
-    app.emit_all("refresh-items", true).unwrap();
-    Some(())
+        let _change_num = write_to_clipboard(&mime_type, &content);
+        app.emit_all("refresh-items", true).unwrap();
+        Some(())
+    } else {
+        None
+    }
 }
+
+/*
 
 #[tauri::command]
 pub fn store_capture(

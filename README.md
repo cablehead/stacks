@@ -72,7 +72,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Bring back triggerCopy
+- When stacks restarts, check age of latest stack before creating a new one
 - Edit a stack name
 - Create a new stack
 - Edit an item

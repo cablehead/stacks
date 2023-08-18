@@ -20,7 +20,7 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { currStack, triggerCopy } from "./stacks";
+import { currStack } from "./stacks";
 
 import { default as theme } from "./theme";
 
@@ -34,7 +34,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
   switch (true) {
     case event.key === "Enter":
-      await triggerCopy();
+      await stack.triggerCopy();
       return;
 
     case event.key === "Escape":

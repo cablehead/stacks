@@ -3,6 +3,7 @@ import { JSXInternal } from "preact/src/jsx";
 import { computed, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
+import { hide } from "tauri-plugin-spotlight-api";
 
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
@@ -138,6 +139,15 @@ export class Stack {
     this.item = computed((): Item | undefined => {
       return this.state.value.items[this.selected.value.curr(this)];
     });
+  }
+
+  async triggerCopy() {
+    const item = this.item.value;
+    if (!item) return;
+    await invoke("store_copy_to_clipboard", {
+      sourceId: item.id,
+    });
+    hide();
   }
 
   getContent(hash: SSRI): Signal<string | undefined> {

@@ -44,7 +44,7 @@ impl Serialize for State {
             .collect();
         s.serialize_field("items", &serialized_items)?;
 
-        s.serialize_field("content_meta", &self.store.get_content_meta())?;
+        s.serialize_field("content_meta", &self.store.scan_content_meta())?;
         s.serialize_field(
             "matches",
             &std::collections::HashSet::<ssri::Integrity>::new(),

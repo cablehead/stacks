@@ -53,7 +53,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
             commands::store_list_items,
-            // commands::store_copy_to_clipboard,
+            commands::store_copy_to_clipboard,
             // commands::store_capture,
             // commands::store_delete,
             commands::store_set_current_stack,

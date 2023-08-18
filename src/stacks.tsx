@@ -1,6 +1,5 @@
 import { effect, Signal, signal } from "@preact/signals";
 
-import { hide } from "tauri-plugin-spotlight-api";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -83,17 +82,6 @@ effect(() => {
 });
 */
 
-export async function triggerCopy() {
-  /*
-  const item = currStack.value.item.value;
-  if (!item) return;
-  await invoke("store_copy_to_clipboard", {
-    sourceId: item.id,
-    stackHash: currStack.value.parent?.item.value?.hash,
-  });
-  */
-  hide();
-}
 
 if (import.meta.hot) {
   import.meta.hot.accept(() => {});

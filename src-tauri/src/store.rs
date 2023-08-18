@@ -153,7 +153,7 @@ impl Index {
 
 pub struct Store {
     packets: sled::Tree,
-    content_meta: sled::Tree,
+    pub content_meta: sled::Tree,
     cache_path: String,
     pub index: Index,
 }
@@ -174,7 +174,7 @@ impl Store {
         }
     }
 
-    pub fn get_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
+    pub fn scan_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
         let mut content_meta_cache = std::collections::HashMap::new();
         for item in self.content_meta.iter() {
             if let Ok((key, value)) = item {
@@ -186,6 +186,11 @@ impl Store {
             }
         }
         content_meta_cache
+    }
+
+    pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
+        let content_meta_cache = self.scan_content_meta();
+        content_meta_cache.get(&hash).cloned()
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {

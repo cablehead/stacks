@@ -6,7 +6,6 @@ import { default as actionsMode } from "./actionsMode";
 // import { default as addToStackMode } from "./addToStackMode";
 
 import { Stack } from "../types";
-import { triggerCopy } from "../stacks";
 
 import { actions } from "../actions";
 
@@ -67,7 +66,7 @@ export default {
       name: "Copy",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
-        triggerCopy();
+        stack.triggerCopy();
       },
     });
 
