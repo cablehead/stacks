@@ -386,7 +386,6 @@ mod tests {
         println!("{}", got);
     }
 
-    /*
     #[test]
     fn test_no_duplicate_entry_on_same_hash() {
         let dir = tempfile::tempdir().unwrap();
@@ -419,5 +418,4 @@ mod tests {
         assert_eq!(item.touched, vec![id1, id2]);
         assert_eq!(item.last_touched, id2);
     }
-    */
 }

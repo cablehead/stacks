@@ -36,6 +36,29 @@ impl View {
     pub fn merge(&mut self, packet: Packet) {
         match packet {
             Packet::Add(packet) => {
+                // Check if an item with the same hash already exists in the same stack
+                if let Some(stack_id) = packet.stack_id {
+                    if let Some(stack) = self.items.get(&stack_id) {
+                        let children = stack.children.clone();
+                        for child_id in children {
+                            if let Some(child) = self.items.get_mut(&child_id) {
+                                if child.hash == packet.hash {
+                                    // If it exists, update it
+                                    child.touched.push(packet.id);
+                                    child.last_touched = packet.id;
+                                    if let Some(stack) =
+                                        child.stack_id.and_then(|id| self.items.get_mut(&id))
+                                    {
+                                        stack.last_touched = packet.id;
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // If it doesn't exist, add it
                 let item = Item {
                     id: packet.id,
                     last_touched: packet.id,
