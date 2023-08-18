@@ -137,16 +137,19 @@ const TerseRow = forwardRef<
           cursor: pointer;
           "
       >
-        <div
-          style={{
-            flexShrink: 0,
-            width: "2ch",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-        >
-          <RowIcon stack={stack} item={item} />
-        </div>
+        {item.stack_id &&
+          (
+            <div
+              style={{
+                flexShrink: 0,
+                width: "2ch",
+                whiteSpace: "nowrap",
+                overflow: "hidden",
+              }}
+            >
+              <RowIcon stack={stack} item={item} />
+            </div>
+          )}
 
         <div
           style={{
