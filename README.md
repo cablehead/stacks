@@ -72,9 +72,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Show current selection in statusbar
 - Bring back triggerCopy
 - Edit a stack name
+- Create a new stack
 - Edit an item
 - New items
 - Restore filter

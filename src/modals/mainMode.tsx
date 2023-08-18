@@ -11,12 +11,16 @@ import { triggerCopy } from "../stacks";
 import { actions } from "../actions";
 
 export default {
-  name: (_: Stack): string => { 
-      /*
-      const parent = stack.parent?.item.value?.terse; 
-      return parent ? parent.substring(0, 20) : "";
-      */
-      return "Hello Stacks";
+  name: (stack: Stack): string => {
+    let item = stack.item.value;
+    if (!item) return "";
+
+    if (item.stack_id !== null) {
+      item = stack.state.value.items[item.stack_id];
+    }
+
+    const contentMeta = stack.getContentMeta(item);
+    return contentMeta?.terse || "";
   },
   hotKeys: (stack: Stack, modes: Modes) => {
     let ret = [];
