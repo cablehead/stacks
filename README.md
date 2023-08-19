@@ -72,7 +72,8 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Scroll selected item into view
+- Perserve scroll when entering a stack
+
 - Edit a stack name
 - Create a new stack
 - Edit an item

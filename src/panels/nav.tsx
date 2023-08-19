@@ -1,4 +1,3 @@
-import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
 
 import { b64ToUtf8 } from "../utils";
@@ -37,36 +36,6 @@ const renderItems = (
 
 export function Nav({ stack }: { stack: Stack }) {
   const preview = stack.item.value?.id;
-
-  const theRef = useRef<HTMLDivElement>(null);
-
-  let focusSelectedTimeout: number | undefined;
-  function focusSelected(delay: number) {
-    clearTimeout(focusSelectedTimeout);
-    focusSelectedTimeout = window.setTimeout(() => {
-      if (theRef.current) {
-        console.log("STACK: SCROLL INTO VIEW");
-        theRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
-    }, delay);
-  }
-
-  useEffect(() => {
-    focusSelected(10);
-  }, [theRef.current, stack.selected.value]);
-
-  useEffect(() => {
-    const onFocus = () => {
-      focusSelected(100);
-    };
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
 
   const selectedId = stack.selected.value.curr(stack);
   const selectedItem = stack.state.value.items[selectedId];
@@ -111,23 +80,38 @@ const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
-const TerseRow = forwardRef<
-  HTMLDivElement,
-  { stack: Stack; item: Item; selectedId?: string }
->(
-  ({ stack, item, selectedId }, ref) => {
-    const meta = stack.getContentMeta(item);
+const TerseRow = (
+  { stack, item, selectedId }: {
+    stack: Stack;
+    item: Item;
+    selectedId?: string;
+  },
+) => {
+  const theRef = useRef<HTMLDivElement>(null);
+  const isSelected = stack.selected.value.curr(stack) === item.id;
 
-    return (
-      <div
-        ref={ref}
-        className={"terserow" +
-          (stack.selected.value.curr(stack) === item.id ? " highlight" : "") +
-          (item.id === selectedId ? " selected" : "")}
-        onMouseDown={() => {
-          stack.select(item.id);
-        }}
-        style="
+  useEffect(() => {
+    if (isSelected && theRef.current) {
+      console.log("STACK: SCROLL INTO VIEW");
+      theRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isSelected, theRef.current]);
+
+  const meta = stack.getContentMeta(item);
+
+  return (
+    <div
+      ref={theRef}
+      className={"terserow" +
+        (stack.selected.value.curr(stack) === item.id ? " highlight" : "") +
+        (item.id === selectedId ? " selected" : "")}
+      onMouseDown={() => {
+        stack.select(item.id);
+      }}
+      style="
           display: flex;
           width: 100%;
           gap: 0.5ch;
@@ -136,35 +120,34 @@ const TerseRow = forwardRef<
           border-radius: 6px;
           cursor: pointer;
           "
-      >
-        {item.stack_id &&
-          (
-            <div
-              style={{
-                flexShrink: 0,
-                width: "2ch",
-                whiteSpace: "nowrap",
-                overflow: "hidden",
-              }}
-            >
-              <RowIcon stack={stack} item={item} />
-            </div>
-          )}
+    >
+      {item.stack_id &&
+        (
+          <div
+            style={{
+              flexShrink: 0,
+              width: "2ch",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            <RowIcon stack={stack} item={item} />
+          </div>
+        )}
 
-        <div
-          style={{
-            flexGrow: 1,
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-            textOverflow: "ellipsis",
-          }}
-        >
-          {meta.terse}
-        </div>
+      <div
+        style={{
+          flexGrow: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {meta.terse}
       </div>
-    );
-  },
-);
+    </div>
+  );
+};
 
 function Preview({ stack, item }: { stack: Stack; item: Item }) {
   const content = stack.getContent(item.hash).value;
