@@ -72,7 +72,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- When stacks restarts, check age of latest stack before creating a new one
+- Scroll selected item into view
 - Edit a stack name
 - Create a new stack
 - Edit an item

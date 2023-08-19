@@ -62,6 +62,7 @@ impl State {
             curr_stack: None,
         };
         state.store.scan().for_each(|p| state.view.merge(p));
+        state.curr_stack = state.view.root().first().map(|item| item.id);
         state
     }
 
