@@ -83,6 +83,7 @@ CURRENTLY HERE
 - Track focused Stack backend-side
 - New copies / notes go to the currently focused Stack
 - Bring back tiktoken count
+- Pipe to command
 
 
 ### Stretch

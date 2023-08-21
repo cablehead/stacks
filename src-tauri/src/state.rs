@@ -268,8 +268,15 @@ mod tests {
             .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
             .id();
 
+        let stack_id_2 = store.add(b"Stack 2", MimeType::TextPlain, None, None).id();
+        let _item_id_3 = store
+            .add(b"Item 3", MimeType::TextPlain, Some(stack_id_2), None)
+            .id();
+
         // User deletes the first item
         store.delete(item_id_1);
+        // User deletes the second stack
+        store.delete(stack_id_2);
 
         store.scan().for_each(|p| view.merge(p));
         assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["Item 2"])]);
