@@ -168,20 +168,19 @@ pub fn store_capture(
 
     app.emit_all("refresh-items", true).unwrap();
 }
+*/
 
 #[tauri::command]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    hash: ssri::Integrity,
-    stack_hash: Option<ssri::Integrity>,
+    id: scru128::Scru128Id,
 ) {
     let mut state = state.lock().unwrap();
-    let packet = state.store.delete(&hash, &stack_hash);
-    state.merge(&packet);
+    let packet = state.store.delete(id);
+    state.view.merge(packet);
     app.emit_all("refresh-items", true).unwrap();
 }
-*/
 
 //
 // Stack related commands

@@ -110,6 +110,9 @@ const renderItems = (
 
 export function Nav({ stack }: { stack: Stack }) {
   const selectedId = stack.selected.value.curr(stack);
+
+  console.log(selectedId);
+
   const selectedItem = stack.state.value.items[selectedId];
 
   if (!selectedItem) return <i>no matches</i>;

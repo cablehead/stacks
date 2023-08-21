@@ -1,4 +1,4 @@
-// import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/tauri";
 // import { open } from "@tauri-apps/api/shell";
 // import { hide } from "tauri-plugin-spotlight-api";
 
@@ -19,9 +19,9 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Enter",
     canApply: (_: Stack) => false,
-      // stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
+    // stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
     trigger: (_: Stack) => {
-        /*
+      /*
       let item = stack.item.value?.content_type === "Stack"
         ? stack.item.value
         : stack.parent?.item.value;
@@ -67,16 +67,11 @@ export const actions: Action[] = [
     keys: ["Ctrl", "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.ctrlKey && event.key === "Backspace",
-    canApply: (_: Stack) => false,
+    canApply: (stack: Stack) => !!stack.item.value,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
       if (item) {
-          /*
-        invoke("store_delete", {
-          hash: item.hash,
-          stackHash: stack.parent?.item.value?.hash,
-        });
-        */
+        invoke("store_delete", { id: item.id });
       }
     },
   },
@@ -89,7 +84,7 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => {
       const item = stack.item.value;
       if (item) {
-          /*
+        /*
         invoke("store_delete", {
           hash: item.hash,
           stackHash: stack.parent?.item.value?.hash,

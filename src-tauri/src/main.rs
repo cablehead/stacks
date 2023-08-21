@@ -55,7 +55,7 @@ fn main() {
             commands::store_list_items,
             commands::store_copy_to_clipboard,
             // commands::store_capture,
-            // commands::store_delete,
+            commands::store_delete,
             commands::store_set_current_stack,
             commands::store_list_stacks,
             // commands::store_add_to_stack,
