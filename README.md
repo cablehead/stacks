@@ -72,15 +72,18 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Perserve scroll when entering a stack
-
 - Edit a stack name
 - Create a new stack
+- Delete a stack
 - Edit an item
+    - When editting an item: " is messed up
 - New items
+- Delete an item
 - Restore filter
 - Track focused Stack backend-side
 - New copies / notes go to the currently focused Stack
+- Bring back tiktoken count
+
 
 ### Stretch
 

@@ -7,79 +7,6 @@ import { borderRight } from "../ui/app.css";
 
 import { Item, Stack } from "../types";
 
-const renderItems = (
-  stack: Stack,
-  items: string[],
-  maxWidth: string,
-  selectedId?: string,
-) => (
-  <div
-    className={borderRight}
-    style={`
-      flex: 1;
-      max-width: ${maxWidth};
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    `}
-  >
-    {items.map((id) => stack.state.value.items[id])
-      .map((item) => (
-        <TerseRow
-          stack={stack}
-          item={item}
-          key={item.id}
-          selectedId={selectedId}
-        />
-      ))}
-  </div>
-);
-
-export function Nav({ stack }: { stack: Stack }) {
-  const preview = stack.item.value?.id;
-
-  const selectedId = stack.selected.value.curr(stack);
-  const selectedItem = stack.state.value.items[selectedId];
-
-  const parentItem = selectedItem.stack_id &&
-    stack.state.value.items[selectedItem.stack_id];
-
-  const items = parentItem ? parentItem.children : stack.state.value.root;
-
-  const previewItem = preview && stack.state.value.items[preview];
-
-  return (
-    <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {parentItem &&
-        renderItems(stack, stack.state.value.root, "8ch", parentItem.id)}
-      {renderItems(stack, items, "20ch")}
-      <div style="flex: 3; overflow: auto; height: 100%">
-        {previewItem
-          ? <Preview stack={stack} item={previewItem} />
-          : <i>no matches</i>}
-      </div>
-    </div>
-  );
-}
-
-const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
-  if (!item.stack_id) return <Icon name="IconStack" />;
-
-  const contentMeta = stack.getContentMeta(item);
-
-  switch (contentMeta.content_type) {
-    case "Image":
-      return <Icon name="IconImage" />;
-
-    case "Link":
-      return <Icon name="IconLink" />;
-
-    case "Text":
-      return <Icon name="IconClipboard" />;
-  }
-
-  return <Icon name="IconBell" />;
-};
-
 const TerseRow = (
   { stack, item, selectedId }: {
     stack: Stack;
@@ -149,6 +76,107 @@ const TerseRow = (
   );
 };
 
+const renderItems = (
+  stack: Stack,
+  key: string,
+  items: string[],
+  maxWidth: string,
+  selectedId?: string,
+) => {
+  if (items.length == 0) return <i>no items</i>;
+  return (
+    <div
+      key={key}
+      className={borderRight}
+      style={`
+      flex: 1;
+      max-width: ${maxWidth};
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    `}
+    >
+      {items.map((id) => stack.state.value.items[id])
+        .map((item) => (
+          <TerseRow
+            stack={stack}
+            item={item}
+            key={item.id}
+            selectedId={selectedId}
+          />
+        ))}
+    </div>
+  );
+};
+
+export function Nav({ stack }: { stack: Stack }) {
+  const selectedId = stack.selected.value.curr(stack);
+  const selectedItem = stack.state.value.items[selectedId];
+
+  if (!selectedItem) return <i>no matches</i>;
+
+  const parentItem = selectedItem.stack_id &&
+    stack.state.value.items[selectedItem.stack_id];
+
+  if (!parentItem) {
+    const selectedChildId = stack.lastSelected.get(selectedId) ||
+      selectedItem.children[0];
+    const selectedChild = stack.state.value.items[selectedChildId];
+    return (
+      <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+        {renderItems(stack, "root", stack.state.value.root, "20ch", selectedId)}
+        {renderItems(
+          stack,
+          selectedId,
+          selectedItem.children,
+          "20ch",
+          selectedChildId,
+        )}
+        {selectedChild &&
+          (
+            <div style="flex: 3; overflow: auto; height: 100%">
+              <Preview stack={stack} item={selectedChild} />
+            </div>
+          )}
+      </div>
+    );
+  }
+
+  return (
+    <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+      {renderItems(stack, "root", stack.state.value.root, "8ch", parentItem.id)}
+      {renderItems(
+        stack,
+        parentItem.id,
+        parentItem.children,
+        "20ch",
+        selectedId,
+      )}
+      <div style="flex: 3; overflow: auto; height: 100%">
+        <Preview stack={stack} item={selectedItem} />
+      </div>
+    </div>
+  );
+}
+
+const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
+  if (!item.stack_id) return <Icon name="IconStack" />;
+
+  const contentMeta = stack.getContentMeta(item);
+
+  switch (contentMeta.content_type) {
+    case "Image":
+      return <Icon name="IconImage" />;
+
+    case "Link":
+      return <Icon name="IconLink" />;
+
+    case "Text":
+      return <Icon name="IconClipboard" />;
+  }
+
+  return <Icon name="IconBell" />;
+};
+
 function Preview({ stack, item }: { stack: Stack; item: Item }) {
   const content = stack.getContent(item.hash).value;
   if (!content) return <div>loading...</div>;
@@ -167,33 +195,6 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
           objectFit: "contain",
         }}
       />
-    );
-  }
-
-  if (!item.stack_id) {
-    if (item.children.length === 0) {
-      return <i>no items</i>;
-    }
-
-    const childrenItems = item.children.map((childId) =>
-      stack.state.value.items[childId]
-    );
-
-    const lastSelectedChildId = stack.lastSelected.get(item.id);
-    const previewChild = lastSelectedChildId
-      ? stack.state.value.items[lastSelectedChildId]
-      : childrenItems[0];
-    const previewChildPreview = previewChild && (
-      <Preview stack={stack} item={previewChild} />
-    );
-
-    return (
-      <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-        {renderItems(stack, item.children, "20ch", previewChild.id)}
-        <div style="flex: 3; overflow: auto; height: 100%">
-          {previewChildPreview}
-        </div>
-      </div>
     );
   }
 
