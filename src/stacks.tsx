@@ -1,4 +1,4 @@
-import { effect, Signal, signal } from "@preact/signals";
+import { batch, effect, Signal, signal } from "@preact/signals";
 
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
@@ -42,11 +42,28 @@ const innerUpdateItems = async (stack: Stack) => {
   // Get the hash of the currently focused item
   // const currItem = stack.item.peek()?.hash;
 
-  // Set the new list of items from the backend
-  stack.state.value = JSON.parse(
-    await invoke<string>("store_list_items", args),
-  );
-  console.log("store_list_items", stack.state.value);
+  await batch(async () => {
+    // Set the new list of items from the backend
+    stack.state.value = JSON.parse(
+      await invoke<string>("store_list_items", args),
+    );
+
+    const selectedId = stack.selected.value.curr(stack);
+    const selected = stack.state.value.items[selectedId];
+    console.log("UPDATE", selectedId, selected);
+    if (selected) return;
+
+    const last = stack.lastKnown;
+    if (!last) return;
+
+    const peers = stack.getPeers(last);
+    console.log("PEERS", peers);
+    let next = peers.find((id) => id < last.id) || peers[peers.length - 1] ||
+      last.stack_id ||
+      stack.state.value.root[0];
+    console.log("NEXT", last.id, next);
+    if (next) stack.select(next);
+  });
 };
 
 const updateItems = debounce(innerUpdateItems, 50);
@@ -81,7 +98,6 @@ effect(() => {
   });
 });
 */
-
 
 if (import.meta.hot) {
   import.meta.hot.accept(() => {});

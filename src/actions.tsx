@@ -70,6 +70,7 @@ export const actions: Action[] = [
     canApply: (stack: Stack) => !!stack.item.value,
     trigger: (stack: Stack) => {
       const item = stack.item.value;
+      console.log("DELETE", item);
       if (item) {
         invoke("store_delete", { id: item.id });
       }

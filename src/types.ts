@@ -56,12 +56,6 @@ export class Focus {
     return new Focus(FocusType.ID, id);
   }
 
-  /*
-  isFocusFirst(): boolean {
-    return this.type === FocusType.FIRST;
-  }
-  */
-
   curr(stack: Stack) {
     if (!this.id || this.type === FocusType.FIRST) {
       return stack.state.value.root[0];
@@ -129,6 +123,7 @@ export class Stack {
   normalizedSelected: Signal<string>;
   item: Signal<Item | undefined>;
   lastSelected: Map<Scru128Id, Scru128Id> = new Map();
+  lastKnown?: Item;
 
   constructor(initialState: State) {
     this.state = signal(initialState);
@@ -160,8 +155,12 @@ export class Stack {
 
   select(id: Scru128Id): void {
     const targetItem = this.state.value.items[id];
-    if (targetItem.stack_id) {
-      this.lastSelected.set(targetItem.stack_id, id);
+    if (targetItem) {
+      console.log("lastKnown", targetItem);
+      this.lastKnown = targetItem;
+      if (targetItem.stack_id) {
+        this.lastSelected.set(targetItem.stack_id, id);
+      }
     }
     this.selected.value = Focus.id(id);
   }
@@ -188,20 +187,18 @@ export class Stack {
     const currentItem = this.state.value.items[this.selected.value.curr(this)];
     if (currentItem.children.length > 0) {
       const lastSelectedChild = this.lastSelected.get(currentItem.id);
-      if (
+      this.select(
         lastSelectedChild && currentItem.children.includes(lastSelectedChild)
-      ) {
-        this.selected.value = Focus.id(lastSelectedChild);
-      } else {
-        this.selected.value = Focus.id(currentItem.children[0]);
-      }
+          ? lastSelectedChild
+          : currentItem.children[0],
+      );
     }
   }
 
   selectLeft(): void {
     const currentItem = this.state.value.items[this.selected.value.curr(this)];
     if (currentItem.stack_id) {
-      this.selected.value = Focus.id(currentItem.stack_id);
+      this.select(currentItem.stack_id);
     }
   }
 

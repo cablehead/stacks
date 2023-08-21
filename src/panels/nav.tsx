@@ -19,7 +19,6 @@ const TerseRow = (
 
   useEffect(() => {
     if (isSelected && theRef.current) {
-      console.log("STACK: SCROLL INTO VIEW");
       theRef.current.scrollIntoView({
         behavior: "smooth",
         block: "nearest",
@@ -110,9 +109,6 @@ const renderItems = (
 
 export function Nav({ stack }: { stack: Stack }) {
   const selectedId = stack.selected.value.curr(stack);
-
-  console.log(selectedId);
-
   const selectedItem = stack.state.value.items[selectedId];
 
   if (!selectedItem) return <i>no matches</i>;

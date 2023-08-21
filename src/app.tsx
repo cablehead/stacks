@@ -25,8 +25,6 @@ import { currStack } from "./stacks";
 import { default as theme } from "./theme";
 
 async function globalKeyHandler(event: KeyboardEvent) {
-  console.log("GLOBAL", event);
-
   const stack = currStack.value;
   if (!stack) return;
 
