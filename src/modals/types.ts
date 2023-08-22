@@ -10,7 +10,7 @@ export interface HotKey {
 }
 
 export interface Mode {
-  name: (stack: Stack) => string;
+  name: (stack: Stack) => (string | JSXInternal.Element);
   hotKeys: (stack: Stack, modes: Modes) => HotKey[];
   activate?: (stack: Stack) => void;
 }

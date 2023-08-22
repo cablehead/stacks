@@ -10,7 +10,7 @@ import { Stack } from "../types";
 import { actions } from "../actions";
 
 export default {
-  name: (stack: Stack): string => {
+  name: (stack: Stack) => {
     let item = stack.item.value;
     if (!item) return "";
 
@@ -19,7 +19,28 @@ export default {
     }
 
     const contentMeta = stack.getContentMeta(item);
-    return contentMeta?.terse || "";
+    return (
+      <div
+      style="
+          display: flex;
+          gap: 0.5ch;
+          align-items: center;
+          overflow: hidden;
+          "
+          >
+        <div
+          style={{
+            flexShrink: 0,
+            width: "2ch",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          <Icon name="IconStack" />
+        </div>
+        {contentMeta?.terse || ""}
+      </div>
+    );
   },
   hotKeys: (stack: Stack, modes: Modes) => {
     let ret = [];

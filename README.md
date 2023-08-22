@@ -73,6 +73,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 CURRENTLY HERE
 
 - Track focused Stack backend-side
+
 - New copies / notes go to the currently focused Stack
 
 - Create a new stack
