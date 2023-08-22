@@ -66,6 +66,7 @@ export default {
       >
         <textarea
           ref={inputRef}
+          spellcheck={false}
           style={{
             width: "100%",
             height: "100%",

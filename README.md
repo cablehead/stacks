@@ -77,7 +77,6 @@ CURRENTLY HERE
     - need to use lastKnown's last_touched to work out how to refocus
 
 - Edit an item
-    - When editting an item: " is messed up
 
 - Edit a stack name
 - Create a new stack
