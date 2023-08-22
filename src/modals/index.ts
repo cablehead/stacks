@@ -11,6 +11,7 @@ import { default as editorMode } from "./editorMode";
 import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
+import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
 
@@ -18,6 +19,7 @@ export {
   actionsMode,
   pipeMode,
   addToStackMode,
+  settingsMode,
   editorMode,
   newNoteMode,
   filterContentTypeMode,
@@ -25,8 +27,7 @@ export {
 };
 
 export const modes = {
-  modes: [mainMode, actionsMode, editorMode] as Mode[],
-  active: signal(mainMode) as Signal<Mode>,
+  active: signal(settingsMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
   },

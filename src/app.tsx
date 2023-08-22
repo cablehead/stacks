@@ -4,6 +4,7 @@ import {
   actionsMode,
   addToStackMode,
   editorMode,
+  settingsMode,
   filterContentTypeMode,
   modes,
   newNoteMode,
@@ -61,6 +62,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.metaKey && event.key === "k":
       event.preventDefault();
       modes.toggle(stack, actionsMode);
+      return;
+
+    case event.metaKey && event.key === ",":
+      event.preventDefault();
+      modes.toggle(stack, settingsMode);
       return;
 
     case (event.ctrlKey && event.key === "h") || event.key === "ArrowLeft": {
@@ -189,6 +195,9 @@ export function App() {
               {modes.isActive(actionsMode) && <Actions stack={stack} />}
               {modes.isActive(editorMode) && (
                 <editorMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(settingsMode) && (
+                <settingsMode.Modal stack={stack} modes={modes} />
               )}
               {modes.isActive(newNoteMode) && (
                 <newNoteMode.Modal stack={stack} modes={modes} />

@@ -5,7 +5,7 @@ import { borderRight, footer } from "../ui/app.css";
 
 import { default as theme } from "../theme";
 
-import { modes } from "../modals";
+import { modes, settingsMode } from "../modals";
 import { Mode } from "../modals/types";
 import { Stack } from "../types";
 
@@ -40,10 +40,11 @@ const Theme = () => (
   </div>
 );
 
-const Settings = () => (
+const Settings = ({ stack }: { stack: Stack }) => (
   <div
     onMouseDown={() => {
-      theme.value = theme.value === "light" ? "dark" : "light";
+      console.log(modes.active.value);
+      modes.toggle(stack, settingsMode);
     }}
     class="hoverable"
   >
@@ -82,7 +83,7 @@ const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
         ))}
         <Theme />
         <VertDiv />
-        <Settings />
+        <Settings stack={stack} />
       </div>
     </footer>
   );
@@ -107,9 +108,7 @@ const HotKey = ({ name, keys, onMouseDown }: {
       onMouseDown={onMouseDown}
     >
       <div>{name}</div>
-      <RenderKeys
-        keys={keys}
-      />
+      <RenderKeys keys={keys} />
     </div>
   );
 };
