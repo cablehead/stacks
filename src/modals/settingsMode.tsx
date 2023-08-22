@@ -37,14 +37,19 @@ export default {
           <div
             style={{
               display: "flex",
+              gap: "1ch",
               alignItems: "center",
               textAlign: "right",
+              marginBottom: "0.25lh",
             }}
           >
-            <label style={{ width: "40ch" }}>Access Token</label>
+            <label style={{ width: "15ch" }}>Access Token</label>
             <input
               type="text"
+              placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
               style={{
+                flex: 1,
+                maxWidth: "52ch",
                 outline: "none",
                 borderColor: vars.borderColor,
                 borderWidth: "1px",
@@ -59,16 +64,19 @@ export default {
           <div
             style={{
               display: "flex",
+              gap: "1ch",
               alignItems: "center",
               textAlign: "right",
             }}
           >
-            <label style={{ width: "40ch" }}>Preferred Model</label>
+            <label style={{ width: "15ch" }}>Preferred Model</label>
             <select
               name="selectedModel"
               value={"davinci"}
               onChange={() => {}}
               style={{
+                flex: 1,
+                maxWidth: "20ch",
                 outline: "none",
                 borderColor: vars.borderColor,
                 borderWidth: "1px",

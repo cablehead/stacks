@@ -4,12 +4,12 @@ import {
   actionsMode,
   addToStackMode,
   editorMode,
-  settingsMode,
   filterContentTypeMode,
+  mainMode,
   modes,
   newNoteMode,
-  mainMode,
   pipeMode,
+  settingsMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -127,9 +127,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      // fallback to sending the key stroke to the filter input
-      const filterInput = document.getElementById("filter-input");
-      if (filterInput) filterInput.focus();
+      if (modes.active.value == mainMode) {
+        // fallback to sending the key stroke to the filter input
+        const filterInput = document.getElementById("filter-input");
+        if (filterInput) filterInput.focus();
+      }
   }
 }
 
