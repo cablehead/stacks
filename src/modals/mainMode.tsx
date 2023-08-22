@@ -23,7 +23,7 @@ export default {
       <div
       style="
           display: flex;
-          gap: 0.5ch;
+          gap: 0.75ch;
           align-items: center;
           overflow: hidden;
           "
@@ -31,6 +31,7 @@ export default {
         <div
           style={{
             flexShrink: 0,
+            marginTop: "-2px",
             width: "2ch",
             whiteSpace: "nowrap",
             overflow: "hidden",

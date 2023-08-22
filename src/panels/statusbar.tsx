@@ -22,9 +22,7 @@ const VertDiv = () => (
 const Theme = () => (
   <div
     onMouseDown={() => {
-      theme.value = theme.value === "light"
-        ? "dark"
-        : "light";
+      theme.value = theme.value === "light" ? "dark" : "light";
     }}
     class="hoverable"
   >
@@ -42,11 +40,30 @@ const Theme = () => (
   </div>
 );
 
+const Settings = () => (
+  <div
+    onMouseDown={() => {
+      theme.value = theme.value === "light" ? "dark" : "light";
+    }}
+    class="hoverable"
+  >
+    <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+      <Icon name="IconCog" />
+    </span>
+  </div>
+);
+
 const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
-        { mode.name(stack) }
+        {mode.name(stack)}
       </div>
       <div style="
         display: flex;
@@ -64,6 +81,8 @@ const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
           </>
         ))}
         <Theme />
+        <VertDiv />
+        <Settings />
       </div>
     </footer>
   );
