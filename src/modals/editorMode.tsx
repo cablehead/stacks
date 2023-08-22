@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Focus, Item, Stack } from "../types";
+import { Item, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -25,7 +25,6 @@ const state = (() => {
       };
 
       await invoke("store_edit_note", args);
-      stack.selected.value = Focus.first();
       modes.deactivate();
     },
   };
