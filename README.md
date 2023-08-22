@@ -72,18 +72,23 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- on Delete: it'd be nice to animate the parent stack moving to the top of the list
+- on Delete:
+    - it'd be nice to animate the parent stack moving to the top of the list
+    - need to use lastKnown's last_touched to work out how to refocus
 
+- Edit an item
+    - When editting an item: " is messed up
 
 - Edit a stack name
 - Create a new stack
-- Edit an item
-    - When editting an item: " is messed up
 - Restore filter
 - Track focused Stack backend-side
 - New copies / notes go to the currently focused Stack
 - Bring back tiktoken count
 - Pipe to command
+
+- Rework all commands that write to the clipboard, to update the store first,
+  and then ignore the clipboard write (the UI will feel more responsive)
 
 
 ### Stretch

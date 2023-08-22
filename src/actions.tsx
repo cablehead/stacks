@@ -39,8 +39,13 @@ export const actions: Action[] = [
     keys: [<Icon name="IconCommandKey" />, "E"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "e",
+    canApply: (stack: Stack) => {
+        const item = stack.item.value;
+        if (!item) return false;
+        const meta = stack.getContentMeta(item);
+        return meta.mime_type == "text/plain";
+    },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
-    canApply: (_: Stack) => false,
   },
   {
     name: "Pipe to command",

@@ -1,29 +1,32 @@
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-// import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack, Item } from "../types";
+import { Focus, Item, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
-    accept_meta: (_: Stack, __: Modes) => {
-        /*
+    accept_meta: async (stack: Stack, modes: Modes) => {
+      const item = stack.item.value;
+      if (!item) return;
+
+      if (!curr.value) return;
+
       const args = {
-        stackHash: stack.parent?.item.value?.hash,
+        sourceId: item.id,
         content: curr.value,
       };
 
-      invoke("store_capture", args);
+      await invoke("store_edit_note", args);
       stack.selected.value = Focus.first();
       modes.deactivate();
-      */
     },
   };
 })();
@@ -85,7 +88,7 @@ export default {
             modes.deactivate();
           }}
           placeholder="..."
-          onChange={(event) => {
+          onInput={(event) => {
             state.curr.value = (event.target as HTMLTextAreaElement).value;
           }}
           onKeyDown={(event) => {

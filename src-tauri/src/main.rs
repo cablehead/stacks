@@ -56,6 +56,7 @@ fn main() {
             commands::store_copy_to_clipboard,
             commands::store_delete,
             commands::store_new_note,
+            commands::store_edit_note,
             commands::store_set_current_stack,
             commands::store_list_stacks,
             // commands::store_add_to_stack,

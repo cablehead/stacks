@@ -150,6 +150,27 @@ pub fn store_new_note(app: tauri::AppHandle, state: tauri::State<SharedState>, c
 }
 
 #[tauri::command]
+pub fn store_edit_note(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+    content: String,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update(
+        source_id,
+        Some(content.as_bytes()),
+        MimeType::TextPlain,
+        None,
+        None,
+    );
+    state.view.merge(packet);
+
+    state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
