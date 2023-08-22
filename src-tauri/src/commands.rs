@@ -138,37 +138,16 @@ pub fn store_copy_to_clipboard(
         let content = state.store.cas_read(&item.hash).unwrap();
 
         let _change_num = write_to_clipboard(&mime_type, &content);
-        app.emit_all("refresh-items", true).unwrap();
         Some(())
     } else {
         None
     }
 }
 
-/*
-
 #[tauri::command]
-pub fn store_capture(
-    app: tauri::AppHandle,
-    state: tauri::State<SharedState>,
-    stack_hash: Option<ssri::Integrity>,
-    content: String,
-) {
-    let mut state = state.lock().unwrap();
-    let content = content.as_bytes();
-    state.add_content(
-        Some("stream.cross.stacks".into()),
-        stack_hash,
-        MimeType::TextPlain,
-        content,
-    );
-
-    let change_num = write_to_clipboard("public.utf8-plain-text", content).unwrap();
-    state.skip_change_num = Some(change_num);
-
-    app.emit_all("refresh-items", true).unwrap();
+pub fn store_new_note(app: tauri::AppHandle, state: tauri::State<SharedState>, content: String) {
+    let _change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
 }
-*/
 
 #[tauri::command]
 pub fn store_delete(

@@ -1,27 +1,24 @@
 import { signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-// import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { Stack, Focus} from "../types";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
-    accept_meta: (_: Stack, modes: Modes) => {
-        /*
+    accept_meta: (stack: Stack, modes: Modes) => {
       const args = {
-        stackHash: stack.parent?.item.value?.hash,
         content: curr.value,
       };
 
-      invoke("store_capture", args);
+      invoke("store_new_note", args);
       stack.selected.value = Focus.first();
-      */
       modes.deactivate();
     },
   };
@@ -80,7 +77,7 @@ export default {
             modes.deactivate();
           }}
           placeholder="Enter note..."
-          onChange={(event) => {
+          onInput={(event) => {
             state.curr.value = (event.target as HTMLTextAreaElement).value;
           }}
           onKeyDown={(event) => {

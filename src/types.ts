@@ -58,7 +58,10 @@ export class Focus {
 
   curr(stack: Stack) {
     if (!this.id || this.type === FocusType.FIRST) {
-      return stack.state.value.root[0];
+      const firstStackId = stack.state.value.root[0];
+      const firstStack = stack.state.value.items[firstStackId];
+      if (firstStack && firstStack.children[0]) return firstStack.children[0];
+      return firstStackId;
     }
     return this.id;
   }

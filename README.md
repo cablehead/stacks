@@ -74,11 +74,11 @@ CURRENTLY HERE
 
 - on Delete: it'd be nice to animate the parent stack moving to the top of the list
 
+
 - Edit a stack name
 - Create a new stack
 - Edit an item
     - When editting an item: " is messed up
-- New items
 - Restore filter
 - Track focused Stack backend-side
 - New copies / notes go to the currently focused Stack
