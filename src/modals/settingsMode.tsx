@@ -85,10 +85,9 @@ export default {
                 appearance: "none",
               }}
             >
-              <option value="davinci">DaVinci</option>
-              <option value="curie">Curie</option>
-              <option value="babbage">Babbage</option>
-              <option value="ada">Ada</option>
+              <option value="gpt-4">gpt-4</option>
+              <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
+              <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
             </select>
           </div>
         </form>
