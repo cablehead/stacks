@@ -196,30 +196,32 @@ impl Store {
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
 
-        let (content_type, terse) = match mime_type {
+        let (content_type, terse, tiktokens) = match mime_type {
             MimeType::TextPlain => {
                 let text_content = String::from_utf8_lossy(content).into_owned();
+                let tiktokens = count_tiktokens(&text_content);
                 let terse = if text_content.len() > 100 {
                     text_content.chars().take(100).collect()
                 } else {
                     text_content
                 };
 
-                if is_valid_https_url(content) {
-                    ("Link".to_string(), terse)
+                let content_type = if is_valid_https_url(content) {
+                    "Link".to_string()
                 } else {
-                    ("Text".to_string(), terse)
-                }
+                    "Text".to_string()
+                };
+                (content_type, terse, tiktokens)
             }
-            MimeType::ImagePng => ("Image".to_string(), "Image".to_string()),
+            MimeType::ImagePng => ("Image".to_string(), "Image".to_string(), 0),
         };
 
         let meta = ContentMeta {
             hash: Some(hash.clone()),
             mime_type: mime_type.clone(),
             content_type,
-            terse, // Updated terse assignment
-            tiktokens: content.len(),
+            terse,
+            tiktokens,
         };
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
@@ -454,4 +456,10 @@ mod tests {
         assert!(is_valid_https_url(b"https://www.example.com"));
         assert!(!is_valid_https_url(b"Good afternoon"));
     }
+}
+
+pub fn count_tiktokens(content: &str) -> usize {
+    let bpe = tiktoken_rs::cl100k_base().unwrap();
+    let tokens = bpe.encode_with_special_tokens(content);
+    tokens.len()
 }

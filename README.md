@@ -86,7 +86,7 @@ CURRENTLY HERE
 - Create a new stack
 
 - Restore filter
-- Bring back tiktoken count
+
 - Pipe to command
 
 - Rework all commands that write to the clipboard, to update the store first,

@@ -27,7 +27,7 @@ export {
 };
 
 export const modes = {
-  active: signal(settingsMode) as Signal<Mode>,
+  active: signal(mainMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
   },
