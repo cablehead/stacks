@@ -139,6 +139,12 @@ export class Stack {
     });
   }
 
+  reset() {
+      this.filter.clear();
+      this.selected.value = Focus.first();
+      this.lastSelected = new Map();
+  }
+
   async triggerCopy() {
     const item = this.item.value;
     if (!item) return;
@@ -159,7 +165,6 @@ export class Stack {
   select(id: Scru128Id): void {
     const targetItem = this.state.value.items[id];
     if (targetItem) {
-      console.log("lastKnown", targetItem);
       this.lastKnown = targetItem;
       if (targetItem.stack_id) {
         this.lastSelected.set(targetItem.stack_id, id);

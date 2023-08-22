@@ -7,6 +7,7 @@ import {
   filterContentTypeMode,
   modes,
   newNoteMode,
+  mainMode,
   pipeMode,
 } from "./modals";
 
@@ -136,11 +137,12 @@ export function App() {
   };
 
   const onFocusHandler = () => {
+    const stack = currStack.value;
+    if (!stack) return;
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
-      // modes.activate(stack, mainMode);
-      // stack.filter.clear();
-      // stack.selected.value = Focus.first();
+      modes.activate(stack, mainMode);
+      stack.reset();
     }
   };
 
