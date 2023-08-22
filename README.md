@@ -89,6 +89,8 @@ CURRENTLY HERE
 
 - Pipe to command
 
+- Add a fork action for stacks
+
 - Rework all commands that write to the clipboard, to update the store first,
   and then ignore the clipboard write (the UI will feel more responsive)
 
@@ -108,7 +110,6 @@ CURRENTLY HERE
     - Bonus: use a backwards compatible serialization format
     - Revert to saving the raw clipboard data, which is mapped to the current
       form
-- Add a fork action for stacks
 
 - Investigate macOS clipboard schema when copying files and images in different
   locations
