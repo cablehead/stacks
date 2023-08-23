@@ -79,21 +79,19 @@ const state = (() => {
       })();
     },
 
-    accept_meta: (_stack: Stack, _modes: Modes) => {
-      /*
+    accept_meta: (stack: Stack, modes: Modes) => {
       const item = stack.item.value;
       if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
+
       let name = currFilter.value;
       if (name === "") name = state.dn.value;
       if (name === "") return;
+
       (async () => {
-        await invoke("store_add_to_stack", { name: name, id: id });
+        await invoke("store_add_to_new_stack", { name: name, sourceId: item.id });
         stack.selected.value = Focus.first();
         modes.deactivate();
       })();
-        */
     },
 
     selectDown: () => {

@@ -91,8 +91,7 @@ CURRENTLY HERE
 
 - Add a fork action for stacks
 
-- Rework all commands that write to the clipboard, to update the store first,
-  and then ignore the clipboard write (the UI will feel more responsive)
+- Rework store_copy_to_clipboard to ignore the clipboard write
 
 - on Delete:
     - it'd be nice to animate the parent stack moving to the top of the list
