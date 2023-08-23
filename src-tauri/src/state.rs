@@ -17,7 +17,6 @@ pub struct State {
     // about the item in the store. To avoid the clipboard poller from duplicating this
     // information, we use skip_change_num to ignore the change id associated with the item.
     pub skip_change_num: Option<i64>,
-    pub curr_stack: Option<Scru128Id>,
 }
 
 impl Serialize for State {
@@ -59,15 +58,15 @@ impl State {
             view: View::new(),
             store: Store::new(db_path),
             skip_change_num: None,
-            curr_stack: None,
         };
         state.store.scan().for_each(|p| state.view.merge(p));
-        state.curr_stack = state.view.root().first().map(|item| item.id);
         state
     }
 
-    pub fn get_curr_stack(&mut self) -> Option<Scru128Id> {
-        if let Some(id) = self.curr_stack {
+    pub fn get_curr_stack(&mut self) -> Scru128Id {
+        let curr_stack = self.view.root().first().map(|item| item.id);
+
+        if let Some(id) = curr_stack {
             if let Some(item) = self.view.items.get(&id) {
                 let now = std::time::SystemTime::now()
                     .duration_since(std::time::UNIX_EPOCH)
@@ -81,7 +80,7 @@ impl State {
                     now - last_touched
                 );
                 if now - last_touched < 3_600_000 {
-                    return Some(id);
+                    return id;
                 }
             }
         }
@@ -96,9 +95,9 @@ impl State {
             Some("stream.cross.stacks".to_string()),
         );
 
-        self.curr_stack = Some(packet.id());
+        let id = packet.id();
         self.view.merge(packet);
-        self.curr_stack
+        id
     }
 
     pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {

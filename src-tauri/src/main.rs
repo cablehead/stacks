@@ -59,7 +59,6 @@ fn main() {
             commands::store_edit_note,
             commands::store_settings_save,
             commands::store_settings_get,
-            commands::store_set_current_stack,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             // commands::store_copy_entire_stack_to_clipboard,

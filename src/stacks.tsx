@@ -91,14 +91,6 @@ effect(() => {
   updateItems(stack);
 });
 
-/*
-effect(() => {
-  invoke("store_set_current_stack", {
-    stackHash: currStack.value.parent?.item.value?.hash,
-  });
-});
-*/
-
 if (import.meta.hot) {
   import.meta.hot.accept(() => {});
   import.meta.hot.dispose(() => {

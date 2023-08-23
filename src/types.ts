@@ -140,9 +140,9 @@ export class Stack {
   }
 
   reset() {
-      this.filter.clear();
-      this.selected.value = Focus.first();
-      this.lastSelected = new Map();
+    this.filter.clear();
+    this.selected.value = Focus.first();
+    this.lastSelected = new Map();
   }
 
   async triggerCopy() {
@@ -168,6 +168,7 @@ export class Stack {
       this.lastKnown = targetItem;
       if (targetItem.stack_id) {
         this.lastSelected.set(targetItem.stack_id, id);
+        // invoke("store_set_current_stack", { stackId: targetItem.stack_id });
       }
     }
     this.selected.value = Focus.id(id);

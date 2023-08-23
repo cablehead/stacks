@@ -145,13 +145,19 @@ pub fn store_copy_to_clipboard(
 }
 
 #[tauri::command]
-pub fn store_new_note(app: tauri::AppHandle, state: tauri::State<SharedState>, content: String) {
+pub fn store_new_note(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    content: String,
+    stack_id: Option<scru128::Scru128Id>,
+) {
     let mut state = state.lock().unwrap();
 
-    let stack_id = state.get_curr_stack();
+    let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+
     let packet = state
         .store
-        .add(content.as_bytes(), MimeType::TextPlain, stack_id, None);
+        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id), None);
     state.view.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
@@ -221,15 +227,6 @@ pub fn store_settings_get(state: tauri::State<SharedState>) -> serde_json::Value
 // Stack related commands
 
 #[tauri::command]
-pub fn store_set_current_stack(
-    state: tauri::State<SharedState>,
-    stack_id: Option<scru128::Scru128Id>,
-) {
-    let mut state = state.lock().unwrap();
-    state.curr_stack = stack_id;
-}
-
-#[tauri::command]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -260,9 +257,13 @@ pub fn store_add_to_new_stack(
         .add(name.as_bytes(), MimeType::TextPlain, None, None);
     state.view.merge(packet.clone());
 
-    let packet = state
-        .store
-        .fork(source_id, None, MimeType::TextPlain, Some(packet.id()), None);
+    let packet = state.store.fork(
+        source_id,
+        None,
+        MimeType::TextPlain,
+        Some(packet.id()),
+        None,
+    );
     state.view.merge(packet);
 
     app.emit_all("refresh-items", true).unwrap();

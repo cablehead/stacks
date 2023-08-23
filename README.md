@@ -73,15 +73,9 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 CURRENTLY HERE
 
 - GPT:
-    - save settings
-    - populate form with current settings
     - add an action to send a stack to GPT
         - stream response?
         - add response to stack
-
-- Track focused Stack backend-side
-
-- New copies / notes go to the currently focused Stack
 
 - Create a new stack
 

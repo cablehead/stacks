@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack, Focus} from "../types";
+import { Focus, Stack } from "../types";
 
 const state = (() => {
   const curr = signal("");
@@ -14,6 +14,7 @@ const state = (() => {
     curr,
     accept_meta: (stack: Stack, modes: Modes) => {
       const args = {
+        stackId: stack.item.value?.stack_id,
         content: curr.value,
       };
 
