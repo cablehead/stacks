@@ -1,13 +1,18 @@
-import { computed, effect, Signal, signal } from "@preact/signals";
+import { Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { invoke } from "@tauri-apps/api/tauri";
+// import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Item, Stack } from "../types";
+import { ContentMeta, Item, Stack } from "../types";
+
+interface ItemMeta {
+  item: Item;
+  meta: ContentMeta;
+}
 
 function dn(): string {
   const date = new Date();
@@ -24,38 +29,25 @@ function dn(): string {
   const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
     date,
   );
-  return "# " + formattedDate;
+  return formattedDate;
 }
 
 const state = (() => {
-  const selected = signal(0);
+  const selected = signal("");
   const currFilter = signal("");
-  const options: Signal<Item[]> = signal([]);
+
+  const options: Signal<ItemMeta[]> = signal([]);
+
   const dn = signal("");
-
-  const normalizedSelected = computed(() => {
-    let val = selected.value % (options.value.length);
-    if (val < 0) val = options.value.length + val;
-    return val;
-  });
-
-  async function fetchOptions(filter: string) {
-    options.value = await invoke("store_list_stacks", { filter: filter });
-  }
-  effect(() => {
-    fetchOptions(currFilter.value);
-  });
 
   return {
     selected,
     currFilter,
     options,
     dn,
-    normalizedSelected,
-    fetchOptions,
 
     accept: (_stack: Stack, _modes: Modes) => {
-        /*
+      /*
       const item = stack.item.value;
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
@@ -71,7 +63,7 @@ const state = (() => {
     },
 
     accept_meta: (_stack: Stack, _modes: Modes) => {
-        /*
+      /*
       const item = stack.item.value;
       if (!item) return;
       const id = item.ids[item.ids.length - 1];
@@ -85,6 +77,20 @@ const state = (() => {
         modes.deactivate();
       })();
         */
+    },
+
+    selectDown: () => {
+      const idx = options.value.findIndex((o) => o.item.id == selected.peek());
+      if (idx < options.value.length - 1) {
+        state.selected.value = options.value[idx + 1].item.id;
+      }
+    },
+
+    selectUp: () => {
+      const idx = options.value.findIndex((o) => o.item.id == selected.peek());
+      if (idx > 0) {
+        selected.value = options.value[idx - 1].item.id;
+      }
     },
   };
 })();
@@ -127,13 +133,15 @@ export default {
     return ret;
   },
 
-  activate: (_: Stack) => {
-    if (state.currFilter.value == "") {
-      state.fetchOptions("");
-    } else {
-      state.currFilter.value = "";
-    }
-    state.selected.value = 0;
+  activate: (stack: Stack) => {
+    state.currFilter.value = "";
+    state.options.value = stack.state.value.root
+      .filter((id) => id != stack.item.value?.stack_id)
+      .map((id) => {
+        const item = stack.state.value.items[id];
+        return { item: item, meta: stack.getContentMeta(item) };
+      });
+    state.selected.value = state.options.value[0].item.id;
     state.dn.value = dn();
   },
 
@@ -201,13 +209,13 @@ export default {
                   case (event.ctrlKey && event.key === "n") ||
                     event.key === "ArrowDown":
                     event.preventDefault();
-                    state.selected.value += 1;
+                    state.selectDown();
                     break;
 
                   case event.ctrlKey && event.key === "p" ||
                     event.key === "ArrowUp":
                     event.preventDefault();
-                    state.selected.value -= 1;
+                    state.selectUp();
                     break;
                 }
               }}
@@ -218,30 +226,33 @@ export default {
         <div style="
         padding:1ch;
         ">
-          {/* state.options.value
-            .map((item, index) => (
-              <div
-                className={"terserow" +
-                  (state.normalizedSelected.value == index ? " hover" : "")}
-                style="
-        display: flex;
-        width: 100%;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        justify-content: space-between;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-                onMouseDown={() => {
-                  state.selected.value = index;
-                  state.accept(stack, modes);
-                }}
-              >
-                <div>
-                  {item.terse}
+          {state.options.value.map(
+            (o) => {
+              return (
+                <div
+                  className={"terserow" +
+                    (o.item.id == state.selected.value ? " hover" : "")}
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    overflow: "hidden",
+                    padding: "0.5ch 0.75ch",
+                    justifyContent: "space-between",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                  onMouseDown={() => {
+                    // state.selected.value = index;
+                    // state.accept(stack, modes);
+                  }}
+                >
+                  <div>
+                    {o.meta.terse}
+                  </div>
                 </div>
-              </div>
-            )) */}
+              );
+            },
+          )}
         </div>
       </div>
     );

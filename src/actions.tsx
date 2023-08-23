@@ -36,7 +36,7 @@ export const actions: Action[] = [
   },
 
   {
-    name: "Move to Stack",
+    name: "Add to Stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
     canApply: (stack: Stack) => stack.item.value?.stack_id != null,

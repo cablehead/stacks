@@ -255,36 +255,6 @@ pub fn store_add_to_stack(
 
 */
 
-#[tauri::command]
-// s/String/Item
-pub fn store_list_stacks(filter: String, state: tauri::State<SharedState>) -> Vec<String> {
-    let state = state.lock().unwrap();
-
-    return Vec::new();
-
-    /*
-    let mut ret: Vec<Item> = state
-        .stack
-        .items
-        .values()
-        .filter(|item| {
-            if &item.content_type != "Stack" {
-                return false;
-            }
-
-            if filter == filter.to_lowercase() {
-                item.terse.to_lowercase().contains(&filter)
-            } else {
-                item.terse.contains(&filter)
-            }
-        })
-        .cloned()
-        .collect();
-    ret.sort_unstable_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-    ret.truncate(400);
-    ret
-    */
-}
 
 /*
 
