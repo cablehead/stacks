@@ -7,7 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { ContentMeta, Item, Stack } from "../types";
+import { ContentMeta, Focus, Item, Stack } from "../types";
 
 interface ItemMeta {
   item: Item;
@@ -59,7 +59,7 @@ const state = (() => {
           stackId: chosen.item.id,
           sourceId: item.id,
         });
-        stack.select(chosen.item.id);
+        stack.selected.value = Focus.first();
         modes.deactivate();
       })();
     },
