@@ -57,6 +57,8 @@ fn main() {
             commands::store_delete,
             commands::store_new_note,
             commands::store_edit_note,
+            commands::store_settings_save,
+            commands::store_settings_get,
             commands::store_set_current_stack,
             commands::store_list_stacks,
             // commands::store_add_to_stack,

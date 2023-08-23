@@ -21,7 +21,7 @@ const state = (() => {
       const formData = new FormData(form.value);
       const settings = Object.fromEntries(formData.entries());
       if (settings.openai_access_token === "") return;
-      await invoke("store_settings_save", {settings: settings});
+      await invoke("store_settings_save", { settings: settings });
       modes.deactivate();
     },
   };
@@ -54,6 +54,16 @@ export default {
       if (formRef.current != null) {
         (formRef.current.elements[0] as HTMLElement).focus();
         state.form.value = formRef.current;
+        invoke<Record<string, string>>("store_settings_get", {}).then(
+          (settings: Record<string, string>) => {
+            if (formRef.current) {
+                console.log(settings);
+              for (const key in settings) {
+                (formRef.current.elements.namedItem(key) as HTMLInputElement).value = settings[key];
+              }
+            }
+          },
+        );
       }
     }, []);
 

@@ -183,6 +183,32 @@ pub fn store_delete(
 }
 
 //
+// Settings related commands
+
+#[tauri::command]
+pub fn store_settings_save(state: tauri::State<SharedState>, settings: serde_json::Value) {
+    let mut state = state.lock().unwrap();
+    state
+        .store
+        .meta
+        .insert("settings", settings.to_string().as_bytes())
+        .unwrap();
+}
+
+#[tauri::command]
+pub fn store_settings_get(state: tauri::State<SharedState>) -> serde_json::Value {
+    let state = state.lock().unwrap();
+    let res = state.store.meta.get("settings").unwrap();
+    match res {
+        Some(bytes) => {
+            let str = std::str::from_utf8(bytes.as_ref()).unwrap();
+            serde_json::from_str(str).unwrap()
+        }
+        None => serde_json::Value::Object(Default::default()),
+    }
+}
+
+//
 // Stack related commands
 
 #[tauri::command]

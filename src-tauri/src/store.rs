@@ -154,6 +154,7 @@ impl Index {
 pub struct Store {
     packets: sled::Tree,
     pub content_meta: sled::Tree,
+    pub meta: sled::Tree,
     cache_path: String,
     pub index: Index,
 }
@@ -164,11 +165,13 @@ impl Store {
         let db = sled::open(path.join("sled")).unwrap();
         let packets = db.open_tree("packets").unwrap();
         let content_meta = db.open_tree("content_meta").unwrap();
+        let meta = db.open_tree("meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
         Store {
             packets,
             content_meta,
+            meta,
             cache_path,
             index: Index::new(path.join("index")),
         }
