@@ -1,4 +1,4 @@
-import { Signal, signal } from "@preact/signals";
+import { computed, effect, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -36,13 +36,28 @@ const state = (() => {
   const selected = signal("");
   const currFilter = signal("");
 
-  const options: Signal<ItemMeta[]> = signal([]);
+  const availOptions: Signal<ItemMeta[]> = signal([]);
+
+  const options = computed(() =>
+    availOptions.value
+      .filter((o) =>
+        currFilter.value == "" ||
+        o.meta.terse.toLowerCase().includes(currFilter.value.toLowerCase())
+      )
+  );
+
+  effect(() => {
+    if (options.value.length <= 0) return;
+    const chosen = options.value.find((o) => o.item.id === selected.peek());
+    if (!chosen) selected.value = options.value[0].item.id;
+  });
 
   const dn = signal("");
 
   return {
     selected,
     currFilter,
+    availOptions,
     options,
     dn,
 
@@ -137,7 +152,7 @@ export default {
 
   activate: (stack: Stack) => {
     state.currFilter.value = "";
-    state.options.value = stack.state.value.root
+    state.availOptions.value = stack.state.value.root
       .filter((id) => id != stack.item.value?.stack_id)
       .map((id) => {
         const item = stack.state.value.items[id];
