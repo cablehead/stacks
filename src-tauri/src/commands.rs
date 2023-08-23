@@ -238,6 +238,15 @@ pub fn store_add_to_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    let packet = state.store.fork(
+        source_id,
+        None,
+        MimeType::TextPlain,
+        Some(stack_id),
+        None,
+    );
+    state.view.merge(packet);
+
     app.emit_all("refresh-items", true).unwrap();
 }
 

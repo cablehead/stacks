@@ -1,7 +1,7 @@
 import { Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-// import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
@@ -46,23 +46,22 @@ const state = (() => {
     options,
     dn,
 
-    accept: (_stack: Stack, modes: Modes) => {
-        console.log("Accept", selected.value);
-        modes.deactivate();
-
-      /*
+    accept: (stack: Stack, modes: Modes) => {
       const item = stack.item.value;
       if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
-      const name = options.value[normalizedSelected.value]?.terse;
-      if (!name) return;
+
+      const chosen = options.value.find((o) => o.item.id === selected.value);
+      if (!chosen) return;
+      console.log("Accept", selected.value, chosen);
+
       (async () => {
-        await invoke("store_add_to_stack", { name: name, id: id });
-        stack.selected.value = Focus.first();
+        await invoke("store_add_to_stack", {
+          stackId: chosen.item.id,
+          sourceId: item.id,
+        });
+        stack.select(chosen.item.id);
         modes.deactivate();
       })();
-      */
     },
 
     accept_meta: (_stack: Stack, _modes: Modes) => {
