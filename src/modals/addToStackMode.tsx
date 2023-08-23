@@ -46,7 +46,10 @@ const state = (() => {
     options,
     dn,
 
-    accept: (_stack: Stack, _modes: Modes) => {
+    accept: (_stack: Stack, modes: Modes) => {
+        console.log("Accept", selected.value);
+        modes.deactivate();
+
       /*
       const item = stack.item.value;
       if (!item) return;
@@ -242,8 +245,8 @@ export default {
                     cursor: "pointer",
                   }}
                   onMouseDown={() => {
-                    // state.selected.value = index;
-                    // state.accept(stack, modes);
+                    state.selected.value = o.item.id;
+                    state.accept(stack, modes);
                   }}
                 >
                   <div>

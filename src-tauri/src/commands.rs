@@ -146,7 +146,16 @@ pub fn store_copy_to_clipboard(
 
 #[tauri::command]
 pub fn store_new_note(app: tauri::AppHandle, state: tauri::State<SharedState>, content: String) {
-    let _change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+    let mut state = state.lock().unwrap();
+
+    let stack_id = state.get_curr_stack();
+    let packet = state
+        .store
+        .add(content.as_bytes(), MimeType::TextPlain, stack_id, None);
+    state.view.merge(packet);
+
+    state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+    app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
@@ -220,41 +229,17 @@ pub fn store_set_current_stack(
     state.curr_stack = stack_id;
 }
 
-/*
 #[tauri::command]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
-    name: String,
-    id: scru128::Scru128Id,
+    stack_id: scru128::Scru128Id,
+    source_id: scru128::Scru128Id,
 ) {
     let mut state = state.lock().unwrap();
 
-    let stack_frame = state.add_content(
-        Some("stream.cross.stacks".into()),
-        None,
-        MimeType::TextPlain,
-        name.as_bytes(),
-    );
-
-    let mut frame = match state.store.get_frame(&id) {
-        Some(frame) => frame,
-        None => {
-            log::warn!("No frame found with id: {:?}", id);
-            return;
-        }
-    };
-
-    frame.id = scru128::new();
-    frame.source = Some("stream.cross.stacks".into());
-    frame.stack_hash = Some(stack_frame.hash);
-    let packet = state.store.insert_frame(&frame);
-    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
-
-*/
-
 
 /*
 
