@@ -1,16 +1,46 @@
-// import { invoke } from "@tauri-apps/api/tauri";
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay, vars } from "../ui/app.css";
+import { Icon } from "../ui/icons";
+
 import { Modes } from "./types";
 import { Stack } from "../types";
 
+const state = (() => {
+  return {
+    accept_meta: async (_: Stack, modes: Modes) => {
+      console.log("SAVE");
+      const args = {
+        // ...
+      };
+      await invoke("store_settings_save", args);
+      modes.deactivate();
+    },
+  };
+})();
+
 export default {
   name: (_: Stack) => "Settings",
-  hotKeys: (_: Stack, modes: Modes) => [
+  hotKeys: (stack: Stack, modes: Modes) => [
+    {
+      name: "Save",
+      keys: [
+        <Icon name="IconCommandKey" />,
+        <Icon name="IconReturnKey" />,
+      ],
+      onMouseDown: () => state.accept_meta(stack, modes),
+      matchKeyEvent: (event: KeyboardEvent) =>
+        event.metaKey && event.key === "Enter",
+    },
     {
       name: "Discard",
       keys: ["ESC"],
-      onMouseDown: () => modes.deactivate(),
+      onMouseDown: () => {
+          console.log("DISCARD");
+          modes.deactivate()
+      },
+      matchKeyEvent: (event: KeyboardEvent) =>
+        event.key === "Escape",
     },
   ],
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {

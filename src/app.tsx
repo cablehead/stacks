@@ -30,6 +30,8 @@ async function globalKeyHandler(event: KeyboardEvent) {
   const stack = currStack.value;
   if (!stack) return;
 
+  if (modes.attemptAction(event, stack)) return;
+
   if (attemptAction(event, stack)) return;
 
   switch (true) {

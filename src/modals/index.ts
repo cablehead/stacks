@@ -17,13 +17,13 @@ import { Stack } from "../types";
 
 export {
   actionsMode,
-  pipeMode,
   addToStackMode,
-  settingsMode,
   editorMode,
-  newNoteMode,
   filterContentTypeMode,
   mainMode,
+  newNoteMode,
+  pipeMode,
+  settingsMode,
 };
 
 export const modes = {
@@ -48,5 +48,20 @@ export const modes = {
       return;
     }
     this.active.value = mainMode;
+  },
+  attemptAction(event: KeyboardEvent, stack: Stack): boolean {
+    const mode = this.active.value;
+    for (const hotKey of mode.hotKeys(stack, this)) {
+      console.log(hotKey);
+      if (
+        hotKey.matchKeyEvent &&
+        hotKey.matchKeyEvent(event)
+      ) {
+        event.preventDefault();
+        hotKey.onMouseDown(event);
+        return true;
+      }
+    }
+    return false;
   },
 };

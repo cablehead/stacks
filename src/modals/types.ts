@@ -7,6 +7,7 @@ export interface HotKey {
   name: string;
   keys: (string | JSXInternal.Element)[];
   onMouseDown: (event: any) => void;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
 export interface Mode {
