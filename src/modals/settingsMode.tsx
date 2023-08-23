@@ -57,9 +57,9 @@ export default {
         invoke<Record<string, string>>("store_settings_get", {}).then(
           (settings: Record<string, string>) => {
             if (formRef.current) {
-                console.log(settings);
               for (const key in settings) {
-                (formRef.current.elements.namedItem(key) as HTMLInputElement).value = settings[key];
+                (formRef.current.elements.namedItem(key) as HTMLInputElement)
+                  .value = settings[key];
               }
             }
           },
