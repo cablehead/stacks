@@ -4,7 +4,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 // import { b64ToUtf8 } from "./utils";
 
-import { editorMode, modes, pipeMode } from "./modals";
+import { addToStackMode, editorMode, modes, pipeMode } from "./modals";
 
 import { Icon } from "./ui/icons";
 import { Action, Stack } from "./types";
@@ -34,16 +34,27 @@ export const actions: Action[] = [
         */
     },
   },
+
+  {
+    name: "Move to Stack",
+    keys: ["TAB"],
+    matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
+    canApply: (stack: Stack) => stack.item.value?.stack_id != null,
+    trigger: (stack: Stack) => {
+      modes.activate(stack, addToStackMode);
+    },
+  },
+
   {
     name: "Edit",
     keys: [<Icon name="IconCommandKey" />, "E"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "e",
     canApply: (stack: Stack) => {
-        const item = stack.item.value;
-        if (!item) return false;
-        const meta = stack.getContentMeta(item);
-        return meta.mime_type == "text/plain";
+      const item = stack.item.value;
+      if (!item) return false;
+      const meta = stack.getContentMeta(item);
+      return meta.mime_type == "text/plain";
     },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
