@@ -1,3 +1,6 @@
+import { Signal, signal } from "@preact/signals";
+import { useEffect, useRef } from "preact/hooks";
+
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay, vars } from "../ui/app.css";
@@ -7,13 +10,18 @@ import { Modes } from "./types";
 import { Stack } from "../types";
 
 const state = (() => {
+  const form: Signal<HTMLFormElement | undefined> = signal(undefined);
   return {
+    form,
     accept_meta: async (_: Stack, modes: Modes) => {
-      console.log("SAVE");
-      const args = {
-        // ...
-      };
-      await invoke("store_settings_save", args);
+      if (!form.value) {
+        console.error("Form is not available", form.value);
+        return;
+      }
+      const formData = new FormData(form.value);
+      const settings = Object.fromEntries(formData.entries());
+      if (settings.openai_access_token === "") return;
+      await invoke("store_settings_save", {settings: settings});
       modes.deactivate();
     },
   };
@@ -35,16 +43,19 @@ export default {
     {
       name: "Discard",
       keys: ["ESC"],
-      onMouseDown: () => {
-          console.log("DISCARD");
-          modes.deactivate()
-      },
-      matchKeyEvent: (event: KeyboardEvent) =>
-        event.key === "Escape",
+      onMouseDown: () => modes.deactivate(),
+      matchKeyEvent: (event: KeyboardEvent) => event.key === "Escape",
     },
   ],
-  Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
-    console.log(stack, modes);
+  Modal: ({}: { stack: Stack; modes: Modes }) => {
+    const formRef = useRef<HTMLFormElement>(null);
+
+    useEffect(() => {
+      if (formRef.current != null) {
+        (formRef.current.elements[0] as HTMLElement).focus();
+        state.form.value = formRef.current;
+      }
+    }, []);
 
     return (
       <div
@@ -63,7 +74,7 @@ export default {
         }}
       >
         <p>OpenAI API Access</p>
-        <form onSubmit={() => {}}>
+        <form ref={formRef}>
           <div
             style={{
               display: "flex",
@@ -86,7 +97,7 @@ export default {
                 borderStyle: "solid",
                 borderRadius: "0.25rem",
               }}
-              name="accessToken"
+              name="openai_access_token"
               value={""}
               onChange={() => {}}
             />
@@ -101,7 +112,7 @@ export default {
           >
             <label style={{ width: "15ch" }}>Preferred Model</label>
             <select
-              name="selectedModel"
+              name="openai_selected_model"
               value={"davinci"}
               onChange={() => {}}
               style={{

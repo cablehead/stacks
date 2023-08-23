@@ -52,7 +52,6 @@ export const modes = {
   attemptAction(event: KeyboardEvent, stack: Stack): boolean {
     const mode = this.active.value;
     for (const hotKey of mode.hotKeys(stack, this)) {
-      console.log(hotKey);
       if (
         hotKey.matchKeyEvent &&
         hotKey.matchKeyEvent(event)
