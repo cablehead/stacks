@@ -59,10 +59,10 @@ fn main() {
             commands::store_edit_note,
             commands::store_settings_save,
             commands::store_settings_get,
+            commands::store_pipe_to_command,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             // commands::store_copy_entire_stack_to_clipboard,
-            // commands::store_pipe_to_command,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

@@ -29,9 +29,10 @@ const state = (() => {
     curr,
     res,
     accept_meta: async (stack: Stack, _: Modes) => {
-      console.log(curr.value, stack?.item.value?.hash);
+      if (!stack.item.value) return;
+      console.log("FOO", curr.value);
       const args = {
-        hash: stack.item.value?.hash,
+        sourceId: stack.item.value.id,
         command: curr.value,
       };
       const res: CommandOutput = await invoke("store_pipe_to_command", args);
@@ -102,7 +103,7 @@ export default {
             border: "none",
           }}
           placeholder="Enter command..."
-          onChange={(event) => {
+          onInput={(event) => {
             state.curr.value = (event.target as HTMLTextAreaElement).value;
           }}
           onKeyDown={(event) => {

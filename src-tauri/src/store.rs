@@ -155,7 +155,7 @@ pub struct Store {
     packets: sled::Tree,
     pub content_meta: sled::Tree,
     pub meta: sled::Tree,
-    cache_path: String,
+    pub cache_path: String,
     pub index: Index,
 }
 

@@ -5,7 +5,6 @@ use base64::{engine::general_purpose, Engine as _};
 use crate::state::SharedState;
 use crate::store::MimeType;
 
-/*
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
     pub out: String,
@@ -16,13 +15,15 @@ pub struct CommandOutput {
 #[tauri::command]
 pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
-    hash: ssri::Integrity,
+    source_id: scru128::Scru128Id,
     command: String,
 ) -> Result<CommandOutput, ()> {
-    println!("PIPE: {} {}", &hash, &command);
-    let cache_path = {
+    println!("PIPE: {} {}", &source_id, &command);
+    let (cache_path, hash) = {
         let state = state.lock().unwrap();
-        state.store.cache_path.clone()
+        let cache_path = state.store.cache_path.clone();
+        let item = state.view.items.get(&source_id).unwrap();
+        (cache_path, item.hash.clone())
     };
 
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
@@ -63,7 +64,6 @@ pub async fn store_pipe_to_command(
     println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
-*/
 
 #[tauri::command]
 pub fn store_get_content(
@@ -155,9 +155,12 @@ pub fn store_new_note(
 
     let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
 
-    let packet = state
-        .store
-        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id), None);
+    let packet = state.store.add(
+        content.as_bytes(),
+        MimeType::TextPlain,
+        Some(stack_id),
+        None,
+    );
     state.view.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());

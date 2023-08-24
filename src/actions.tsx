@@ -64,7 +64,7 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
-    canApply: (_: Stack) => false,
+    canApply: (stack: Stack) => !!stack.item.value,
   },
   {
     name: "Open",
