@@ -81,8 +81,6 @@ CURRENTLY HERE
 
 - Restore filter
 
-- Pipe to command
-
 - Add a fork action for stacks
 
 - Rework store_copy_to_clipboard to ignore the clipboard write
