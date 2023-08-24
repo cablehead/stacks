@@ -111,11 +111,11 @@ impl Index {
 
     pub fn query(&self, query: &str) -> std::collections::HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
-        let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
+        let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
 
         let searcher = self.reader.searcher();
         let top_docs = searcher
-            .search(&query, &tantivy::collector::TopDocs::with_limit(400))
+            .search(&query, &tantivy::collector::TopDocs::with_limit(10000))
             .unwrap();
 
         top_docs
