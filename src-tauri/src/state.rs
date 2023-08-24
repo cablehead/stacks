@@ -19,39 +19,6 @@ pub struct State {
     pub skip_change_num: Option<i64>,
 }
 
-impl Serialize for State {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("State", 4)?;
-        s.serialize_field(
-            "root",
-            &self
-                .view
-                .root()
-                .iter()
-                .map(|item| item.id)
-                .collect::<Vec<_>>(),
-        )?;
-
-        let serialized_items: std::collections::HashMap<_, _> = self
-            .view
-            .items
-            .iter()
-            .map(|(id, item)| (id, self.view_item_serializer(item)))
-            .collect();
-        s.serialize_field("items", &serialized_items)?;
-
-        s.serialize_field("content_meta", &self.store.scan_content_meta())?;
-        s.serialize_field(
-            "matches",
-            &std::collections::HashSet::<ssri::Integrity>::new(),
-        )?;
-        s.end()
-    }
-}
-
 impl State {
     pub fn new(db_path: &str) -> Self {
         let mut state = Self {
@@ -61,6 +28,22 @@ impl State {
         };
         state.store.scan().for_each(|p| state.view.merge(p));
         state
+    }
+
+    pub fn to_serde_value(&self) -> serde_json::Value {
+        let root = self.view.root().iter().map(|item| item.id).collect::<Vec<_>>();
+        let serialized_items: std::collections::HashMap<_, _> = self.view.items.iter()
+            .map(|(id, item)| (id, self.view_item_serializer(item)))
+            .collect();
+        let content_meta = self.store.scan_content_meta();
+        let matches = std::collections::HashSet::<ssri::Integrity>::new();
+
+        serde_json::json!({
+            "root": root,
+            "items": serialized_items,
+            "content_meta": content_meta,
+            "matches": matches
+        })
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
@@ -389,7 +372,7 @@ mod tests {
         let got = serde_json::to_string(&root).unwrap();
         println!("{}", got);
 
-        let got = serde_json::to_string(&state).unwrap();
+        let got = serde_json::to_string(&state.to_serde_value()).unwrap();
         println!("{}", got);
     }
 

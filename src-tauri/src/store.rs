@@ -130,7 +130,7 @@ impl Index {
             .collect()
     }
     */
-    pub fn query(&self, query: &str) -> Vec<(f32, ssri::Integrity)> {
+    pub fn query(&self, query: &str) -> std::collections::HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
 
@@ -141,11 +141,11 @@ impl Index {
 
         top_docs
             .into_iter()
-            .map(|(score, doc_address)| {
+            .map(|(_, doc_address)| {
                 let doc = searcher.doc(doc_address).unwrap();
                 let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
                 let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
-                (score, hash)
+                hash
             })
             .collect()
     }
@@ -448,9 +448,8 @@ mod tests {
         let results = store.index.query("fzzy");
         let results: Vec<_> = results
             .into_iter()
-            .map(|(_, hash)| store.cas_read(&hash).unwrap())
+            .map(|hash| store.cas_read(&hash).unwrap())
             .collect();
-
         assert_eq!(results, vec![b"Hello, fuzzy world!".to_vec()]);
     }
 

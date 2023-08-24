@@ -3,13 +3,13 @@ import { batch, effect, Signal, signal } from "@preact/signals";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Stack } from "./types";
+import { Stack, State } from "./types";
 
 export const currStack: Signal<Stack | null> = signal(null);
 
-invoke<string>("store_list_items", { filter: "", contentType: "" }).then(
+invoke<State>("store_list_items", { filter: "", contentType: "" }).then(
   (state) => {
-    currStack.value = new Stack(JSON.parse(state));
+    currStack.value = new Stack(state);
   },
 );
 
@@ -44,9 +44,7 @@ const innerUpdateItems = async (stack: Stack) => {
 
   await batch(async () => {
     // Set the new list of items from the backend
-    stack.state.value = JSON.parse(
-      await invoke<string>("store_list_items", args),
-    );
+    stack.state.value = await invoke<State>("store_list_items", args);
 
     const selectedId = stack.selected.value.curr(stack);
     const selected = stack.state.value.items[selectedId];
