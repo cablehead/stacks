@@ -142,7 +142,7 @@ export function Nav({ stack }: { stack: Stack }) {
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", stack.state.value.root, "8ch", parentItem.id)}
+      {renderItems(stack, "root", stack.state.value.root, "10ch", parentItem.id)}
       {renderItems(
         stack,
         parentItem.id,

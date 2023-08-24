@@ -111,7 +111,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Add to stack",
+  name: () => "Copy to stack",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
