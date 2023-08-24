@@ -86,7 +86,7 @@ pub fn store_list_items(
     content_type: String,
 ) -> serde_json::Value {
     let state = state.lock().unwrap();
-    state.to_serde_value()
+    state.to_serde_value(&filter)
 }
 
 use cocoa::base::nil;

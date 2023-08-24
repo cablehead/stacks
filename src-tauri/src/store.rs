@@ -109,27 +109,6 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
-    /*
-       pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
-        let term = tantivy::schema::Term::from_field_text(self.content_field, query);
-        let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
-
-        let searcher = self.reader.searcher();
-        let top_docs = searcher
-            .search(&query, &tantivy::collector::TopDocs::with_limit(400))
-            .unwrap();
-
-        top_docs
-            .into_iter()
-            .map(|(_, doc_address)| {
-                let doc = searcher.doc(doc_address).unwrap();
-                let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
-                let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
-                hash
-            })
-            .collect()
-    }
-    */
     pub fn query(&self, query: &str) -> std::collections::HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
