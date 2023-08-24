@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/tauri";
-// import { open } from "@tauri-apps/api/shell";
+import { open } from "@tauri-apps/api/shell";
 // import { hide } from "tauri-plugin-spotlight-api";
 
 import { b64ToUtf8 } from "./utils";
