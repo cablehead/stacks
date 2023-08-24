@@ -2,7 +2,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 // import { open } from "@tauri-apps/api/shell";
 // import { hide } from "tauri-plugin-spotlight-api";
 
-// import { b64ToUtf8 } from "./utils";
+import { b64ToUtf8 } from "./utils";
 
 import { addToStackMode, editorMode, modes, pipeMode } from "./modals";
 
@@ -71,12 +71,21 @@ export const actions: Action[] = [
     keys: [<Icon name="IconCommandKey" />, "O"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
-    trigger: (_: Stack) => {
-      // const content = stack.content?.value;
-      // console.log("OPEN", content);
-      // if (content) open(b64ToUtf8(content));
+    trigger: (stack: Stack) => {
+      const item = stack.item.value;
+      if (!item) return false;
+      const content = stack.getContent(item.hash);
+      if (typeof (content.value) == "undefined") return false;
+      const url = b64ToUtf8(content.value);
+      console.log("OPEN", url);
+      open(url);
     },
-    canApply: (_: Stack) => false,
+    canApply: (stack: Stack) => {
+      const item = stack.item.value;
+      if (!item) return false;
+      const meta = stack.getContentMeta(item);
+      return meta.content_type == "Link";
+    },
   },
   {
     name: "Delete",
