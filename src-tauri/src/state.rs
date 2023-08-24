@@ -31,12 +31,24 @@ impl State {
     }
 
     pub fn to_serde_value(&self, filter: &str) -> serde_json::Value {
-        let root = self.view.root().iter().map(|item| item.id).collect::<Vec<_>>();
-        let serialized_items: std::collections::HashMap<_, _> = self.view.items.iter()
+        let root = self
+            .view
+            .root()
+            .iter()
+            .map(|item| item.id)
+            .collect::<Vec<_>>();
+        let serialized_items: std::collections::HashMap<_, _> = self
+            .view
+            .items
+            .iter()
             .map(|(id, item)| (id, self.view_item_serializer(item)))
             .collect();
         let content_meta = self.store.scan_content_meta();
-        let matches = self.store.index.query(filter);
+        let matches = if filter.is_empty() {
+            None
+        } else {
+            Some(self.store.index.query(filter))
+        };
 
         serde_json::json!({
             "root": root,

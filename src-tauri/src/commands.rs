@@ -124,7 +124,7 @@ pub fn store_copy_to_clipboard(
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
 
     if let Some(item) = state.view.items.get(&source_id) {
         let meta = state.store.get_content_meta(&item.hash).unwrap();
@@ -203,7 +203,7 @@ pub fn store_delete(
 
 #[tauri::command]
 pub fn store_settings_save(state: tauri::State<SharedState>, settings: serde_json::Value) {
-    let mut state = state.lock().unwrap();
+    let state = state.lock().unwrap();
     state
         .store
         .meta
