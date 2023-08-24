@@ -44,7 +44,9 @@ const innerUpdateItems = async (stack: Stack) => {
 
   await batch(async () => {
     // Set the new list of items from the backend
-    stack.state.value = await invoke<State>("store_list_items", args);
+    const state = await invoke<State>("store_list_items", args);
+    if (state.matches) state.matches = new Set(state.matches);
+    stack.state.value = state;
 
     const selectedId = stack.selected.value.curr(stack);
     const selected = stack.state.value.items[selectedId];

@@ -31,7 +31,7 @@ export interface State {
   root: Scru128Id[];
   items: { [id: string]: Item };
   content_meta: { [key: string]: ContentMeta };
-  matches: string[];
+  matches?: Set<SSRI>;
 }
 
 enum FocusType {
@@ -60,7 +60,8 @@ export class Focus {
     if (!this.id || this.type === FocusType.FIRST) {
       const firstStackId = stack.state.value.root[0];
       const firstStack = stack.state.value.items[firstStackId];
-      if (firstStack && firstStack.children[0]) return firstStack.children[0];
+      const children = stack.getChildren(firstStack);
+      if (firstStack && children[0]) return children[0];
       return firstStackId;
     }
     return this.id;
@@ -194,12 +195,13 @@ export class Stack {
 
   selectRight(): void {
     const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    if (currentItem.children.length > 0) {
+    const children = this.getChildren(currentItem);
+    if (children.length > 0) {
       const lastSelectedChild = this.lastSelected.get(currentItem.id);
       this.select(
-        lastSelectedChild && currentItem.children.includes(lastSelectedChild)
+        lastSelectedChild && children.includes(lastSelectedChild)
           ? lastSelectedChild
-          : currentItem.children[0],
+          : children[0],
       );
     }
   }
@@ -213,8 +215,16 @@ export class Stack {
 
   getPeers(item: Item): Scru128Id[] {
     return item.stack_id
-      ? this.state.value.items[item.stack_id].children
+      ? this.getChildren(this.state.value.items[item.stack_id])
       : this.state.value.root;
+  }
+
+  getChildren(item: Item): Scru128Id[] {
+    const matches = this.state.value.matches;
+    if (!matches || matches == undefined) return item.children;
+    return item.children.filter((id) =>
+      matches.has(this.state.value.items[id].hash)
+    );
   }
 }
 

@@ -117,8 +117,9 @@ export function Nav({ stack }: { stack: Stack }) {
     stack.state.value.items[selectedItem.stack_id];
 
   if (!parentItem) {
+    const selectedItemChildren = stack.getChildren(selectedItem);
     const selectedChildId = stack.lastSelected.get(selectedId) ||
-      selectedItem.children[0];
+      selectedItemChildren[0];
     const selectedChild = stack.state.value.items[selectedChildId];
     return (
       <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
@@ -126,7 +127,7 @@ export function Nav({ stack }: { stack: Stack }) {
         {renderItems(
           stack,
           selectedId,
-          selectedItem.children,
+          selectedItemChildren,
           "20ch",
           selectedChildId,
         )}
@@ -140,13 +141,21 @@ export function Nav({ stack }: { stack: Stack }) {
     );
   }
 
+  const parentItemChildren = stack.getChildren(parentItem);
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", stack.state.value.root, "10ch", parentItem.id)}
+      {renderItems(
+        stack,
+        "root",
+        stack.state.value.root,
+        "10ch",
+        parentItem.id,
+      )}
       {renderItems(
         stack,
         parentItem.id,
-        parentItem.children,
+        parentItemChildren,
         "20ch",
         selectedId,
       )}
