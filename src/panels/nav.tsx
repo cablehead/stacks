@@ -5,17 +5,17 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Stack, ItemMeta, Scru128Id } from "../types";
+import { ItemMeta, Layer, Scru128Id, Stack } from "../types";
 
 const TerseRow = (
-  { stack, item, selectedId }: {
+  { stack, item, isSelected, isFocused }: {
     stack: Stack;
     item: ItemMeta;
-    selectedId?: Scru128Id;
+    isSelected: boolean;
+    isFocused: boolean;
   },
 ) => {
   const theRef = useRef<HTMLDivElement>(null);
-  const isSelected = selectedId === item.o.id;
 
   useEffect(() => {
     if (isSelected && theRef.current) {
@@ -30,8 +30,7 @@ const TerseRow = (
     <div
       ref={theRef}
       className={"terserow" +
-        (stack.selected.value.curr(stack) === item.o.id ? " highlight" : "") +
-        (isSelected ? " selected" : "")}
+        (isSelected ? (isFocused ? " highlight" : " selected") : "")}
       onMouseDown={() => {
         stack.select(item.o.id);
       }}
@@ -76,9 +75,12 @@ const TerseRow = (
 const renderItems = (
   stack: Stack,
   key: string,
-  items: ItemMeta[],
+  layer: Layer,
   maxWidth: string,
+  focusedId: Scru128Id,
 ) => {
+  const { items, selected } = layer;
+
   if (items.length == 0) return <i>no items</i>;
   return (
     <div
@@ -97,7 +99,8 @@ const renderItems = (
             stack={stack}
             item={item}
             key={item.o.id}
-            selectedId={items[0].o.id}
+            isSelected={item.o.id == selected.o.id}
+            isFocused={item.o.id == focusedId}
           />
         ))}
     </div>
@@ -105,75 +108,29 @@ const renderItems = (
 };
 
 export function Nav({ stack }: { stack: Stack }) {
+  const neo = stack.neo.value;
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", stack.neo.value.root, "20ch")}
-      {renderItems(stack, "", stack.neo.value.sub, "20ch")}
-      <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} item={stack.neo.value.preview} />
-      </div>
-    </div>
-  );
+      {renderItems(stack, "root", neo.root, "20ch", neo.focusedId)}
 
-  /*
-
-  const selectedId = stack.selected.value.curr(stack);
-  const selectedItem = stack.state.value.items[selectedId];
-
-  if (!selectedItem) return <i>no matches</i>;
-
-  const parentItem = selectedItem.stack_id &&
-    stack.state.value.items[selectedItem.stack_id];
-
-  if (!parentItem) {
-    const selectedItemChildren = stack.getChildren(selectedItem);
-    const selectedChildId = stack.lastSelected.get(selectedId) ||
-      selectedItemChildren[0];
-    const selectedChild = stack.state.value.items[selectedChildId];
-    return (
-      <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-        {renderItems(stack, "root", stack.state.value.root, "20ch", selectedId)}
-        {renderItems(
-          stack,
-          selectedId,
-          selectedItemChildren,
-          "20ch",
-          selectedChildId,
-        )}
-        {selectedChild &&
-          (
+      {neo.sub
+        ? (
+          <>
+            {renderItems(
+              stack,
+              neo.root.selected.o.id,
+              neo.sub,
+              "20ch",
+              neo.focusedId,
+            )}
             <div style="flex: 3; overflow: auto; height: 100%">
-              <Preview stack={stack} item={selectedChild} />
+              <Preview stack={stack} item={neo.sub.selected} />
             </div>
-          )}
-      </div>
-    );
-  }
-
-  const parentItemChildren = stack.getChildren(parentItem);
-
-  return (
-    <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(
-        stack,
-        "root",
-        stack.state.value.root,
-        "10ch",
-        parentItem.id,
-      )}
-      {renderItems(
-        stack,
-        parentItem.id,
-        parentItemChildren,
-        "20ch",
-        selectedId,
-      )}
-      <div style="flex: 3; overflow: auto; height: 100%">
-        <Preview stack={stack} item={selectedItem} />
-      </div>
+          </>
+        )
+        : <i>no items</i>}
     </div>
   );
-  */
 }
 
 const RowIcon = ({ item }: { item: ItemMeta }) => {

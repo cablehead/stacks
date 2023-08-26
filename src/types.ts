@@ -39,10 +39,15 @@ export interface State {
   matches?: Set<SSRI>;
 }
 
+export interface Layer {
+  items: ItemMeta[];
+  selected: ItemMeta;
+}
+
 export interface Neo {
-  root: ItemMeta[];
-  sub: ItemMeta[];
-  preview: ItemMeta;
+  root: Layer;
+  sub?: Layer;
+  focusedId: Scru128Id;
 }
 
 enum FocusType {
@@ -159,17 +164,30 @@ export class Stack {
       };
 
       const state = this.state.value;
-      const root = state.root.map(idToItemMeta);
 
-      const selectedItem = idToItemMeta(this.selected.value.curr(this));
-      const rootId = selectedItem.o.stack_id && selectedItem.o.stack_id || selectedItem.o.id;
+      const focusedId = this.selected.value.curr(this);
+      const focusedItem = idToItemMeta(focusedId);
 
-      let rootIndex = root.findIndex(item => item.o.id === rootId);
-      rootIndex = rootIndex === -1 ? 0 : rootIndex;
 
-      const sub = root[rootIndex].o.children.map(idToItemMeta);
-      const preview = sub[0];
-      return { root, sub, preview };
+      const rootId = focusedItem.o.stack_id && focusedItem.o.stack_id ||
+        focusedItem.o.id;
+      const rootItem = idToItemMeta(rootId);
+
+      const subId = focusedItem.o.stack_id && focusedItem.o.id ||
+        (this.lastSelected.get(focusedItem.o.id) || focusedItem.o.children[0]);
+      const subItem = subId && idToItemMeta(subId);
+
+      return {
+        root: {
+          items: state.root.map(idToItemMeta),
+          selected: rootItem,
+        },
+        sub: subItem && {
+          items: rootItem.o.children.map(idToItemMeta),
+          selected: subItem,
+        },
+        focusedId,
+      };
     });
   }
 
