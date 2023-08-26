@@ -76,7 +76,6 @@ const renderItems = (
   stack: Stack,
   key: string,
   layer: Layer,
-  maxWidth: string,
   focusedId: Scru128Id,
 ) => {
   const { items, selected } = layer;
@@ -86,12 +85,12 @@ const renderItems = (
     <div
       key={key}
       className={borderRight}
-      style={`
-      flex: 1;
-      max-width: ${maxWidth};
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    `}
+      style={{
+        flex: 1,
+        maxWidth: selected.o.id == focusedId ? "20ch" : "14ch",
+        overflowY: "auto",
+        paddingRight: "0.5rem",
+      }}
     >
       {items
         .map((item) => (
@@ -111,7 +110,7 @@ export function Nav({ stack }: { stack: Stack }) {
   const neo = stack.neo.value;
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", neo.root, "20ch", neo.focusedId)}
+      {renderItems(stack, "root", neo.root, neo.focusedId)}
 
       {neo.sub
         ? (
@@ -120,7 +119,6 @@ export function Nav({ stack }: { stack: Stack }) {
               stack,
               neo.root.selected.o.id,
               neo.sub,
-              "20ch",
               neo.focusedId,
             )}
             <div style="flex: 3; overflow: auto; height: 100%">
