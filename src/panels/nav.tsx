@@ -5,17 +5,17 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
+import { Stack, ItemMeta, Scru128Id } from "../types";
 
 const TerseRow = (
   { stack, item, selectedId }: {
     stack: Stack;
-    item: Item;
-    selectedId?: string;
+    item: ItemMeta;
+    selectedId?: Scru128Id;
   },
 ) => {
   const theRef = useRef<HTMLDivElement>(null);
-  const isSelected = stack.selected.value.curr(stack) === item.id;
+  const isSelected = selectedId === item.o.id;
 
   useEffect(() => {
     if (isSelected && theRef.current) {
@@ -26,16 +26,14 @@ const TerseRow = (
     }
   }, [isSelected, theRef.current]);
 
-  const meta = stack.getContentMeta(item);
-
   return (
     <div
       ref={theRef}
       className={"terserow" +
-        (stack.selected.value.curr(stack) === item.id ? " highlight" : "") +
-        (item.id === selectedId ? " selected" : "")}
+        (stack.selected.value.curr(stack) === item.o.id ? " highlight" : "") +
+        (isSelected ? " selected" : "")}
       onMouseDown={() => {
-        stack.select(item.id);
+        stack.select(item.o.id);
       }}
       style="
           display: flex;
@@ -47,7 +45,7 @@ const TerseRow = (
           cursor: pointer;
           "
     >
-      {item.stack_id &&
+      {false &&
         (
           <div
             style={{
@@ -57,7 +55,7 @@ const TerseRow = (
               overflow: "hidden",
             }}
           >
-            <RowIcon stack={stack} item={item} />
+            <RowIcon item={item} />
           </div>
         )}
 
@@ -69,7 +67,7 @@ const TerseRow = (
           textOverflow: "ellipsis",
         }}
       >
-        {meta.terse}
+        {item.meta.terse}
       </div>
     </div>
   );
@@ -78,9 +76,8 @@ const TerseRow = (
 const renderItems = (
   stack: Stack,
   key: string,
-  items: string[],
+  items: ItemMeta[],
   maxWidth: string,
-  selectedId?: string,
 ) => {
   if (items.length == 0) return <i>no items</i>;
   return (
@@ -94,13 +91,13 @@ const renderItems = (
       padding-right: 0.5rem;
     `}
     >
-      {items.map((id) => stack.state.value.items[id])
+      {items
         .map((item) => (
           <TerseRow
             stack={stack}
             item={item}
-            key={item.id}
-            selectedId={selectedId}
+            key={item.o.id}
+            selectedId={items[0].o.id}
           />
         ))}
     </div>
@@ -108,6 +105,18 @@ const renderItems = (
 };
 
 export function Nav({ stack }: { stack: Stack }) {
+  return (
+    <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
+      {renderItems(stack, "root", stack.neo.value.root, "20ch")}
+      {renderItems(stack, "", stack.neo.value.sub, "20ch")}
+      <div style="flex: 3; overflow: auto; height: 100%">
+        <Preview stack={stack} item={stack.neo.value.preview} />
+      </div>
+    </div>
+  );
+
+  /*
+
   const selectedId = stack.selected.value.curr(stack);
   const selectedItem = stack.state.value.items[selectedId];
 
@@ -164,14 +173,13 @@ export function Nav({ stack }: { stack: Stack }) {
       </div>
     </div>
   );
+  */
 }
 
-const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
-  if (!item.stack_id) return <Icon name="IconStack" />;
+const RowIcon = ({ item }: { item: ItemMeta }) => {
+  if (!item.o.stack_id) return <Icon name="IconStack" />;
 
-  const contentMeta = stack.getContentMeta(item);
-
-  switch (contentMeta.content_type) {
+  switch (item.meta.content_type) {
     case "Image":
       return <Icon name="IconImage" />;
 
@@ -185,12 +193,11 @@ const RowIcon = ({ stack, item }: { stack: Stack; item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
-function Preview({ stack, item }: { stack: Stack; item: Item }) {
-  const content = stack.getContent(item.hash).value;
+function Preview({ stack, item }: { stack: Stack; item: ItemMeta }) {
+  const content = stack.getContent(item.o.hash).value;
   if (!content) return <div>loading...</div>;
-  const meta = stack.getContentMeta(item);
 
-  if (meta.mime_type === "image/png") {
+  if (item.meta.mime_type === "image/png") {
     return (
       <img
         src={"data:image/png;base64," + content}

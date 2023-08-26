@@ -20,11 +20,16 @@ export interface Item {
 }
 
 export interface ContentMeta {
-  hash: string | null;
+  hash: SSRI;
   mime_type: string;
   content_type: string;
   terse: string;
   tiktokens: number;
+}
+
+export interface ItemMeta {
+  o: Item;
+  meta: ContentMeta;
 }
 
 export interface State {
@@ -32,6 +37,12 @@ export interface State {
   items: { [id: string]: Item };
   content_meta: { [key: string]: ContentMeta };
   matches?: Set<SSRI>;
+}
+
+export interface Neo {
+  root: ItemMeta[];
+  sub: ItemMeta[];
+  preview: ItemMeta;
 }
 
 enum FocusType {
@@ -122,12 +133,14 @@ export class Stack {
     dirty: () => boolean;
     clear: () => void;
   };
+
   state: Signal<State>;
   selected: Signal<Focus>;
   normalizedSelected: Signal<string>;
   item: Signal<Item | undefined>;
   lastSelected: Map<Scru128Id, Scru128Id> = new Map();
   lastKnown?: Item;
+  neo: Signal<Neo>;
 
   constructor(initialState: State) {
     this.state = signal(initialState);
@@ -137,6 +150,26 @@ export class Stack {
 
     this.item = computed((): Item | undefined => {
       return this.state.value.items[this.selected.value.curr(this)];
+    });
+
+    this.neo = computed((): Neo => {
+      const idToItemMeta = (id: Scru128Id) => {
+        const item = state.items[id];
+        return { o: item, meta: this.getContentMeta(item) };
+      };
+
+      const state = this.state.value;
+      const root = state.root.map(idToItemMeta);
+
+      const selectedItem = idToItemMeta(this.selected.value.curr(this));
+      const rootId = selectedItem.o.stack_id && selectedItem.o.stack_id || selectedItem.o.id;
+
+      let rootIndex = root.findIndex(item => item.o.id === rootId);
+      rootIndex = rootIndex === -1 ? 0 : rootIndex;
+
+      const sub = root[rootIndex].o.children.map(idToItemMeta);
+      const preview = sub[0];
+      return { root, sub, preview };
     });
   }
 
@@ -220,6 +253,7 @@ export class Stack {
   }
 
   getChildren(item: Item): Scru128Id[] {
+    console.log("getChildren", item);
     const matches = this.state.value.matches;
     if (!matches || matches == undefined) return item.children;
     return item.children.filter((id) =>
