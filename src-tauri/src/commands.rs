@@ -159,7 +159,7 @@ pub fn store_new_note(
         Some(stack_id),
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -180,7 +180,7 @@ pub fn store_edit_note(
         None,
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -194,7 +194,7 @@ pub fn store_delete(
 ) {
     let mut state = state.lock().unwrap();
     let packet = state.store.delete(id);
-    state.view.merge(packet);
+    state.merge(packet);
     app.emit_all("refresh-items", true).unwrap();
 }
 
@@ -239,7 +239,7 @@ pub fn store_add_to_stack(
     let packet = state
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id), None);
-    state.view.merge(packet);
+    state.merge(packet);
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -256,7 +256,7 @@ pub fn store_add_to_new_stack(
     let packet = state
         .store
         .add(name.as_bytes(), MimeType::TextPlain, None, None);
-    state.view.merge(packet.clone());
+    state.merge(packet.clone());
 
     let packet = state.store.fork(
         source_id,
@@ -265,7 +265,7 @@ pub fn store_add_to_new_stack(
         Some(packet.id()),
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     app.emit_all("refresh-items", true).unwrap();
 }

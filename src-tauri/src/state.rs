@@ -6,7 +6,7 @@ use serde::{Serialize, Serializer};
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Store};
+pub use crate::store::{MimeType, Store, Packet};
 pub use crate::view::{Item, View};
 
 pub struct State {
@@ -26,7 +26,7 @@ impl State {
             store: Store::new(db_path),
             skip_change_num: None,
         };
-        state.store.scan().for_each(|p| state.view.merge(p));
+        state.store.scan().for_each(|p| state.merge(p));
         state
     }
 
@@ -91,8 +91,12 @@ impl State {
         );
 
         let id = packet.id();
-        self.view.merge(packet);
+        self.merge(packet);
         id
+    }
+
+    pub fn merge(&mut self, packet: Packet) {
+        self.view.merge(packet);
     }
 
     pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
@@ -369,7 +373,7 @@ mod tests {
             .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
             .id();
 
-        state.store.scan().for_each(|p| state.view.merge(p));
+        state.store.scan().for_each(|p| state.merge(p));
         assert_view_as_expected(
             &state.store,
             &state.view,
@@ -410,7 +414,7 @@ mod tests {
             .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
             .id();
 
-        state.store.scan().for_each(|p| state.view.merge(p));
+        state.store.scan().for_each(|p| state.merge(p));
 
         // Check that the stack item only has one child and that the item has been updated correctly
         assert_view_as_expected(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
