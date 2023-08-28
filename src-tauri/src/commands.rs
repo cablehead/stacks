@@ -81,9 +81,8 @@ pub fn store_get_content(
 #[tauri::command]
 pub fn store_list_items(
     state: tauri::State<SharedState>,
-    stack: Option<ssri::Integrity>,
     filter: String,
-    content_type: String,
+    // content_type: String,
 ) -> serde_json::Value {
     let state = state.lock().unwrap();
     state.to_serde_value(&filter)
@@ -120,7 +119,6 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 
 #[tauri::command]
 pub fn store_copy_to_clipboard(
-    app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {

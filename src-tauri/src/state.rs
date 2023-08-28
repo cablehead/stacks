@@ -9,6 +9,32 @@ use scru128::Scru128Id;
 pub use crate::store::{MimeType, Store, Packet};
 pub use crate::view::{Item, View};
 
+/*
+export interface Item {
+  id: Scru128Id;
+  stack_id: Scru128Id | null;
+  last_touched: string;
+  touched: string[];
+  hash: SSRI;
+  mime_type: string;
+  content_type: string;
+  terse: string;
+  tiktokens: number;
+}
+
+export interface Layer {
+  items: Item[];
+  selected: Item;
+}
+
+export interface Neo {
+  root: Layer;
+  sub?: Layer;
+  focusedId: Scru128Id;
+}
+*/
+
+
 pub struct State {
     pub view: View,
     pub store: Store,
