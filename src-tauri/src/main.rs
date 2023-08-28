@@ -13,6 +13,7 @@ mod commands;
 mod state;
 mod store;
 mod view;
+mod ui;
 
 use state::{SharedState, State};
 

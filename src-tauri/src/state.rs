@@ -6,34 +6,10 @@ use serde::{Serialize, Serializer};
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Store, Packet};
+pub use crate::store::{MimeType, Packet, Store};
 pub use crate::view::{Item, View};
 
-/*
-export interface Item {
-  id: Scru128Id;
-  stack_id: Scru128Id | null;
-  last_touched: string;
-  touched: string[];
-  hash: SSRI;
-  mime_type: string;
-  content_type: string;
-  terse: string;
-  tiktokens: number;
-}
-
-export interface Layer {
-  items: Item[];
-  selected: Item;
-}
-
-export interface Neo {
-  root: Layer;
-  sub?: Layer;
-  focusedId: Scru128Id;
-}
-*/
-
+use crate::ui::UI;
 
 pub struct State {
     pub view: View,
@@ -390,7 +366,7 @@ mod tests {
             .store
             .add(b"Stack 1", MimeType::TextPlain, None, None)
             .id();
-        let item_id_1 = state
+        let _item_id_1 = state
             .store
             .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
             .id();
@@ -449,5 +425,57 @@ mod tests {
         let item = state.view.items.get(&id1).unwrap();
         assert_eq!(item.touched, vec![id1, id2]);
         assert_eq!(item.last_touched, id2);
+    }
+
+    use std::collections::HashMap;
+
+    #[test]
+    fn test_ui_render() {
+        let dir = tempfile::tempdir().unwrap();
+        let path = dir.path().to_str().unwrap();
+
+        let mut state = State::new(path);
+
+        let stack_id_1 = state
+            .store
+            .add(b"Stack 1", MimeType::TextPlain, None, None)
+            .id();
+        let stack_id_2 = state
+            .store
+            .add(b"Stack 2", MimeType::TextPlain, None, None)
+            .id();
+        let stack_id_3 = state
+            .store
+            .add(b"Stack 3", MimeType::TextPlain, None, None)
+            .id();
+
+        let item_id_1 = state
+            .store
+            .add(b"Item 1", MimeType::TextPlain, Some(stack_id_1), None)
+            .id();
+        let _item_id_2 = state
+            .store
+            .add(b"Item 2", MimeType::TextPlain, Some(stack_id_2), None)
+            .id();
+        let _item_id_3 = state
+            .store
+            .add(b"Item 3", MimeType::TextPlain, Some(stack_id_3), None)
+            .id();
+
+        state.store.scan().for_each(|p| state.merge(p));
+
+        let ui = UI {
+            focused_id: item_id_1,
+            last_selected: HashMap::new(),
+            filter: "".to_string(),
+        };
+
+        let nav = ui.render(&state.store, &state.view);
+
+        assert_eq!(nav.root.items.len(), 3);
+        assert_eq!(nav.root.selected.id, stack_id_1);
+        assert_eq!(nav.sub.as_ref().unwrap().items.len(), 1);
+        assert_eq!(nav.sub.unwrap().selected.id, item_id_1);
+        assert_eq!(nav.focused_id, item_id_1);
     }
 }
