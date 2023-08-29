@@ -430,15 +430,13 @@ mod tests {
     use std::collections::HashMap;
 
     type NavExpected<'a> = (
-        (&'a str, Vec<&'a str>),         // root
-        Option<(&'a str, Vec<&'a str>)>, // sub
-        &'a str,                         // focused_id
+        (&'a str, Vec<&'a str>, bool),         // root
+        Option<(&'a str, Vec<&'a str>, bool)>, // sub
     );
 
     fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
         let root_expected = &expected.0;
         let sub_expected = &expected.1;
-        let focused_id_expected = &expected.2;
 
         let root_actual = (
             nav.root.selected.terse.clone(),
@@ -447,6 +445,7 @@ mod tests {
                 .iter()
                 .map(|item| item.terse.clone())
                 .collect::<Vec<_>>(),
+            nav.root.is_focus,
         );
         let sub_actual = nav.sub.as_ref().map(|sub| {
             (
@@ -455,9 +454,9 @@ mod tests {
                     .iter()
                     .map(|item| item.terse.clone())
                     .collect::<Vec<_>>(),
+                sub.is_focus,
             )
         });
-        let focused_id_actual = nav.focused_id.to_string();
 
         assert_eq!(
             root_actual,
@@ -467,17 +466,18 @@ mod tests {
                     .1
                     .iter()
                     .map(|s| s.to_string())
-                    .collect::<Vec<_>>()
+                    .collect::<Vec<_>>(),
+                root_expected.2
             )
         );
         assert_eq!(
             sub_actual,
-            sub_expected.as_ref().map(|(s, v)| (
+            sub_expected.as_ref().map(|(s, v, b)| (
                 s.to_string(),
-                v.iter().map(|s| s.to_string()).collect::<Vec<_>>()
+                v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+                *b
             ))
         );
-        assert_eq!(focused_id_actual, focused_id_expected.to_string());
     }
 
     #[test]
@@ -527,14 +527,12 @@ mod tests {
         assert_eq!(nav.root.selected.id, stack_id_1);
         assert_eq!(nav.sub.as_ref().unwrap().items.len(), 1);
         assert_eq!(nav.sub.as_ref().unwrap().selected.id, item_id_1);
-        assert_eq!(nav.focused_id, item_id_1);
 
         assert_nav_as_expected(
             &nav,
             (
-                ("Stack 1", vec!["Item 1"]),
-                Some(("Item 1", vec![])),
-                &item_id_1.to_string(),
+                ("Stack 1", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+                Some(("Item 1", vec!["Item 1"], true)),
             ),
         );
     }

@@ -24,15 +24,16 @@ pub struct Item {
 pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
+    pub is_focus: bool,
 }
 
 #[derive(Debug, Clone)]
 pub struct Nav {
     pub root: Layer,
     pub sub: Option<Layer>,
-    pub focused_id: Scru128Id,
 }
 
+#[derive(Debug, Clone)]
 pub struct UI {
     pub focused_id: Scru128Id,
     pub last_selected: HashMap<Scru128Id, Scru128Id>,
@@ -62,32 +63,38 @@ impl UI {
             }
         };
 
-
         let focused = v.items.get(&self.focused_id).unwrap().clone();
         let root_id = focused.stack_id.unwrap_or(focused.id);
 
         let root_items = v.root();
         let root_selected = v.items.get(&root_id).unwrap();
 
-        let sub_items = v.children(root_selected).iter().map(|id| v.items.get(id).unwrap().clone()).collect::<Vec<_>>();
+        let sub_items = v
+            .children(root_selected)
+            .iter()
+            .map(|id| v.items.get(id).unwrap().clone())
+            .collect::<Vec<_>>();
         let sub_selected = sub_items[0].clone();
 
         let root_items = root_items.iter().map(id_to_item).collect::<Vec<_>>();
         let root_selected = id_to_item(&root_selected);
+        let root_is_focus = self.focused_id == root_selected.id;
 
         let sub_items = sub_items.iter().map(id_to_item).collect::<Vec<_>>();
         let sub_selected = id_to_item(&sub_selected);
+        let sub_is_focus = self.focused_id == sub_selected.id;
 
         Nav {
             root: Layer {
                 items: root_items,
                 selected: root_selected,
+                is_focus: root_is_focus,
             },
             sub: Some(Layer {
                 items: sub_items,
                 selected: sub_selected,
+                is_focus: sub_is_focus,
             }),
-            focused_id: self.focused_id.clone(),
         }
     }
 }
