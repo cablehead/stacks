@@ -15,6 +15,9 @@ mod store;
 mod view;
 mod ui;
 
+#[cfg(test)]
+mod ui_tests;
+
 use state::{SharedState, State};
 
 fn main() {
