@@ -169,9 +169,10 @@ impl UI {
             .iter()
             .map(|id| v.items.get(id).unwrap().clone())
             .collect::<Vec<_>>();
+        let sub_selected_id = self.last_selected.get(&root_selected.id).cloned().unwrap_or(sub_items[0].id);
         let sub_selected = sub_items
             .iter()
-            .find(|item| item.id == focused_id)
+            .find(|item| item.id == sub_selected_id)
             .unwrap_or(&sub_items[0])
             .clone();
 
