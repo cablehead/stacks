@@ -9,7 +9,7 @@ use scru128::Scru128Id;
 pub use crate::store::{MimeType, Packet, Store};
 pub use crate::view::{Item, View};
 
-use crate::ui::UI;
+use crate::ui::{UI, Nav};
 
 pub struct State {
     pub view: View,
@@ -429,6 +429,41 @@ mod tests {
 
     use std::collections::HashMap;
 
+    type NavExpected = (
+        (String, Vec<String>),         // root
+        Option<(String, Vec<String>)>, // sub
+        String,                        // focused_id
+    );
+
+    fn assert_nav_as_expected(nav: &Nav, expected: NavExpected) {
+        let root_expected = &expected.0;
+        let sub_expected = &expected.1;
+        let focused_id_expected = &expected.2;
+
+        let root_actual = (
+            nav.root.selected.terse.clone(),
+            nav.root
+                .items
+                .iter()
+                .map(|item| item.terse.clone())
+                .collect::<Vec<_>>(),
+        );
+        let sub_actual = nav.sub.as_ref().map(|sub| {
+            (
+                sub.selected.terse.clone(),
+                sub.items
+                    .iter()
+                    .map(|item| item.terse.clone())
+                    .collect::<Vec<_>>(),
+            )
+        });
+        let focused_id_actual = nav.focused_id.to_string();
+
+        assert_eq!(root_actual, *root_expected);
+        assert_eq!(sub_actual, *sub_expected);
+        assert_eq!(focused_id_actual, *focused_id_expected);
+    }
+
     #[test]
     fn test_ui_render() {
         let dir = tempfile::tempdir().unwrap();
@@ -477,5 +512,14 @@ mod tests {
         assert_eq!(nav.sub.as_ref().unwrap().items.len(), 1);
         assert_eq!(nav.sub.unwrap().selected.id, item_id_1);
         assert_eq!(nav.focused_id, item_id_1);
+
+        assert_nav_as_expected(
+            &nav,
+            (
+                ("Stack 1", vec!["Item 1"]),
+                Some(("Item 1", vec![])),
+                item_id_1.to_string(),
+            ),
+        );
     }
 }
