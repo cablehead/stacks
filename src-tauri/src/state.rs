@@ -9,8 +9,6 @@ use scru128::Scru128Id;
 pub use crate::store::{MimeType, Packet, Store};
 pub use crate::view::{Item, View};
 
-use crate::ui::{Nav, UI};
-
 pub struct State {
     pub view: View,
     pub store: Store,
@@ -103,7 +101,7 @@ impl State {
 
     pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
         ViewItemSerializer {
-            item: item,
+            item,
             state: self,
         }
     }
@@ -428,6 +426,8 @@ mod tests {
     }
 
     use std::collections::HashMap;
+
+    use crate::ui::{Nav, UI};
 
     type NavExpected<'a> = (
         (&'a str, Vec<&'a str>, bool),         // root

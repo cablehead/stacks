@@ -172,7 +172,7 @@ impl Store {
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
         let content_meta_cache = self.scan_content_meta();
-        content_meta_cache.get(&hash).cloned()
+        content_meta_cache.get(hash).cloned()
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {

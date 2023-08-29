@@ -51,9 +51,9 @@ impl UI {
         let id_to_item = |item: &view::Item| -> Item {
             let content_meta = store.get_content_meta(&item.hash).unwrap();
             Item {
-                id: item.id.clone(),
-                stack_id: item.stack_id.clone(),
-                last_touched: item.last_touched.clone(),
+                id: item.id,
+                stack_id: item.stack_id,
+                last_touched: item.last_touched,
                 touched: item.touched.clone(),
                 hash: item.hash.clone(),
                 mime_type: content_meta.mime_type.clone(),
@@ -77,7 +77,7 @@ impl UI {
         let sub_selected = sub_items[0].clone();
 
         let root_items = root_items.iter().map(id_to_item).collect::<Vec<_>>();
-        let root_selected = id_to_item(&root_selected);
+        let root_selected = id_to_item(root_selected);
         let root_is_focus = self.focused_id == root_selected.id;
 
         let sub_items = sub_items.iter().map(id_to_item).collect::<Vec<_>>();
