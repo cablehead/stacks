@@ -33,60 +33,6 @@ export interface Nav {
   sub?: Layer;
 }
 
-/*
-export interface State {
-  root: Scru128Id[];
-  items: { [id: string]: Item };
-  content_meta: { [key: string]: ContentMeta };
-  matches?: Set<SSRI>;
-}
-
-export interface Layer {
-  items: ItemMeta[];
-  selected: ItemMeta;
-}
-
-export interface Neo {
-  root: Layer;
-  sub?: Layer;
-  focusedId: Scru128Id;
-}
-
-enum FocusType {
-  ID,
-  FIRST,
-}
-
-export class Focus {
-  type: FocusType;
-  id?: Scru128Id;
-
-  constructor(type: FocusType, id?: Scru128Id) {
-    this.type = type;
-    this.id = id;
-  }
-
-  static first(): Focus {
-    return new Focus(FocusType.FIRST);
-  }
-
-  static id(id: Scru128Id): Focus {
-    return new Focus(FocusType.ID, id);
-  }
-
-  curr(stack: Stack) {
-    if (!this.id || this.type === FocusType.FIRST) {
-      const firstStackId = stack.state.value.root[0];
-      const firstStack = stack.state.value.items[firstStackId];
-      const children = stack.getChildren(firstStack);
-      if (firstStack && children[0]) return children[0];
-      return firstStackId;
-    }
-    return this.id;
-  }
-}
-*/
-
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
   const signalCache: Map<string, Signal<string>> = new Map();
