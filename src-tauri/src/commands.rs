@@ -1,9 +1,12 @@
+use std::collections::HashMap;
+
 use tauri::Manager;
 
 use base64::{engine::general_purpose, Engine as _};
 
 use crate::state::SharedState;
 use crate::store::MimeType;
+use crate::ui::{Nav, UI};
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -83,9 +86,17 @@ pub fn store_list_items(
     state: tauri::State<SharedState>,
     filter: String,
     // content_type: String,
-) -> serde_json::Value {
+) -> Nav {
     let state = state.lock().unwrap();
-    state.to_serde_value(&filter)
+    // state.to_serde_value(&filter)
+    let focused_id = state.view.children(&state.view.root()[0])[0];
+    let ui = UI {
+        focused_id: focused_id,
+        last_selected: HashMap::new(),
+        filter,
+    };
+    let nav = ui.render(&state.store, &state.view);
+    nav
 }
 
 use cocoa::base::nil;
