@@ -58,6 +58,18 @@ impl UI {
         }
     }
 
+    pub fn select_down(&mut self, v: &view::View) {
+        if let Some(focused_id) = self.focused_id {
+            let peers = v.get_peers(&focused_id);
+            let current_index = peers.iter().position(|id| id == &focused_id);
+            if let Some(index) = current_index {
+                if index < peers.len() - 1 {
+                    self.focused_id = Some(peers[index + 1]);
+                }
+            }
+        }
+    }
+
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
         let _matches = if !self.filter.is_empty() {
             Some(store.index.query(&self.filter))

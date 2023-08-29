@@ -108,29 +108,18 @@ pub fn store_list_items(
 }
 
 #[tauri::command]
-pub fn store_select_down(
-    state: tauri::State<SharedState>,
-    focused_id: Option<Scru128Id>,
-    filter: String,
-    // content_type: String,
-) -> Nav {
-    let state = state.lock().unwrap();
-    // state.to_serde_value(&filter)
-    //
+pub fn store_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.ui.focused_id = Some(focused_id);
+    state.ui.render(&state.store, &state.view)
+}
 
-    let new_focused_id = focused_id.and_then(|id| state.view.select_down(&id));
-
-    println!("FILTER: {} {:?} {:?}", &filter, &focused_id, &new_focused_id);
-    let start = Instant::now(); // start timing
-    let ui = UI {
-        focused_id: new_focused_id,
-        last_selected: HashMap::new(),
-        filter,
-    };
-    let nav = ui.render(&state.store, &state.view);
-    let duration = start.elapsed(); // get the time elapsed
-    println!("FILTER: peace, time taken: {:?}", duration);
-    nav
+#[tauri::command]
+pub fn store_select_down(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    let view = state.view.clone();
+    state.ui.select_down(&view);
+    state.ui.render(&state.store, &state.view)
 }
 
 use cocoa::base::nil;
@@ -312,51 +301,3 @@ pub fn store_add_to_new_stack(
 
     app.emit_all("refresh-items", true).unwrap();
 }
-
-/*
-
-#[tauri::command]
-pub fn store_copy_entire_stack_to_clipboard(
-    app: tauri::AppHandle,
-    state: tauri::State<SharedState>,
-    stack_hash: ssri::Integrity,
-) -> Option<()> {
-    let mut state = state.lock().unwrap();
-
-    let stack = state.stack.items.get(&stack_hash)?.clone();
-
-    let mut items: Vec<&Item> = stack
-        .stack
-        .values()
-        .filter(|item| !item.ids.is_empty())
-        .collect();
-
-    items.sort_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-
-    let content: Vec<String> = items
-        .into_iter()
-        .filter(|item| item.mime_type == MimeType::TextPlain)
-        .map(|item| item.hash.clone())
-        .filter_map(|hash| state.store.cat(&hash))
-        .map(|bytes| String::from_utf8(bytes).unwrap_or_default())
-        .collect();
-
-    let content = content.join("\n");
-    let change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes())?;
-    state.skip_change_num = Some(change_num);
-
-    let frame = Frame {
-        id: scru128::new(),
-        source: Some("stream.cross.stacks".into()),
-        stack_hash: None,
-        mime_type: MimeType::TextPlain,
-        hash: stack.hash.clone(),
-    };
-    let packet = state.store.insert_frame(&frame);
-    state.merge(&packet);
-
-    app.emit_all("refresh-items", true).unwrap();
-    Some(())
-}
-// End stack commands
-*/

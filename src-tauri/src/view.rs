@@ -16,6 +16,7 @@ pub struct Item {
     pub forked_children: Vec<Scru128Id>,
 }
 
+#[derive(Debug, Clone)]
 pub struct View {
     pub items: HashMap<Scru128Id, Item>,
 }
@@ -182,16 +183,6 @@ impl View {
             }
         } else {
             Vec::new()
-        }
-    }
-
-    pub fn select_down(&self, focused_id: &Scru128Id) -> Option<Scru128Id> {
-        let peers = self.get_peers(focused_id);
-        let current_index = peers.iter().position(|id| id == focused_id)?;
-        if current_index < peers.len() - 1 {
-            Some(peers[current_index + 1])
-        } else {
-            None
         }
     }
 }
