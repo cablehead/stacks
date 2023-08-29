@@ -82,6 +82,27 @@ impl UI {
         }
     }
 
+    pub fn select_left(&mut self, v: &view::View) {
+        if let Some(focused_id) = self.focused_id {
+            if let Some(item) = v.items.get(&focused_id) {
+                if let Some(stack_id) = item.stack_id {
+                    self.focused_id = Some(stack_id);
+                }
+            }
+        }
+    }
+
+    pub fn select_right(&mut self, v: &view::View) {
+        if let Some(focused_id) = self.focused_id {
+            if let Some(item) = v.items.get(&focused_id) {
+                let children = v.children(item);
+                if !children.is_empty() {
+                    self.focused_id = Some(children[0]);
+                }
+            }
+        }
+    }
+
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
         let _matches = if !self.filter.is_empty() {
             Some(store.index.query(&self.filter))

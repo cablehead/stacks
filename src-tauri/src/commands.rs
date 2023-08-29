@@ -130,6 +130,22 @@ pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
     state.ui.render(&state.store, &state.view)
 }
 
+#[tauri::command]
+pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    let view = state.view.clone();
+    state.ui.select_left(&view);
+    state.ui.render(&state.store, &state.view)
+}
+
+#[tauri::command]
+pub fn store_nav_select_right(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    let view = state.view.clone();
+    state.ui.select_right(&view);
+    state.ui.render(&state.store, &state.view)
+}
+
 use cocoa::base::nil;
 use cocoa::foundation::NSString;
 use objc::{msg_send, sel, sel_impl};
