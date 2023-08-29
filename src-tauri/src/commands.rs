@@ -83,6 +83,8 @@ pub fn store_get_content(
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
 
+use std::time::Instant;
+
 #[tauri::command]
 pub fn store_list_items(
     state: tauri::State<SharedState>,
@@ -92,12 +94,16 @@ pub fn store_list_items(
 ) -> Nav {
     let state = state.lock().unwrap();
     // state.to_serde_value(&filter)
+    println!("FILTER: {}", &filter);
+    let start = Instant::now(); // start timing
     let ui = UI {
         focused_id: focused_id,
         last_selected: HashMap::new(),
         filter,
     };
     let nav = ui.render(&state.store, &state.view);
+    let duration = start.elapsed(); // get the time elapsed
+    println!("FILTER: peace, time taken: {:?}", duration);
     nav
 }
 

@@ -48,8 +48,14 @@ impl UI {
             None
         };
 
+        let start = std::time::Instant::now(); // start timing
+
+        let content_meta_cache = store.scan_content_meta();
+        let duration = start.elapsed(); // get the time elapsed
+        println!("SCAN: peace, time taken: {:?}", duration);
+
         let id_to_item = |item: &view::Item| -> Item {
-            let content_meta = store.get_content_meta(&item.hash).unwrap();
+            let content_meta = content_meta_cache.get(&item.hash).unwrap();
             Item {
                 id: item.id,
                 stack_id: item.stack_id,
