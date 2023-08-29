@@ -100,10 +100,7 @@ impl State {
     }
 
     pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
-        ViewItemSerializer {
-            item,
-            state: self,
-        }
+        ViewItemSerializer { item, state: self }
     }
 }
 
@@ -487,52 +484,52 @@ mod tests {
 
         let mut state = State::new(path);
 
-        let stack_id_1 = state
-            .store
-            .add(b"Stack 1", MimeType::TextPlain, None, None)
-            .id();
-        let stack_id_2 = state
-            .store
-            .add(b"Stack 2", MimeType::TextPlain, None, None)
-            .id();
-        let stack_id_3 = state
-            .store
-            .add(b"Stack 3", MimeType::TextPlain, None, None)
-            .id();
+        let stack_ids: Vec<_> = (1..=3)
+            .map(|i| {
+                state
+                    .store
+                    .add(
+                        format!("Stack {}", i).as_bytes(),
+                        MimeType::TextPlain,
+                        None,
+                        None,
+                    )
+                    .id()
+            })
+            .collect();
 
-        let item_id_1 = state
-            .store
-            .add(b"Item 1", MimeType::TextPlain, Some(stack_id_1), None)
-            .id();
-        let _item_id_2 = state
-            .store
-            .add(b"Item 2", MimeType::TextPlain, Some(stack_id_2), None)
-            .id();
-        let _item_id_3 = state
-            .store
-            .add(b"Item 3", MimeType::TextPlain, Some(stack_id_3), None)
-            .id();
+        let mut items = Vec::new();
+        for (i, stack_id) in stack_ids.iter().enumerate() {
+            for j in 1..=3 {
+                let item = state.store.add(
+                    format!("S{}::Item {}", i + 1, j).as_bytes(),
+                    MimeType::TextPlain,
+                    Some(*stack_id),
+                    None,
+                );
+                items.push(item.id());
+            }
+        }
+        let focused_id = items.last().unwrap();
 
         state.store.scan().for_each(|p| state.merge(p));
 
         let ui = UI {
-            focused_id: item_id_1,
+            focused_id: *focused_id,
             last_selected: HashMap::new(),
             filter: "".to_string(),
         };
 
         let nav = ui.render(&state.store, &state.view);
-
-        assert_eq!(nav.root.items.len(), 3);
-        assert_eq!(nav.root.selected.id, stack_id_1);
-        assert_eq!(nav.sub.as_ref().unwrap().items.len(), 1);
-        assert_eq!(nav.sub.as_ref().unwrap().selected.id, item_id_1);
-
         assert_nav_as_expected(
             &nav,
             (
-                ("Stack 1", vec!["Stack 3", "Stack 2", "Stack 1"], false),
-                Some(("Item 1", vec!["Item 1"], true)),
+                ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+                Some((
+                    "S1::Item 3",
+                    vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                    true,
+                )),
             ),
         );
     }

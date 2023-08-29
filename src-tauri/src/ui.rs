@@ -7,7 +7,7 @@ pub use crate::store::{MimeType, Packet, Store};
 
 use crate::view;
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
     pub id: Scru128Id,
     pub stack_id: Option<Scru128Id>,
@@ -20,20 +20,20 @@ pub struct Item {
     pub tiktokens: usize,
 }
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
     pub is_focus: bool,
 }
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct Nav {
     pub root: Layer,
     pub sub: Option<Layer>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct UI {
     pub focused_id: Scru128Id,
     pub last_selected: HashMap<Scru128Id, Scru128Id>,
