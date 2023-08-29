@@ -526,7 +526,7 @@ mod tests {
             (
                 ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
                 Some((
-                    "S1::Item 3",
+                    "S3::Item 3",
                     vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
                     true,
                 )),
