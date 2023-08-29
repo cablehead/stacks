@@ -97,7 +97,7 @@ pub fn store_list_items(
     println!("FILTER: {}", &filter);
     let start = Instant::now(); // start timing
     let ui = UI {
-        focused_id: focused_id,
+        focused_id,
         last_selected: HashMap::new(),
         filter,
     };

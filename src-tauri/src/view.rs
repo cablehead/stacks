@@ -189,7 +189,7 @@ impl View {
         let peers = self.get_peers(focused_id);
         let current_index = peers.iter().position(|id| id == focused_id)?;
         if current_index < peers.len() - 1 {
-            Some(peers[current_index + 1].clone())
+            Some(peers[current_index + 1])
         } else {
             None
         }
