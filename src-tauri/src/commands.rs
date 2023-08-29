@@ -110,7 +110,8 @@ pub fn store_list_items(
 #[tauri::command]
 pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
     let mut state = state.lock().unwrap();
-    state.ui.focused_id = Some(focused_id);
+    let view = state.view.clone();
+    state.ui.select(&view, focused_id);
     state.ui.render(&state.store, &state.view)
 }
 

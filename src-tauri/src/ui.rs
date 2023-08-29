@@ -58,6 +58,15 @@ impl UI {
         }
     }
 
+    pub fn select(&mut self, v: &view::View, id: Scru128Id) {
+        if let Some(item) = v.items.get(&id) {
+            if let Some(stack_id) = item.stack_id {
+                self.last_selected.insert(stack_id, id);
+            }
+            self.focused_id = Some(id);
+        }
+    }
+
     pub fn select_up(&mut self, v: &view::View) {
         if let Some(focused_id) = self.focused_id {
             let peers = v.get_peers(&focused_id);
@@ -65,6 +74,11 @@ impl UI {
             if let Some(index) = current_index {
                 if index > 0 {
                     self.focused_id = Some(peers[index - 1]);
+                    if let Some(item) = v.items.get(&peers[index - 1]) {
+                        if let Some(stack_id) = item.stack_id {
+                            self.last_selected.insert(stack_id, peers[index - 1]);
+                        }
+                    }
                 }
             }
         }
@@ -77,6 +91,11 @@ impl UI {
             if let Some(index) = current_index {
                 if index < peers.len() - 1 {
                     self.focused_id = Some(peers[index + 1]);
+                    if let Some(item) = v.items.get(&peers[index + 1]) {
+                        if let Some(stack_id) = item.stack_id {
+                            self.last_selected.insert(stack_id, peers[index + 1]);
+                        }
+                    }
                 }
             }
         }
@@ -97,7 +116,12 @@ impl UI {
             if let Some(item) = v.items.get(&focused_id) {
                 let children = v.children(item);
                 if !children.is_empty() {
-                    self.focused_id = Some(children[0]);
+                    let next_id = self
+                        .last_selected
+                        .get(&focused_id)
+                        .cloned()
+                        .unwrap_or(children[0]);
+                    self.focused_id = Some(next_id);
                 }
             }
         }
