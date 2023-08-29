@@ -9,7 +9,7 @@ use scru128::Scru128Id;
 pub use crate::store::{MimeType, Packet, Store};
 pub use crate::view::{Item, View};
 
-use crate::ui::{UI, Nav};
+use crate::ui::{Nav, UI};
 
 pub struct State {
     pub view: View,
@@ -429,13 +429,13 @@ mod tests {
 
     use std::collections::HashMap;
 
-    type NavExpected = (
-        (String, Vec<String>),         // root
-        Option<(String, Vec<String>)>, // sub
-        String,                        // focused_id
+    type NavExpected<'a> = (
+        (&'a str, Vec<&'a str>),         // root
+        Option<(&'a str, Vec<&'a str>)>, // sub
+        &'a str,                         // focused_id
     );
 
-    fn assert_nav_as_expected(nav: &Nav, expected: NavExpected) {
+    fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
         let root_expected = &expected.0;
         let sub_expected = &expected.1;
         let focused_id_expected = &expected.2;
@@ -459,9 +459,25 @@ mod tests {
         });
         let focused_id_actual = nav.focused_id.to_string();
 
-        assert_eq!(root_actual, *root_expected);
-        assert_eq!(sub_actual, *sub_expected);
-        assert_eq!(focused_id_actual, *focused_id_expected);
+        assert_eq!(
+            root_actual,
+            (
+                root_expected.0.to_string(),
+                root_expected
+                    .1
+                    .iter()
+                    .map(|s| s.to_string())
+                    .collect::<Vec<_>>()
+            )
+        );
+        assert_eq!(
+            sub_actual,
+            sub_expected.as_ref().map(|(s, v)| (
+                s.to_string(),
+                v.iter().map(|s| s.to_string()).collect::<Vec<_>>()
+            ))
+        );
+        assert_eq!(focused_id_actual, focused_id_expected.to_string());
     }
 
     #[test]
@@ -510,7 +526,7 @@ mod tests {
         assert_eq!(nav.root.items.len(), 3);
         assert_eq!(nav.root.selected.id, stack_id_1);
         assert_eq!(nav.sub.as_ref().unwrap().items.len(), 1);
-        assert_eq!(nav.sub.unwrap().selected.id, item_id_1);
+        assert_eq!(nav.sub.as_ref().unwrap().selected.id, item_id_1);
         assert_eq!(nav.focused_id, item_id_1);
 
         assert_nav_as_expected(
@@ -518,7 +534,7 @@ mod tests {
             (
                 ("Stack 1", vec!["Item 1"]),
                 Some(("Item 1", vec![])),
-                item_id_1.to_string(),
+                &item_id_1.to_string(),
             ),
         );
     }
