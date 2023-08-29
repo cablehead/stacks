@@ -133,7 +133,7 @@ pub fn store_copy_to_clipboard(
         };
         let content = state.store.cas_read(&item.hash).unwrap();
 
-        let _change_num = write_to_clipboard(&mime_type, &content);
+        let _change_num = write_to_clipboard(mime_type, &content);
         Some(())
     } else {
         None

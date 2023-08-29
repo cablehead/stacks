@@ -84,7 +84,7 @@ impl State {
         let stack_name = format!("{}", local.format("%a, %b %d %Y, %I:%M %p"));
 
         let packet = self.store.add(
-            &stack_name.as_bytes(),
+            stack_name.as_bytes(),
             MimeType::TextPlain,
             None,
             Some("stream.cross.stacks".to_string()),

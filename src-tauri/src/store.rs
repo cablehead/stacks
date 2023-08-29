@@ -158,15 +158,14 @@ impl Store {
 
     pub fn scan_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
         let mut content_meta_cache = std::collections::HashMap::new();
-        for item in self.content_meta.iter() {
-            if let Ok((key, value)) = item {
-                if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
-                    if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
-                        content_meta_cache.insert(hash, meta);
-                    }
+        for (key, value) in self.content_meta.iter().flatten() {
+            if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
+                if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+                    content_meta_cache.insert(hash, meta);
                 }
             }
         }
+
         content_meta_cache
     }
 
