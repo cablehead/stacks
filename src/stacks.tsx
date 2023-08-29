@@ -16,6 +16,7 @@ invoke<Nav>("store_list_items", { filter: "", contentType: "" }).then(
 let d1: (() => void) | undefined;
 
 async function initRefresh() {
+    console.log("CREATE D1");
   d1 = await listen("refresh-items", () => {
     if (!currStack.value) return;
     const stack = currStack.value;
@@ -38,6 +39,7 @@ effect(() => {
 if (import.meta.hot) {
   import.meta.hot.accept(() => {});
   import.meta.hot.dispose(() => {
+    console.log("DISPOSE D1");
     if (d1) d1();
   });
 }

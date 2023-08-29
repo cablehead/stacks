@@ -41,6 +41,23 @@ pub struct UI {
 }
 
 impl UI {
+    pub fn new(v: &view::View) -> Self {
+        let focused_id = {
+            let root = &v.root()[0];
+            if !root.children.is_empty() {
+                Some(v.children(root)[0])
+            } else {
+                Some(root.id)
+            }
+        };
+
+        Self {
+            focused_id,
+            last_selected: HashMap::new(),
+            filter: String::new(),
+        }
+    }
+
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
         let _matches = if !self.filter.is_empty() {
             Some(store.index.query(&self.filter))

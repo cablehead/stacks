@@ -7,11 +7,13 @@ use chrono::prelude::*;
 use scru128::Scru128Id;
 
 pub use crate::store::{MimeType, Packet, Store};
+pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 
 pub struct State {
     pub view: View,
     pub store: Store,
+    pub ui: UI,
     // skip_change_num is used to prevent double processing of clipboard items.
     // When our app pushes an item to the clipboard, it also records detailed information
     // about the item in the store. To avoid the clipboard poller from duplicating this
@@ -21,13 +23,17 @@ pub struct State {
 
 impl State {
     pub fn new(db_path: &str) -> Self {
-        let mut state = Self {
-            view: View::new(),
-            store: Store::new(db_path),
+        let store = Store::new(db_path);
+        let mut view = View::new();
+        store.scan().for_each(|p| view.merge(p));
+
+        let ui = UI::new(&view);
+        Self {
+            view,
+            store,
+            ui,
             skip_change_num: None,
-        };
-        state.store.scan().for_each(|p| state.merge(p));
-        state
+        }
     }
 
     pub fn to_serde_value(&self, filter: &str) -> serde_json::Value {
