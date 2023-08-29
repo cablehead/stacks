@@ -65,7 +65,7 @@ impl UI {
 
         let focused_id = self.focused_id.unwrap_or_else(|| {
             let root = &v.root()[0];
-            if root.children.len() > 0 {
+            if !root.children.is_empty() {
                 v.children(root)[0]
             } else {
                 root.id
