@@ -149,6 +149,7 @@ export class Stack {
   focused_id: string | null;
 
   constructor(nav: Nav) {
+      console.log("CONSTRUCT");
     this.filter = createFilter();
     this.nav = signal(nav);
     this.focused_id = null;
@@ -186,7 +187,14 @@ export class Stack {
   selectUp(): void {
   }
 
-  selectDown(): void {
+  async selectDown() {
+    const args = {
+      filter: "",
+      contentType: "",
+      focusedId: this.focused_id,
+    };
+    const nav = await invoke<Nav>("store_select_down", args);
+    this.nav.value = nav;
   }
 
   selectRight(): void {

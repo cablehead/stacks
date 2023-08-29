@@ -107,6 +107,32 @@ pub fn store_list_items(
     nav
 }
 
+#[tauri::command]
+pub fn store_select_down(
+    state: tauri::State<SharedState>,
+    focused_id: Option<Scru128Id>,
+    filter: String,
+    // content_type: String,
+) -> Nav {
+    let state = state.lock().unwrap();
+    // state.to_serde_value(&filter)
+    //
+
+    let new_focused_id = focused_id.and_then(|id| state.view.select_down(&id));
+
+    println!("FILTER: {} {:?} {:?}", &filter, &focused_id, &new_focused_id);
+    let start = Instant::now(); // start timing
+    let ui = UI {
+        focused_id: new_focused_id,
+        last_selected: HashMap::new(),
+        filter,
+    };
+    let nav = ui.render(&state.store, &state.view);
+    let duration = start.elapsed(); // get the time elapsed
+    println!("FILTER: peace, time taken: {:?}", duration);
+    nav
+}
+
 use cocoa::base::nil;
 use cocoa::foundation::NSString;
 use objc::{msg_send, sel, sel_impl};

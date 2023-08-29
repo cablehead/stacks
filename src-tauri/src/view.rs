@@ -172,4 +172,26 @@ impl View {
         children.reverse();
         children
     }
+
+    pub fn get_peers(&self, focused_id: &Scru128Id) -> Vec<Scru128Id> {
+        if let Some(item) = self.items.get(focused_id) {
+            if let Some(stack_id) = item.stack_id {
+                self.children(&self.items[&stack_id])
+            } else {
+                self.root().iter().map(|item| item.id).collect()
+            }
+        } else {
+            Vec::new()
+        }
+    }
+
+    pub fn select_down(&self, focused_id: &Scru128Id) -> Option<Scru128Id> {
+        let peers = self.get_peers(focused_id);
+        let current_index = peers.iter().position(|id| id == focused_id)?;
+        if current_index < peers.len() - 1 {
+            Some(peers[current_index + 1].clone())
+        } else {
+            None
+        }
+    }
 }
