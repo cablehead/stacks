@@ -63,7 +63,14 @@ impl UI {
             }
         };
 
-        let focused_id = self.focused_id.unwrap_or(v.children(&v.root()[0])[0]);
+        let focused_id = self.focused_id.unwrap_or_else(|| {
+            let root = &v.root()[0];
+            if root.children.len() > 0 {
+                v.children(root)[0]
+            } else {
+                root.id
+            }
+        });
 
         let focused = v.items.get(&focused_id).unwrap().clone();
         let root_id = focused.stack_id.unwrap_or(focused.id);

@@ -94,7 +94,7 @@ fn test_ui_render() {
     state.store.scan().for_each(|p| state.merge(p));
 
     let ui = UI {
-        focused_id: *focused_id,
+        focused_id: Some(*focused_id),
         last_selected: HashMap::new(),
         filter: "".to_string(),
     };
