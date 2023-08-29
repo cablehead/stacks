@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use scru128::Scru128Id;
 use serde::{Deserialize, Serialize};
 use ssri::Integrity;
@@ -109,7 +111,7 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
-    pub fn query(&self, query: &str) -> std::collections::HashSet<ssri::Integrity> {
+    pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
 
@@ -133,6 +135,7 @@ impl Index {
 pub struct Store {
     packets: sled::Tree,
     pub content_meta: sled::Tree,
+    pub content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
@@ -147,17 +150,20 @@ impl Store {
         let meta = db.open_tree("meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
-        Store {
+        let mut store = Store {
             packets,
             content_meta,
+            content_meta_cache: HashMap::new(),
             meta,
             cache_path,
             index: Index::new(path.join("index")),
-        }
+        };
+        store.content_meta_cache = store.scan_content_meta();
+        store
     }
 
-    pub fn scan_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
-        let mut content_meta_cache = std::collections::HashMap::new();
+    pub fn scan_content_meta(&self) -> HashMap<ssri::Integrity, ContentMeta> {
+        let mut content_meta_cache = HashMap::new();
         for (key, value) in self.content_meta.iter().flatten() {
             if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
                 if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
@@ -165,7 +171,6 @@ impl Store {
                 }
             }
         }
-
         content_meta_cache
     }
 
@@ -207,6 +212,8 @@ impl Store {
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
         self.content_meta.insert(bytes, encoded).unwrap();
+
+        self.content_meta_cache.insert(hash.clone(), meta);
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),
