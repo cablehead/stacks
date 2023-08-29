@@ -4,6 +4,8 @@ use tauri::Manager;
 
 use base64::{engine::general_purpose, Engine as _};
 
+use scru128::Scru128Id;
+
 use crate::state::SharedState;
 use crate::store::MimeType;
 use crate::ui::{Nav, UI};
@@ -84,12 +86,12 @@ pub fn store_get_content(
 #[tauri::command]
 pub fn store_list_items(
     state: tauri::State<SharedState>,
+    focused_id: Option<Scru128Id>,
     filter: String,
     // content_type: String,
 ) -> Nav {
     let state = state.lock().unwrap();
     // state.to_serde_value(&filter)
-    let focused_id = state.view.children(&state.view.root()[0])[0];
     let ui = UI {
         focused_id: focused_id,
         last_selected: HashMap::new(),

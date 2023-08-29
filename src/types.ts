@@ -80,6 +80,62 @@ const createFilter = () => {
   };
 };
 
+function debounce<T>(
+  this: T,
+  func: (...args: any[]) => void,
+  delay: number,
+): (...args: any[]) => void {
+  let debounceTimer: NodeJS.Timeout;
+  return function (this: T, ...args: any[]) {
+    const context = this;
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => func.apply(context, args), delay);
+  };
+}
+
+// refreshNav maintains the provided stack's items: reactively, based on the
+// stack's current filter and content type
+const innerRefreshNav = async (stack: Stack) => {
+  const filter = stack.filter.curr.value;
+  const contentType = stack.filter.content_type.value;
+
+  const args = {
+    filter: filter,
+    contentType: contentType,
+    focusedId: stack.focused_id,
+    // Include the hash of the focused parent tack item, if it exists
+    // stack: stack.parent?.item.value?.hash,
+  };
+
+  // Get the hash of the currently focused item
+  // const currItem = stack.item.peek()?.hash;
+
+  // Set the new list of items from the backend
+  const nav = await invoke<Nav>("store_list_items", args);
+  // if (state.matches) state.matches = new Set(state.matches);
+  stack.nav.value = nav;
+
+  /*
+    const selectedId = stack.selected.value.curr(stack);
+    const selected = stack.state.value.items[selectedId];
+    console.log("UPDATE", selectedId, selected);
+    if (selected) return;
+
+    const last = stack.lastKnown;
+    if (!last) return;
+
+    const peers = stack.getPeers(last);
+    console.log("PEERS", peers);
+    let next = peers.find((id) => id < last.id) || peers[peers.length - 1] ||
+      last.stack_id ||
+      stack.state.value.root[0];
+    console.log("NEXT", last.id, next);
+    if (next) stack.select(next);
+    */
+};
+
+const refreshNav = debounce(innerRefreshNav, 50);
+
 export class Stack {
   filter: {
     curr: Signal<string>;
@@ -90,9 +146,16 @@ export class Stack {
 
   nav: Signal<Nav>;
 
+  focused_id: string | null;
+
   constructor(nav: Nav) {
     this.filter = createFilter();
     this.nav = signal(nav);
+    this.focused_id = null;
+  }
+
+  refreshNav() {
+    refreshNav(this);
   }
 
   selected(): Item {
@@ -133,7 +196,8 @@ export class Stack {
   }
 
   select(id: string): void {
-    console.log(id);
+    this.focused_id = id;
+    this.refreshNav();
   }
 }
 

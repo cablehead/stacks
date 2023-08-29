@@ -35,7 +35,7 @@ pub struct Nav {
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct UI {
-    pub focused_id: Scru128Id,
+    pub focused_id: Option<Scru128Id>,
     pub last_selected: HashMap<Scru128Id, Scru128Id>,
     pub filter: String,
 }
@@ -63,7 +63,9 @@ impl UI {
             }
         };
 
-        let focused = v.items.get(&self.focused_id).unwrap().clone();
+        let focused_id = self.focused_id.unwrap_or(v.children(&v.root()[0])[0]);
+
+        let focused = v.items.get(&focused_id).unwrap().clone();
         let root_id = focused.stack_id.unwrap_or(focused.id);
 
         let root_items = v.root();
@@ -76,17 +78,17 @@ impl UI {
             .collect::<Vec<_>>();
         let sub_selected = sub_items
             .iter()
-            .find(|item| item.id == self.focused_id)
+            .find(|item| item.id == focused_id)
             .unwrap_or(&sub_items[0])
             .clone();
 
         let root_items = root_items.iter().map(id_to_item).collect::<Vec<_>>();
         let root_selected = id_to_item(root_selected);
-        let root_is_focus = self.focused_id == root_selected.id;
+        let root_is_focus = focused_id == root_selected.id;
 
         let sub_items = sub_items.iter().map(id_to_item).collect::<Vec<_>>();
         let sub_selected = id_to_item(&sub_selected);
-        let sub_is_focus = self.focused_id == sub_selected.id;
+        let sub_is_focus = focused_id == sub_selected.id;
 
         Nav {
             root: Layer {
