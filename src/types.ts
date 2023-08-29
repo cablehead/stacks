@@ -184,23 +184,24 @@ export class Stack {
     hide();
   }
 
-  selectUp(): void {
+  async select(id: string) {
+    this.nav.value = await invoke<Nav>("store_nav_select", { focusedId: id });
+  }
+
+  async selectUp() {
+    this.nav.value = await invoke<Nav>("store_nav_select_up", {});
   }
 
   async selectDown() {
-    const nav = await invoke<Nav>("store_select_down", {});
-    this.nav.value = nav;
+    this.nav.value = await invoke<Nav>("store_nav_select_down", {});
   }
 
-  selectRight(): void {
+  async selectRight() {
+    this.nav.value = await invoke<Nav>("store_nav_select_right", {});
   }
 
-  selectLeft(): void {
-  }
-
-  async select(id: string) {
-    const nav = await invoke<Nav>("store_select", { focusedId: id });
-    this.nav.value = nav;
+  async selectLeft() {
+    this.nav.value = await invoke<Nav>("store_nav_select_left", {});
   }
 }
 

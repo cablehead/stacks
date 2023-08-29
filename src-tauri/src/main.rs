@@ -57,8 +57,9 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
             commands::store_list_items,
-            commands::store_select,
-            commands::store_select_down,
+            commands::store_nav_select,
+            commands::store_nav_select_up,
+            commands::store_nav_select_down,
             commands::store_copy_to_clipboard,
             commands::store_delete,
             commands::store_new_note,
