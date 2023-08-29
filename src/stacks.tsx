@@ -3,13 +3,13 @@ import { batch, effect, Signal, signal } from "@preact/signals";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { Stack, State } from "./types";
+import { Nav, Stack } from "./types";
 
 export const currStack: Signal<Stack | null> = signal(null);
 
-invoke<State>("store_list_items", { filter: "", contentType: "" }).then(
-  (state) => {
-    currStack.value = new Stack(state);
+invoke<Nav>("store_list_items", { filter: "", contentType: "" }).then(
+  (nav) => {
+    currStack.value = new Stack(nav);
   },
 );
 
@@ -44,10 +44,11 @@ const innerUpdateItems = async (stack: Stack) => {
 
   await batch(async () => {
     // Set the new list of items from the backend
-    const state = await invoke<State>("store_list_items", args);
-    if (state.matches) state.matches = new Set(state.matches);
-    stack.state.value = state;
+    const nav = await invoke<Nav>("store_list_items", args);
+    // if (state.matches) state.matches = new Set(state.matches);
+    stack.nav.value = nav;
 
+    /*
     const selectedId = stack.selected.value.curr(stack);
     const selected = stack.state.value.items[selectedId];
     console.log("UPDATE", selectedId, selected);
@@ -63,6 +64,7 @@ const innerUpdateItems = async (stack: Stack) => {
       stack.state.value.root[0];
     console.log("NEXT", last.id, next);
     if (next) stack.select(next);
+    */
   });
 };
 

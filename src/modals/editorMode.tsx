@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Item, Stack } from "../types";
+import { Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -14,7 +14,7 @@ const state = (() => {
   return {
     curr,
     accept_meta: async (stack: Stack, modes: Modes) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return;
 
       if (!curr.value) return;
@@ -55,7 +55,7 @@ export default {
       }
     }, []);
 
-    const item = stack.item.value as Item;
+    const item = stack.selected();
 
     const content = stack.getContent(item.hash).value || "";
 

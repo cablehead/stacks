@@ -29,10 +29,10 @@ const state = (() => {
     curr,
     res,
     accept_meta: async (stack: Stack, _: Modes) => {
-      if (!stack.item.value) return;
+      if (!stack.selected()) return;
       console.log("FOO", curr.value);
       const args = {
-        sourceId: stack.item.value.id,
+        sourceId: stack.selected().id,
         command: curr.value,
       };
       const res: CommandOutput = await invoke("store_pipe_to_command", args);

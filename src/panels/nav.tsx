@@ -5,12 +5,12 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { ItemMeta, Layer, Scru128Id, Stack } from "../types";
+import { Item, Layer, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused }: {
     stack: Stack;
-    item: ItemMeta;
+    item: Item;
     isSelected: boolean;
     isFocused: boolean;
   },
@@ -32,7 +32,7 @@ const TerseRow = (
       className={"terserow" +
         (isSelected ? (isFocused ? " highlight" : " selected") : "")}
       onMouseDown={() => {
-        stack.select(item.o.id);
+        stack.select(item.id);
       }}
       style="
           display: flex;
@@ -66,7 +66,7 @@ const TerseRow = (
           textOverflow: "ellipsis",
         }}
       >
-        {item.meta.terse}
+        {item.terse}
       </div>
     </div>
   );
@@ -76,30 +76,27 @@ const renderItems = (
   stack: Stack,
   key: string,
   layer: Layer,
-  focusedId: Scru128Id,
 ) => {
-  const { items, selected } = layer;
-
-  if (items.length == 0) return <i>no items</i>;
+  if (layer.items.length == 0) return <i>no items</i>;
   return (
     <div
       key={key}
       className={borderRight}
       style={{
         flex: 1,
-        maxWidth: selected.o.id == focusedId ? "20ch" : "14ch",
+        maxWidth: layer.is_focus ? "20ch" : "14ch",
         overflowY: "auto",
         paddingRight: "0.5rem",
       }}
     >
-      {items
+      {layer.items
         .map((item) => (
           <TerseRow
             stack={stack}
             item={item}
-            key={item.o.id}
-            isSelected={item.o.id == selected.o.id}
-            isFocused={item.o.id == focusedId}
+            key={item.id}
+            isSelected={item.id == layer.selected.id}
+            isFocused={layer.is_focus}
           />
         ))}
     </div>
@@ -107,22 +104,21 @@ const renderItems = (
 };
 
 export function Nav({ stack }: { stack: Stack }) {
-  const neo = stack.neo.value;
+  const nav = stack.nav.value;
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", neo.root, neo.focusedId)}
+      {renderItems(stack, "root", nav.root)}
 
-      {neo.sub
+      {nav.sub
         ? (
           <>
             {renderItems(
               stack,
-              neo.root.selected.o.id,
-              neo.sub,
-              neo.focusedId,
+              nav.root.selected.id,
+              nav.sub,
             )}
             <div style="flex: 3; overflow: auto; height: 100%">
-              <Preview stack={stack} item={neo.sub.selected} />
+              <Preview stack={stack} item={nav.sub.selected} />
             </div>
           </>
         )
@@ -131,10 +127,10 @@ export function Nav({ stack }: { stack: Stack }) {
   );
 }
 
-const RowIcon = ({ item }: { item: ItemMeta }) => {
-  if (!item.o.stack_id) return <Icon name="IconStack" />;
+const RowIcon = ({ item }: { item: Item }) => {
+  if (!item.stack_id) return <Icon name="IconStack" />;
 
-  switch (item.meta.content_type) {
+  switch (item.content_type) {
     case "Image":
       return <Icon name="IconImage" />;
 
@@ -148,11 +144,11 @@ const RowIcon = ({ item }: { item: ItemMeta }) => {
   return <Icon name="IconBell" />;
 };
 
-function Preview({ stack, item }: { stack: Stack; item: ItemMeta }) {
-  const content = stack.getContent(item.o.hash).value;
+function Preview({ stack, item }: { stack: Stack; item: Item }) {
+  const content = stack.getContent(item.hash).value;
   if (!content) return <div>loading...</div>;
 
-  if (item.meta.mime_type === "image/png") {
+  if (item.mime_type === "image/png") {
     return (
       <img
         src={"data:image/png;base64," + content}

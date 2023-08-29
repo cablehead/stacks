@@ -20,19 +20,17 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
-  const contentMeta = stack.getContentMeta(item);
-
+function getMeta(_: Stack, item: Item, content: string): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
 
   let meta: MetaValue[] = [
     { name: "ID", value: item.id },
-    { name: "Content Type", value: contentMeta.content_type },
+    { name: "Content Type", value: item.content_type },
   ];
 
-  if (contentMeta.content_type == "Text") {
+  if (item.content_type == "Text") {
     const textMeta = getTextMeta(b64ToUtf8(content));
 
     /*
@@ -45,7 +43,7 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
     const info = [
       { s: "word", n: textMeta.words },
       { s: "char", n: textMeta.chars },
-      { s: "token", n: contentMeta.tiktokens },
+      { s: "token", n: item.tiktokens },
     ]
       .filter((item) => item.n)
       .map((item) => `${item.n} ${item.s[0]}`);
@@ -60,7 +58,7 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (contentMeta.content_type == "Link") {
+  if (item.content_type == "Link") {
     const url = b64ToUtf8(content);
     meta.push({
       name: "Url",
@@ -135,7 +133,7 @@ function MetaInfoRow(meta: MetaValue) {
 }
 
 export function MetaPanel({ stack }: { stack: Stack }) {
-  const item = stack.item.value;
+  const item = stack.selected();
   if (!item) return <></>;
   const content = stack.getContent(item.hash).value;
   if (!content) return <></>;

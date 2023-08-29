@@ -1,6 +1,6 @@
 import { JSXInternal } from "preact/src/jsx";
 
-import { computed, Signal, signal } from "@preact/signals";
+import { Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
 import { hide } from "tauri-plugin-spotlight-api";
@@ -12,14 +12,9 @@ export type SSRI = string & { readonly brand: typeof SSRIBrand };
 
 export interface Item {
   id: Scru128Id;
-  last_touched: string;
-  touched: string[];
-  hash: SSRI;
-  stack_id: Scru128Id | null;
-  children: Scru128Id[];
-}
-
-export interface ContentMeta {
+  stack_id?: Scru128Id;
+  last_touched: Scru128Id;
+  touched: Scru128Id[];
   hash: SSRI;
   mime_type: string;
   content_type: string;
@@ -27,11 +22,18 @@ export interface ContentMeta {
   tiktokens: number;
 }
 
-export interface ItemMeta {
-  o: Item;
-  meta: ContentMeta;
+export interface Layer {
+  items: Item[];
+  selected: Item;
+  is_focus: boolean;
 }
 
+export interface Nav {
+  root: Layer;
+  sub?: Layer;
+}
+
+/*
 export interface State {
   root: Scru128Id[];
   items: { [id: string]: Item };
@@ -83,6 +85,7 @@ export class Focus {
     return this.id;
   }
 }
+*/
 
 export const CAS = (() => {
   const cache: Map<string, string> = new Map();
@@ -139,66 +142,31 @@ export class Stack {
     clear: () => void;
   };
 
-  state: Signal<State>;
-  selected: Signal<Focus>;
-  normalizedSelected: Signal<string>;
-  item: Signal<Item | undefined>;
-  lastSelected: Map<Scru128Id, Scru128Id> = new Map();
-  lastKnown?: Item;
-  neo: Signal<Neo>;
+  nav: Signal<Nav>;
 
-  constructor(initialState: State) {
-    this.state = signal(initialState);
+  constructor(nav: Nav) {
     this.filter = createFilter();
-    this.selected = signal(Focus.first());
-    this.normalizedSelected = signal("");
+    this.nav = signal(nav);
+  }
 
-    this.item = computed((): Item | undefined => {
-      return this.state.value.items[this.selected.value.curr(this)];
-    });
+  selected(): Item {
+    const nav = this.nav.value;
+    if (nav.sub) return nav.sub.selected;
+    return nav.root.selected;
+  }
 
-    this.neo = computed((): Neo => {
-      const idToItemMeta = (id: Scru128Id) => {
-        const item = state.items[id];
-        return { o: item, meta: this.getContentMeta(item) };
-      };
-
-      const state = this.state.value;
-
-      const focusedId = this.selected.value.curr(this);
-      const focusedItem = idToItemMeta(focusedId);
-
-
-      const rootId = focusedItem.o.stack_id && focusedItem.o.stack_id ||
-        focusedItem.o.id;
-      const rootItem = idToItemMeta(rootId);
-
-      const subId = focusedItem.o.stack_id && focusedItem.o.id ||
-        (this.lastSelected.get(focusedItem.o.id) || focusedItem.o.children[0]);
-      const subItem = subId && idToItemMeta(subId);
-
-      return {
-        root: {
-          items: state.root.map(idToItemMeta),
-          selected: rootItem,
-        },
-        sub: subItem && {
-          items: rootItem.o.children.map(idToItemMeta),
-          selected: subItem,
-        },
-        focusedId,
-      };
-    });
+  getContent(hash: SSRI): Signal<string | undefined> {
+    return CAS.getSignal(hash);
   }
 
   reset() {
     this.filter.clear();
-    this.selected.value = Focus.first();
-    this.lastSelected = new Map();
+    // this.selected.value = Focus.first();
+    // this.lastSelected = new Map();
   }
 
   async triggerCopy() {
-    const item = this.item.value;
+    const item = this.selected();
     if (!item) return;
     await invoke("store_copy_to_clipboard", {
       sourceId: item.id,
@@ -206,77 +174,20 @@ export class Stack {
     hide();
   }
 
-  getContent(hash: SSRI): Signal<string | undefined> {
-    return CAS.getSignal(hash);
-  }
-
-  getContentMeta(item: Item): ContentMeta {
-    return this.state.value.content_meta[item.hash];
-  }
-
-  select(id: Scru128Id): void {
-    const targetItem = this.state.value.items[id];
-    if (targetItem) {
-      this.lastKnown = targetItem;
-      if (targetItem.stack_id) {
-        this.lastSelected.set(targetItem.stack_id, id);
-        // invoke("store_set_current_stack", { stackId: targetItem.stack_id });
-      }
-    }
-    this.selected.value = Focus.id(id);
-  }
-
   selectUp(): void {
-    const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    const peers = this.getPeers(currentItem);
-    const currentIndex = peers.indexOf(currentItem.id);
-    if (currentIndex > 0) {
-      this.select(peers[currentIndex - 1]);
-    }
   }
 
   selectDown(): void {
-    const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    const peers = this.getPeers(currentItem);
-    const currentIndex = peers.indexOf(currentItem.id);
-    if (currentIndex < peers.length - 1) {
-      this.select(peers[currentIndex + 1]);
-    }
   }
 
   selectRight(): void {
-    const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    const children = this.getChildren(currentItem);
-    if (children.length > 0) {
-      const lastSelectedChild = this.lastSelected.get(currentItem.id);
-      this.select(
-        lastSelectedChild && children.includes(lastSelectedChild)
-          ? lastSelectedChild
-          : children[0],
-      );
-    }
   }
 
   selectLeft(): void {
-    const currentItem = this.state.value.items[this.selected.value.curr(this)];
-    if (currentItem.stack_id) {
-      this.select(currentItem.stack_id);
-    }
   }
 
-  getPeers(item: Item): Scru128Id[] {
-    return item.stack_id
-      ? this.getChildren(this.state.value.items[item.stack_id])
-      : this.state.value.root;
-  }
-
-  getChildren(item: Item): Scru128Id[] {
-    console.log("getChildren", item);
-    const matches = this.state.value.matches;
-    if (!matches || matches == undefined) return item.children;
-    return item.children.filter((id) =>
-      matches.has(this.state.value.items[id].hash)
-    );
+  select(id: string): void {
+    console.log(id);
   }
 }
 

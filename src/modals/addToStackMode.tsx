@@ -7,12 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { ContentMeta, Focus, Item, Stack } from "../types";
-
-interface ItemMeta {
-  item: Item;
-  meta: ContentMeta;
-}
+import { Item, Stack } from "../types";
 
 function dn(): string {
   const date = new Date();
@@ -36,20 +31,20 @@ const state = (() => {
   const selected = signal("");
   const currFilter = signal("");
 
-  const availOptions: Signal<ItemMeta[]> = signal([]);
+  const availOptions: Signal<Item[]> = signal([]);
 
   const options = computed(() =>
     availOptions.value
-      .filter((o) =>
+      .filter((item) =>
         currFilter.value == "" ||
-        o.meta.terse.toLowerCase().includes(currFilter.value.toLowerCase())
+        item.terse.toLowerCase().includes(currFilter.value.toLowerCase())
       )
   );
 
   effect(() => {
     if (options.value.length <= 0) return;
-    const chosen = options.value.find((o) => o.item.id === selected.peek());
-    if (!chosen) selected.value = options.value[0].item.id;
+    const chosen = options.value.find((item) => item.id === selected.peek());
+    if (!chosen) selected.value = options.value[0].id;
   });
 
   const dn = signal("");
@@ -62,25 +57,25 @@ const state = (() => {
     dn,
 
     accept: (stack: Stack, modes: Modes) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return;
 
-      const chosen = options.value.find((o) => o.item.id === selected.value);
+      const chosen = options.value.find((item) => item.id === selected.value);
       if (!chosen) return;
       console.log("Accept", selected.value, chosen);
 
       (async () => {
         await invoke("store_add_to_stack", {
-          stackId: chosen.item.id,
+          stackId: chosen.id,
           sourceId: item.id,
         });
-        stack.selected.value = Focus.first();
+        stack.select("");
         modes.deactivate();
       })();
     },
 
     accept_meta: (stack: Stack, modes: Modes) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return;
 
       let name = currFilter.value;
@@ -88,23 +83,26 @@ const state = (() => {
       if (name === "") return;
 
       (async () => {
-        await invoke("store_add_to_new_stack", { name: name, sourceId: item.id });
-        stack.selected.value = Focus.first();
+        await invoke("store_add_to_new_stack", {
+          name: name,
+          sourceId: item.id,
+        });
+        stack.select("");
         modes.deactivate();
       })();
     },
 
     selectDown: () => {
-      const idx = options.value.findIndex((o) => o.item.id == selected.peek());
+      const idx = options.value.findIndex((item) => item.id == selected.peek());
       if (idx < options.value.length - 1) {
-        state.selected.value = options.value[idx + 1].item.id;
+        state.selected.value = options.value[idx + 1].id;
       }
     },
 
     selectUp: () => {
-      const idx = options.value.findIndex((o) => o.item.id == selected.peek());
+      const idx = options.value.findIndex((item) => item.id == selected.peek());
       if (idx > 0) {
-        selected.value = options.value[idx - 1].item.id;
+        selected.value = options.value[idx - 1].id;
       }
     },
   };
@@ -150,13 +148,9 @@ export default {
 
   activate: (stack: Stack) => {
     state.currFilter.value = "";
-    state.availOptions.value = stack.state.value.root
-      .filter((id) => id != stack.item.value?.stack_id)
-      .map((id) => {
-        const item = stack.state.value.items[id];
-        return { item: item, meta: stack.getContentMeta(item) };
-      });
-    state.selected.value = state.options.value[0].item.id;
+    state.availOptions.value = stack.nav.value.root.items
+      .filter((item) => item.id != stack.selected().stack_id);
+    state.selected.value = state.options.value[0].id;
     state.dn.value = dn();
   },
 
@@ -242,11 +236,11 @@ export default {
         padding:1ch;
         ">
           {state.options.value.map(
-            (o) => {
+            (item) => {
               return (
                 <div
                   className={"terserow" +
-                    (o.item.id == state.selected.value ? " hover" : "")}
+                    (item.id == state.selected.value ? " hover" : "")}
                   style={{
                     display: "flex",
                     width: "100%",
@@ -257,12 +251,12 @@ export default {
                     cursor: "pointer",
                   }}
                   onMouseDown={() => {
-                    state.selected.value = o.item.id;
+                    state.selected.value = item.id;
                     state.accept(stack, modes);
                   }}
                 >
                   <div>
-                    {o.meta.terse}
+                    {item.terse}
                   </div>
                 </div>
               );
