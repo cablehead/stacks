@@ -29,7 +29,7 @@ pub struct Layer {
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct Nav {
-    pub root: Layer,
+    pub root: Option<Layer>,
     pub sub: Option<Layer>,
 }
 
@@ -165,11 +165,11 @@ impl UI {
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
             Nav {
-                root: Layer {
+                root: Some(Layer {
                     items: self.view.root().iter().map(with_meta).collect(),
                     selected: with_meta(self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
-                },
+                }),
                 sub: Some(Layer {
                     items: self
                         .view
@@ -206,11 +206,11 @@ impl UI {
             };
 
             Nav {
-                root: Layer {
+                root: Some(Layer {
                     items: self.view.root().iter().map(with_meta).collect(),
                     selected: with_meta(&focused),
                     is_focus: true,
-                },
+                }),
                 sub,
             }
         }

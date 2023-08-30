@@ -4,7 +4,7 @@ use crate::store::MimeType;
 use crate::ui::Nav;
 
 type NavExpected<'a> = (
-    (&'a str, Vec<&'a str>, bool),         // root
+    Option<(&'a str, Vec<&'a str>, bool)>, // root
     Option<(&'a str, Vec<&'a str>, bool)>, // sub
 );
 
@@ -12,15 +12,17 @@ fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
     let root_expected = &expected.0;
     let sub_expected = &expected.1;
 
-    let root_actual = (
-        nav.root.selected.terse.clone(),
-        nav.root
-            .items
-            .iter()
-            .map(|item| item.terse.clone())
-            .collect::<Vec<_>>(),
-        nav.root.is_focus,
-    );
+    let root_actual = nav.root.as_ref().map(|root| {
+        (
+            root.selected.terse.clone(),
+            root.items
+                .iter()
+                .map(|item| item.terse.clone())
+                .collect::<Vec<_>>(),
+            root.is_focus,
+        )
+    });
+
     let sub_actual = nav.sub.as_ref().map(|sub| {
         (
             sub.selected.terse.clone(),
@@ -34,16 +36,13 @@ fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
 
     assert_eq!(
         root_actual,
-        (
-            root_expected.0.to_string(),
-            root_expected
-                .1
-                .iter()
-                .map(|s| s.to_string())
-                .collect::<Vec<_>>(),
-            root_expected.2
-        )
+        root_expected.as_ref().map(|(s, v, b)| (
+            s.to_string(),
+            v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
+            *b
+        ))
     );
+
     assert_eq!(
         sub_actual,
         sub_expected.as_ref().map(|(s, v, b)| (
@@ -93,7 +92,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 3",
                 vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
@@ -107,7 +106,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 2",
                 vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
@@ -121,7 +120,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 3",
                 vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
@@ -136,7 +135,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
         ),
     );
@@ -146,7 +145,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], true)),
         ),
     );
@@ -156,7 +155,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], false)),
         ),
     );
@@ -166,7 +165,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
                 "S2::Item 3",
                 vec!["S2::Item 3", "S2::Item 2", "S2::Item 1"],
@@ -180,7 +179,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some(("S2::Item 1", vec!["S2::Item 1"], false)),
         ),
     );
@@ -190,7 +189,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
                 "S2::Item 3",
                 vec!["S2::Item 3", "S2::Item 2", "S2::Item 1"],
@@ -204,7 +203,7 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 2", vec!["Stack 2", "Stack 1"], true),
+            Some(("Stack 2", vec!["Stack 2", "Stack 1"], true)),
             Some(("S2::Item 3", vec!["S2::Item 3"], false)),
         ),
     );
