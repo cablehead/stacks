@@ -187,8 +187,7 @@ impl UI {
             let children: Vec<_> = v
                 .children(&focused)
                 .iter()
-                .map(|id| v.items.get(&id).unwrap())
-                .map(id_to_item)
+                .map(|id| v.items.get(&id).unwrap().clone())
                 .collect();
 
             let sub = if !children.is_empty() {
@@ -196,10 +195,11 @@ impl UI {
                     .last_selected
                     .get(&focused.id)
                     .and_then(|item| v.get_best_focus(item))
+                    .or(Some(children[0].clone()))
                     .unwrap();
 
                 Some(Layer {
-                    items: children,
+                    items: children.iter().map(id_to_item).collect(),
                     selected: id_to_item(&selected),
                     is_focus: false,
                 })
