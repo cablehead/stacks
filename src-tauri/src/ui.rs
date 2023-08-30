@@ -160,43 +160,45 @@ impl UI {
 
         // println!("{:?}", root);
 
-        let focused = self.focused.clone().or(v.first().clone()).unwrap();
+        let focused = self
+            .focused
+            .as_ref()
+            .and_then(|item| v.get_best_focus(&item))
+            .or(v.first())
+            .unwrap();
 
-        let root_id = focused.stack_id.unwrap_or(focused.id);
-
-        let root_items = v.root();
-        let root_selected = v.items.get(&root_id).unwrap();
-
-        let sub_items = v
-            .children(root_selected)
-            .iter()
-            .map(|id| v.items.get(id).unwrap().clone())
-            .collect::<Vec<_>>();
-        let sub_selected = self
-            .last_selected
-            .get(&root_selected.id)
-            .cloned()
-            .unwrap_or(sub_items[0].clone());
-
-        let root_items = root_items.iter().map(id_to_item).collect::<Vec<_>>();
-        let root_selected = id_to_item(root_selected);
-        let root_is_focus = focused.id == root_selected.id;
-
-        let sub_items = sub_items.iter().map(id_to_item).collect::<Vec<_>>();
-        let sub_selected = id_to_item(&sub_selected);
-        let sub_is_focus = focused.id == sub_selected.id;
-
-        Nav {
-            root: Layer {
-                items: root_items,
-                selected: root_selected,
-                is_focus: root_is_focus,
-            },
-            sub: Some(Layer {
-                items: sub_items,
-                selected: sub_selected,
-                is_focus: sub_is_focus,
-            }),
+        // the sub layer is focused
+        if let Some(stack_id) = focused.stack_id {
+            Nav {
+                root: Layer {
+                    items: v.root().iter().map(id_to_item).collect(),
+                    selected: id_to_item(v.items.get(&stack_id).unwrap()),
+                    is_focus: false,
+                },
+                sub: Some(Layer {
+                    items: v.get_peers(&focused).iter().map(id_to_item).collect(),
+                    selected: id_to_item(&focused),
+                    is_focus: true,
+                }),
+            }
+        } else {
+            Nav {
+                root: Layer {
+                    items: v.root().iter().map(id_to_item).collect(),
+                    selected: id_to_item(&focused),
+                    is_focus: true,
+                },
+                sub: Some(Layer {
+                    items: v
+                        .children(&focused)
+                        .iter()
+                        .map(|id| v.items.get(&id).unwrap())
+                        .map(id_to_item)
+                        .collect(),
+                    selected: id_to_item(&focused),
+                    is_focus: false,
+                }),
+            }
         }
     }
 }
