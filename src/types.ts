@@ -115,9 +115,9 @@ export class Stack {
     this.nav.value = await invoke<Nav>("store_nav_select", { focusedId: id });
   }
 
-  async set_filter(curr: string, contentType: string) {
+  async set_filter(filter: string, contentType: string) {
     this.nav.value = await invoke<Nav>("store_nav_set_filter", {
-      curr: curr,
+      filter: filter,
       contentType: contentType,
     });
   }
