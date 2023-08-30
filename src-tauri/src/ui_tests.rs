@@ -123,11 +123,7 @@ fn test_ui_render() {
         &nav,
         (
             ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
-            Some((
-                "S3::Item 1",
-                vec!["S3::Item 3", "S3::Item 1"],
-                true,
-            )),
+            Some(("S3::Item 1", vec!["S3::Item 3", "S3::Item 1"], true)),
         ),
     );
 
