@@ -169,6 +169,9 @@ impl UI {
             .or(v.first())
             .unwrap();
 
+        println!("");
+        println!("GOO\n{:?}\n{:?}", self.focused, with_meta(&focused));
+
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
             Nav {

@@ -84,7 +84,7 @@ export class Stack {
 
   selected(): Item | undefined {
     const nav = this.nav.value;
-    if (nav.sub) return nav.sub.selected;
+    if (nav.sub && nav.sub.is_focus) return nav.sub.selected;
     return nav.root?.selected;
   }
 

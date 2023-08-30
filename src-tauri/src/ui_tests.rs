@@ -116,6 +116,21 @@ fn test_ui_render() {
         ),
     );
 
+    state.nav_select_up();
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some((
+                "S3::Item 3",
+                vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                true,
+            )),
+        ),
+    );
+
+
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
     state.merge(packet);
     let nav = state.ui.render(&state.store, &state.view);
@@ -123,7 +138,7 @@ fn test_ui_render() {
         &nav,
         (
             ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
-            Some(("S3::Item 1", vec!["S3::Item 3", "S3::Item 1"], true)),
+            Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
         ),
     );
 
@@ -133,7 +148,7 @@ fn test_ui_render() {
         &nav,
         (
             ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true),
-            Some(("S3::Item 1", vec!["S3::Item 3", "S3::Item 1"], false)),
+            Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], false)),
         ),
     );
 

@@ -41,6 +41,10 @@ impl State {
         self.ui.select_down(&self.view);
     }
 
+    pub fn nav_select_up(&mut self) {
+        self.ui.select_up(&self.view);
+    }
+
     pub fn nav_select_left(&mut self) {
         self.ui.select_left(&self.view);
     }

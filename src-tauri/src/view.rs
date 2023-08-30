@@ -211,8 +211,6 @@ impl View {
             return item.stack_id.and_then(|id| self.items.get(&id).cloned());
         }
 
-        let mut peers = peers;
-        peers.sort_by_key(|item| item.last_touched);
         peers
             .iter()
             .position(|peer| peer.last_touched < item.last_touched)
