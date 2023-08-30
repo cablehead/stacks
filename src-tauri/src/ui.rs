@@ -184,22 +184,30 @@ impl UI {
                 }),
             }
         } else {
+            let children: Vec<_> = v
+                .children(&focused)
+                .iter()
+                .map(|id| v.items.get(&id).unwrap())
+                .map(id_to_item)
+                .collect();
+
+            let sub = if !children.is_empty() {
+                Some(Layer {
+                    items: children,
+                    selected: id_to_item(&focused),
+                    is_focus: false,
+                })
+            } else {
+                None
+            };
+
             Nav {
                 root: Layer {
                     items: v.root().iter().map(id_to_item).collect(),
                     selected: id_to_item(&focused),
                     is_focus: true,
                 },
-                sub: Some(Layer {
-                    items: v
-                        .children(&focused)
-                        .iter()
-                        .map(|id| v.items.get(&id).unwrap())
-                        .map(id_to_item)
-                        .collect(),
-                    selected: id_to_item(&focused),
-                    is_focus: false,
-                }),
+                sub: sub,
             }
         }
     }

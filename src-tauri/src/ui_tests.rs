@@ -127,11 +127,19 @@ fn test_ui_render() {
         ),
     );
 
-    println!("");
-    println!("{:?}", &state.ui);
-    println!("");
+    state.nav_select_left();
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("S3::Item 1", vec!["S3::Item 3", "S3::Item 1"], false)),
+        ),
+    );
 
-    return;
+    if true {
+        return;
+    }
 
     state.nav_set_filter("s3::item 1", "");
 
