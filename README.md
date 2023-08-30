@@ -72,6 +72,12 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
+- Left and right don't always work
+    - After deleting item: Go left, then right
+    - After searching at the stack level, go right
+
+- Filter by content type: change filter and content_type to be an Option
+
 - GPT:
     - add an action to send a stack to GPT
         - stream response?
