@@ -190,11 +190,33 @@ impl View {
         }
     }
 
-    pub fn get_peers(&self, item: &Item) -> Vec<Scru128Id> {
+    pub fn get_peers(&self, item: &Item) -> Vec<Item> {
         if let Some(stack_id) = item.stack_id {
             self.children(&self.items[&stack_id])
+                .iter()
+                .map(|id| self.items.get(&id).unwrap().clone())
+                .collect()
         } else {
-            self.root().iter().map(|item| item.id).collect()
+            self.root()
         }
+    }
+
+    pub fn get_best_focus(&self, item: &Item) -> Option<Item> {
+        if self.items.contains_key(&item.id) {
+            return Some(item.clone());
+        }
+
+        let peers = self.get_peers(&item);
+        if peers.is_empty() {
+            return item.stack_id.and_then(|id| self.items.get(&id).cloned());
+        }
+
+        let mut peers = peers;
+        peers.sort_by_key(|item| item.last_touched);
+        peers
+            .iter()
+            .position(|peer| peer.last_touched > item.last_touched)
+            .map(|position| peers[position].clone())
+            .or(Some(peers[peers.len() - 1].clone()))
     }
 }

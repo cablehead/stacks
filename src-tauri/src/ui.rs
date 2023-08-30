@@ -68,10 +68,10 @@ impl UI {
     pub fn select_up(&mut self, v: &view::View) {
         if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
             let peers = v.get_peers(&focused);
-            let current_index = peers.iter().position(|id| id == &focused.id);
+            let current_index = peers.iter().position(|peer| peer.id == focused.id);
             if let Some(index) = current_index {
                 if index > 0 {
-                    self.select(v, peers[index - 1]);
+                    self.select(v, peers[index - 1].id);
                 }
             }
         }
@@ -80,10 +80,10 @@ impl UI {
     pub fn select_down(&mut self, v: &view::View) {
         if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
             let peers = v.get_peers(&focused);
-            let current_index = peers.iter().position(|id| id == &focused.id);
+            let current_index = peers.iter().position(|peer| peer.id == focused.id);
             if let Some(index) = current_index {
                 if index < peers.len() - 1 {
-                    self.select(v, peers[index + 1]);
+                    self.select(v, peers[index + 1].id);
                 }
             }
         }
