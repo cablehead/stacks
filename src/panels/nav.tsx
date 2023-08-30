@@ -108,22 +108,27 @@ export function Nav({ stack }: { stack: Stack }) {
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {nav.root ? renderItems(stack, "root", nav.root) : <i>no matches</i>}
-
-      {nav.root && nav.sub
+      {nav.root
         ? (
           <>
-            {renderItems(
-              stack,
-              nav.root.selected.id,
-              nav.sub,
-            )}
-            <div style="flex: 3; overflow: auto; height: 100%">
-              <Preview stack={stack} item={nav.sub.selected} />
-            </div>
+            {renderItems(stack, "root", nav.root)}
+            {nav.sub
+              ? (
+                <>
+                  {renderItems(
+                    stack,
+                    nav.root.selected.id,
+                    nav.sub,
+                  )}
+                  <div style="flex: 3; overflow: auto; height: 100%">
+                    <Preview stack={stack} item={nav.sub.selected} />
+                  </div>
+                </>
+              )
+              : <i>no items</i>}
           </>
         )
-        : <i>no items</i>}
+        : <i>no matches</i>}
     </div>
   );
 }

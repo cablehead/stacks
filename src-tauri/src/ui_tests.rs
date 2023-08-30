@@ -207,4 +207,8 @@ fn test_ui_render() {
             Some(("S2::Item 3", vec!["S2::Item 3"], false)),
         ),
     );
+
+    state.nav_set_filter("FOOBAR", "");
+    let nav = state.ui.render(&state.store);
+    assert_nav_as_expected(&nav, (None, None));
 }

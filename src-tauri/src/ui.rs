@@ -156,8 +156,16 @@ impl UI {
             .focused
             .as_ref()
             .and_then(|item| self.view.get_best_focus(item))
-            .or(self.view.first())
-            .unwrap();
+            .or(self.view.first());
+
+        if focused.is_none() {
+            return Nav {
+                root: None,
+                sub: None,
+            };
+        }
+
+        let focused = focused.unwrap();
 
         println!("");
         println!("GOO\n{:?}\n{:?}", self.focused, with_meta(&focused));
