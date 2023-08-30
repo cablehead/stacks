@@ -176,17 +176,36 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 1", "");
-
-    println!("");
-    println!("{:?}", state.ui.matches.as_ref().unwrap().len());
-    println!("");
-
     let nav = state.ui.render(&state.store, &state.view);
     assert_nav_as_expected(
         &nav,
         (
             ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
             Some(("S2::Item 1", vec!["S2::Item 1"], false)),
+        ),
+    );
+
+    state.nav_set_filter("", "");
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some((
+                "S2::Item 3",
+                vec!["S2::Item 3", "S2::Item 2", "S2::Item 1"],
+                false,
+            )),
+        ),
+    );
+
+    state.nav_set_filter("item 3", "");
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 2", vec!["Stack 2", "Stack 1"], true),
+            Some(("S2::Item 3", vec!["S2::Item 3"], false)),
         ),
     );
 }

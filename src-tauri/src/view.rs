@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use scru128::Scru128Id;
 use ssri::Integrity;
@@ -202,7 +202,7 @@ impl View {
     }
 
     pub fn get_best_focus(&self, item: &Item) -> Option<Item> {
-        if self.items.contains_key(&item.id) {
+        if let Some(item) = self.items.get(&item.id) {
             return Some(item.clone());
         }
 
@@ -216,5 +216,36 @@ impl View {
             .position(|peer| peer.last_touched < item.last_touched)
             .map(|position| peers[position].clone())
             .or(Some(peers[peers.len() - 1].clone()))
+    }
+
+    pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
+        let items: HashMap<Scru128Id, Item> = self
+            .items
+            .values()
+            .filter_map(|item| {
+                let mut item = item.clone();
+                if item.stack_id.is_none() {
+                    item.children = self
+                        .children(&item)
+                        .into_iter()
+                        .filter(|child_id| {
+                            if let Some(child) = self.items.get(child_id) {
+                                matches.contains(&child.hash)
+                            } else {
+                                false
+                            }
+                        })
+                        .collect();
+                    if item.children.is_empty() {
+                        return None;
+                    }
+                } else if !matches.contains(&item.hash) {
+                    return None;
+                }
+                Some((item.id, item))
+            })
+            .collect();
+
+        View { items }
     }
 }

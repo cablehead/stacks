@@ -52,6 +52,10 @@ impl UI {
     }
 
     pub fn set_filter(&mut self, store: &Store, filter: &str, content_type: &str) {
+        if filter == "" && content_type == "" {
+            self.matches = None;
+            return;
+        }
         self.filter = filter.into();
         self.matches = Some(store.query(filter, content_type));
     }
@@ -117,6 +121,12 @@ impl UI {
     }
 
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
+        let v = if let Some(matches) = &self.matches {
+            v.filter(&matches)
+        } else {
+            v.clone()
+        };
+
         let with_meta = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
             Item {
@@ -131,38 +141,6 @@ impl UI {
                 tiktokens: content_meta.tiktokens,
             }
         };
-
-        /*
-        let root = v.root();
-        let root = root
-            .iter()
-            .filter_map(|stack| {
-                let children = v.children(stack);
-                let filtered_children = children
-                    .iter()
-                    .filter_map(|id| {
-                        let item = v.items.get(id).unwrap().clone();
-                        if let Some(matches) = &self.matches {
-                            if matches.contains(&item.hash) {
-                                Some(item)
-                            } else {
-                                None
-                            }
-                        } else {
-                            Some(item)
-                        }
-                    })
-                    .collect::<Vec<_>>();
-                if !filtered_children.is_empty() || self.matches.is_none() {
-                    Some((stack.clone(), filtered_children))
-                } else {
-                    None
-                }
-            })
-            .collect::<Vec<_>>();
-            */
-
-        // println!("{:?}", root);
 
         let focused = self
             .focused
