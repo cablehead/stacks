@@ -54,7 +54,7 @@ impl UI {
     pub fn set_filter(&mut self, store: &Store, filter: &str, content_type: &str) {
         println!("SETTING FILTER: '{:?}' '{:?}'", filter, content_type);
         self.filter = filter.into();
-        self.matches = if filter != "" || content_type != "All" {
+        self.matches = if filter != "" || (content_type != "All" && content_type != "") {
             Some(store.query(filter, content_type))
         } else {
             None
