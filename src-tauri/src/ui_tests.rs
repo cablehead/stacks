@@ -101,4 +101,39 @@ fn test_ui_render() {
             )),
         ),
     );
+
+    state.nav_select_down();
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some((
+                "S3::Item 2",
+                vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                true,
+            )),
+        ),
+    );
+
+    println!("");
+    println!("{:?}", &state.ui);
+    println!("");
+
+    return;
+
+    state.nav_set_filter("s3::item 1", "");
+
+    println!("");
+    println!("{:?}", state.ui.matches.as_ref().unwrap().len());
+    println!("");
+
+    let nav = state.ui.render(&state.store, &state.view);
+    assert_nav_as_expected(
+        &nav,
+        (
+            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
+            Some(("S3::Item 1", vec!["S3::Item 1"], true)),
+        ),
+    );
 }

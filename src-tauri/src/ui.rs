@@ -43,31 +43,17 @@ pub struct UI {
 
 impl UI {
     pub fn new(v: &view::View) -> Self {
-        let focused_id = {
-            let root = &v.root();
-            if !root.is_empty() {
-                let stack = root[0].clone();
-                if !stack.children.is_empty() {
-                    Some(v.children(&stack)[0])
-                } else {
-                    Some(stack.id)
-                }
-            } else {
-                None
-            }
-        };
-
         Self {
-            focused_id,
+            focused_id: None,
             last_selected: HashMap::new(),
             filter: String::new(),
             matches: None,
         }
     }
 
-    pub fn set_filter(&mut self, store: &Store, filter: String) {
-        self.filter = filter;
-        self.matches = Some(store.index.query(&self.filter));
+    pub fn set_filter(&mut self, store: &Store, filter: &str, content_type: &str) {
+        self.filter = filter.into();
+        self.matches = Some(store.query(filter, content_type));
     }
 
     pub fn select(&mut self, v: &view::View, id: Scru128Id) {
@@ -97,7 +83,8 @@ impl UI {
     }
 
     pub fn select_down(&mut self, v: &view::View) {
-        if let Some(focused_id) = self.focused_id {
+        let focused_id = self.focused_id.or(v.first());
+        if let Some(focused_id) = focused_id {
             let peers = v.get_peers(&focused_id);
             let current_index = peers.iter().position(|id| id == &focused_id);
             if let Some(index) = current_index {
@@ -140,12 +127,6 @@ impl UI {
     }
 
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
-        let _matches = if !self.filter.is_empty() {
-            Some(store.index.query(&self.filter))
-        } else {
-            None
-        };
-
         let id_to_item = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
             Item {
@@ -161,14 +142,37 @@ impl UI {
             }
         };
 
-        let focused_id = self.focused_id.unwrap_or_else(|| {
-            let root = &v.root()[0];
-            if !root.children.is_empty() {
-                v.children(root)[0]
-            } else {
-                root.id
-            }
-        });
+        let root = v.root();
+        let root = root
+            .iter()
+            .filter_map(|stack| {
+                let children = v.children(stack);
+                let filtered_children = children
+                    .iter()
+                    .filter_map(|id| {
+                        let item = v.items.get(id).unwrap().clone();
+                        if let Some(matches) = &self.matches {
+                            if matches.contains(&item.hash) {
+                                Some(item)
+                            } else {
+                                None
+                            }
+                        } else {
+                            Some(item)
+                        }
+                    })
+                    .collect::<Vec<_>>();
+                if !filtered_children.is_empty() || self.matches.is_none() {
+                    Some((stack.clone(), filtered_children))
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>();
+
+        // println!("{:?}", root);
+
+        let focused_id = self.focused_id.or(v.first()).unwrap();
 
         let focused = v.items.get(&focused_id).unwrap().clone();
         let root_id = focused.stack_id.unwrap_or(focused.id);

@@ -174,6 +174,21 @@ impl View {
         children
     }
 
+    pub fn first(&self) -> Option<Scru128Id> {
+        let root = self.root();
+        if !root.is_empty() {
+            let stack = &root[0];
+            let children = self.children(stack);
+            if !children.is_empty() {
+                Some(children[0])
+            } else {
+                Some(stack.id)
+            }
+        } else {
+            None
+        }
+    }
+
     pub fn get_peers(&self, focused_id: &Scru128Id) -> Vec<Scru128Id> {
         if let Some(item) = self.items.get(focused_id) {
             if let Some(stack_id) = item.stack_id {

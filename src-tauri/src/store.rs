@@ -162,6 +162,27 @@ impl Store {
         store
     }
 
+    pub fn query(&self, filter: &str, content_type: &str) -> HashSet<ssri::Integrity> {
+        let filter = filter.to_lowercase();
+        let content_type = content_type.to_lowercase();
+
+        self.content_meta_cache
+            .iter()
+            .filter_map(|(hash, meta)| {
+                let terse = meta.terse.to_lowercase();
+                let content_type_meta = meta.content_type.to_lowercase();
+
+                if (filter.is_empty() || terse.contains(&filter))
+                    && (content_type.is_empty() || content_type_meta == content_type)
+                {
+                    Some(hash.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
     pub fn scan_content_meta(&self) -> HashMap<ssri::Integrity, ContentMeta> {
         let mut content_meta_cache = HashMap::new();
         for (key, value) in self.content_meta.iter().flatten() {

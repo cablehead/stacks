@@ -33,6 +33,14 @@ impl State {
         }
     }
 
+    pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
+        self.ui.set_filter(&self.store, filter, content_type);
+    }
+
+    pub fn nav_select_down(&mut self) {
+        self.ui.select_down(&self.view);
+    }
+
     pub fn get_curr_stack(&mut self) -> Scru128Id {
         let curr_stack = self.view.root().first().map(|item| item.id);
 

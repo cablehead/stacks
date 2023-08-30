@@ -90,13 +90,9 @@ pub fn store_nav_refresh(
 }
 
 #[tauri::command]
-pub fn store_nav_set_filter(state: tauri::State<SharedState>, curr: String, content_type: String) -> Nav {
-    let state = state.lock().unwrap();
-    /*
-    let view = state.view.clone();
-    state.ui.select(&view, focused_id);
-    */
-    println!("store_nav_set_filter: {} {}", curr, content_type);
+pub fn store_nav_set_filter(state: tauri::State<SharedState>, filter: String, content_type: String) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.nav_set_filter(&filter, &content_type);
     state.ui.render(&state.store, &state.view)
 }
 
