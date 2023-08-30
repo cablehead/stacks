@@ -39,29 +39,43 @@ pub struct UI {
     pub last_selected: HashMap<Scru128Id, view::Item>,
     pub filter: String,
     pub matches: Option<HashSet<ssri::Integrity>>,
+    pub view: view::View,
 }
 
 impl UI {
-    pub fn new() -> Self {
+    pub fn new(v: &view::View) -> Self {
         Self {
             focused: None,
             last_selected: HashMap::new(),
             filter: String::new(),
             matches: None,
+            view: v.clone(),
         }
     }
 
-    pub fn set_filter(&mut self, store: &Store, filter: &str, content_type: &str) {
+    pub fn set_filter(&mut self, store: &Store, v: &view::View, filter: &str, content_type: &str) {
         println!("SETTING FILTER: '{:?}' '{:?}'", filter, content_type);
         self.filter = filter.into();
         self.matches = if filter != "" || (content_type != "All" && content_type != "") {
-            Some(store.query(filter, content_type))
+            let matches = store.query(filter, content_type);
+            Some(matches)
         } else {
             None
         };
+
+        self.refresh_view(v);
     }
-    pub fn select(&mut self, v: &view::View, id: Scru128Id) {
-        if let Some(item) = v.items.get(&id) {
+
+    pub fn refresh_view(&mut self, v: &view::View) {
+        self.view = if let Some(matches) = &self.matches {
+            v.filter(&matches)
+        } else {
+            v.clone()
+        }
+    }
+
+    pub fn select(&mut self, id: Scru128Id) {
+        if let Some(item) = self.view.items.get(&id) {
             if let Some(stack_id) = item.stack_id {
                 self.last_selected.insert(stack_id, item.clone());
             }
@@ -69,43 +83,43 @@ impl UI {
         }
     }
 
-    pub fn select_up(&mut self, v: &view::View) {
-        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let peers = v.get_peers(focused);
+    pub fn select_up(&mut self) {
+        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
+            let peers = self.view.get_peers(focused);
             let index = peers
                 .iter()
                 .position(|peer| peer.last_touched <= focused.last_touched)
                 .unwrap();
             if index > 0 {
-                self.select(v, peers[index - 1].id);
+                self.select(peers[index - 1].id);
             }
         }
     }
 
-    pub fn select_down(&mut self, v: &view::View) {
-        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let peers = v.get_peers(focused);
+    pub fn select_down(&mut self) {
+        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
+            let peers = self.view.get_peers(focused);
             let index = peers
                 .iter()
                 .position(|peer| peer.last_touched <= focused.last_touched)
                 .unwrap();
             if index < peers.len() - 1 {
-                self.select(v, peers[index + 1].id);
+                self.select(peers[index + 1].id);
             }
         }
     }
 
-    pub fn select_left(&mut self, v: &view::View) {
-        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
+    pub fn select_left(&mut self) {
+        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
             if let Some(stack_id) = focused.stack_id {
-                self.select(v, stack_id);
+                self.select(stack_id);
             }
         }
     }
 
-    pub fn select_right(&mut self, v: &view::View) {
-        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let children = v.children(focused);
+    pub fn select_right(&mut self) {
+        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
+            let children = self.view.children(focused);
             if children.is_empty() {
                 return;
             }
@@ -113,26 +127,15 @@ impl UI {
             if let Some(child) = self
                 .last_selected
                 .get(&focused.id)
-                .or(v.items.get(&children[0]))
+                .or(self.view.items.get(&children[0]))
             {
-                self.select(v, child.id);
+                self.select(child.id);
             }
         }
     }
 
-    pub fn render(&self, store: &Store, v: &view::View) -> Nav {
-        println!("VIEW:\n{:?}", v);
-
-        let v = if let Some(matches) = &self.matches {
-            println!("FILTER: {:?}", matches);
-
-            v.filter(&matches)
-        } else {
-            println!("NO FILTER");
-            v.clone()
-        };
-
-        println!("VIEW:\n{:?}", v);
+    pub fn render(&self, store: &Store) -> Nav {
+        println!("VIEW:\n{:?}", self.view);
 
         let with_meta = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
@@ -152,8 +155,8 @@ impl UI {
         let focused = self
             .focused
             .as_ref()
-            .and_then(|item| v.get_best_focus(item))
-            .or(v.first())
+            .and_then(|item| self.view.get_best_focus(item))
+            .or(self.view.first())
             .unwrap();
 
         println!("");
@@ -163,28 +166,34 @@ impl UI {
         if let Some(stack_id) = focused.stack_id {
             Nav {
                 root: Layer {
-                    items: v.root().iter().map(with_meta).collect(),
-                    selected: with_meta(v.items.get(&stack_id).unwrap()),
+                    items: self.view.root().iter().map(with_meta).collect(),
+                    selected: with_meta(self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
                 },
                 sub: Some(Layer {
-                    items: v.get_peers(&focused).iter().map(with_meta).collect(),
+                    items: self
+                        .view
+                        .get_peers(&focused)
+                        .iter()
+                        .map(with_meta)
+                        .collect(),
                     selected: with_meta(&focused),
                     is_focus: true,
                 }),
             }
         } else {
-            let children: Vec<_> = v
+            let children: Vec<_> = self
+                .view
                 .children(&focused)
                 .iter()
-                .map(|id| v.items.get(id).unwrap().clone())
+                .map(|id| self.view.items.get(id).unwrap().clone())
                 .collect();
 
             let sub = if !children.is_empty() {
                 let selected = self
                     .last_selected
                     .get(&focused.id)
-                    .and_then(|item| v.get_best_focus(item))
+                    .and_then(|item| self.view.get_best_focus(item))
                     .unwrap_or(children[0].clone());
 
                 Some(Layer {
@@ -198,7 +207,7 @@ impl UI {
 
             Nav {
                 root: Layer {
-                    items: v.root().iter().map(with_meta).collect(),
+                    items: self.view.root().iter().map(with_meta).collect(),
                     selected: with_meta(&focused),
                     is_focus: true,
                 },

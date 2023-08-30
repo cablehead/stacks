@@ -16,7 +16,7 @@ pub struct Item {
     pub forked_children: Vec<Scru128Id>,
 }
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct View {
     pub items: HashMap<Scru128Id, Item>,
 }

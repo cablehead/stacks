@@ -86,54 +86,49 @@ pub fn store_nav_refresh(
     state: tauri::State<SharedState>,
 ) -> Nav {
     let state = state.lock().unwrap();
-    state.ui.render(&state.store, &state.view)
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_set_filter(state: tauri::State<SharedState>, filter: String, content_type: String) -> Nav {
     let mut state = state.lock().unwrap();
     state.nav_set_filter(&filter, &content_type);
-    state.ui.render(&state.store, &state.view)
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
     let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.select(&view, focused_id);
-    state.ui.render(&state.store, &state.view)
+    state.ui.select(focused_id);
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_select_up(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.select_up(&view);
-    state.ui.render(&state.store, &state.view)
+    state.ui.select_up();
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.select_down(&view);
-    state.ui.render(&state.store, &state.view)
+    state.ui.select_down();
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.select_left(&view);
-    state.ui.render(&state.store, &state.view)
+    state.ui.select_left();
+    state.ui.render(&state.store)
 }
 
 #[tauri::command]
 pub fn store_nav_select_right(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.select_right(&view);
-    state.ui.render(&state.store, &state.view)
+    state.ui.select_right();
+    state.ui.render(&state.store)
 }
 
 use cocoa::base::nil;

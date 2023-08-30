@@ -24,7 +24,7 @@ impl State {
         let mut view = View::new();
         store.scan().for_each(|p| view.merge(p));
 
-        let ui = UI::new();
+        let ui = UI::new(&view);
         Self {
             view,
             store,
@@ -34,19 +34,19 @@ impl State {
     }
 
     pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
-        self.ui.set_filter(&self.store, filter, content_type);
+        self.ui.set_filter(&self.store, &self.view, filter, content_type);
     }
 
     pub fn nav_select_down(&mut self) {
-        self.ui.select_down(&self.view);
+        self.ui.select_down();
     }
 
     pub fn nav_select_up(&mut self) {
-        self.ui.select_up(&self.view);
+        self.ui.select_up();
     }
 
     pub fn nav_select_left(&mut self) {
-        self.ui.select_left(&self.view);
+        self.ui.select_left();
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
@@ -88,6 +88,7 @@ impl State {
 
     pub fn merge(&mut self, packet: Packet) {
         self.view.merge(packet);
+        self.ui.refresh_view(&self.view);
     }
 }
 

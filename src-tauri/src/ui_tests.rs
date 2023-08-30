@@ -89,7 +89,7 @@ fn test_ui_render() {
     }
     state.store.scan().for_each(|p| state.merge(p));
 
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -103,7 +103,7 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -117,7 +117,7 @@ fn test_ui_render() {
     );
 
     state.nav_select_up();
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -132,7 +132,7 @@ fn test_ui_render() {
 
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
     state.merge(packet);
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -142,7 +142,7 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -152,7 +152,7 @@ fn test_ui_render() {
     );
 
     state.nav_select_left();
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -162,7 +162,7 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -176,7 +176,7 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 1", "");
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -186,7 +186,7 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("", "All");
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
@@ -200,7 +200,7 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 3", "");
-    let nav = state.ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
         &nav,
         (
