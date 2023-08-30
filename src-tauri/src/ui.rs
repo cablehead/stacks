@@ -52,14 +52,14 @@ impl UI {
     }
 
     pub fn set_filter(&mut self, store: &Store, filter: &str, content_type: &str) {
-        if filter == "" && content_type == "" {
-            self.matches = None;
-            return;
-        }
+        println!("SETTING FILTER: '{:?}' '{:?}'", filter, content_type);
         self.filter = filter.into();
-        self.matches = Some(store.query(filter, content_type));
+        self.matches = if filter != "" || content_type != "All" {
+            Some(store.query(filter, content_type))
+        } else {
+            None
+        };
     }
-
     pub fn select(&mut self, v: &view::View, id: Scru128Id) {
         if let Some(item) = v.items.get(&id) {
             if let Some(stack_id) = item.stack_id {
@@ -121,11 +121,18 @@ impl UI {
     }
 
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
+        println!("VIEW:\n{:?}", v);
+
         let v = if let Some(matches) = &self.matches {
+            println!("FILTER: {:?}", matches);
+
             v.filter(&matches)
         } else {
+            println!("NO FILTER");
             v.clone()
         };
+
+        println!("VIEW:\n{:?}", v);
 
         let with_meta = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();

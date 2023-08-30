@@ -173,7 +173,9 @@ impl Store {
                 let content_type_meta = meta.content_type.to_lowercase();
 
                 if (filter.is_empty() || terse.contains(&filter))
-                    && (content_type.is_empty() || content_type_meta == content_type)
+                    && (content_type.is_empty()
+                        || content_type == "all"
+                        || content_type_meta == content_type)
                 {
                     Some(hash.clone())
                 } else {

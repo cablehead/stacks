@@ -185,7 +185,7 @@ fn test_ui_render() {
         ),
     );
 
-    state.nav_set_filter("", "");
+    state.nav_set_filter("", "All");
     let nav = state.ui.render(&state.store, &state.view);
     assert_nav_as_expected(
         &nav,
