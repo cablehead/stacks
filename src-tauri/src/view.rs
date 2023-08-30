@@ -191,8 +191,8 @@ impl View {
     }
 
     pub fn get_peers(&self, item: &Item) -> Vec<Item> {
-        if let Some(stack_id) = item.stack_id {
-            self.children(&self.items[&stack_id])
+        if let Some(stack) = item.stack_id.and_then(|id| self.items.get(&id)) {
+            self.children(&stack)
                 .iter()
                 .map(|id| self.items.get(id).unwrap().clone())
                 .collect()
