@@ -147,9 +147,13 @@ export default {
   },
 
   activate: (stack: Stack) => {
+    if (!stack.nav.value.root) return;
+      const selected = stack.selected();
+      if (!selected) return;
+    
     state.currFilter.value = "";
     state.availOptions.value = stack.nav.value.root.items
-      .filter((item) => item.id != stack.selected().stack_id);
+      .filter((item) => item.id != selected.stack_id);
     state.selected.value = state.options.value[0].id;
     state.dn.value = dn();
   },

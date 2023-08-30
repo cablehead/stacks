@@ -1,8 +1,9 @@
 import { JSXInternal } from "preact/src/jsx";
 
-import { Signal, signal } from "@preact/signals";
+import { effect, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
+import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
 
 const Scru128IdBrand = Symbol("Scru128Id");
@@ -29,8 +30,121 @@ export interface Layer {
 }
 
 export interface Nav {
-  root: Layer;
+  root?: Layer;
   sub?: Layer;
+}
+
+const createFilter = () => {
+  const curr = signal("");
+  const content_type = signal("All");
+  return {
+    curr,
+    content_type,
+    dirty: () => curr.value != "" || content_type.value != "All",
+    clear: () => {
+      curr.value = "";
+      content_type.value = "All";
+    },
+  };
+};
+
+export class Stack {
+  filter: {
+    curr: Signal<string>;
+    content_type: Signal<string>;
+    dirty: () => boolean;
+    clear: () => void;
+  };
+
+  nav: Signal<Nav>;
+
+  constructor(nav: Nav) {
+    console.log("CONSTRUCT");
+    this.filter = createFilter();
+    this.nav = signal(nav);
+
+    this.initListener();
+    effect(() => {
+      this.set_filter(this.filter.curr.value, this.filter.content_type.value);
+    });
+  }
+
+  async initListener() {
+    console.log("CREATE D1");
+    const d1 = await listen("refresh-items", () => {
+      this.refresh();
+    });
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        console.log("DISPOSE D1");
+        if (d1) d1();
+      });
+    }
+  }
+
+  selected(): Item | undefined {
+    const nav = this.nav.value;
+    if (nav.sub) return nav.sub.selected;
+    return nav.root?.selected;
+  }
+
+  getContent(hash: SSRI): Signal<string | undefined> {
+    return CAS.getSignal(hash);
+  }
+
+  async refresh() {
+    this.nav.value = await invoke<Nav>("store_nav_refresh", {});
+  }
+
+  reset() {
+    this.filter.clear();
+    // this.selected.value = Focus.first();
+    // this.lastSelected = new Map();
+  }
+
+  async triggerCopy() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke("store_copy_to_clipboard", {
+      sourceId: item.id,
+    });
+    hide();
+  }
+
+  async select(id: string) {
+    this.nav.value = await invoke<Nav>("store_nav_select", { focusedId: id });
+  }
+
+  async set_filter(curr: string, contentType: string) {
+    this.nav.value = await invoke<Nav>("store_nav_set_filter", {
+      curr: curr,
+      contentType: contentType,
+    });
+  }
+
+  async selectUp() {
+    this.nav.value = await invoke<Nav>("store_nav_select_up", {});
+  }
+
+  async selectDown() {
+    this.nav.value = await invoke<Nav>("store_nav_select_down", {});
+  }
+
+  async selectRight() {
+    this.nav.value = await invoke<Nav>("store_nav_select_right", {});
+  }
+
+  async selectLeft() {
+    this.nav.value = await invoke<Nav>("store_nav_select_left", {});
+  }
+}
+
+export interface Action {
+  name: string;
+  keys?: (string | JSXInternal.Element)[];
+  trigger?: (stack: Stack) => void;
+  canApply?: (stack: Stack) => boolean;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
 export const CAS = (() => {
@@ -65,150 +179,3 @@ export const CAS = (() => {
     getSignal,
   };
 })();
-
-const createFilter = () => {
-  const curr = signal("");
-  const content_type = signal("All");
-  return {
-    curr,
-    content_type,
-    dirty: () => curr.value != "" || content_type.value != "All",
-    clear: () => {
-      curr.value = "";
-      content_type.value = "All";
-    },
-  };
-};
-
-function debounce<T>(
-  this: T,
-  func: (...args: any[]) => void,
-  delay: number,
-): (...args: any[]) => void {
-  let debounceTimer: NodeJS.Timeout;
-  return function (this: T, ...args: any[]) {
-    const context = this;
-    clearTimeout(debounceTimer);
-    debounceTimer = setTimeout(() => func.apply(context, args), delay);
-  };
-}
-
-// refreshNav maintains the provided stack's items: reactively, based on the
-// stack's current filter and content type
-const innerRefreshNav = async (stack: Stack) => {
-  const filter = stack.filter.curr.value;
-  const contentType = stack.filter.content_type.value;
-
-  const args = {
-    filter: filter,
-    contentType: contentType,
-    focusedId: stack.focused_id,
-    // Include the hash of the focused parent tack item, if it exists
-    // stack: stack.parent?.item.value?.hash,
-  };
-
-  // Get the hash of the currently focused item
-  // const currItem = stack.item.peek()?.hash;
-
-  // Set the new list of items from the backend
-  const nav = await invoke<Nav>("store_list_items", args);
-  // if (state.matches) state.matches = new Set(state.matches);
-  stack.nav.value = nav;
-
-  /*
-    const selectedId = stack.selected.value.curr(stack);
-    const selected = stack.state.value.items[selectedId];
-    console.log("UPDATE", selectedId, selected);
-    if (selected) return;
-
-    const last = stack.lastKnown;
-    if (!last) return;
-
-    const peers = stack.getPeers(last);
-    console.log("PEERS", peers);
-    let next = peers.find((id) => id < last.id) || peers[peers.length - 1] ||
-      last.stack_id ||
-      stack.state.value.root[0];
-    console.log("NEXT", last.id, next);
-    if (next) stack.select(next);
-    */
-};
-
-const refreshNav = debounce(innerRefreshNav, 50);
-
-export class Stack {
-  filter: {
-    curr: Signal<string>;
-    content_type: Signal<string>;
-    dirty: () => boolean;
-    clear: () => void;
-  };
-
-  nav: Signal<Nav>;
-
-  focused_id: string | null;
-
-  constructor(nav: Nav) {
-    console.log("CONSTRUCT");
-    this.filter = createFilter();
-    this.nav = signal(nav);
-    this.focused_id = null;
-  }
-
-  refreshNav() {
-    refreshNav(this);
-  }
-
-  selected(): Item {
-    const nav = this.nav.value;
-    if (nav.sub) return nav.sub.selected;
-    return nav.root.selected;
-  }
-
-  getContent(hash: SSRI): Signal<string | undefined> {
-    return CAS.getSignal(hash);
-  }
-
-  reset() {
-    this.filter.clear();
-    // this.selected.value = Focus.first();
-    // this.lastSelected = new Map();
-  }
-
-  async triggerCopy() {
-    const item = this.selected();
-    if (!item) return;
-    await invoke("store_copy_to_clipboard", {
-      sourceId: item.id,
-    });
-    hide();
-  }
-
-  async select(id: string) {
-    this.nav.value = await invoke<Nav>("store_nav_select", { focusedId: id });
-  }
-
-  async selectUp() {
-    this.nav.value = await invoke<Nav>("store_nav_select_up", {});
-  }
-
-  async selectDown() {
-    this.nav.value = await invoke<Nav>("store_nav_select_down", {});
-  }
-
-  async selectRight() {
-    this.nav.value = await invoke<Nav>("store_nav_select_right", {});
-  }
-
-  async selectLeft() {
-    this.nav.value = await invoke<Nav>("store_nav_select_left", {});
-  }
-}
-
-export interface Action {
-  name: string;
-  keys?: (string | JSXInternal.Element)[];
-  trigger?: (stack: Stack) => void;
-  canApply?: (stack: Stack) => boolean;
-  matchKeyEvent?: (event: KeyboardEvent) => boolean;
-}

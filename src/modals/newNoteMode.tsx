@@ -13,8 +13,10 @@ const state = (() => {
   return {
     curr,
     accept_meta: (stack: Stack, modes: Modes) => {
+      const selected = stack.selected();
+      if (!selected) return;
       const args = {
-        stackId: stack.selected().stack_id,
+        stackId: selected.stack_id,
         content: curr.value,
       };
 

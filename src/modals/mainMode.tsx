@@ -31,7 +31,7 @@ export default {
         >
           <Icon name="IconStack" />
         </div>
-        {stack.nav.value.root.selected.terse || ""}
+        {stack.nav.value.root?.selected.terse || ""}
       </div>
     );
   },

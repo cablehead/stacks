@@ -105,11 +105,12 @@ const renderItems = (
 
 export function Nav({ stack }: { stack: Stack }) {
   const nav = stack.nav.value;
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {renderItems(stack, "root", nav.root)}
+      {nav.root ? renderItems(stack, "root", nav.root) : <i>no matches</i>}
 
-      {nav.sub
+      {nav.root && nav.sub
         ? (
           <>
             {renderItems(
