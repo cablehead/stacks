@@ -192,9 +192,15 @@ impl UI {
                 .collect();
 
             let sub = if !children.is_empty() {
+                let selected = self
+                    .last_selected
+                    .get(&focused.id)
+                    .and_then(|item| v.get_best_focus(item))
+                    .unwrap();
+
                 Some(Layer {
                     items: children,
-                    selected: id_to_item(&focused),
+                    selected: id_to_item(&selected),
                     is_focus: false,
                 })
             } else {
