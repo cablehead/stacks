@@ -194,7 +194,7 @@ impl View {
         if let Some(stack_id) = item.stack_id {
             self.children(&self.items[&stack_id])
                 .iter()
-                .map(|id| self.items.get(&id).unwrap().clone())
+                .map(|id| self.items.get(id).unwrap().clone())
                 .collect()
         } else {
             self.root()
@@ -206,7 +206,7 @@ impl View {
             return Some(item.clone());
         }
 
-        let peers = self.get_peers(&item);
+        let peers = self.get_peers(item);
         if peers.is_empty() {
             return item.stack_id.and_then(|id| self.items.get(&id).cloned());
         }

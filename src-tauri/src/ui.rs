@@ -67,7 +67,7 @@ impl UI {
 
     pub fn select_up(&mut self, v: &view::View) {
         if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let peers = v.get_peers(&focused);
+            let peers = v.get_peers(focused);
             let current_index = peers.iter().position(|peer| peer.id == focused.id);
             if let Some(index) = current_index {
                 if index > 0 {
@@ -79,7 +79,7 @@ impl UI {
 
     pub fn select_down(&mut self, v: &view::View) {
         if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let peers = v.get_peers(&focused);
+            let peers = v.get_peers(focused);
             let current_index = peers.iter().position(|peer| peer.id == focused.id);
             if let Some(index) = current_index {
                 if index < peers.len() - 1 {
@@ -99,7 +99,7 @@ impl UI {
 
     pub fn select_right(&mut self, v: &view::View) {
         if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
-            let children = v.children(&focused);
+            let children = v.children(focused);
             if children.is_empty() {
                 return;
             }
@@ -165,7 +165,7 @@ impl UI {
         let focused = self
             .focused
             .as_ref()
-            .and_then(|item| v.get_best_focus(&item))
+            .and_then(|item| v.get_best_focus(item))
             .or(v.first())
             .unwrap();
 
@@ -187,7 +187,7 @@ impl UI {
             let children: Vec<_> = v
                 .children(&focused)
                 .iter()
-                .map(|id| v.items.get(&id).unwrap().clone())
+                .map(|id| v.items.get(id).unwrap().clone())
                 .collect();
 
             let sub = if !children.is_empty() {
@@ -195,8 +195,7 @@ impl UI {
                     .last_selected
                     .get(&focused.id)
                     .and_then(|item| v.get_best_focus(item))
-                    .or(Some(children[0].clone()))
-                    .unwrap();
+                    .unwrap_or(children[0].clone());
 
                 Some(Layer {
                     items: children.iter().map(with_meta).collect(),
@@ -213,7 +212,7 @@ impl UI {
                     selected: with_meta(&focused),
                     is_focus: true,
                 },
-                sub: sub,
+                sub,
             }
         }
     }
