@@ -115,7 +115,7 @@ impl UI {
     }
 
     pub fn render(&self, store: &Store, v: &view::View) -> Nav {
-        let id_to_item = |item: &view::Item| -> Item {
+        let with_meta = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
             Item {
                 id: item.id,
@@ -173,13 +173,13 @@ impl UI {
         if let Some(stack_id) = focused.stack_id {
             Nav {
                 root: Layer {
-                    items: v.root().iter().map(id_to_item).collect(),
-                    selected: id_to_item(v.items.get(&stack_id).unwrap()),
+                    items: v.root().iter().map(with_meta).collect(),
+                    selected: with_meta(v.items.get(&stack_id).unwrap()),
                     is_focus: false,
                 },
                 sub: Some(Layer {
-                    items: v.get_peers(&focused).iter().map(id_to_item).collect(),
-                    selected: id_to_item(&focused),
+                    items: v.get_peers(&focused).iter().map(with_meta).collect(),
+                    selected: with_meta(&focused),
                     is_focus: true,
                 }),
             }
@@ -199,8 +199,8 @@ impl UI {
                     .unwrap();
 
                 Some(Layer {
-                    items: children.iter().map(id_to_item).collect(),
-                    selected: id_to_item(&selected),
+                    items: children.iter().map(with_meta).collect(),
+                    selected: with_meta(&selected),
                     is_focus: false,
                 })
             } else {
@@ -209,8 +209,8 @@ impl UI {
 
             Nav {
                 root: Layer {
-                    items: v.root().iter().map(id_to_item).collect(),
-                    selected: id_to_item(&focused),
+                    items: v.root().iter().map(with_meta).collect(),
+                    selected: with_meta(&focused),
                     is_focus: true,
                 },
                 sub: sub,
