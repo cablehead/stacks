@@ -147,11 +147,7 @@ fn test_ui_render() {
         ),
     );
 
-    if true {
-        return;
-    }
-
-    state.nav_set_filter("s3::item 1", "");
+    state.nav_set_filter("item 1", "");
 
     println!("");
     println!("{:?}", state.ui.matches.as_ref().unwrap().len());
@@ -161,8 +157,8 @@ fn test_ui_render() {
     assert_nav_as_expected(
         &nav,
         (
-            ("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false),
-            Some(("S3::Item 1", vec!["S3::Item 1"], true)),
+            ("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true),
+            Some(("S2::Item 1", vec!["S2::Item 1"], false)),
         ),
     );
 }
