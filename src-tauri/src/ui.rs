@@ -35,8 +35,8 @@ pub struct Nav {
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct UI {
-    pub focused_id: Option<Scru128Id>,
-    pub last_selected: HashMap<Scru128Id, Scru128Id>,
+    pub focused: Option<view::Item>,
+    pub last_selected: HashMap<Scru128Id, view::Item>,
     pub filter: String,
     pub matches: Option<HashSet<ssri::Integrity>>,
 }
@@ -44,7 +44,7 @@ pub struct UI {
 impl UI {
     pub fn new(v: &view::View) -> Self {
         Self {
-            focused_id: None,
+            focused: None,
             last_selected: HashMap::new(),
             filter: String::new(),
             matches: None,
@@ -59,69 +59,57 @@ impl UI {
     pub fn select(&mut self, v: &view::View, id: Scru128Id) {
         if let Some(item) = v.items.get(&id) {
             if let Some(stack_id) = item.stack_id {
-                self.last_selected.insert(stack_id, id);
+                self.last_selected.insert(stack_id, item.clone());
             }
-            self.focused_id = Some(id);
+            self.focused = Some(item.clone());
         }
     }
 
     pub fn select_up(&mut self, v: &view::View) {
-        if let Some(focused_id) = self.focused_id {
-            let peers = v.get_peers(&focused_id);
-            let current_index = peers.iter().position(|id| id == &focused_id);
+        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
+            let peers = v.get_peers(&focused);
+            let current_index = peers.iter().position(|id| id == &focused.id);
             if let Some(index) = current_index {
                 if index > 0 {
-                    self.focused_id = Some(peers[index - 1]);
-                    if let Some(item) = v.items.get(&peers[index - 1]) {
-                        if let Some(stack_id) = item.stack_id {
-                            self.last_selected.insert(stack_id, peers[index - 1]);
-                        }
-                    }
+                    self.select(v, peers[index - 1]);
                 }
             }
         }
     }
 
     pub fn select_down(&mut self, v: &view::View) {
-        let focused_id = self.focused_id.or(v.first());
-        if let Some(focused_id) = focused_id {
-            let peers = v.get_peers(&focused_id);
-            let current_index = peers.iter().position(|id| id == &focused_id);
+        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
+            let peers = v.get_peers(&focused);
+            let current_index = peers.iter().position(|id| id == &focused.id);
             if let Some(index) = current_index {
                 if index < peers.len() - 1 {
-                    self.focused_id = Some(peers[index + 1]);
-                    if let Some(item) = v.items.get(&peers[index + 1]) {
-                        if let Some(stack_id) = item.stack_id {
-                            self.last_selected.insert(stack_id, peers[index + 1]);
-                        }
-                    }
+                    self.select(v, peers[index + 1]);
                 }
             }
         }
     }
 
     pub fn select_left(&mut self, v: &view::View) {
-        if let Some(focused_id) = self.focused_id {
-            if let Some(item) = v.items.get(&focused_id) {
-                if let Some(stack_id) = item.stack_id {
-                    self.focused_id = Some(stack_id);
-                }
+        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
+            if let Some(stack_id) = focused.stack_id {
+                self.select(v, stack_id);
             }
         }
     }
 
     pub fn select_right(&mut self, v: &view::View) {
-        if let Some(focused_id) = self.focused_id {
-            if let Some(item) = v.items.get(&focused_id) {
-                let children = v.children(item);
-                if !children.is_empty() {
-                    let next_id = self
-                        .last_selected
-                        .get(&focused_id)
-                        .cloned()
-                        .unwrap_or(children[0]);
-                    self.focused_id = Some(next_id);
-                }
+        if let Some(focused) = self.focused.as_ref().or(v.first().as_ref()) {
+            let children = v.children(&focused);
+            if children.is_empty() {
+                return;
+            }
+
+            if let Some(child) = self
+                .last_selected
+                .get(&focused.id)
+                .or(v.items.get(&children[0]))
+            {
+                self.select(v, child.id);
             }
         }
     }
@@ -172,9 +160,8 @@ impl UI {
 
         // println!("{:?}", root);
 
-        let focused_id = self.focused_id.or(v.first()).unwrap();
+        let focused = self.focused.clone().or(v.first().clone()).unwrap();
 
-        let focused = v.items.get(&focused_id).unwrap().clone();
         let root_id = focused.stack_id.unwrap_or(focused.id);
 
         let root_items = v.root();
@@ -185,24 +172,19 @@ impl UI {
             .iter()
             .map(|id| v.items.get(id).unwrap().clone())
             .collect::<Vec<_>>();
-        let sub_selected_id = self
+        let sub_selected = self
             .last_selected
             .get(&root_selected.id)
             .cloned()
-            .unwrap_or(sub_items[0].id);
-        let sub_selected = sub_items
-            .iter()
-            .find(|item| item.id == sub_selected_id)
-            .unwrap_or(&sub_items[0])
-            .clone();
+            .unwrap_or(sub_items[0].clone());
 
         let root_items = root_items.iter().map(id_to_item).collect::<Vec<_>>();
         let root_selected = id_to_item(root_selected);
-        let root_is_focus = focused_id == root_selected.id;
+        let root_is_focus = focused.id == root_selected.id;
 
         let sub_items = sub_items.iter().map(id_to_item).collect::<Vec<_>>();
         let sub_selected = id_to_item(&sub_selected);
-        let sub_is_focus = focused_id == sub_selected.id;
+        let sub_is_focus = focused.id == sub_selected.id;
 
         Nav {
             root: Layer {

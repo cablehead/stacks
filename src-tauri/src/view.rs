@@ -5,7 +5,7 @@ use ssri::Integrity;
 
 use crate::store::Packet;
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,
@@ -174,30 +174,27 @@ impl View {
         children
     }
 
-    pub fn first(&self) -> Option<Scru128Id> {
+    pub fn first(&self) -> Option<Item> {
         let root = self.root();
         if !root.is_empty() {
             let stack = &root[0];
             let children = self.children(stack);
-            if !children.is_empty() {
-                Some(children[0])
+            let id = if !children.is_empty() {
+                children[0]
             } else {
-                Some(stack.id)
-            }
+                stack.id
+            };
+            self.items.get(&id).cloned()
         } else {
             None
         }
     }
 
-    pub fn get_peers(&self, focused_id: &Scru128Id) -> Vec<Scru128Id> {
-        if let Some(item) = self.items.get(focused_id) {
-            if let Some(stack_id) = item.stack_id {
-                self.children(&self.items[&stack_id])
-            } else {
-                self.root().iter().map(|item| item.id).collect()
-            }
+    pub fn get_peers(&self, item: &Item) -> Vec<Scru128Id> {
+        if let Some(stack_id) = item.stack_id {
+            self.children(&self.items[&stack_id])
         } else {
-            Vec::new()
+            self.root().iter().map(|item| item.id).collect()
         }
     }
 }
