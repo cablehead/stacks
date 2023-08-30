@@ -326,17 +326,6 @@ mod tests {
             &state.view,
             vec![("Stack 1", vec!["Item 2", "Item 1"])],
         );
-
-        let root = state.view.root();
-        let root: Vec<_> = root
-            .iter()
-            .map(|item| state.view_item_serializer(&item))
-            .collect();
-        let got = serde_json::to_string(&root).unwrap();
-        println!("{}", got);
-
-        let got = serde_json::to_string(&state.to_serde_value("")).unwrap();
-        println!("{}", got);
     }
 
     #[test]

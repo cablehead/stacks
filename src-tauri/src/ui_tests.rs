@@ -1,9 +1,7 @@
-use std::collections::HashMap;
+use crate::state::State;
+use crate::store::MimeType;
 
-use crate::state::{State};
-use crate::store::{MimeType};
-
-use crate::ui::{Nav, UI};
+use crate::ui::Nav;
 
 type NavExpected<'a> = (
     (&'a str, Vec<&'a str>, bool),         // root
@@ -89,17 +87,9 @@ fn test_ui_render() {
             items.push(item.id());
         }
     }
-    let focused_id = items.last().unwrap();
-
     state.store.scan().for_each(|p| state.merge(p));
 
-    let ui = UI {
-        focused_id: Some(*focused_id),
-        last_selected: HashMap::new(),
-        filter: "".to_string(),
-    };
-
-    let nav = ui.render(&state.store, &state.view);
+    let nav = state.ui.render(&state.store, &state.view);
     assert_nav_as_expected(
         &nav,
         (

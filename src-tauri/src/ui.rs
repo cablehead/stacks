@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use scru128::Scru128Id;
 use ssri::Integrity;
@@ -38,16 +38,22 @@ pub struct UI {
     pub focused_id: Option<Scru128Id>,
     pub last_selected: HashMap<Scru128Id, Scru128Id>,
     pub filter: String,
+    pub matches: Option<HashSet<ssri::Integrity>>,
 }
 
 impl UI {
     pub fn new(v: &view::View) -> Self {
         let focused_id = {
-            let root = &v.root()[0];
-            if !root.children.is_empty() {
-                Some(v.children(root)[0])
+            let root = &v.root();
+            if !root.is_empty() {
+                let stack = root[0].clone();
+                if !stack.children.is_empty() {
+                    Some(v.children(&stack)[0])
+                } else {
+                    Some(stack.id)
+                }
             } else {
-                Some(root.id)
+                None
             }
         };
 
@@ -55,7 +61,13 @@ impl UI {
             focused_id,
             last_selected: HashMap::new(),
             filter: String::new(),
+            matches: None,
         }
+    }
+
+    pub fn set_filter(&mut self, store: &Store, filter: String) {
+        self.filter = filter;
+        self.matches = Some(store.index.query(&self.filter));
     }
 
     pub fn select(&mut self, v: &view::View, id: Scru128Id) {
@@ -169,7 +181,11 @@ impl UI {
             .iter()
             .map(|id| v.items.get(id).unwrap().clone())
             .collect::<Vec<_>>();
-        let sub_selected_id = self.last_selected.get(&root_selected.id).cloned().unwrap_or(sub_items[0].id);
+        let sub_selected_id = self
+            .last_selected
+            .get(&root_selected.id)
+            .cloned()
+            .unwrap_or(sub_items[0].id);
         let sub_selected = sub_items
             .iter()
             .find(|item| item.id == sub_selected_id)
