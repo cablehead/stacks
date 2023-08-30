@@ -215,7 +215,7 @@ impl View {
         peers.sort_by_key(|item| item.last_touched);
         peers
             .iter()
-            .position(|peer| peer.last_touched > item.last_touched)
+            .position(|peer| peer.last_touched < item.last_touched)
             .map(|position| peers[position].clone())
             .or(Some(peers[peers.len() - 1].clone()))
     }

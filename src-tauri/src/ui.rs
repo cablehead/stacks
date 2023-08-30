@@ -42,7 +42,7 @@ pub struct UI {
 }
 
 impl UI {
-    pub fn new(v: &view::View) -> Self {
+    pub fn new() -> Self {
         Self {
             focused: None,
             last_selected: HashMap::new(),
@@ -130,6 +130,7 @@ impl UI {
             }
         };
 
+        /*
         let root = v.root();
         let root = root
             .iter()
@@ -157,6 +158,7 @@ impl UI {
                 }
             })
             .collect::<Vec<_>>();
+            */
 
         // println!("{:?}", root);
 

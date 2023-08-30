@@ -24,7 +24,7 @@ impl State {
         let mut view = View::new();
         store.scan().for_each(|p| view.merge(p));
 
-        let ui = UI::new(&view);
+        let ui = UI::new();
         Self {
             view,
             store,
