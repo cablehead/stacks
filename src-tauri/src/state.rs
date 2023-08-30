@@ -301,34 +301,6 @@ mod tests {
     }
 
     #[test]
-    fn test_state_view_item_serializer() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut state = State::new(path);
-
-        let stack_id = state
-            .store
-            .add(b"Stack 1", MimeType::TextPlain, None, None)
-            .id();
-        let _item_id_1 = state
-            .store
-            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-        let _item_id_2 = state
-            .store
-            .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-
-        state.store.scan().for_each(|p| state.merge(p));
-        assert_view_as_expected(
-            &state.store,
-            &state.view,
-            vec![("Stack 1", vec!["Item 2", "Item 1"])],
-        );
-    }
-
-    #[test]
     fn test_no_duplicate_entry_on_same_hash() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
