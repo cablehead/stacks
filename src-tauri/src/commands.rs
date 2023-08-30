@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use tauri::Manager;
 
 use base64::{engine::general_purpose, Engine as _};
@@ -8,7 +6,7 @@ use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
-use crate::ui::{Nav, UI};
+use crate::ui::{Nav};
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -83,28 +81,23 @@ pub fn store_get_content(
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
 
-use std::time::Instant;
-
 #[tauri::command]
-pub fn store_list_items(
+pub fn store_nav_refresh(
     state: tauri::State<SharedState>,
-    focused_id: Option<Scru128Id>,
-    filter: String,
-    // content_type: String,
 ) -> Nav {
     let state = state.lock().unwrap();
-    // state.to_serde_value(&filter)
-    println!("FILTER: {}", &filter);
-    let start = Instant::now(); // start timing
-    let ui = UI {
-        focused_id,
-        last_selected: HashMap::new(),
-        filter,
-    };
-    let nav = ui.render(&state.store, &state.view);
-    let duration = start.elapsed(); // get the time elapsed
-    println!("FILTER: peace, time taken: {:?}", duration);
-    nav
+    state.ui.render(&state.store, &state.view)
+}
+
+#[tauri::command]
+pub fn store_nav_set_filter(state: tauri::State<SharedState>, curr: String, content_type: String) -> Nav {
+    let state = state.lock().unwrap();
+    /*
+    let view = state.view.clone();
+    state.ui.select(&view, focused_id);
+    */
+    println!("store_nav_set_filter: {} {}", curr, content_type);
+    state.ui.render(&state.store, &state.view)
 }
 
 #[tauri::command]

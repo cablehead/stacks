@@ -1,8 +1,5 @@
 use std::sync::{Arc, Mutex};
 
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
-
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
@@ -34,34 +31,6 @@ impl State {
             ui,
             skip_change_num: None,
         }
-    }
-
-    pub fn to_serde_value(&self, filter: &str) -> serde_json::Value {
-        let root = self
-            .view
-            .root()
-            .iter()
-            .map(|item| item.id)
-            .collect::<Vec<_>>();
-        let serialized_items: std::collections::HashMap<_, _> = self
-            .view
-            .items
-            .iter()
-            .map(|(id, item)| (id, self.view_item_serializer(item)))
-            .collect();
-        let content_meta = self.store.scan_content_meta();
-        let matches = if filter.is_empty() {
-            None
-        } else {
-            Some(self.store.index.query(filter))
-        };
-
-        serde_json::json!({
-            "root": root,
-            "items": serialized_items,
-            "content_meta": content_meta,
-            "matches": matches
-        })
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
@@ -103,31 +72,6 @@ impl State {
 
     pub fn merge(&mut self, packet: Packet) {
         self.view.merge(packet);
-    }
-
-    pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
-        ViewItemSerializer { item, state: self }
-    }
-}
-
-pub struct ViewItemSerializer<'a> {
-    item: &'a Item,
-    state: &'a State,
-}
-
-impl<'a> Serialize for ViewItemSerializer<'a> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("Item", 6)?;
-        s.serialize_field("id", &self.item.id)?;
-        s.serialize_field("last_touched", &self.item.last_touched)?;
-        s.serialize_field("touched", &self.item.touched)?;
-        s.serialize_field("hash", &self.item.hash)?;
-        s.serialize_field("stack_id", &self.item.stack_id)?;
-        s.serialize_field("children", &self.state.view.children(self.item))?;
-        s.end()
     }
 }
 
