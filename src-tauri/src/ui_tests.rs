@@ -88,9 +88,8 @@ fn test_ui_render() {
     }
     state.store.scan().for_each(|p| state.merge(p));
 
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
@@ -102,9 +101,8 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
@@ -116,9 +114,8 @@ fn test_ui_render() {
     );
 
     state.nav_select_up();
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
@@ -131,9 +128,8 @@ fn test_ui_render() {
 
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
     state.merge(packet);
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
@@ -141,9 +137,8 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], true)),
@@ -151,9 +146,8 @@ fn test_ui_render() {
     );
 
     state.nav_select_left();
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], false)),
@@ -161,9 +155,8 @@ fn test_ui_render() {
     );
 
     state.nav_select_down();
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
@@ -175,9 +168,8 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 1", "");
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some(("S2::Item 1", vec!["S2::Item 1"], false)),
@@ -185,9 +177,8 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("", "All");
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
@@ -199,9 +190,8 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 3", "");
-    let nav = state.ui.render(&state.store);
     assert_nav_as_expected(
-        &nav,
+        &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 2", "Stack 1"], true)),
             Some(("S2::Item 3", vec!["S2::Item 3"], false)),
@@ -209,6 +199,5 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("FOOBAR", "");
-    let nav = state.ui.render(&state.store);
-    assert_nav_as_expected(&nav, (None, None));
+    assert_nav_as_expected(&state.ui.render(&state.store), (None, None));
 }
