@@ -130,7 +130,7 @@ fn test_ui_render() {
     );
 
     // user press: down
-    state.nav_select_down();
+    state.ui.select_down();
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -149,7 +149,7 @@ fn test_ui_render() {
     );
 
     // user press: up
-    state.nav_select_up();
+    state.ui.select_up();
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -198,7 +198,7 @@ fn test_ui_render() {
     );
 
     // user press: down
-    state.nav_select_down();
+    state.ui.select_down();
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -212,7 +212,7 @@ fn test_ui_render() {
     );
 
     // user press: left
-    state.nav_select_left();
+    state.ui.select_left();
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -226,7 +226,7 @@ fn test_ui_render() {
     );
 
     // user press: down
-    state.nav_select_down();
+    state.ui.select_down();
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
