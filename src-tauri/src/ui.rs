@@ -152,23 +152,14 @@ impl UI {
             }
         };
 
-        let focused = self
-            .focused
-            .as_ref()
-            .and_then(|item| self.view.get_best_focus(item))
-            .or(self.view.first());
-
+        let focused = self.view.get_best_focus(self.focused.as_ref());
         if focused.is_none() {
             return Nav {
                 root: None,
                 sub: None,
             };
         }
-
         let focused = focused.unwrap();
-
-        println!("");
-        println!("GOO\n{:?}\n{:?}", self.focused, with_meta(&focused));
 
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
@@ -198,11 +189,9 @@ impl UI {
                 .collect();
 
             let sub = if !children.is_empty() {
-                let selected = self
-                    .last_selected
-                    .get(&focused.id)
-                    .and_then(|item| self.view.get_best_focus(item))
-                    .unwrap_or(children[0].clone());
+
+                let possible = self.last_selected.get(&focused.id).or(children.get(0));
+                let selected = self.view.get_best_focus(possible).unwrap();
 
                 Some(Layer {
                     items: children.iter().map(with_meta).collect(),

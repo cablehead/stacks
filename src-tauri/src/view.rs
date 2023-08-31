@@ -201,12 +201,17 @@ impl View {
         }
     }
 
-    pub fn get_best_focus(&self, item: &Item) -> Option<Item> {
+    pub fn get_best_focus(&self, item: Option<&Item>) -> Option<Item> {
+        if item.is_none() {
+            return self.first();
+        }
+
+        let item = item.unwrap();
         if let Some(item) = self.items.get(&item.id) {
             return Some(item.clone());
         }
 
-        let peers = self.get_peers(item);
+        let peers = self.get_peers(&item);
         if peers.is_empty() {
             return item.stack_id.and_then(|id| self.items.get(&id).cloned());
         }
