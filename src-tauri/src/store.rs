@@ -1,3 +1,5 @@
+use std::collections::{HashMap, HashSet};
+
 use scru128::Scru128Id;
 use serde::{Deserialize, Serialize};
 use ssri::Integrity;
@@ -109,13 +111,14 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
-    pub fn query(&self, query: &str) -> std::collections::HashSet<ssri::Integrity> {
+    #[cfg(test)]
+    pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
-        let query = tantivy::query::FuzzyTermQuery::new(term, 2, true);
+        let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
 
         let searcher = self.reader.searcher();
         let top_docs = searcher
-            .search(&query, &tantivy::collector::TopDocs::with_limit(400))
+            .search(&query, &tantivy::collector::TopDocs::with_limit(10000))
             .unwrap();
 
         top_docs
@@ -133,6 +136,7 @@ impl Index {
 pub struct Store {
     packets: sled::Tree,
     pub content_meta: sled::Tree,
+    pub content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
@@ -147,23 +151,47 @@ impl Store {
         let meta = db.open_tree("meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
-        Store {
+        let mut store = Store {
             packets,
             content_meta,
+            content_meta_cache: HashMap::new(),
             meta,
             cache_path,
             index: Index::new(path.join("index")),
-        }
+        };
+        store.content_meta_cache = store.scan_content_meta();
+        store
     }
 
-    pub fn scan_content_meta(&self) -> std::collections::HashMap<ssri::Integrity, ContentMeta> {
-        let mut content_meta_cache = std::collections::HashMap::new();
-        for item in self.content_meta.iter() {
-            if let Ok((key, value)) = item {
-                if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
-                    if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
-                        content_meta_cache.insert(hash, meta);
-                    }
+    pub fn query(&self, filter: &str, content_type: &str) -> HashSet<ssri::Integrity> {
+        let filter = filter.to_lowercase();
+        let content_type = content_type.to_lowercase();
+
+        self.content_meta_cache
+            .iter()
+            .filter_map(|(hash, meta)| {
+                let terse = meta.terse.to_lowercase();
+                let content_type_meta = meta.content_type.to_lowercase();
+
+                if (filter.is_empty() || terse.contains(&filter))
+                    && (content_type.is_empty()
+                        || content_type == "all"
+                        || content_type_meta == content_type)
+                {
+                    Some(hash.clone())
+                } else {
+                    None
+                }
+            })
+            .collect()
+    }
+
+    pub fn scan_content_meta(&self) -> HashMap<ssri::Integrity, ContentMeta> {
+        let mut content_meta_cache = HashMap::new();
+        for (key, value) in self.content_meta.iter().flatten() {
+            if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
+                if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+                    content_meta_cache.insert(hash, meta);
                 }
             }
         }
@@ -172,7 +200,7 @@ impl Store {
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
         let content_meta_cache = self.scan_content_meta();
-        content_meta_cache.get(&hash).cloned()
+        content_meta_cache.get(hash).cloned()
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
@@ -208,6 +236,8 @@ impl Store {
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
         self.content_meta.insert(bytes, encoded).unwrap();
+
+        self.content_meta_cache.insert(hash.clone(), meta);
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),

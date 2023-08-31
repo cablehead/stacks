@@ -2,8 +2,11 @@ use tauri::Manager;
 
 use base64::{engine::general_purpose, Engine as _};
 
+use scru128::Scru128Id;
+
 use crate::state::SharedState;
 use crate::store::MimeType;
+use crate::ui::Nav;
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -79,14 +82,69 @@ pub fn store_get_content(
 }
 
 #[tauri::command]
-pub fn store_list_items(
+pub fn store_nav_refresh(state: tauri::State<SharedState>) -> Nav {
+    let state = state.lock().unwrap();
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_reset(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    let view = state.view.clone();
+    state.ui.reset(view);
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_set_filter(
     state: tauri::State<SharedState>,
-    stack: Option<ssri::Integrity>,
     filter: String,
     content_type: String,
-) -> serde_json::Value {
-    let state = state.lock().unwrap();
-    state.to_serde_value(&filter)
+) -> Nav {
+    let mut state = state.lock().unwrap();
+    // XXX: content_type should be an enum
+    let content_type = match content_type.as_str() {
+        "Links" => "Link",
+        "Images" => "Image",
+        _ => "All",
+    };
+    state.nav_set_filter(&filter, content_type);
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.nav_select(&focused_id);
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_select_up(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.ui.select_up();
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.ui.select_down();
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.ui.select_left();
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
+pub fn store_nav_select_right(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    state.ui.select_right();
+    state.ui.render(&state.store)
 }
 
 use cocoa::base::nil;
@@ -120,7 +178,6 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 
 #[tauri::command]
 pub fn store_copy_to_clipboard(
-    app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
@@ -135,7 +192,7 @@ pub fn store_copy_to_clipboard(
         };
         let content = state.store.cas_read(&item.hash).unwrap();
 
-        let _change_num = write_to_clipboard(&mime_type, &content);
+        let _change_num = write_to_clipboard(mime_type, &content);
         Some(())
     } else {
         None
@@ -159,7 +216,7 @@ pub fn store_new_note(
         Some(stack_id),
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -180,7 +237,7 @@ pub fn store_edit_note(
         None,
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -194,7 +251,7 @@ pub fn store_delete(
 ) {
     let mut state = state.lock().unwrap();
     let packet = state.store.delete(id);
-    state.view.merge(packet);
+    state.merge(packet);
     app.emit_all("refresh-items", true).unwrap();
 }
 
@@ -239,7 +296,7 @@ pub fn store_add_to_stack(
     let packet = state
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id), None);
-    state.view.merge(packet);
+    state.merge(packet);
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -256,7 +313,7 @@ pub fn store_add_to_new_stack(
     let packet = state
         .store
         .add(name.as_bytes(), MimeType::TextPlain, None, None);
-    state.view.merge(packet.clone());
+    state.merge(packet.clone());
 
     let packet = state.store.fork(
         source_id,
@@ -265,55 +322,7 @@ pub fn store_add_to_new_stack(
         Some(packet.id()),
         None,
     );
-    state.view.merge(packet);
+    state.merge(packet);
 
     app.emit_all("refresh-items", true).unwrap();
 }
-
-/*
-
-#[tauri::command]
-pub fn store_copy_entire_stack_to_clipboard(
-    app: tauri::AppHandle,
-    state: tauri::State<SharedState>,
-    stack_hash: ssri::Integrity,
-) -> Option<()> {
-    let mut state = state.lock().unwrap();
-
-    let stack = state.stack.items.get(&stack_hash)?.clone();
-
-    let mut items: Vec<&Item> = stack
-        .stack
-        .values()
-        .filter(|item| !item.ids.is_empty())
-        .collect();
-
-    items.sort_by(|a, b| b.ids.last().cmp(&a.ids.last()));
-
-    let content: Vec<String> = items
-        .into_iter()
-        .filter(|item| item.mime_type == MimeType::TextPlain)
-        .map(|item| item.hash.clone())
-        .filter_map(|hash| state.store.cat(&hash))
-        .map(|bytes| String::from_utf8(bytes).unwrap_or_default())
-        .collect();
-
-    let content = content.join("\n");
-    let change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes())?;
-    state.skip_change_num = Some(change_num);
-
-    let frame = Frame {
-        id: scru128::new(),
-        source: Some("stream.cross.stacks".into()),
-        stack_hash: None,
-        mime_type: MimeType::TextPlain,
-        hash: stack.hash.clone(),
-    };
-    let packet = state.store.insert_frame(&frame);
-    state.merge(&packet);
-
-    app.emit_all("refresh-items", true).unwrap();
-    Some(())
-}
-// End stack commands
-*/

@@ -11,14 +11,6 @@ import { actions } from "../actions";
 
 export default {
   name: (stack: Stack) => {
-    let item = stack.item.value;
-    if (!item) return "";
-
-    if (item.stack_id !== null) {
-      item = stack.state.value.items[item.stack_id];
-    }
-
-    const contentMeta = stack.getContentMeta(item);
     return (
       <div
       style="
@@ -39,7 +31,7 @@ export default {
         >
           <Icon name="IconStack" />
         </div>
-        {contentMeta?.terse || ""}
+        {stack.nav.value.root?.selected.terse || ""}
       </div>
     );
   },

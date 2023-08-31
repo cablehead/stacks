@@ -6,20 +6,22 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Focus, Stack } from "../types";
+import { Stack } from "../types";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
     accept_meta: (stack: Stack, modes: Modes) => {
+      const selected = stack.selected();
+      if (!selected) return;
       const args = {
-        stackId: stack.item.value?.stack_id,
+        stackId: selected.stack_id,
         content: curr.value,
       };
 
       invoke("store_new_note", args);
-      stack.selected.value = Focus.first();
+      stack.select("");
       modes.deactivate();
     },
   };

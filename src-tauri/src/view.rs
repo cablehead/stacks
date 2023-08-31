@@ -1,11 +1,11 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use scru128::Scru128Id;
 use ssri::Integrity;
 
 use crate::store::Packet;
 
-#[derive(Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,
@@ -16,6 +16,7 @@ pub struct Item {
     pub forked_children: Vec<Scru128Id>,
 }
 
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct View {
     pub items: HashMap<Scru128Id, Item>,
 }
@@ -148,12 +149,11 @@ impl View {
         }
     }
 
-    pub fn root(&self) -> Vec<Item> {
+    pub fn root(&self) -> Vec<&Item> {
         let mut root_items = self
             .items
             .values()
             .filter(|item| item.stack_id.is_none())
-            .cloned()
             .collect::<Vec<_>>();
         root_items.sort_by_key(|item| item.last_touched);
         root_items.reverse();
@@ -171,5 +171,85 @@ impl View {
         });
         children.reverse();
         children
+    }
+
+    pub fn first(&self) -> Option<&Item> {
+        let root = self.root();
+        if !root.is_empty() {
+            let stack = &root[0];
+            let children = self.children(stack);
+            let id = if !children.is_empty() {
+                children[0]
+            } else {
+                stack.id
+            };
+            self.items.get(&id)
+        } else {
+            None
+        }
+    }
+
+    pub fn get_peers(&self, item: &Item) -> Vec<&Item> {
+        if let Some(stack) = item.stack_id.and_then(|id| self.items.get(&id)) {
+            self.children(stack)
+                .iter()
+                .map(|id| self.items.get(id).unwrap())
+                .collect()
+        } else {
+            self.root()
+        }
+    }
+
+    pub fn get_best_focus(&self, item: Option<&Item>) -> Option<&Item> {
+        if item.is_none() {
+            return self.first();
+        }
+
+        let item = item.unwrap();
+        if let Some(item) = self.items.get(&item.id) {
+            return Some(item);
+        }
+
+        let peers = self.get_peers(item);
+        if peers.is_empty() {
+            return item.stack_id.and_then(|id| self.items.get(&id));
+        }
+
+        peers
+            .iter()
+            .position(|peer| peer.last_touched < item.last_touched)
+            .map(|position| peers[position])
+            .or(Some(peers[peers.len() - 1]))
+    }
+
+    pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
+        let items: HashMap<Scru128Id, Item> = self
+            .items
+            .values()
+            .filter_map(|item| {
+                let mut item = item.clone();
+                if item.stack_id.is_none() {
+                    item.children = self
+                        .children(&item)
+                        .into_iter()
+                        .filter(|child_id| {
+                            if let Some(child) = self.items.get(child_id) {
+                                matches.contains(&child.hash)
+                            } else {
+                                false
+                            }
+                        })
+                        .collect();
+                    if item.children.is_empty() {
+                        return None;
+                    }
+                } else if !matches.contains(&item.hash) {
+                    return None;
+                }
+                Some((item.id, item))
+            })
+            .collect();
+
+        View { items }
     }
 }

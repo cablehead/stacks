@@ -39,7 +39,7 @@ export const actions: Action[] = [
     name: "Copy to stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
-    canApply: (stack: Stack) => stack.item.value?.stack_id != null,
+    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
     trigger: (stack: Stack) => {
       modes.activate(stack, addToStackMode);
     },
@@ -51,10 +51,9 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "e",
     canApply: (stack: Stack) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return false;
-      const meta = stack.getContentMeta(item);
-      return meta.mime_type == "text/plain";
+      return item.mime_type == "text/plain";
     },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
@@ -64,7 +63,7 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
-    canApply: (stack: Stack) => !!stack.item.value,
+    canApply: (stack: Stack) => !!stack.selected(),
   },
   {
     name: "Open",
@@ -72,7 +71,7 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return false;
       const content = stack.getContent(item.hash);
       if (typeof (content.value) == "undefined") return false;
@@ -81,10 +80,9 @@ export const actions: Action[] = [
       open(url);
     },
     canApply: (stack: Stack) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return false;
-      const meta = stack.getContentMeta(item);
-      return meta.content_type == "Link";
+      return item.content_type == "Link";
     },
   },
   {
@@ -92,30 +90,12 @@ export const actions: Action[] = [
     keys: ["Ctrl", "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.ctrlKey && event.key === "Backspace",
-    canApply: (stack: Stack) => !!stack.item.value,
+    canApply: (stack: Stack) => !!stack.selected(),
     trigger: (stack: Stack) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       console.log("DELETE", item);
       if (item) {
         invoke("store_delete", { id: item.id });
-      }
-    },
-  },
-  {
-    name: "Remove from stack",
-    keys: ["Ctrl", "DEL"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      event.ctrlKey && event.key === "Backspace",
-    canApply: (_: Stack) => false,
-    trigger: (stack: Stack) => {
-      const item = stack.item.value;
-      if (item) {
-        /*
-        invoke("store_delete", {
-          hash: item.hash,
-          stackHash: stack.parent?.item.value?.hash,
-        });
-        */
       }
     },
   },

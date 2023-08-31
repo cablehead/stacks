@@ -22,12 +22,13 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { currStack } from "./stacks";
+import { Stack } from "./types";
 
 import { default as theme } from "./theme";
 
+const stack = new Stack({});
+
 async function globalKeyHandler(event: KeyboardEvent) {
-  const stack = currStack.value;
   if (!stack) return;
 
   if (modes.attemptAction(event, stack)) return;
@@ -83,27 +84,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
-    case event.key === "Tab": {
-      event.preventDefault();
-      return;
-
-      /*
-      if (stack.parent) return;
-
-      // if this is a stack, open it
-      const item = stack.item.value;
-      if (item && item.content_type == "Stack") {
-        // const subStack = createStack(item.stack, stack);
-        // stack = subStack;
-        return;
-      }
-
-      // otherwise, add to stack
-      modes.activate(stack, addToStackMode);
-      return;
-      */
-    }
-
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
       modes.toggle(stack, newNoteMode);
@@ -147,7 +127,6 @@ export function App() {
   };
 
   const onFocusHandler = () => {
-    const stack = currStack.value;
     if (!stack) return;
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
@@ -167,8 +146,6 @@ export function App() {
       window.removeEventListener("focus", onFocusHandler);
     };
   }, []);
-
-  const stack = currStack.value;
 
   return (
     <main

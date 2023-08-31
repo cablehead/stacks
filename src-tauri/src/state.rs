@@ -1,17 +1,16 @@
 use std::sync::{Arc, Mutex};
 
-use serde::ser::SerializeStruct;
-use serde::{Serialize, Serializer};
-
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Store};
+pub use crate::store::{MimeType, Packet, Store};
+pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 
 pub struct State {
     pub view: View,
     pub store: Store,
+    pub ui: UI,
     // skip_change_num is used to prevent double processing of clipboard items.
     // When our app pushes an item to the clipboard, it also records detailed information
     // about the item in the store. To avoid the clipboard poller from duplicating this
@@ -21,41 +20,27 @@ pub struct State {
 
 impl State {
     pub fn new(db_path: &str) -> Self {
-        let mut state = Self {
-            view: View::new(),
-            store: Store::new(db_path),
+        let store = Store::new(db_path);
+        let mut view = View::new();
+        store.scan().for_each(|p| view.merge(p));
+
+        let ui = UI::new(&view);
+        Self {
+            view,
+            store,
+            ui,
             skip_change_num: None,
-        };
-        state.store.scan().for_each(|p| state.view.merge(p));
-        state
+        }
     }
 
-    pub fn to_serde_value(&self, filter: &str) -> serde_json::Value {
-        let root = self
-            .view
-            .root()
-            .iter()
-            .map(|item| item.id)
-            .collect::<Vec<_>>();
-        let serialized_items: std::collections::HashMap<_, _> = self
-            .view
-            .items
-            .iter()
-            .map(|(id, item)| (id, self.view_item_serializer(item)))
-            .collect();
-        let content_meta = self.store.scan_content_meta();
-        let matches = if filter.is_empty() {
-            None
-        } else {
-            Some(self.store.index.query(filter))
-        };
+    pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
+        self.ui
+            .set_filter(&self.store, &self.view, filter, content_type);
+    }
 
-        serde_json::json!({
-            "root": root,
-            "items": serialized_items,
-            "content_meta": content_meta,
-            "matches": matches
-        })
+    pub fn nav_select(&mut self, focused_id: &Scru128Id) {
+        let focused = self.view.items.get(focused_id);
+        self.ui.select(self.view.get_best_focus(focused));
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
@@ -84,43 +69,20 @@ impl State {
         let stack_name = format!("{}", local.format("%a, %b %d %Y, %I:%M %p"));
 
         let packet = self.store.add(
-            &stack_name.as_bytes(),
+            stack_name.as_bytes(),
             MimeType::TextPlain,
             None,
             Some("stream.cross.stacks".to_string()),
         );
 
         let id = packet.id();
-        self.view.merge(packet);
+        self.merge(packet);
         id
     }
 
-    pub fn view_item_serializer<'a>(&'a self, item: &'a Item) -> ViewItemSerializer<'a> {
-        ViewItemSerializer {
-            item: item,
-            state: self,
-        }
-    }
-}
-
-pub struct ViewItemSerializer<'a> {
-    item: &'a Item,
-    state: &'a State,
-}
-
-impl<'a> Serialize for ViewItemSerializer<'a> {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let mut s = serializer.serialize_struct("Item", 6)?;
-        s.serialize_field("id", &self.item.id)?;
-        s.serialize_field("last_touched", &self.item.last_touched)?;
-        s.serialize_field("touched", &self.item.touched)?;
-        s.serialize_field("hash", &self.item.hash)?;
-        s.serialize_field("stack_id", &self.item.stack_id)?;
-        s.serialize_field("children", &self.state.view.children(self.item))?;
-        s.end()
+    pub fn merge(&mut self, packet: Packet) {
+        self.view.merge(packet);
+        self.ui.refresh_view(&self.view);
     }
 }
 
@@ -350,45 +312,6 @@ mod tests {
     }
 
     #[test]
-    fn test_state_view_item_serializer() {
-        let dir = tempfile::tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut state = State::new(path);
-
-        let stack_id = state
-            .store
-            .add(b"Stack 1", MimeType::TextPlain, None, None)
-            .id();
-        let item_id_1 = state
-            .store
-            .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-        let _item_id_2 = state
-            .store
-            .add(b"Item 2", MimeType::TextPlain, Some(stack_id), None)
-            .id();
-
-        state.store.scan().for_each(|p| state.view.merge(p));
-        assert_view_as_expected(
-            &state.store,
-            &state.view,
-            vec![("Stack 1", vec!["Item 2", "Item 1"])],
-        );
-
-        let root = state.view.root();
-        let root: Vec<_> = root
-            .iter()
-            .map(|item| state.view_item_serializer(&item))
-            .collect();
-        let got = serde_json::to_string(&root).unwrap();
-        println!("{}", got);
-
-        let got = serde_json::to_string(&state.to_serde_value("")).unwrap();
-        println!("{}", got);
-    }
-
-    #[test]
     fn test_no_duplicate_entry_on_same_hash() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
@@ -410,7 +333,7 @@ mod tests {
             .add(b"Item 1", MimeType::TextPlain, Some(stack_id), None)
             .id();
 
-        state.store.scan().for_each(|p| state.view.merge(p));
+        state.store.scan().for_each(|p| state.merge(p));
 
         // Check that the stack item only has one child and that the item has been updated correctly
         assert_view_as_expected(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
