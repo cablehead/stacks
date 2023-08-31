@@ -90,16 +90,20 @@ fn test_ui_render() {
         })
         .collect();
 
-    let mut items = Vec::new();
     for (i, stack_id) in stack_ids.iter().enumerate() {
+        let _ = state.store.add(
+            format!("https://stack-{}.com", i + 1).as_bytes(),
+            MimeType::TextPlain,
+            Some(*stack_id),
+            None,
+        );
         for j in 1..=3 {
-            let item = state.store.add(
+            let _ = state.store.add(
                 format!("S{}::Item {}", i + 1, j).as_bytes(),
                 MimeType::TextPlain,
                 Some(*stack_id),
                 None,
             );
-            items.push(item.id());
         }
     }
 
@@ -114,7 +118,12 @@ fn test_ui_render() {
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 3",
-                vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                vec![
+                    "S3::Item 3",
+                    "S3::Item 2",
+                    "S3::Item 1",
+                    "https://stack-3.com"
+                ],
                 true,
             )),
         ),
@@ -128,7 +137,12 @@ fn test_ui_render() {
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 2",
-                vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                vec![
+                    "S3::Item 3",
+                    "S3::Item 2",
+                    "S3::Item 1",
+                    "https://stack-3.com"
+                ],
                 true,
             )),
         ),
@@ -142,7 +156,12 @@ fn test_ui_render() {
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
             Some((
                 "S3::Item 3",
-                vec!["S3::Item 3", "S3::Item 2", "S3::Item 1"],
+                vec![
+                    "S3::Item 3",
+                    "S3::Item 2",
+                    "S3::Item 1",
+                    "https://stack-3.com"
+                ],
                 true,
             )),
         ),
@@ -155,7 +174,11 @@ fn test_ui_render() {
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
-            Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
+            Some((
+                "S3::Item 2",
+                vec!["S3::Item 2", "S3::Item 1", "https://stack-3.com"],
+                true
+            )),
         ),
     );
 
@@ -166,7 +189,11 @@ fn test_ui_render() {
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
-            Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
+            Some((
+                "S3::Item 2",
+                vec!["S3::Item 2", "S3::Item 1", "https://stack-3.com"],
+                true
+            )),
         ),
     );
 
@@ -176,7 +203,11 @@ fn test_ui_render() {
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
-            Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], true)),
+            Some((
+                "S3::Item 1",
+                vec!["S3::Item 2", "S3::Item 1", "https://stack-3.com"],
+                true
+            )),
         ),
     );
 
@@ -186,7 +217,11 @@ fn test_ui_render() {
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
-            Some(("S3::Item 1", vec!["S3::Item 2", "S3::Item 1"], false)),
+            Some((
+                "S3::Item 1",
+                vec!["S3::Item 2", "S3::Item 1", "https://stack-3.com"],
+                false
+            )),
         ),
     );
 
@@ -198,7 +233,12 @@ fn test_ui_render() {
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
                 "S2::Item 3",
-                vec!["S2::Item 3", "S2::Item 2", "S2::Item 1"],
+                vec![
+                    "S2::Item 3",
+                    "S2::Item 2",
+                    "S2::Item 1",
+                    "https://stack-2.com"
+                ],
                 false,
             )),
         ),
@@ -222,12 +262,28 @@ fn test_ui_render() {
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
             Some((
                 "S2::Item 3",
-                vec!["S2::Item 3", "S2::Item 2", "S2::Item 1"],
+                vec![
+                    "S2::Item 3",
+                    "S2::Item 2",
+                    "S2::Item 1",
+                    "https://stack-2.com"
+                ],
                 false,
             )),
         ),
     );
 
+    // user set: content_filter # Links
+    state.nav_set_filter("", "Link");
+    assert_nav_as_expected!(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
+            Some(("https://stack-2.com", vec!["https://stack-2.com"], false,)),
+        ),
+    );
+
+    // user set: filter
     state.nav_set_filter("item 3", "");
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
