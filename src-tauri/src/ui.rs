@@ -74,64 +74,70 @@ impl UI {
         }
     }
 
-    pub fn select(&mut self, id: Scru128Id) {
-        if let Some(item) = self.view.items.get(&id) {
+    pub fn select(&mut self, item: Option<&view::Item>) {
+        self.focused = item.cloned();
+        if let Some(item) = item {
             if let Some(stack_id) = item.stack_id {
                 self.last_selected.insert(stack_id, item.clone());
             }
-            self.focused = Some(item.clone());
         }
     }
 
     pub fn select_up(&mut self) {
-        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
-            let peers = self.view.get_peers(focused);
+        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
+            let view = self.view.clone();
+            let peers = view.get_peers(&focused);
             let index = peers
                 .iter()
+                .cloned()
                 .position(|peer| peer.last_touched <= focused.last_touched)
                 .unwrap();
             if index > 0 {
-                self.select(peers[index - 1].id);
+                self.select(peers.get(index - 1).cloned());
             }
         }
     }
 
     pub fn select_down(&mut self) {
-        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
-            let peers = self.view.get_peers(focused);
+        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
+            let view = self.view.clone();
+            let peers = view.get_peers(focused);
             let index = peers
                 .iter()
                 .position(|peer| peer.last_touched <= focused.last_touched)
                 .unwrap();
             if index < peers.len() - 1 {
-                self.select(peers[index + 1].id);
+                self.select(peers.get(index + 1).cloned());
             }
         }
     }
 
     pub fn select_left(&mut self) {
-        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
+        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
             if let Some(stack_id) = focused.stack_id {
-                self.select(stack_id);
+                let view = self.view.clone();
+                self.select(view.items.get(&stack_id));
             }
         }
     }
 
     pub fn select_right(&mut self) {
-        if let Some(focused) = self.focused.as_ref().or(self.view.first().as_ref()) {
-            let children = self.view.children(focused);
-            if children.is_empty() {
+        let (last, first_child) =
+            if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
+                let view = self.view.clone();
+                let first_child = self
+                    .view
+                    .children(&focused)
+                    .iter()
+                    .next()
+                    .and_then(|id| view.items.get(id));
+                let last = self.last_selected.get(&focused.id).cloned();
+                (last, first_child)
+            } else {
                 return;
-            }
+            };
 
-            if let Some(child) = self
-                .last_selected
-                .get(&focused.id)
-                .or(self.view.items.get(&children[0]))
-            {
-                self.select(child.id);
-            }
-        }
+        self.select(last.as_ref().or(first_child));
     }
 
     pub fn render(&self, store: &Store) -> Nav {
@@ -165,7 +171,12 @@ impl UI {
         if let Some(stack_id) = focused.stack_id {
             Nav {
                 root: Some(Layer {
-                    items: self.view.root().iter().map(with_meta).collect(),
+                    items: self
+                        .view
+                        .root()
+                        .iter()
+                        .map(|item| with_meta(item.clone()))
+                        .collect(),
                     selected: with_meta(self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
                 }),
@@ -174,6 +185,7 @@ impl UI {
                         .view
                         .get_peers(&focused)
                         .iter()
+                        .cloned()
                         .map(with_meta)
                         .collect(),
                     selected: with_meta(&focused),
@@ -189,7 +201,6 @@ impl UI {
                 .collect();
 
             let sub = if !children.is_empty() {
-
                 let possible = self.last_selected.get(&focused.id).or(children.get(0));
                 let selected = self.view.get_best_focus(possible).unwrap();
 
@@ -204,7 +215,7 @@ impl UI {
 
             Nav {
                 root: Some(Layer {
-                    items: self.view.root().iter().map(with_meta).collect(),
+                    items: self.view.root().iter().cloned().map(with_meta).collect(),
                     selected: with_meta(&focused),
                     is_focus: true,
                 }),

@@ -6,7 +6,7 @@ use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
-use crate::ui::{Nav};
+use crate::ui::Nav;
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -82,15 +82,17 @@ pub fn store_get_content(
 }
 
 #[tauri::command]
-pub fn store_nav_refresh(
-    state: tauri::State<SharedState>,
-) -> Nav {
+pub fn store_nav_refresh(state: tauri::State<SharedState>) -> Nav {
     let state = state.lock().unwrap();
     state.ui.render(&state.store)
 }
 
 #[tauri::command]
-pub fn store_nav_set_filter(state: tauri::State<SharedState>, filter: String, content_type: String) -> Nav {
+pub fn store_nav_set_filter(
+    state: tauri::State<SharedState>,
+    filter: String,
+    content_type: String,
+) -> Nav {
     let mut state = state.lock().unwrap();
     state.nav_set_filter(&filter, &content_type);
     state.ui.render(&state.store)
@@ -99,7 +101,7 @@ pub fn store_nav_set_filter(state: tauri::State<SharedState>, filter: String, co
 #[tauri::command]
 pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
     let mut state = state.lock().unwrap();
-    state.ui.select(focused_id);
+    state.nav_select(&focused_id);
     state.ui.render(&state.store)
 }
 

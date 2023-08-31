@@ -34,7 +34,13 @@ impl State {
     }
 
     pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
-        self.ui.set_filter(&self.store, &self.view, filter, content_type);
+        self.ui
+            .set_filter(&self.store, &self.view, filter, content_type);
+    }
+
+    pub fn nav_select(&mut self, focused_id: &Scru128Id) {
+        let focused = self.view.items.get(&focused_id);
+        self.ui.select(self.view.get_best_focus(focused));
     }
 
     pub fn nav_select_down(&mut self) {
