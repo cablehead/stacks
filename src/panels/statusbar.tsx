@@ -5,7 +5,7 @@ import { borderRight, footer } from "../ui/app.css";
 
 import { default as theme } from "../theme";
 
-import { modes } from "../modals";
+import { modes, settingsMode } from "../modals";
 import { Mode } from "../modals/types";
 import { Stack } from "../types";
 
@@ -22,9 +22,7 @@ const VertDiv = () => (
 const Theme = () => (
   <div
     onMouseDown={() => {
-      theme.value = theme.value === "light"
-        ? "dark"
-        : "light";
+      theme.value = theme.value === "light" ? "dark" : "light";
     }}
     class="hoverable"
   >
@@ -42,11 +40,31 @@ const Theme = () => (
   </div>
 );
 
+const Settings = ({ stack }: { stack: Stack }) => (
+  <div
+    onMouseDown={() => {
+      console.log(modes.active.value);
+      modes.toggle(stack, settingsMode);
+    }}
+    class="hoverable"
+  >
+    <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+      <Icon name="IconCog" />
+    </span>
+  </div>
+);
+
 const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
   return (
     <footer className={footer}>
       <div style="">
-        { mode.name(stack) }
+        {mode.name(stack)}
       </div>
       <div style="
         display: flex;
@@ -64,6 +82,8 @@ const ModeBar = ({ stack, mode }: { stack: Stack; mode: Mode }) => {
           </>
         ))}
         <Theme />
+        <VertDiv />
+        <Settings stack={stack} />
       </div>
     </footer>
   );
@@ -88,9 +108,7 @@ const HotKey = ({ name, keys, onMouseDown }: {
       onMouseDown={onMouseDown}
     >
       <div>{name}</div>
-      <RenderKeys
-        keys={keys}
-      />
+      <RenderKeys keys={keys} />
     </div>
   );
 };

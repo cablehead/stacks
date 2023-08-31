@@ -7,7 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Focus, Item, Stack } from "../types";
+import { Item, Stack } from "../types";
 
 function dn(): string {
   const date = new Date();
@@ -24,69 +24,92 @@ function dn(): string {
   const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
     date,
   );
-  return "# " + formattedDate;
+  return formattedDate;
 }
 
 const state = (() => {
-  const selected = signal(0);
+  const selected = signal("");
   const currFilter = signal("");
-  const options: Signal<Item[]> = signal([]);
-  const dn = signal("");
 
-  const normalizedSelected = computed(() => {
-    let val = selected.value % (options.value.length);
-    if (val < 0) val = options.value.length + val;
-    return val;
-  });
+  const availOptions: Signal<Item[]> = signal([]);
 
-  async function fetchOptions(filter: string) {
-    options.value = await invoke("store_list_stacks", { filter: filter });
-  }
+  const options = computed(() =>
+    availOptions.value
+      .filter((item) =>
+        currFilter.value == "" ||
+        item.terse.toLowerCase().includes(currFilter.value.toLowerCase())
+      )
+  );
+
   effect(() => {
-    fetchOptions(currFilter.value);
+    if (options.value.length <= 0) return;
+    const chosen = options.value.find((item) => item.id === selected.peek());
+    if (!chosen) selected.value = options.value[0].id;
   });
+
+  const dn = signal("");
 
   return {
     selected,
     currFilter,
+    availOptions,
     options,
     dn,
-    normalizedSelected,
-    fetchOptions,
 
     accept: (stack: Stack, modes: Modes) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
-      const name = options.value[normalizedSelected.value]?.terse;
-      if (!name) return;
+
+      const chosen = options.value.find((item) => item.id === selected.value);
+      if (!chosen) return;
+      console.log("Accept", selected.value, chosen);
+
       (async () => {
-        await invoke("store_add_to_stack", { name: name, id: id });
-        stack.selected.value = Focus.first();
+        await invoke("store_add_to_stack", {
+          stackId: chosen.id,
+          sourceId: item.id,
+        });
+        stack.select("");
         modes.deactivate();
       })();
     },
 
     accept_meta: (stack: Stack, modes: Modes) => {
-      const item = stack.item.value;
+      const item = stack.selected();
       if (!item) return;
-      const id = item.ids[item.ids.length - 1];
-      if (!id) return;
+
       let name = currFilter.value;
       if (name === "") name = state.dn.value;
       if (name === "") return;
+
       (async () => {
-        await invoke("store_add_to_stack", { name: name, id: id });
-        stack.selected.value = Focus.first();
+        await invoke("store_add_to_new_stack", {
+          name: name,
+          sourceId: item.id,
+        });
+        stack.select("");
         modes.deactivate();
       })();
+    },
+
+    selectDown: () => {
+      const idx = options.value.findIndex((item) => item.id == selected.peek());
+      if (idx < options.value.length - 1) {
+        state.selected.value = options.value[idx + 1].id;
+      }
+    },
+
+    selectUp: () => {
+      const idx = options.value.findIndex((item) => item.id == selected.peek());
+      if (idx > 0) {
+        selected.value = options.value[idx - 1].id;
+      }
     },
   };
 })();
 
 export default {
-  name: () => "Add to stack",
+  name: () => "Copy to stack",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
@@ -123,13 +146,15 @@ export default {
     return ret;
   },
 
-  activate: (_: Stack) => {
-    if (state.currFilter.value == "") {
-      state.fetchOptions("");
-    } else {
-      state.currFilter.value = "";
-    }
-    state.selected.value = 0;
+  activate: (stack: Stack) => {
+    if (!stack.nav.value.root) return;
+      const selected = stack.selected();
+      if (!selected) return;
+    
+    state.currFilter.value = "";
+    state.availOptions.value = stack.nav.value.root.items
+      .filter((item) => item.id != selected.stack_id);
+    state.selected.value = state.options.value[0].id;
     state.dn.value = dn();
   },
 
@@ -197,13 +222,13 @@ export default {
                   case (event.ctrlKey && event.key === "n") ||
                     event.key === "ArrowDown":
                     event.preventDefault();
-                    state.selected.value += 1;
+                    state.selectDown();
                     break;
 
                   case event.ctrlKey && event.key === "p" ||
                     event.key === "ArrowUp":
                     event.preventDefault();
-                    state.selected.value -= 1;
+                    state.selectUp();
                     break;
                 }
               }}
@@ -214,30 +239,33 @@ export default {
         <div style="
         padding:1ch;
         ">
-          {state.options.value
-            .map((item, index) => (
-              <div
-                className={"terserow" +
-                  (state.normalizedSelected.value == index ? " hover" : "")}
-                style="
-        display: flex;
-        width: 100%;
-        overflow: hidden;
-        padding: 0.5ch 0.75ch;
-        justify-content: space-between;
-        border-radius: 6px;
-        cursor: pointer;
-        "
-                onMouseDown={() => {
-                  state.selected.value = index;
-                  state.accept(stack, modes);
-                }}
-              >
-                <div>
-                  {item.terse}
+          {state.options.value.map(
+            (item) => {
+              return (
+                <div
+                  className={"terserow" +
+                    (item.id == state.selected.value ? " hover" : "")}
+                  style={{
+                    display: "flex",
+                    width: "100%",
+                    overflow: "hidden",
+                    padding: "0.5ch 0.75ch",
+                    justifyContent: "space-between",
+                    borderRadius: "6px",
+                    cursor: "pointer",
+                  }}
+                  onMouseDown={() => {
+                    state.selected.value = item.id;
+                    state.accept(stack, modes);
+                  }}
+                >
+                  <div>
+                    {item.terse}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            },
+          )}
         </div>
       </div>
     );

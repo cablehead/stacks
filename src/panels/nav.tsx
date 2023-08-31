@@ -1,4 +1,3 @@
-import { forwardRef } from "preact/compat";
 import { useEffect, useRef } from "preact/hooks";
 
 import { b64ToUtf8 } from "../utils";
@@ -6,134 +5,138 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Focus, Item, Stack } from "../types";
-import { createStack, currStack } from "../stacks";
+import { Item, Layer, Stack } from "../types";
 
-export function Parent({ stack }: { stack: Stack }) {
+const TerseRow = (
+  { stack, item, isSelected, isFocused }: {
+    stack: Stack;
+    item: Item;
+    isSelected: boolean;
+    isFocused: boolean;
+  },
+) => {
   const theRef = useRef<HTMLDivElement>(null);
 
-  let focusSelectedTimeout: number | undefined;
-
-  function focusSelected(delay: number) {
-    if (focusSelectedTimeout !== undefined) {
-      return;
-    }
-
-    focusSelectedTimeout = window.setTimeout(() => {
-      focusSelectedTimeout = undefined;
-      if (theRef.current) {
-        // console.log("PARENT STACK: SCROLL INTO VIEW: SKIP");
-        /*
-        theRef.current.scrollIntoView({
-          block: "start",
-        });
-        */
-      }
-    }, delay);
-  }
-
   useEffect(() => {
-    focusSelected(100);
-  }, []);
+    if (isSelected && theRef.current) {
+      theRef.current.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+    }
+  }, [isSelected, theRef.current]);
 
   return (
     <div
-      className={borderRight}
+      ref={theRef}
+      className={"terserow" +
+        (isSelected ? (isFocused ? " highlight" : " selected") : "")}
+      onMouseDown={() => {
+        stack.select(item.id);
+      }}
       style="
-      flex: 1;
-      max-width: 8ch;
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    "
+          display: flex;
+          width: 100%;
+          gap: 0.5ch;
+          overflow: hidden;
+          padding: 0.5ch 0.75ch;
+          border-radius: 6px;
+          cursor: pointer;
+          "
     >
-      {stack.items.value
-        .map((item, index) => {
-          return (
-            <TerseRow
-              ref={index === stack.normalizedSelected.value ? theRef : null}
-              stack={stack}
-              item={item}
-              index={index}
-            />
-          );
-        })}
+      {false &&
+        (
+          <div
+            style={{
+              flexShrink: 0,
+              width: "2ch",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            <RowIcon item={item} />
+          </div>
+        )}
+
+      <div
+        style={{
+          flexGrow: 1,
+          whiteSpace: "nowrap",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+        }}
+      >
+        {item.terse}
+      </div>
     </div>
   );
-}
+};
+
+const renderItems = (
+  stack: Stack,
+  key: string,
+  layer: Layer,
+) => {
+  if (layer.items.length == 0) return <i>no items</i>;
+  return (
+    <div
+      key={key}
+      className={borderRight}
+      style={{
+        flex: 1,
+        maxWidth: layer.is_focus ? "20ch" : "14ch",
+        overflowY: "auto",
+        paddingRight: "0.5rem",
+      }}
+    >
+      {layer.items
+        .map((item) => (
+          <TerseRow
+            stack={stack}
+            item={item}
+            key={item.id}
+            isSelected={item.id == layer.selected.id}
+            isFocused={layer.is_focus}
+          />
+        ))}
+    </div>
+  );
+};
 
 export function Nav({ stack }: { stack: Stack }) {
-  const theRef = useRef<HTMLDivElement>(null);
-
-  let focusSelectedTimeout: number | undefined;
-  function focusSelected(delay: number) {
-    clearTimeout(focusSelectedTimeout);
-    focusSelectedTimeout = window.setTimeout(() => {
-      if (theRef.current) {
-        console.log("STACK: SCROLL INTO VIEW");
-        theRef.current.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      }
-    }, delay);
-  }
-
-  useEffect(() => {
-    focusSelected(10);
-  }, [theRef.current, stack.selected.value]);
-
-  useEffect(() => {
-    const onFocus = () => {
-      focusSelected(100);
-    };
-    window.addEventListener("focus", onFocus);
-    return () => {
-      window.removeEventListener("focus", onFocus);
-    };
-  }, []);
+  const nav = stack.nav.value;
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
-      {stack == currStack.value && stack.parent && (
-        <Parent stack={stack.parent} />
-      )}
-      <div
-        className={borderRight}
-        style="
-      flex: 1;
-      max-width: 20ch;
-      overflow-y: auto;
-      padding-right: 0.5rem;
-    "
-      >
-        {stack.items.value
-          .map((item, index) => {
-            return (
-              <TerseRow
-                stack={stack}
-                item={item}
-                index={index}
-                ref={index === stack.normalizedSelected.value ? theRef : null}
-                key={index}
-              />
-            );
-          })}
-      </div>
-
-      <div style="flex: 3; overflow: auto; height: 100%">
-        {stack.items.value.length > 0
-          ? <Preview stack={stack} />
-          : <i>no matches</i>}
-      </div>
+      {nav.root
+        ? (
+          <>
+            {renderItems(stack, "root", nav.root)}
+            {nav.sub
+              ? (
+                <>
+                  {renderItems(
+                    stack,
+                    nav.root.selected.id,
+                    nav.sub,
+                  )}
+                  <div style="flex: 3; overflow: auto; height: 100%">
+                    <Preview stack={stack} item={nav.sub.selected} />
+                  </div>
+                </>
+              )
+              : <i>no items</i>}
+          </>
+        )
+        : <i>no matches</i>}
     </div>
   );
 }
 
 const RowIcon = ({ item }: { item: Item }) => {
-  switch (item.content_type) {
-    case "Stack":
-      return <Icon name="IconStack" />;
+  if (!item.stack_id) return <Icon name="IconStack" />;
 
+  switch (item.content_type) {
     case "Image":
       return <Icon name="IconImage" />;
 
@@ -147,89 +150,14 @@ const RowIcon = ({ item }: { item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
-const TerseRow = forwardRef<
-  HTMLDivElement,
-  { stack: Stack; item: Item; index: number }
->(
-  ({ stack, item, index }, ref) => (
-    <div
-      ref={ref}
-      className={"terserow" +
-        (index === stack.normalizedSelected.value
-          ? (currStack.value === stack ? " highlight" : " selected")
-          : "")}
-      onMouseDown={() => {
-        stack.selected.value = Focus.index(index);
-        if (currStack.value != stack) {
-          console.log("Switcheroo");
-          currStack.value = stack;
-        }
-      }}
-      style="
-          display: flex;
-          width: 100%;
-          gap: 0.5ch;
-          overflow: hidden;
-          padding: 0.5ch 0.75ch;
-          border-radius: 6px;
-          cursor: pointer;
-          "
-    >
-      <div
-        style={{
-          flexShrink: 0,
-          width: "2ch",
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-        }}
-      >
-        <RowIcon item={item} />
-      </div>
-
-      <div
-        style={{
-          flexGrow: 1,
-          whiteSpace: "nowrap",
-          overflow: "hidden",
-          textOverflow: "ellipsis",
-        }}
-      >
-        {item.terse}
-      </div>
-    </div>
-  ),
-);
-
-function Preview({ stack }: { stack: Stack }) {
-  const item = stack.item.value;
-  const content = stack.content?.value;
-  if (!item || !content) return <div>loading...</div>;
+function Preview({ stack, item }: { stack: Stack; item: Item }) {
+  const content = stack.getContent(item.hash).value;
+  if (!content) return <div>loading...</div>;
 
   if (item.mime_type === "image/png") {
     return (
       <img
         src={"data:image/png;base64," + content}
-        style={{
-          opacity: 0.95,
-          borderRadius: "0.5rem",
-          maxHeight: "100%",
-          height: "auto",
-          width: "auto",
-          objectFit: "contain",
-        }}
-      />
-    );
-  }
-
-  if (item.content_type == "Stack") {
-    const subStack = createStack(item.stack, currStack.value);
-    return <Nav stack={subStack} />;
-  }
-
-  if (item.link) {
-    return (
-      <img
-        src={item.link.screenshot}
         style={{
           opacity: 0.95,
           borderRadius: "0.5rem",

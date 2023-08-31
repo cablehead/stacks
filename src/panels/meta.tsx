@@ -20,15 +20,13 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(item: Item, content: string): MetaValue[] {
+function getMeta(_: Stack, item: Item, content: string): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
 
-  if (item.ids.length === 0) return [];
-
   let meta: MetaValue[] = [
-    { name: "ID", value: item.ids[item.ids.length - 1] },
+    { name: "ID", value: item.id },
     { name: "Content Type", value: item.content_type },
   ];
 
@@ -83,41 +81,21 @@ function getMeta(item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.link) {
-    meta.push(...[
-      { name: "Title", value: item.link.title },
-      {
-        name: "Description",
-        value: (
-          <div
-            style={{
-              maxHeight: "3.2lh",
-              overflow: "auto",
-              textOverflow: "ellipsis",
-            }}
-          >
-            {item.link.description}
-          </div>
-        ),
-      },
-    ]);
-  }
-
-  if (item.ids.length === 1) {
+  if (item.touched.length === 1) {
     return [
       ...meta,
-      { name: "Touched", timestamp: toTimestamp(item.ids[0]) },
+      { name: "Touched", timestamp: toTimestamp(item.id) },
     ];
   }
 
   return [
     ...meta,
-    { name: "Times Touched", value: item.ids.length.toString() },
+    { name: "Times Touched", value: item.touched.length.toString() },
     {
       name: "Last Touched",
-      timestamp: toTimestamp(item.ids[item.ids.length - 1]),
+      timestamp: toTimestamp(item.last_touched),
     },
-    { name: "First Touched", timestamp: toTimestamp(item.ids[0]) },
+    { name: "First Touched", timestamp: toTimestamp(item.id) },
   ];
 }
 
@@ -155,9 +133,10 @@ function MetaInfoRow(meta: MetaValue) {
 }
 
 export function MetaPanel({ stack }: { stack: Stack }) {
-  const item = stack.item.value;
-  const content = stack.content?.value;
-  if (!item || !content) return <></>;
+  const item = stack.selected();
+  if (!item) return <></>;
+  const content = stack.getContent(item.hash).value;
+  if (!content) return <></>;
 
   return (
     <div
@@ -176,7 +155,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         zIndex: 10,
       }}
     >
-      {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
+      {getMeta(stack, item, content).map((info) => <MetaInfoRow {...info} />)}
     </div>
   );
 }

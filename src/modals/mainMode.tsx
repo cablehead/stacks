@@ -3,62 +3,46 @@ import { Icon } from "../ui/icons";
 import { HotKey, Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
-import { default as addToStackMode } from "./addToStackMode";
+// import { default as addToStackMode } from "./addToStackMode";
 
 import { Stack } from "../types";
-import { createStack, currStack, triggerCopy } from "../stacks";
 
 import { actions } from "../actions";
 
 export default {
-  name: (stack: Stack): string => { 
-      const parent = stack.parent?.item.value?.terse; 
-      return parent ? parent.substring(0, 20) : "";
+  name: (stack: Stack) => {
+    return (
+      <div
+      style="
+          display: flex;
+          gap: 0.75ch;
+          align-items: center;
+          overflow: hidden;
+          "
+          >
+        <div
+          style={{
+            flexShrink: 0,
+            marginTop: "-2px",
+            width: "2ch",
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+          }}
+        >
+          <Icon name="IconStack" />
+        </div>
+        {stack.nav.value.root?.selected.terse || ""}
+      </div>
+    );
   },
   hotKeys: (stack: Stack, modes: Modes) => {
     let ret = [];
-
-    if (!stack.parent) {
-      if (stack.item.value?.content_type == "Stack") {
-        ret.push({
-          name: "Enter stack",
-          keys: ["TAB"],
-          onMouseDown: () => {
-            const item = stack.item.value;
-            if (item && item.content_type == "Stack") {
-              const subStack = createStack(item.stack, stack);
-              currStack.value = subStack;
-              return;
-            }
-          },
-        });
-      } else {
-        ret.push({
-          name: "Add to stack",
-          keys: ["TAB"],
-          onMouseDown: () => {
-            modes.activate(currStack.value, addToStackMode);
-          },
-        });
-      }
-    } else {
-      ret.push({
-        name: "Leave stack",
-        keys: ["SHIFT", "TAB"],
-        onMouseDown: () => {
-          if (currStack.value.parent) {
-            currStack.value = currStack.value.parent;
-            return;
-          }
-        },
-      });
-    }
 
     ret.push({
       name: "Copy",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
-        triggerCopy();
+        stack.triggerCopy();
       },
     });
 

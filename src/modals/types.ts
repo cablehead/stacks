@@ -7,16 +7,16 @@ export interface HotKey {
   name: string;
   keys: (string | JSXInternal.Element)[];
   onMouseDown: (event: any) => void;
+  matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
 export interface Mode {
-  name: (stack: Stack) => string;
+  name: (stack: Stack) => (string | JSXInternal.Element);
   hotKeys: (stack: Stack, modes: Modes) => HotKey[];
   activate?: (stack: Stack) => void;
 }
 
 export interface Modes {
-  modes: Mode[];
   active: Signal<Mode>;
   isActive: (mode: Mode) => boolean;
   activate: (stack: Stack, mode: Mode) => void;

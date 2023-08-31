@@ -72,43 +72,23 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-### And then
+- GPT:
+    - add an action to send a stack to GPT
+        - stream response?
+        - add response to stack
 
-It's a schema release again.
+- Create a new stack
 
-Moving away from hash based identity. scru128's will be the core id.
+- Add a fork action for stacks
 
-What commands will we need?
+- Rework store_copy_to_clipboard to ignore the clipboard write
 
-What do we have?
+- on Delete:
+    - make sure parent stack's last_touched is being bumped
+    - it'd be nice to animate the parent stack moving to the top of the list
 
-- hash -> item
-- the hash is the id of the item
-
-So that'll have to change to
-
-id -> item.id
-
-Item types:
-
-- Stack
-    - stack: for the moment all of type Content
-- Content: MimeType, Text / Image / Link
-
-Each source of a content hash actually gets a unique id: You should be able to
-get to all the other instances of the same hash from a given id.
-
-When you edit content:
-    - link to the original id
-    - if we replace that item, set source_id to that original's source_id (we're taking over the
-      source): this seems like a HEAD in git?
-    - to fork: use a new source_id: instantiates a new item (introduces a new head?)
-
-A Stack contains a set of Item::Content
-
-- uses the source_id of the Content as the key: so if the edit command sets to
-  the source_id to another instance: when merge sees source_id == to that, it
-  updates the item in the Stack.
+- Edit a stack name
+    - Should just be an input field, not a textarea
 
 ### Stretch
 
@@ -119,19 +99,9 @@ A Stack contains a set of Item::Content
     - Bonus: use a backwards compatible serialization format
     - Revert to saving the raw clipboard data, which is mapped to the current
       form
-- Add a fork action for stacks
 
 - Investigate macOS clipboard schema when copying files and images in different
   locations
-
-### Direction Change
-
-- Everything happens inside of a Stack. After an hour of inactivity a new
-  stack is create for you, with the current timestamp: so the top level is all
-  stacks
-    - This removes the difference between clipboard items at the root level or
-      not: clippings are always in at least one stack
-    - We'll still need tooling to copy items between stacks: (link?) (cow?)
 
 ### Also
 
@@ -163,6 +133,8 @@ A Stack contains a set of Item::Content
 
 ### And then
 
+- Status bar shouldn't show any actions when "no matches"
+
 - Clicking trigger in the Actions Modal doesn't trigger the action
 
 - Add directory stack
@@ -189,6 +161,7 @@ A Stack contains a set of Item::Content
   clipboard
 
 - mark a clipboard source as don't track (for password managers, etc).
+    - see: http://nspasteboard.org
 
 - Meta panel. add: image info
 

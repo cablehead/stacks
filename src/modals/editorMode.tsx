@@ -6,21 +6,25 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Focus, Stack } from "../types";
+import { Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
   return {
     curr,
-    accept_meta: (stack: Stack, modes: Modes) => {
+    accept_meta: async (stack: Stack, modes: Modes) => {
+      const item = stack.selected();
+      if (!item) return;
+
+      if (!curr.value) return;
+
       const args = {
-        stackHash: stack.parent?.item.value?.hash,
+        sourceId: item.id,
         content: curr.value,
       };
 
-      invoke("store_capture", args);
-      stack.selected.value = Focus.first();
+      await invoke("store_edit_note", args);
       modes.deactivate();
     },
   };
@@ -51,7 +55,9 @@ export default {
       }
     }, []);
 
-    const content = stack.content?.value || "";
+    const item = stack.selected();
+
+    const content = (item && stack.getContent(item.hash).value) || "";
 
     return (
       <div
@@ -70,6 +76,7 @@ export default {
       >
         <textarea
           ref={inputRef}
+          spellcheck={false}
           style={{
             width: "100%",
             height: "100%",
@@ -81,7 +88,7 @@ export default {
             modes.deactivate();
           }}
           placeholder="..."
-          onChange={(event) => {
+          onInput={(event) => {
             state.curr.value = (event.target as HTMLTextAreaElement).value;
           }}
           onKeyDown={(event) => {

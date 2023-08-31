@@ -9,6 +9,7 @@ import {
   modes,
   newNoteMode,
   pipeMode,
+  settingsMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -21,107 +22,86 @@ import { Filter } from "./panels/filter";
 
 import { attemptAction } from "./actions";
 
-import { createStack, currStack, triggerCopy } from "./stacks";
-
-import { Focus } from "./types";
+import { Stack } from "./types";
 
 import { default as theme } from "./theme";
 
-async function globalKeyHandler(event: KeyboardEvent) {
-  console.log("GLOBAL", event);
+const stack = new Stack({});
 
-  if (attemptAction(event, currStack.value)) return;
+async function globalKeyHandler(event: KeyboardEvent) {
+  if (!stack) return;
+
+  if (modes.attemptAction(event, stack)) return;
+
+  if (attemptAction(event, stack)) return;
 
   switch (true) {
     case event.key === "Enter":
-      await triggerCopy();
+      await stack.triggerCopy();
       return;
 
     case event.key === "Escape":
       event.preventDefault();
 
       // attempt to clear filter first
-      if (currStack.value.filter.dirty()) {
-        currStack.value.filter.clear();
+      if (stack.filter.dirty()) {
+        stack.filter.clear();
         return;
       }
 
       /*
       // attempt to pop the current stack
-      if (currStack.value.parent) {
-        currStack.value = currStack.value.parent;
+      if (stack.parent) {
+        stack = stack.parent;
         return;
       }
       */
 
       // otherwise, hide the window
-      currStack.value.selected.value = Focus.first();
+      // stack.selected.value = Focus.first();
       modes.deactivate();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
-      modes.toggle(currStack.value, actionsMode);
+      modes.toggle(stack, actionsMode);
       return;
 
-    case (event.shiftKey && event.key === "Tab") ||
-      (event.ctrlKey && event.key === "h"): {
-      if (currStack.value.parent) {
-        currStack.value = currStack.value.parent;
-        return;
-      }
+    case event.metaKey && event.key === ",":
+      event.preventDefault();
+      modes.toggle(stack, settingsMode);
+      return;
+
+    case (event.ctrlKey && event.key === "h") || event.key === "ArrowLeft": {
+      event.preventDefault();
+      stack.selectLeft();
       return;
     }
 
-    case event.ctrlKey && event.key === "l": {
+    case event.ctrlKey && event.key === "l" || event.key === "ArrowRight": {
       event.preventDefault();
-
-      // if this is a stack, open it
-      const item = currStack.value.item.value;
-      if (item && item.content_type == "Stack") {
-        const subStack = createStack(item.stack, currStack.value);
-        currStack.value = subStack;
-        return;
-      }
-      return;
-    }
-
-    case event.key === "Tab": {
-      event.preventDefault();
-
-      if (currStack.value.parent) return;
-
-      // if this is a stack, open it
-      const item = currStack.value.item.value;
-      if (item && item.content_type == "Stack") {
-        const subStack = createStack(item.stack, currStack.value);
-        currStack.value = subStack;
-        return;
-      }
-
-      // otherwise, add to stack
-      modes.activate(currStack.value, addToStackMode);
+      stack.selectRight();
       return;
     }
 
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
-      modes.toggle(currStack.value, newNoteMode);
+      modes.toggle(stack, newNoteMode);
       return;
 
     case (event.metaKey && event.key === "p"):
       event.preventDefault();
-      modes.toggle(currStack.value, filterContentTypeMode);
+      modes.toggle(stack, filterContentTypeMode);
       return;
 
     case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
       event.preventDefault();
-      currStack.value.selected.value = currStack.value.selected.value.down();
+      stack.selectDown();
       return;
 
     case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
       event.preventDefault();
-      currStack.value.selected.value = currStack.value.selected.value.up();
+      stack.selectUp();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -129,9 +109,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
 
     default:
-      // fallback to sending the key stroke to the filter input
-      const filterInput = document.getElementById("filter-input");
-      if (filterInput) filterInput.focus();
+      if (modes.active.value == mainMode) {
+        // fallback to sending the key stroke to the filter input
+        const filterInput = document.getElementById("filter-input");
+        if (filterInput) filterInput.focus();
+      }
   }
 }
 
@@ -145,11 +127,11 @@ export function App() {
   };
 
   const onFocusHandler = () => {
+    if (!stack) return;
     if (blurTime && Date.now() - blurTime > NAV_TIMEOUT) {
       console.log("NAV_TIMEOUT: reset");
-      modes.activate(currStack.value, mainMode);
-      currStack.value.filter.clear();
-      currStack.value.selected.value = Focus.first();
+      modes.activate(stack, mainMode);
+      stack.reset();
     }
   };
 
@@ -169,8 +151,11 @@ export function App() {
     <main
       className={theme.value === "light" ? lightThemeClass : darkThemeClass}
     >
-      <Filter stack={currStack.value} />
-      <div style="
+      {stack
+        ? (
+          <>
+            <Filter stack={stack} />
+            <div style="
             display: flex;
             flex-direction: column;
             height: 100%;
@@ -181,25 +166,33 @@ export function App() {
             padding-right:1ch;
             position: relative;
         ">
-        <Nav stack={currStack.value} />
-        <MetaPanel stack={currStack.value} />
-        {modes.isActive(addToStackMode) && (
-          <addToStackMode.Modal stack={currStack.value} modes={modes} />
-        )}
-        {modes.isActive(actionsMode) && <Actions stack={currStack.value} />}
-        {modes.isActive(editorMode) && (
-          <editorMode.Modal stack={currStack.value} modes={modes} />
-        )}
-        {modes.isActive(newNoteMode) && (
-          <newNoteMode.Modal stack={currStack.value} modes={modes} />
-        )}
-        {modes.isActive(pipeMode) && (
-          <pipeMode.Modal stack={currStack.value} modes={modes} />
-        )}
-        {modes.isActive(filterContentTypeMode) &&
-          <filterContentTypeMode.Modal stack={currStack.value} modes={modes} />}
-      </div>
-      <StatusBar stack={currStack.value} />
+              <Nav stack={stack} />
+
+              <MetaPanel stack={stack} />
+
+              {modes.isActive(addToStackMode) && (
+                <addToStackMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(actionsMode) && <Actions stack={stack} />}
+              {modes.isActive(editorMode) && (
+                <editorMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(settingsMode) && (
+                <settingsMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(newNoteMode) && (
+                <newNoteMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(pipeMode) && (
+                <pipeMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(filterContentTypeMode) &&
+                <filterContentTypeMode.Modal stack={stack} modes={modes} />}
+            </div>
+            <StatusBar stack={stack} />
+          </>
+        )
+        : "loading"}
     </main>
   );
 }

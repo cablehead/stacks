@@ -11,21 +11,22 @@ import { default as editorMode } from "./editorMode";
 import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
+import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
 
 export {
   actionsMode,
-  pipeMode,
   addToStackMode,
   editorMode,
-  newNoteMode,
   filterContentTypeMode,
   mainMode,
+  newNoteMode,
+  pipeMode,
+  settingsMode,
 };
 
 export const modes = {
-  modes: [mainMode, actionsMode, editorMode] as Mode[],
   active: signal(mainMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
@@ -47,5 +48,19 @@ export const modes = {
       return;
     }
     this.active.value = mainMode;
+  },
+  attemptAction(event: KeyboardEvent, stack: Stack): boolean {
+    const mode = this.active.value;
+    for (const hotKey of mode.hotKeys(stack, this)) {
+      if (
+        hotKey.matchKeyEvent &&
+        hotKey.matchKeyEvent(event)
+      ) {
+        event.preventDefault();
+        hotKey.onMouseDown(event);
+        return true;
+      }
+    }
+    return false;
   },
 };

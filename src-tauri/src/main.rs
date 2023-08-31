@@ -10,9 +10,13 @@ use tauri_plugin_log::LogTarget;
 
 mod clipboard;
 mod commands;
-mod stack;
 mod state;
 mod store;
+mod ui;
+mod view;
+
+#[cfg(test)]
+mod ui_tests;
 
 use state::{SharedState, State};
 
@@ -52,15 +56,24 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
-            commands::store_list_items,
+            commands::store_nav_refresh,
+            commands::store_nav_reset,
+            commands::store_nav_set_filter,
+            commands::store_nav_select,
+            commands::store_nav_select_up,
+            commands::store_nav_select_down,
+            commands::store_nav_select_left,
+            commands::store_nav_select_right,
             commands::store_copy_to_clipboard,
-            commands::store_capture,
             commands::store_delete,
-            commands::store_set_current_stack,
-            commands::store_list_stacks,
-            commands::store_add_to_stack,
-            commands::store_copy_entire_stack_to_clipboard,
+            commands::store_new_note,
+            commands::store_edit_note,
+            commands::store_settings_save,
+            commands::store_settings_get,
             commands::store_pipe_to_command,
+            commands::store_add_to_stack,
+            commands::store_add_to_new_stack,
+            // commands::store_copy_entire_stack_to_clipboard,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
@@ -78,6 +91,7 @@ fn main() {
                 .level_for("tao", log::LevelFilter::Debug)
                 .level_for("sled", log::LevelFilter::Info)
                 .level_for("attohttpc", log::LevelFilter::Info)
+                .level_for("tantivy", log::LevelFilter::Warn)
                 .build(),
         )
         .setup(|app| {

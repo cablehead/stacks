@@ -29,9 +29,11 @@ const state = (() => {
     curr,
     res,
     accept_meta: async (stack: Stack, _: Modes) => {
-      console.log(curr.value, stack?.item.value?.hash);
+      const selected = stack.selected();
+      if (!selected) return;
+      console.log("FOO", curr.value);
       const args = {
-        hash: stack.item.value?.hash,
+        sourceId: selected.id,
         command: curr.value,
       };
       const res: CommandOutput = await invoke("store_pipe_to_command", args);
@@ -87,53 +89,59 @@ export default {
           top: "2ch",
           borderRadius: "0.5rem",
           zIndex: 1000,
-          display: "flex",
-          flexDirection: "column",
         }}
       >
-        <textarea
-          ref={inputRef}
-          spellcheck={false}
-          style={{
-            width: "100%",
-            height: "2lh",
-            margin: "2ch",
-            outline: "none",
-            border: "none",
-          }}
-          placeholder="Enter command..."
-          onChange={(event) => {
-            state.curr.value = (event.target as HTMLTextAreaElement).value;
-          }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            switch (true) {
-              case event.key === "Escape":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "Enter":
-                state.accept_meta(stack, modes);
-                break;
-            }
-          }}
-        >
-        </textarea>
-
         <div
           style={{
-            flexGrow: 1,
             display: "flex",
             flexDirection: "column",
+            height: "100%",
+            justifyContent: "space-between",
           }}
         >
           <div
             style={{
-              whiteSpace: "pre",
-              height: "100%",
-              width: "100%",
+              height: "4lh",
+              minHeight: "4lh",
               overflow: "auto",
+            }}
+          >
+            <textarea
+              ref={inputRef}
+              spellcheck={false}
+              style={{
+                width: "100%",
+                margin: "2ch",
+                outline: "none",
+                border: "none",
+              }}
+              placeholder="Enter command..."
+              onInput={(event) => {
+                state.curr.value = (event.target as HTMLTextAreaElement).value;
+              }}
+              onKeyDown={(event) => {
+                event.stopPropagation();
+                switch (true) {
+                  case event.key === "Escape":
+                    event.preventDefault();
+                    modes.deactivate();
+                    break;
+
+                  case event.metaKey && event.key === "Enter":
+                    state.accept_meta(stack, modes);
+                    break;
+                }
+              }}
+            >
+            </textarea>
+          </div>
+
+          <div
+            style={{
+              whiteSpace: "pre",
+              overflow: "auto",
+              width: "100%",
+              flex: "1",
               padding: "1ch 3ch",
               boxShadow: `0 -2px 5px ${vars.shadowColor}`,
               backgroundColor: vars.backgroundColor,
@@ -148,8 +156,8 @@ export default {
               <div
                 style={{
                   whiteSpace: "pre",
-                  height: "100%",
                   width: "100%",
+                  flex: "1",
                   overflow: "auto",
                   padding: "1ch 3ch",
                   boxShadow: `0 -2px 5px ${vars.shadowColor}`,
