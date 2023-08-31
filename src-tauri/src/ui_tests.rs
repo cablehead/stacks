@@ -86,8 +86,12 @@ fn test_ui_render() {
             items.push(item.id());
         }
     }
-    state.store.scan().for_each(|p| state.merge(p));
 
+    // empty state
+    assert_nav_as_expected(&state.ui.render(&state.store), (None, None));
+
+    // post initial merge state
+    state.store.scan().for_each(|p| state.merge(p));
     assert_nav_as_expected(
         &state.ui.render(&state.store),
         (
@@ -100,6 +104,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: down
     state.nav_select_down();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -113,6 +118,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: up
     state.nav_select_up();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -126,6 +132,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: delete # this is the top item in the first stack
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
     state.merge(packet);
     assert_nav_as_expected(
@@ -136,6 +143,18 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: left + right # we're checking navigation works ok post delete
+    state.nav_select_left();
+    state.ui.select_right();
+    assert_nav_as_expected(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
+            Some(("S3::Item 2", vec!["S3::Item 2", "S3::Item 1"], true)),
+        ),
+    );
+
+    // user press: down
     state.nav_select_down();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -145,6 +164,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: left
     state.nav_select_left();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -154,6 +174,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: down
     state.nav_select_down();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -167,6 +188,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user set: filter
     state.nav_set_filter("item 1", "");
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -176,6 +198,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user set: filter # clear
     state.nav_set_filter("", "All");
     assert_nav_as_expected(
         &state.ui.render(&state.store),
@@ -198,6 +221,7 @@ fn test_ui_render() {
         ),
     );
 
+    // user set: filter # no matches
     state.nav_set_filter("FOOBAR", "");
     assert_nav_as_expected(&state.ui.render(&state.store), (None, None));
 }
