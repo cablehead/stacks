@@ -8,7 +8,17 @@ type NavExpected<'a> = (
     Option<(&'a str, Vec<&'a str>, bool)>, // sub
 );
 
-fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
+macro_rules! assert_nav_as_expected {
+    ($nav:expr, $expected:expr) => {
+        assert_nav_as_expected($nav, $expected, std::panic::Location::caller())
+    };
+}
+
+fn assert_nav_as_expected<'a>(
+    nav: &Nav,
+    expected: NavExpected<'a>,
+    location: &'static std::panic::Location,
+) {
     let root_expected = &expected.0;
     let sub_expected = &expected.1;
 
@@ -40,7 +50,8 @@ fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
             s.to_string(),
             v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
             *b
-        ))
+        )),
+        "Failure at {}:{}", location.file(), location.line()
     );
 
     assert_eq!(
@@ -49,7 +60,8 @@ fn assert_nav_as_expected<'a>(nav: &Nav, expected: NavExpected<'a>) {
             s.to_string(),
             v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
             *b
-        ))
+        )),
+        "Failure at {}:{}", location.file(), location.line()
     );
 }
 
@@ -88,11 +100,11 @@ fn test_ui_render() {
     }
 
     // empty state
-    assert_nav_as_expected(&state.ui.render(&state.store), (None, None));
+    assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 
     // post initial merge state
     state.store.scan().for_each(|p| state.merge(p));
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -106,7 +118,7 @@ fn test_ui_render() {
 
     // user press: down
     state.nav_select_down();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -120,7 +132,7 @@ fn test_ui_render() {
 
     // user press: up
     state.nav_select_up();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -135,7 +147,7 @@ fn test_ui_render() {
     // user press: delete # this is the top item in the first stack
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
     state.merge(packet);
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -146,7 +158,7 @@ fn test_ui_render() {
     // user press: left + right # we're checking navigation works ok post delete
     state.ui.select_left();
     state.ui.select_right();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -156,7 +168,7 @@ fn test_ui_render() {
 
     // user press: down
     state.nav_select_down();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
@@ -166,7 +178,7 @@ fn test_ui_render() {
 
     // user press: left
     state.nav_select_left();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
@@ -176,7 +188,7 @@ fn test_ui_render() {
 
     // user press: down
     state.nav_select_down();
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
@@ -190,7 +202,7 @@ fn test_ui_render() {
 
     // user set: filter
     state.nav_set_filter("item 1", "");
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
@@ -200,7 +212,7 @@ fn test_ui_render() {
 
     // user set: filter # clear
     state.nav_set_filter("", "All");
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], true)),
@@ -213,7 +225,7 @@ fn test_ui_render() {
     );
 
     state.nav_set_filter("item 3", "");
-    assert_nav_as_expected(
+    assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
             Some(("Stack 2", vec!["Stack 2", "Stack 1"], true)),
@@ -223,5 +235,5 @@ fn test_ui_render() {
 
     // user set: filter # no matches
     state.nav_set_filter("FOOBAR", "");
-    assert_nav_as_expected(&state.ui.render(&state.store), (None, None));
+    assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 }
