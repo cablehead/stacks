@@ -124,19 +124,14 @@ impl UI {
     pub fn select_right(&mut self) {
         let (last, first_child) =
             if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
-                let view = self.view.clone();
-                let first_child = self
-                    .view
-                    .children(&focused)
-                    .iter()
-                    .next()
-                    .and_then(|id| view.items.get(id));
+                let first_child_id = self.view.children(&focused).iter().next().cloned();
                 let last = self.last_selected.get(&focused.id).cloned();
-                (last, first_child)
+                (last, first_child_id)
             } else {
                 return;
             };
 
+        let first_child = first_child.and_then(|id| self.view.items.get(&id));
         self.select(last.as_ref().or(first_child));
     }
 
