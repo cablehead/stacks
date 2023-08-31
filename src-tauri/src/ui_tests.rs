@@ -9,7 +9,7 @@ type NavExpected<'a> = (
 );
 
 macro_rules! assert_nav_as_expected {
-    ($nav:expr, $expected:expr) => {
+    ($nav:expr, $expected:expr $(,)?) => {
         assert_nav_as_expected($nav, $expected, std::panic::Location::caller())
     };
 }
@@ -51,7 +51,9 @@ fn assert_nav_as_expected<'a>(
             v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
             *b
         )),
-        "Failure at {}:{}", location.file(), location.line()
+        "Failure at {}:{}",
+        location.file(),
+        location.line()
     );
 
     assert_eq!(
@@ -61,7 +63,9 @@ fn assert_nav_as_expected<'a>(
             v.iter().map(|s| s.to_string()).collect::<Vec<_>>(),
             *b
         )),
-        "Failure at {}:{}", location.file(), location.line()
+        "Failure at {}:{}",
+        location.file(),
+        location.line()
     );
 }
 
