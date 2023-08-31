@@ -144,7 +144,7 @@ fn test_ui_render() {
     );
 
     // user press: left + right # we're checking navigation works ok post delete
-    state.nav_select_left();
+    state.ui.select_left();
     state.ui.select_right();
     assert_nav_as_expected(
         &state.ui.render(&state.store),
