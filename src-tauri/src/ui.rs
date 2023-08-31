@@ -147,21 +147,6 @@ impl UI {
     }
 
     pub fn render(&self, store: &Store) -> Nav {
-        let with_meta = |item: &view::Item| -> Item {
-            let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
-            Item {
-                id: item.id,
-                stack_id: item.stack_id,
-                last_touched: item.last_touched,
-                touched: item.touched.clone(),
-                hash: item.hash.clone(),
-                mime_type: content_meta.mime_type.clone(),
-                content_type: content_meta.content_type.clone(),
-                terse: content_meta.terse.clone(),
-                tiktokens: content_meta.tiktokens,
-            }
-        };
-
         let focused = self.view.get_best_focus(self.focused.as_ref());
         if focused.is_none() {
             return Nav {
@@ -179,9 +164,9 @@ impl UI {
                         .view
                         .root()
                         .iter()
-                        .map(|item| with_meta(item))
+                        .map(|item| with_meta(store, item))
                         .collect(),
-                    selected: with_meta(self.view.items.get(&stack_id).unwrap()),
+                    selected: with_meta(store, self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
                 }),
                 sub: Some(Layer {
@@ -190,9 +175,9 @@ impl UI {
                         .get_peers(focused)
                         .iter()
                         .cloned()
-                        .map(with_meta)
+                        .map(|item| with_meta(store, item))
                         .collect(),
-                    selected: with_meta(focused),
+                    selected: with_meta(store, focused),
                     is_focus: true,
                 }),
             }
@@ -209,8 +194,8 @@ impl UI {
                 let selected = self.view.get_best_focus(possible).unwrap();
 
                 Some(Layer {
-                    items: children.iter().map(with_meta).collect(),
-                    selected: with_meta(selected),
+                    items: children.iter().map(|item| with_meta(store, item)).collect(),
+                    selected: with_meta(store, selected),
                     is_focus: false,
                 })
             } else {
@@ -219,12 +204,33 @@ impl UI {
 
             Nav {
                 root: Some(Layer {
-                    items: self.view.root().iter().cloned().map(with_meta).collect(),
-                    selected: with_meta(focused),
+                    items: self
+                        .view
+                        .root()
+                        .iter()
+                        .cloned()
+                        .map(|item| with_meta(store, item))
+                        .collect(),
+                    selected: with_meta(store, focused),
                     is_focus: true,
                 }),
                 sub,
             }
         }
+    }
+}
+
+pub fn with_meta(store: &Store, item: &view::Item) -> Item {
+    let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
+    Item {
+        id: item.id,
+        stack_id: item.stack_id,
+        last_touched: item.last_touched,
+        touched: item.touched.clone(),
+        hash: item.hash.clone(),
+        mime_type: content_meta.mime_type.clone(),
+        content_type: content_meta.content_type.clone(),
+        terse: content_meta.terse.clone(),
+        tiktokens: content_meta.tiktokens,
     }
 }

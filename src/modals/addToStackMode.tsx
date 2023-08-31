@@ -69,7 +69,6 @@ const state = (() => {
           stackId: chosen.id,
           sourceId: item.id,
         });
-        stack.select("");
         modes.deactivate();
       })();
     },
@@ -87,7 +86,6 @@ const state = (() => {
           name: name,
           sourceId: item.id,
         });
-        stack.select("");
         modes.deactivate();
       })();
     },
@@ -148,13 +146,20 @@ export default {
 
   activate: (stack: Stack) => {
     if (!stack.nav.value.root) return;
-      const selected = stack.selected();
-      if (!selected) return;
-    
+    const selected = stack.selected();
+    if (!selected) return;
+
     state.currFilter.value = "";
+
     state.availOptions.value = stack.nav.value.root.items
       .filter((item) => item.id != selected.stack_id);
-    state.selected.value = state.options.value[0].id;
+
+    stack.getRoot().then((items) =>
+      state.availOptions.value = items
+        .filter((item) => item.id != selected.stack_id)
+    );
+
+    state.selected.value = state.options.value[0]?.id || "";
     state.dn.value = dn();
   },
 

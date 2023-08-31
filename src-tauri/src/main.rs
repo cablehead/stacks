@@ -56,6 +56,7 @@ fn main() {
         })
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
+            commands::store_get_root,
             commands::store_nav_refresh,
             commands::store_nav_reset,
             commands::store_nav_set_filter,

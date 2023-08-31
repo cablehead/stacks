@@ -72,6 +72,7 @@ export class Stack {
   async initListener() {
     console.log("CREATE D1");
     const d1 = await listen("refresh-items", () => {
+      console.log('listen("refresh-items');
       this.refresh();
     });
     if (import.meta.hot) {
@@ -90,6 +91,10 @@ export class Stack {
 
   getContent(hash: SSRI): Signal<string | undefined> {
     return CAS.getSignal(hash);
+  }
+
+  async getRoot(): Promise<Item[]> {
+    return await invoke<Item[]>("store_get_root", {});
   }
 
   async refresh() {

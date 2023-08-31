@@ -6,7 +6,7 @@ use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
-use crate::ui::Nav;
+use crate::ui::{with_meta, Item as UIItem, Nav};
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -79,6 +79,17 @@ pub fn store_get_content(
         .store
         .cas_read(&hash)
         .map(|vec| general_purpose::STANDARD.encode(vec))
+}
+
+#[tauri::command]
+pub fn store_get_root(state: tauri::State<SharedState>) -> Vec<UIItem> {
+    let state = state.lock().unwrap();
+    state
+        .view
+        .root()
+        .iter()
+        .map(|item| with_meta(&state.store, item))
+        .collect()
 }
 
 #[tauri::command]
@@ -299,7 +310,10 @@ pub fn store_add_to_stack(
     let packet = state
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id), None);
+
+    let id = packet.id();
     state.merge(packet);
+    state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -325,7 +339,10 @@ pub fn store_add_to_new_stack(
         Some(packet.id()),
         None,
     );
+
+    let id = packet.id();
     state.merge(packet);
+    state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
 }
