@@ -12,8 +12,8 @@ mod clipboard;
 mod commands;
 mod state;
 mod store;
-mod view;
 mod ui;
+mod view;
 
 #[cfg(test)]
 mod ui_tests;
@@ -57,6 +57,7 @@ fn main() {
         .invoke_handler(tauri::generate_handler![
             commands::store_get_content,
             commands::store_nav_refresh,
+            commands::store_nav_reset,
             commands::store_nav_set_filter,
             commands::store_nav_select,
             commands::store_nav_select_up,

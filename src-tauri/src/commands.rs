@@ -88,6 +88,14 @@ pub fn store_nav_refresh(state: tauri::State<SharedState>) -> Nav {
 }
 
 #[tauri::command]
+pub fn store_nav_reset(state: tauri::State<SharedState>) -> Nav {
+    let mut state = state.lock().unwrap();
+    let view = state.view.clone();
+    state.ui.reset(view);
+    state.ui.render(&state.store)
+}
+
+#[tauri::command]
 pub fn store_nav_set_filter(
     state: tauri::State<SharedState>,
     filter: String,

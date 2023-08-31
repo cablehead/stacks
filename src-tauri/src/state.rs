@@ -43,18 +43,6 @@ impl State {
         self.ui.select(self.view.get_best_focus(focused));
     }
 
-    pub fn nav_select_down(&mut self) {
-        self.ui.select_down();
-    }
-
-    pub fn nav_select_up(&mut self) {
-        self.ui.select_up();
-    }
-
-    pub fn nav_select_left(&mut self) {
-        self.ui.select_left();
-    }
-
     pub fn get_curr_stack(&mut self) -> Scru128Id {
         let curr_stack = self.view.root().first().map(|item| item.id);
 

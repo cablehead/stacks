@@ -37,7 +37,6 @@ pub struct Nav {
 pub struct UI {
     pub focused: Option<view::Item>,
     pub last_selected: HashMap<Scru128Id, view::Item>,
-    pub filter: String,
     pub matches: Option<HashSet<ssri::Integrity>>,
     pub view: view::View,
 }
@@ -47,21 +46,25 @@ impl UI {
         Self {
             focused: None,
             last_selected: HashMap::new(),
-            filter: String::new(),
             matches: None,
             view: v.clone(),
         }
     }
 
+    pub fn reset(&mut self, v: view::View) {
+        self.focused = None;
+        self.last_selected = HashMap::new();
+        self.matches = None;
+        self.view = v.clone();
+    }
+
     pub fn set_filter(&mut self, store: &Store, v: &view::View, filter: &str, content_type: &str) {
-        self.filter = filter.into();
         self.matches = if filter != "" || (content_type != "All" && content_type != "") {
             let matches = store.query(filter, content_type);
             Some(matches)
         } else {
             None
         };
-
         self.refresh_view(v);
     }
 

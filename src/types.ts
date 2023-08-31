@@ -96,10 +96,9 @@ export class Stack {
     this.nav.value = await invoke<Nav>("store_nav_refresh", {});
   }
 
-  reset() {
+  async reset() {
+    this.nav.value = await invoke<Nav>("store_nav_reset", {});
     this.filter.clear();
-    // this.selected.value = Focus.first();
-    // this.lastSelected = new Map();
   }
 
   async triggerCopy() {
