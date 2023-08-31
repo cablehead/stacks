@@ -108,7 +108,7 @@ pub fn store_nav_set_filter(
         "Images" => "Image",
         _ => "All",
     };
-    state.nav_set_filter(&filter, &content_type);
+    state.nav_set_filter(&filter, content_type);
     state.ui.render(&state.store)
 }
 

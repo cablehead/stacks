@@ -191,7 +191,7 @@ impl View {
 
     pub fn get_peers(&self, item: &Item) -> Vec<&Item> {
         if let Some(stack) = item.stack_id.and_then(|id| self.items.get(&id)) {
-            self.children(&stack)
+            self.children(stack)
                 .iter()
                 .map(|id| self.items.get(id).unwrap())
                 .collect()
@@ -210,7 +210,7 @@ impl View {
             return Some(item);
         }
 
-        let peers = self.get_peers(&item);
+        let peers = self.get_peers(item);
         if peers.is_empty() {
             return item.stack_id.and_then(|id| self.items.get(&id));
         }

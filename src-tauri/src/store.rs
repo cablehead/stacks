@@ -111,6 +111,7 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
+    #[cfg(test)]
     pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);

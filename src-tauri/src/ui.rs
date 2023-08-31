@@ -55,11 +55,12 @@ impl UI {
         self.focused = None;
         self.last_selected = HashMap::new();
         self.matches = None;
-        self.view = v.clone();
+        self.view = v;
     }
 
     pub fn set_filter(&mut self, store: &Store, v: &view::View, filter: &str, content_type: &str) {
-        self.matches = if filter != "" || (content_type != "All" && content_type != "") {
+        self.matches = if !filter.is_empty() || (content_type != "All" && !content_type.is_empty())
+        {
             let matches = store.query(filter, content_type);
             Some(matches)
         } else {
@@ -70,7 +71,7 @@ impl UI {
 
     pub fn refresh_view(&mut self, v: &view::View) {
         self.view = if let Some(matches) = &self.matches {
-            v.filter(&matches)
+            v.filter(matches)
         } else {
             v.clone()
         }
@@ -88,7 +89,7 @@ impl UI {
     pub fn select_up(&mut self) {
         if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
             let view = self.view.clone();
-            let peers = view.get_peers(&focused);
+            let peers = view.get_peers(focused);
             let index = peers
                 .iter()
                 .cloned()
@@ -136,10 +137,9 @@ impl UI {
                     .get(&focused.id)
                     .or_else(|| {
                         self.view
-                            .children(&focused)
-                            .iter()
-                            .next()
-                            .and_then(|id| self.view.items.get(&id))
+                            .children(focused)
+                            .first()
+                            .and_then(|id| self.view.items.get(id))
                     })
                     .cloned()
             });
@@ -179,7 +179,7 @@ impl UI {
                         .view
                         .root()
                         .iter()
-                        .map(|item| with_meta(item.clone()))
+                        .map(|item| with_meta(item))
                         .collect(),
                     selected: with_meta(self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
@@ -187,19 +187,19 @@ impl UI {
                 sub: Some(Layer {
                     items: self
                         .view
-                        .get_peers(&focused)
+                        .get_peers(focused)
                         .iter()
                         .cloned()
                         .map(with_meta)
                         .collect(),
-                    selected: with_meta(&focused),
+                    selected: with_meta(focused),
                     is_focus: true,
                 }),
             }
         } else {
             let children: Vec<_> = self
                 .view
-                .children(&focused)
+                .children(focused)
                 .iter()
                 .map(|id| self.view.items.get(id).unwrap().clone())
                 .collect();
@@ -210,7 +210,7 @@ impl UI {
 
                 Some(Layer {
                     items: children.iter().map(with_meta).collect(),
-                    selected: with_meta(&selected),
+                    selected: with_meta(selected),
                     is_focus: false,
                 })
             } else {
@@ -220,7 +220,7 @@ impl UI {
             Nav {
                 root: Some(Layer {
                     items: self.view.root().iter().cloned().map(with_meta).collect(),
-                    selected: with_meta(&focused),
+                    selected: with_meta(focused),
                     is_focus: true,
                 }),
                 sub,
