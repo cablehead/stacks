@@ -216,7 +216,10 @@ pub fn store_new_note(
         Some(stack_id),
         None,
     );
+
+    let id = packet.id();
     state.merge(packet);
+    state.ui.focused = state.view.items.get(&id).cloned();
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();

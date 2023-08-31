@@ -21,7 +21,6 @@ const state = (() => {
       };
 
       invoke("store_new_note", args);
-      stack.select("");
       modes.deactivate();
     },
   };
