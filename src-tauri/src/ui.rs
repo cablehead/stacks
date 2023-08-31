@@ -54,7 +54,6 @@ impl UI {
     }
 
     pub fn set_filter(&mut self, store: &Store, v: &view::View, filter: &str, content_type: &str) {
-        println!("SETTING FILTER: '{:?}' '{:?}'", filter, content_type);
         self.filter = filter.into();
         self.matches = if filter != "" || (content_type != "All" && content_type != "") {
             let matches = store.query(filter, content_type);
@@ -113,31 +112,38 @@ impl UI {
     }
 
     pub fn select_left(&mut self) {
-        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
-            if let Some(stack_id) = focused.stack_id {
-                let view = self.view.clone();
-                self.select(view.items.get(&stack_id));
-            }
+        let focused = { self.view.get_best_focus(self.focused.as_ref()).cloned() };
+        let target = {
+            focused
+                .and_then(|focused| focused.stack_id)
+                .and_then(|id| self.view.items.get(&id))
+                .cloned()
+        };
+        if let Some(target) = target {
+            self.select(Some(&target));
         }
     }
 
     pub fn select_right(&mut self) {
-        let (last, first_child_id) =
-            if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
-                let first_child_id = self.view.children(&focused).iter().next().cloned();
-                let last = self.last_selected.get(&focused.id).cloned();
-                (last, first_child_id)
-            } else {
-                return;
-            };
-
-        let first_child = first_child_id.and_then(|id| self.view.items.get(&id).cloned());
-        self.select(last.as_ref().or(first_child.as_ref()));
+        let target = self
+            .view
+            .get_best_focus(self.focused.as_ref())
+            .and_then(|focused| {
+                self.last_selected
+                    .get(&focused.id)
+                    .or_else(|| {
+                        self.view
+                            .children(&focused)
+                            .iter()
+                            .next()
+                            .and_then(|id| self.view.items.get(&id))
+                    })
+                    .cloned()
+            });
+        self.select(target.as_ref());
     }
 
     pub fn render(&self, store: &Store) -> Nav {
-        println!("VIEW:\n{:?}", self.view);
-
         let with_meta = |item: &view::Item| -> Item {
             let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
             Item {
