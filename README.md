@@ -72,8 +72,6 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Filter by content type: change filter and content_type to be an Option
-
 - GPT:
     - add an action to send a stack to GPT
         - stream response?
@@ -81,15 +79,13 @@ CURRENTLY HERE
 
 - Create a new stack
 
-- Restore filter
-
 - Add a fork action for stacks
 
 - Rework store_copy_to_clipboard to ignore the clipboard write
 
 - on Delete:
+    - make sure parent stack's last_touched is being bumped
     - it'd be nice to animate the parent stack moving to the top of the list
-    - need to use lastKnown's last_touched to work out how to refocus
 
 - Edit a stack name
     - Should just be an input field, not a textarea

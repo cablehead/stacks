@@ -97,7 +97,7 @@ pub fn store_nav_set_filter(
     // XXX: content_type should be an enum
     let content_type = match content_type.as_str() {
         "Links" => "Link",
-        "Images" => "Images",
+        "Images" => "Image",
         _ => "All",
     };
     state.nav_set_filter(&filter, &content_type);
