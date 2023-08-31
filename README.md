@@ -32,7 +32,7 @@ https://github.com/cablehead/workspace/blob/x-macos-pasteboard/Sources/Clip/main
 # make sure dev console is disabled
 
 # update Cargo.toml and tauri.conf.json for new version
-# set RELEASE to the new version, e.g
+# export RELEASE to the new version (with the 'v'), e.g
 RELEASE=v0.5.2
 
 ./scripts/build.sh
@@ -42,7 +42,7 @@ vi changes/$RELEASE
 # after build completes
 cat changes/$RELEASE | ./scripts/release.sh
 
-# copy the tempdir created by release.sh to RELEASE_PATH
+# export the tempdir created by release.sh to RELEASE_PATH
 
 # commit and push
 git commit -a -m "chore: release $RELEASE" && git push
