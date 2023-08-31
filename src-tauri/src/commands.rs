@@ -94,6 +94,12 @@ pub fn store_nav_set_filter(
     content_type: String,
 ) -> Nav {
     let mut state = state.lock().unwrap();
+    // XXX: content_type should be an enum
+    let content_type = match content_type.as_str() {
+        "Links" => "Link",
+        "Images" => "Images",
+        _ => "All",
+    };
     state.nav_set_filter(&filter, &content_type);
     state.ui.render(&state.store)
 }
