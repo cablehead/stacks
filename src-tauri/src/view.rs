@@ -19,6 +19,7 @@ pub struct Item {
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct View {
     pub items: HashMap<Scru128Id, Item>,
+    pub undo: Option<Item>,
 }
 
 impl Default for View {
@@ -31,6 +32,7 @@ impl View {
     pub fn new() -> Self {
         View {
             items: HashMap::new(),
+            undo: None,
         }
     }
 
@@ -139,11 +141,13 @@ impl View {
             }
 
             Packet::Delete(packet) => {
-                if let Some(item) = self.items.remove(&packet.source_id) {
+                if let Some(mut item) = self.items.remove(&packet.source_id) {
                     if let Some(stack) = item.stack_id.and_then(|id| self.items.get_mut(&id)) {
                         stack.children.retain(|&id| id != packet.source_id);
                         stack.last_touched = packet.id;
                     }
+                    item.last_touched = packet.id;
+                    self.undo = Some(item);
                 }
             }
         }
@@ -250,6 +254,9 @@ impl View {
             })
             .collect();
 
-        View { items }
+        View {
+            items,
+            undo: self.undo.clone(),
+        }
     }
 }

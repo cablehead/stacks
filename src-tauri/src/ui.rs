@@ -31,6 +31,7 @@ pub struct Layer {
 pub struct Nav {
     pub root: Option<Layer>,
     pub sub: Option<Layer>,
+    pub undo: Option<Item>,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -152,6 +153,7 @@ impl UI {
             return Nav {
                 root: None,
                 sub: None,
+                undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             };
         }
         let focused = focused.unwrap();
@@ -180,6 +182,7 @@ impl UI {
                     selected: with_meta(store, focused),
                     is_focus: true,
                 }),
+                undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
         } else {
             let children: Vec<_> = self
@@ -215,6 +218,7 @@ impl UI {
                     is_focus: true,
                 }),
                 sub,
+                undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
         }
     }

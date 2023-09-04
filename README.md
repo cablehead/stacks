@@ -81,6 +81,9 @@ CURRENTLY HERE
     - change help message to Rename Stack
 
 - Add undo for delete
+    - On delete, save the id of the delete packet
+    - on undo, delete that packet from the store, and reload
+    - need to add the delete packet to the UI struct
 
 - GPT:
     - add an action to send a stack to GPT
@@ -96,7 +99,6 @@ CURRENTLY HERE
 - on Delete:
     - make sure parent stack's last_touched is being bumped
     - it'd be nice to animate the parent stack moving to the top of the list
-
 
 ### Stretch
 

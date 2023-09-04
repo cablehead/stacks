@@ -97,6 +97,7 @@ fn main() {
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .level_for("want", log::LevelFilter::Debug)
                 .level_for("tao", log::LevelFilter::Debug)
                 .level_for("sled", log::LevelFilter::Info)
                 .level_for("attohttpc", log::LevelFilter::Info)
