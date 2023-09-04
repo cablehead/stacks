@@ -27,7 +27,7 @@ function getMeta(_: Stack, item: Item, content: string): MetaValue[] {
 
   let meta: MetaValue[] = [
     { name: "ID", value: item.id },
-    { name: "Content Type", value: item.content_type },
+    { name: "Content Type", value: item.stack_id ? item.content_type : "Stack" },
   ];
 
   if (item.content_type == "Text") {

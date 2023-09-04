@@ -72,7 +72,7 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
-- Stacks should be Content Type: Stack
+- Stack: meta panel
     - show aggregate counts
     - track number of times children changed
 
