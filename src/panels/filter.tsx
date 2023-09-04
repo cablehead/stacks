@@ -23,6 +23,8 @@ export function Filter({ stack }: { stack: Stack }) {
     }
   }, [stack.filter.curr.value]);
 
+  const nav = stack.nav.value;
+
   return (
     <div
       className={borderBottom}
@@ -52,6 +54,25 @@ export function Filter({ stack }: { stack: Stack }) {
             stack.filter.curr.value = (event.target as HTMLInputElement).value}
         />
       </div>
+
+      {nav.undo &&
+        (
+          <>
+            <VertDiv />
+            <div
+              class="hoverable"
+              onMouseDown={() => stack.undo()}
+              style={{
+                fontSize: "0.9rem",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              Undo delete&nbsp;
+              <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
+            </div>
+          </>
+        )}
 
       <VertDiv />
       <div

@@ -32,6 +32,7 @@ export interface Layer {
 export interface Nav {
   root?: Layer;
   sub?: Layer;
+  undo?: Item;
 }
 
 const createFilter = () => {
@@ -95,6 +96,10 @@ export class Stack {
 
   async getRoot(): Promise<Item[]> {
     return await invoke<Item[]>("store_get_root", {});
+  }
+
+  async undo() {
+    await invoke<Item[]>("store_undo", {});
   }
 
   async refresh() {
