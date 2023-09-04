@@ -86,14 +86,38 @@ export const actions: Action[] = [
     },
   },
   {
-    name: "Delete",
-    keys: ["Ctrl", "DEL"],
+    name: "Delete item",
+    keys: [<Icon name="IconCommandKey" />, "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.ctrlKey && event.key === "Backspace",
-    canApply: (stack: Stack) => !!stack.selected(),
+      event.metaKey && event.key === "Backspace",
+    canApply: (stack: Stack) => {
+      const item = stack.selected();
+      if (item) {
+        return !!item.stack_id;
+      }
+      return false;
+    },
     trigger: (stack: Stack) => {
       const item = stack.selected();
-      console.log("DELETE", item);
+      if (item) {
+        invoke("store_delete", { id: item.id });
+      }
+    },
+  },
+  {
+    name: "Delete stack",
+    keys: ["SHIFT", <Icon name="IconCommandKey" />, "DEL"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      event.metaKey && event.shiftKey && event.code == "Backspace",
+    canApply: (stack: Stack) => {
+      const item = stack.selected();
+      if (item) {
+        return !item.stack_id;
+      }
+      return false;
+    },
+    trigger: (stack: Stack) => {
+      const item = stack.selected();
       if (item) {
         invoke("store_delete", { id: item.id });
       }
