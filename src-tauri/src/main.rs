@@ -83,7 +83,12 @@ fn main() {
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
                     label: String::from("main"),
-                    shortcut: String::from("Control+Space"),
+                    shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
+                        "Option+Space"
+                    } else {
+                        "Control+Space"
+                    })
+                    .to_string(),
                     macos_window_level: Some(20), // Default 24
                 }]),
                 global_close_shortcut: None,
