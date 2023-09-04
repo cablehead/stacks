@@ -18,6 +18,9 @@ mod view;
 #[cfg(test)]
 mod ui_tests;
 
+#[cfg(test)]
+mod view_tests;
+
 use state::{SharedState, State};
 
 fn main() {
