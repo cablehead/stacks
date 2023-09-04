@@ -72,6 +72,16 @@ gh release create $RELEASE $RELEASE_PATH/* -n "$(cat changes/$RELEASE)"
 
 CURRENTLY HERE
 
+- Stacks should be Content Type: Stack
+    - show aggregate counts
+    - track number of times children changed
+
+- Edit a stack name
+    - Should just be an input field, not a textarea
+    - change help message to Rename Stack
+
+- Add undo for delete
+
 - GPT:
     - add an action to send a stack to GPT
         - stream response?
@@ -87,8 +97,6 @@ CURRENTLY HERE
     - make sure parent stack's last_touched is being bumped
     - it'd be nice to animate the parent stack moving to the top of the list
 
-- Edit a stack name
-    - Should just be an input field, not a textarea
 
 ### Stretch
 
@@ -130,6 +138,7 @@ CURRENTLY HERE
   items
 - access clipbard / stacks inside command editor: Mike, as you've pointed out,
   we need this for the Editor / New note too
+
 
 ### And then
 
