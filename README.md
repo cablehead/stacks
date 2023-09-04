@@ -80,11 +80,6 @@ CURRENTLY HERE
     - Should just be an input field, not a textarea
     - change help message to Rename Stack
 
-- Add undo for delete
-    - On delete, save the id of the delete packet
-    - on undo, delete that packet from the store, and reload
-    - need to add the delete packet to the UI struct
-
 - GPT:
     - add an action to send a stack to GPT
         - stream response?
