@@ -6,7 +6,8 @@ use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
-use crate::ui::{with_meta, Item as UIItem, Nav};
+use crate::ui::{with_meta, Item as UIItem, Nav, UI};
+use crate::view::View;
 
 #[derive(Debug, serde::Serialize)]
 pub struct CommandOutput {
@@ -267,6 +268,21 @@ pub fn store_delete(
     let packet = state.store.delete(id);
     state.merge(packet);
     app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
+    let mut state = state.lock().unwrap();
+    if let Some(item) = state.view.undo.clone() {
+        state.store.remove_packet(&item.last_touched);
+        let mut view = View::new();
+        state.store.scan().for_each(|p| view.merge(p));
+        let mut ui = UI::new(&view);
+        ui.select(view.items.get(&item.id));
+        state.view = view;
+        state.ui = ui;
+        app.emit_all("refresh-items", true).unwrap();
+    }
 }
 
 //

@@ -331,6 +331,11 @@ impl Store {
         self.insert_packet(&packet);
         packet
     }
+
+    pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
+        let removed = self.packets.remove(id.to_bytes()).unwrap();
+        removed.and_then(|value| bincode::deserialize(&value).ok())
+    }
 }
 
 fn is_valid_https_url(url: &[u8]) -> bool {

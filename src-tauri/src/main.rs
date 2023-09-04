@@ -70,6 +70,7 @@ fn main() {
             commands::store_nav_select_right,
             commands::store_copy_to_clipboard,
             commands::store_delete,
+            commands::store_undo,
             commands::store_new_note,
             commands::store_edit_note,
             commands::store_settings_save,
