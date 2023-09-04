@@ -62,6 +62,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.deactivate();
       return;
 
+    case (event.metaKey && event.key === "u"):
+      event.preventDefault();
+      stack.undo();
+      return;
+
     case event.metaKey && event.key === "k":
       event.preventDefault();
       modes.toggle(stack, actionsMode);

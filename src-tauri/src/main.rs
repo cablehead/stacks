@@ -18,6 +18,9 @@ mod view;
 #[cfg(test)]
 mod ui_tests;
 
+#[cfg(test)]
+mod view_tests;
+
 use state::{SharedState, State};
 
 fn main() {
@@ -67,6 +70,7 @@ fn main() {
             commands::store_nav_select_right,
             commands::store_copy_to_clipboard,
             commands::store_delete,
+            commands::store_undo,
             commands::store_new_note,
             commands::store_edit_note,
             commands::store_settings_save,
@@ -80,7 +84,12 @@ fn main() {
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
                     label: String::from("main"),
-                    shortcut: String::from("Control+Space"),
+                    shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
+                        "Option+Space"
+                    } else {
+                        "Control+Space"
+                    })
+                    .to_string(),
                     macos_window_level: Some(20), // Default 24
                 }]),
                 global_close_shortcut: None,
@@ -89,6 +98,7 @@ fn main() {
         .plugin(
             tauri_plugin_log::Builder::default()
                 .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
+                .level_for("want", log::LevelFilter::Debug)
                 .level_for("tao", log::LevelFilter::Debug)
                 .level_for("sled", log::LevelFilter::Info)
                 .level_for("attohttpc", log::LevelFilter::Info)
