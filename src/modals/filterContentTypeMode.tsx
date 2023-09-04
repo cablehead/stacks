@@ -49,8 +49,8 @@ export default {
     state.selected.value = idx == -1 ? 0 : idx;
   },
 
-  Modal: ({ stack, modes }: { stack: Stack; modes: Modes; }) => {
-    const { options, normalizedSelected, selected} = state;
+  Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
+    const { options, normalizedSelected, selected } = state;
     const inputRef = useRef<HTMLInputElement>(null);
 
     useEffect(() => {
@@ -58,6 +58,17 @@ export default {
         inputRef.current.focus();
       }
     }, []);
+
+    const rightOffset = (() => {
+      const element = document.getElementById("filter-content-type");
+      if (element && element.parentElement) {
+        const elementRect = element.getBoundingClientRect();
+        const parentRect = element.parentElement.getBoundingClientRect();
+        return parentRect.right - elementRect.right;
+      }
+
+      return 300;
+    })();
 
     return (
       <div
@@ -69,7 +80,7 @@ export default {
           top: "0",
           fontSize: "0.9rem",
           padding: "1ch",
-          right: "19ch",
+          right: rightOffset,
           borderRadius: "0 0 0.5rem 0.5rem",
           zIndex: 100,
         }}

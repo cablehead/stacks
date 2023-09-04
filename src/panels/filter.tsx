@@ -55,27 +55,9 @@ export function Filter({ stack }: { stack: Stack }) {
         />
       </div>
 
-      {nav.undo &&
-        (
-          <>
-            <VertDiv />
-            <div
-              class="hoverable"
-              onMouseDown={() => stack.undo()}
-              style={{
-                fontSize: "0.9rem",
-                display: "flex",
-                alignItems: "center",
-              }}
-            >
-              Undo delete&nbsp;
-              <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
-            </div>
-          </>
-        )}
-
       <VertDiv />
       <div
+        id="filter-content-type"
         class="hoverable"
         onMouseDown={() => modes.toggle(stack, filterContentTypeMode)}
         style={{
@@ -103,6 +85,25 @@ export function Filter({ stack }: { stack: Stack }) {
         New note&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "N"]} />
       </div>
+
+      {nav.undo &&
+        (
+          <>
+            <VertDiv />
+            <div
+              class="hoverable"
+              onMouseDown={() => stack.undo()}
+              style={{
+                fontSize: "0.9rem",
+                display: "flex",
+                alignItems: "center",
+              }}
+            >
+              Undo delete&nbsp;
+              <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
+            </div>
+          </>
+        )}
     </div>
   );
 }
