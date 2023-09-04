@@ -1,16 +1,16 @@
 {
-  "version": "0.9.1",
-  "notes": "Nearly 6 weeks in the making, v0.9.1 has finally arrived.\n\nThe most significant change you'll notice is that all clippings now reside within a Stack, making Stacks the top-level navigation element.\n\nTake a break for precisely one hour, perhaps for lunch or a coffee, and when you return, new clippings will populate a fresh, empty Stack named after the current time. If the session turns out to be noteworthy, you can rename it using CMD-E.\n\nBe aware that this update necessitates another database reset. If you'd find a tool for dumping the previous database useful, let me know.\n\nThe option to copy an entire Stack has been temporarily removed but will be reinstated in the next release. If this affects you significantly, give me a heads up, and I'll expedite that update.\n",
-  "pub_date": "2023-08-31T15:20:01-04:00",
+  "version": "0.9.2",
+  "notes": "This release is like a time machine for your mistakes. Undo deleted items and\nstacks—no regrets.\n\nNew hotkeys: Delete items with CMD-DEL and wipe out Stacks with CMD-SHIFT-DEL.\nDesigned to minimize those \"Oops, didn't mean to do that\" moments.\n\n",
+  "pub_date": "2023-09-04T15:33:42-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcElGSU9yT2UyT0d5aXUxU0hsbXYzYWpNVk5WRmNibVlLdDVCa25OOWYyTlZLQjJlTUM2QWdBb3BMOVp0T3Z1VXZPZ3BzT2o2dnRlaEFBWXVQeFpnS1FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzNTA5MzcwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKcysvYWIxcHpXZnZCYTExbEd5cnF0UHVZTVFia2FORnZ1UzNEaEVtTFYvZHRnakVHYjFHbXZ5clZOZzFpU3AyREVmajJwWlM2SzluSllyeHoyNDE1Qmc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.1/Stacks_0.9.1_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFHMnJ5di9XK21wZk9VN1cyQzlZWEc4UlFwYjZJcVF3QWYyMTBiemtZQmEvSzlzUC96M05mU0RINmNGM2hyQlNiaHVuNkUwb1QvZy9DU2VhV2pIakFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzODU1OTY3CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKbGM5bmVLdlVudXgvNmdGUkdOMVBxeXZoSmo3MUlhczBDYm1ZblJoRGFFRHFERUh1N2ZSUDBNSDZxZlo3L0VNOGN1NzV1V2VCcVJVSjRkdFRYNStKRGc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.2/Stacks_0.9.2_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEM2TjdzLzJZaW01eUJMTW4yT1JrelVJc1ljcm5FYkg1dk1JRUh1ZVphdmlrWXI3cVdDYXlEZ0VCM05JVVRjQnR4NVBTTG1wMmx6Q0tmSlVtT0dvRHdZPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzNTA5MTM4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKRk9EakxvVEJBVGg1SncrMjZyL2dzdTlyRHdvZWNRUk13a2VjNndpeVVuZ29tTFE3U1JkdUxCQTg3bURRa20rZThVMkFVc3VYTEVyZkhod3NKVllMQVE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.1/Stacks_0.9.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEZnamFIM0RULzNYYXo1L1p0dHIrS2k3bHdmUVNWS0tLbmxCOE14RndtcVZFaWcvSlphYkVsOU1wa0pRYUNpV214SEFWbzVmSk53MlFSR2VHRzdiUVFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzODU1NzgwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKWXZQZll5SVhVWk1DeWcxQzhyZ2dRd2xzcDNJUllHeVVBRGNlUERlUEZEOEc2WFpWVDRReTh6bHF4T1FENURpZFhmd0ZpeWRTN1ZRa25DU0U1Q2dWQkE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.2/Stacks_0.9.2_aarch64.app.tar.gz"
     }
   }
 }
