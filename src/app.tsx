@@ -9,6 +9,8 @@ import {
   modes,
   newNoteMode,
   pipeMode,
+  pipeToCommand,
+  pipeToGPT,
   settingsMode,
 } from "./modals";
 
@@ -190,6 +192,12 @@ export function App() {
               )}
               {modes.isActive(pipeMode) && (
                 <pipeMode.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(pipeToCommand) && (
+                <pipeToCommand.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(pipeToGPT) && (
+                <pipeToGPT.Modal stack={stack} modes={modes} />
               )}
               {modes.isActive(filterContentTypeMode) &&
                 <filterContentTypeMode.Modal stack={stack} modes={modes} />}
