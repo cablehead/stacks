@@ -16,10 +16,10 @@ const state = (() => {
   const selected = signal("");
   const currFilter = signal("");
 
-  const availOptions = ["Command", "GPT"];
+  const availOptions = signal(["Command"]);
 
   const options = computed(() =>
-    availOptions
+    availOptions.value
       .filter((item) =>
         currFilter.value == "" ||
         item.toLowerCase().includes(currFilter.value.toLowerCase())
@@ -100,7 +100,16 @@ export default {
 
   activate: (_: Stack) => {
     state.currFilter.value = "";
-    state.selected.value = state.availOptions[0];
+    state.availOptions.value = ["Command"];
+    invoke<Record<string, string>>("store_settings_get", {}).then(
+      (settings: Record<string, string>) => {
+        console.log("SETTINGS", settings);
+        if (settings) {
+          state.availOptions.value = ["Command", "GPT"];
+        }
+      },
+    );
+    state.selected.value = state.availOptions.value[0];
   },
 
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
