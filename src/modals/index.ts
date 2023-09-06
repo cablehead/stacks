@@ -12,7 +12,6 @@ import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
 import { default as pipeToCommand } from "./pipeToCommand";
-import { default as pipeToGPT } from "./pipeToGPT";
 import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
@@ -26,12 +25,11 @@ export {
   newNoteMode,
   pipeMode,
   pipeToCommand,
-  pipeToGPT,
   settingsMode,
 };
 
 export const modes = {
-  active: signal(pipeToGPT) as Signal<Mode>,
+  active: signal(mainMode) as Signal<Mode>,
   isActive(mode: Mode) {
     return mode == this.active.value;
   },

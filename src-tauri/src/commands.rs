@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::MimeType;
+use crate::store::{Settings, MimeType};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -67,6 +67,20 @@ pub async fn store_pipe_to_command(
     };
     println!("PIPE, RES: {:?}", &output);
     Ok(output)
+}
+
+#[tauri::command]
+pub fn store_pipe_to_gpt(state: tauri::State<'_, SharedState>, source_id: scru128::Scru128Id) {
+    let state = state.lock().unwrap();
+    if let Some(item) = state.view.items.get(&source_id) {
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
+        if meta.mime_type != MimeType::TextPlain {
+            return;
+        }
+        let content = state.store.cas_read(&item.hash).unwrap();
+        let settings = state.store.settings_get();
+        println!("GPT: {:?} {:?} {:?}", source_id, settings, content);
+    }
 }
 
 #[tauri::command]
@@ -289,26 +303,15 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
 // Settings related commands
 
 #[tauri::command]
-pub fn store_settings_save(state: tauri::State<SharedState>, settings: serde_json::Value) {
-    let state = state.lock().unwrap();
-    state
-        .store
-        .meta
-        .insert("settings", settings.to_string().as_bytes())
-        .unwrap();
+pub fn store_settings_save(state: tauri::State<SharedState>, settings: Settings) {
+    let mut state = state.lock().unwrap();
+    state.store.settings_save(settings);
 }
 
 #[tauri::command]
-pub fn store_settings_get(state: tauri::State<SharedState>) -> serde_json::Value {
+pub fn store_settings_get(state: tauri::State<SharedState>) -> Option<Settings> {
     let state = state.lock().unwrap();
-    let res = state.store.meta.get("settings").unwrap();
-    match res {
-        Some(bytes) => {
-            let str = std::str::from_utf8(bytes.as_ref()).unwrap();
-            serde_json::from_str(str).unwrap()
-        }
-        None => serde_json::Value::Object(Default::default()),
-    }
+    state.store.settings_get()
 }
 
 //

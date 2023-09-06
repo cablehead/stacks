@@ -133,6 +133,12 @@ impl Index {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug)]
+pub struct Settings {
+    openai_access_token: String,
+    openai_selected_model: String,
+}
+
 pub struct Store {
     packets: sled::Tree,
     pub content_meta: sled::Tree,
@@ -335,6 +341,21 @@ impl Store {
     pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
         removed.and_then(|value| bincode::deserialize(&value).ok())
+    }
+
+    pub fn settings_save(&mut self, settings: Settings) {
+        let settings_str = serde_json::to_string(&settings).unwrap();
+        self.meta
+            .insert("settings", settings_str.as_bytes())
+            .unwrap();
+    }
+
+    pub fn settings_get(&self) -> Option<Settings> {
+        let res = self.meta.get("settings").unwrap();
+        res.map(|bytes| {
+            let str = std::str::from_utf8(bytes.as_ref()).unwrap();
+            serde_json::from_str(str).unwrap()
+        })
     }
 }
 

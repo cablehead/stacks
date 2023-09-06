@@ -1,11 +1,12 @@
 import { computed, effect, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { default as pipeToCommand } from "./pipeToCommand";
-import { default as pipeToGPT } from "./pipeToGPT";
 
 import { Modes } from "./types";
 import { Stack } from "../types";
@@ -43,8 +44,12 @@ const state = (() => {
         return;
       }
       if (selected.value == "GPT") {
-        modes.activate(stack, pipeToGPT);
-        return;
+        const item = stack.selected();
+        if (item) {
+          invoke("store_pipe_to_gpt", { sourceId: item.id });
+          modes.deactivate();
+          return;
+        }
       }
     },
 
