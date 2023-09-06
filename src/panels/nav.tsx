@@ -151,7 +151,8 @@ const RowIcon = ({ item }: { item: Item }) => {
 };
 
 function Preview({ stack, item }: { stack: Stack; item: Item }) {
-  const content = stack.getContent(item.hash).value;
+
+  const content = stack.getContent(item?.hash).value;
   if (!content) return <div>loading...</div>;
 
   if (item.mime_type === "image/png") {

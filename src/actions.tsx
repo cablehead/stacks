@@ -72,7 +72,7 @@ export const actions: Action[] = [
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
       const item = stack.selected();
-      if (!item) return false;
+      if (!item?.hash) return false;
       const content = stack.getContent(item.hash);
       if (typeof (content.value) == "undefined") return false;
       const url = b64ToUtf8(content.value);
@@ -81,7 +81,7 @@ export const actions: Action[] = [
     },
     canApply: (stack: Stack) => {
       const item = stack.selected();
-      if (!item) return false;
+      if (!item?.hash) return false;
       return item.content_type == "Link";
     },
   },

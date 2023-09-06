@@ -13,12 +13,12 @@ fn assert_view_as_expected(store: &Store, view: &View, expected: Vec<(&str, Vec<
                 .filter_map(|child_id| {
                     view.items
                         .get(child_id)
-                        .and_then(|child_item| store.cas_read(&child_item.hash))
+                        .and_then(|child_item| store.cas_read(&child_item.hash.clone().unwrap()))
                         .map(|content| String::from_utf8_lossy(&content).into_owned())
                 })
                 .collect::<Vec<_>>();
             store
-                .cas_read(&item.hash)
+                .cas_read(&item.hash.clone().unwrap())
                 .map(|s| (String::from_utf8_lossy(&s).into_owned(), children))
         })
         .collect();

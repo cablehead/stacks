@@ -16,7 +16,7 @@ export interface Item {
   stack_id?: Scru128Id;
   last_touched: Scru128Id;
   touched: Scru128Id[];
-  hash: SSRI;
+  hash?: SSRI;
   mime_type: string;
   content_type: string;
   terse: string;
@@ -90,7 +90,7 @@ export class Stack {
     return nav.root?.selected;
   }
 
-  getContent(hash: SSRI): Signal<string | undefined> {
+  getContent(hash?: SSRI): Signal<string | undefined> {
     return CAS.getSignal(hash);
   }
 
@@ -170,7 +170,10 @@ export const CAS = (() => {
     return content;
   }
 
-  function getSignal(hash: SSRI): Signal<string> {
+  function getSignal(hash?: SSRI): Signal<string> {
+    if (!hash) {
+      return signal("");
+    }
     const cachedSignal = signalCache.get(hash);
     if (cachedSignal !== undefined) {
       return cachedSignal;

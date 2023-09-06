@@ -30,6 +30,8 @@ pub async fn store_pipe_to_command(
         (cache_path, item.hash.clone())
     };
 
+    let hash = hash.ok_or(())?;
+
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
         Ok(val) => val,
@@ -80,12 +82,14 @@ pub async fn store_pipe_to_gpt(
         let settings = state.store.settings_get().ok_or(())?.clone();
         let item = state.view.items.get(&source_id).ok_or(())?;
 
-        let meta = state.store.get_content_meta(&item.hash).unwrap();
+        let hash = item.hash.clone().ok_or(())?;
+
+        let meta = state.store.get_content_meta(&hash).unwrap();
         if meta.mime_type != MimeType::TextPlain {
             return Ok(());
         }
 
-        let content = state.store.cas_read(&item.hash).unwrap();
+        let content = state.store.cas_read(&hash).unwrap();
 
         (settings, content)
     };
@@ -225,13 +229,15 @@ pub fn store_copy_to_clipboard(
     let state = state.lock().unwrap();
 
     if let Some(item) = state.view.items.get(&source_id) {
-        let meta = state.store.get_content_meta(&item.hash).unwrap();
+        let hash = item.hash.as_ref()?;
+
+        let meta = state.store.get_content_meta(&hash).unwrap();
 
         let mime_type = match &meta.mime_type {
             MimeType::TextPlain => "public.utf8-plain-text",
             MimeType::ImagePng => "public.png",
         };
-        let content = state.store.cas_read(&item.hash).unwrap();
+        let content = state.store.cas_read(&hash).unwrap();
 
         let _change_num = write_to_clipboard(mime_type, &content);
         Some(())

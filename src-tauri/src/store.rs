@@ -43,7 +43,7 @@ impl Packet {
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct AddPacket {
     pub id: Scru128Id,
-    pub hash: Integrity,
+    pub hash: Option<Integrity>,
     pub stack_id: Option<Scru128Id>,
     pub source: Option<String>,
 }
@@ -281,7 +281,7 @@ impl Store {
         let hash = self.cas_write(content, mime_type);
         let packet = Packet::Add(AddPacket {
             id: scru128::new(),
-            hash,
+            hash: Some(hash),
             stack_id,
             source,
         });
@@ -384,7 +384,7 @@ mod tests {
 
         match packet {
             Packet::Add(packet) => {
-                let stored_content = store.cas_read(&packet.hash).unwrap();
+                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
                 assert_eq!(content.to_vec(), stored_content);
             }
             _ => panic!("Expected AddPacket"),

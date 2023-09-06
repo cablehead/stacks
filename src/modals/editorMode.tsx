@@ -57,7 +57,7 @@ export default {
 
     const item = stack.selected();
 
-    const content = (item && stack.getContent(item.hash).value) || "";
+    const content = (item?.hash && stack.getContent(item.hash).value) || "";
 
     return (
       <div

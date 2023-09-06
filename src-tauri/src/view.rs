@@ -10,7 +10,7 @@ pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,
     pub touched: Vec<Scru128Id>,
-    pub hash: Integrity,
+    pub hash: Option<Integrity>,
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
     pub forked_children: Vec<Scru128Id>,
@@ -84,7 +84,7 @@ impl View {
                     let mut item = item;
 
                     if let Some(hash) = packet.hash {
-                        item.hash = hash;
+                        item.hash = Some(hash);
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -118,7 +118,7 @@ impl View {
                     new_item.children = Vec::new();
 
                     if let Some(hash) = packet.hash {
-                        new_item.hash = hash;
+                        new_item.hash = Some(hash);
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -238,16 +238,17 @@ impl View {
                         .into_iter()
                         .filter(|child_id| {
                             if let Some(child) = self.items.get(child_id) {
-                                matches.contains(&child.hash)
-                            } else {
-                                false
+                                if let Some(hash) = child.hash.as_ref() {
+                                    return matches.contains(&hash);
+                                }
                             }
+                            false
                         })
                         .collect();
                     if item.children.is_empty() {
                         return None;
                     }
-                } else if !matches.contains(&item.hash) {
+                } else if item.hash.is_none() || !matches.contains(&item.hash.as_ref().unwrap()) {
                     return None;
                 }
                 Some((item.id, item))
