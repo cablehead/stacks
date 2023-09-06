@@ -135,8 +135,8 @@ impl Index {
 
 #[derive(Serialize, Deserialize, Debug, Clone)]
 pub struct Settings {
-    openai_access_token: String,
-    openai_selected_model: String,
+    pub openai_access_token: String,
+    pub openai_selected_model: String,
 }
 
 pub struct Store {

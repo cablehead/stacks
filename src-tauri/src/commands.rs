@@ -117,22 +117,54 @@ pub async fn store_pipe_to_gpt(
         content: String,
     }
 
+    use async_openai::{
+        types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
+        Client, config::OpenAIConfig,
+    };
+    use futures::StreamExt;
+
+    let config = OpenAIConfig::new().with_api_key(settings.openai_access_token);
+
+    let client = Client::with_config(config);
+
+    let request = CreateChatCompletionRequestArgs::default()
+        .model(&settings.openai_selected_model)
+        .max_tokens(512u16)
+        .messages([ChatCompletionRequestMessageArgs::default()
+            .content(String::from_utf8(content).unwrap())
+            .role(Role::User)
+            .build()
+            .unwrap()])
+        .build()
+        .unwrap();
+
+    let mut stream = client.chat().create_stream(request).await.unwrap();
+
     let mut aggregate = String::new();
 
-    for _ in 0..3 {
-        let message = "yack yack yack".to_string();
-        aggregate.push_str(&message);
-        app.emit_all(
-            "foo",
-            Payload {
-                id: packet.id(),
-                tiktokens: count_tiktokens(&aggregate),
-                content: general_purpose::STANDARD.encode(&aggregate),
-            },
-        )
-        .unwrap();
-        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
-        println!("GPT: {:?} {:?} {:?}", source_id, settings, content);
+    while let Some(result) = stream.next().await {
+        match result {
+            Ok(response) => {
+                response.choices.iter().for_each(|chat_choice| {
+                    if let Some(ref content) = chat_choice.delta.content {
+                        aggregate.push_str(content);
+                    }
+                });
+
+                app.emit_all(
+                    "foo",
+                    Payload {
+                        id: packet.id(),
+                        tiktokens: count_tiktokens(&aggregate),
+                        content: general_purpose::STANDARD.encode(&aggregate),
+                    },
+                )
+                .unwrap();
+            }
+            Err(err) => {
+                println!("GPT error: {:#?}", err);
+            }
+        }
     }
 
     Ok(())
