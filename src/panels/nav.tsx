@@ -5,7 +5,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, Layer, Stack } from "../types";
+import { Item, itemGetContent, itemGetTerse, Layer, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused }: {
@@ -66,7 +66,7 @@ const TerseRow = (
           textOverflow: "ellipsis",
         }}
       >
-        {item.terse}
+        {itemGetTerse(item)}
       </div>
     </div>
   );
@@ -150,9 +150,9 @@ const RowIcon = ({ item }: { item: Item }) => {
   return <Icon name="IconBell" />;
 };
 
+// @ts-ignore
 function Preview({ stack, item }: { stack: Stack; item: Item }) {
-
-  const content = stack.getContent(item?.hash).value;
+  const content = itemGetContent(item).value;
   if (!content) return <div>loading...</div>;
 
   if (item.mime_type === "image/png") {

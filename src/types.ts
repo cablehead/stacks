@@ -23,6 +23,14 @@ export interface Item {
   tiktokens: number;
 }
 
+export function itemGetContent(item: Item): Signal<string | undefined> {
+  return item.hash ? CAS.getSignal(item.hash) : signal("b2ggaGFpCg==");
+}
+
+export function itemGetTerse(item: Item): string {
+  return item.hash ? item.terse : "oh hai";
+}
+
 export interface Layer {
   items: Item[];
   selected: Item;
@@ -76,10 +84,14 @@ export class Stack {
       console.log('listen("refresh-items');
       this.refresh();
     });
+    const d2 = await listen("foo", (payload) => {
+      console.log('listen("foo', payload);
+    });
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
-        console.log("DISPOSE D1");
+        console.log("DISPOSE");
         if (d1) d1();
+        if (d2) d2();
       });
     }
   }
@@ -88,10 +100,6 @@ export class Stack {
     const nav = this.nav.value;
     if (nav.sub && nav.sub.is_focus) return nav.sub.selected;
     return nav.root?.selected;
-  }
-
-  getContent(hash?: SSRI): Signal<string | undefined> {
-    return CAS.getSignal(hash);
   }
 
   async getRoot(): Promise<Item[]> {
@@ -157,37 +165,22 @@ export interface Action {
 }
 
 export const CAS = (() => {
-  const cache: Map<string, string> = new Map();
   const signalCache: Map<string, Signal<string>> = new Map();
 
-  async function get(hash: SSRI): Promise<string> {
-    const cachedItem = cache.get(hash);
-    if (cachedItem !== undefined) {
-      return cachedItem;
-    }
-    const content: string = await invoke("store_get_content", { hash: hash });
-    cache.set(hash, content);
-    return content;
-  }
-
-  function getSignal(hash?: SSRI): Signal<string> {
-    if (!hash) {
-      return signal("");
-    }
+  function getSignal(hash: SSRI): Signal<string> {
     const cachedSignal = signalCache.get(hash);
     if (cachedSignal !== undefined) {
       return cachedSignal;
     }
     const ret: Signal<string> = signal("");
     (async () => {
-      ret.value = await get(hash);
+      ret.value = await invoke("store_get_content", { hash: hash });
     })();
     signalCache.set(hash, ret);
     return ret;
   }
 
   return {
-    get,
     getSignal,
   };
 })();

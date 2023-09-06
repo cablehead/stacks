@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { itemGetContent, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -57,7 +57,7 @@ export default {
 
     const item = stack.selected();
 
-    const content = (item?.hash && stack.getContent(item.hash).value) || "";
+    const content = (item && itemGetContent(item).value) || "";
 
     return (
       <div

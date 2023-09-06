@@ -5,7 +5,7 @@ import { Scru128Id } from "scru128";
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
+import { Item, itemGetContent, Stack } from "../types";
 import { b64ToUtf8, truncateUrl } from "../utils";
 
 function getTextMeta(input: string): { words: number; chars: number } {
@@ -140,8 +140,8 @@ function MetaInfoRow(meta: MetaValue) {
 
 export function MetaPanel({ stack }: { stack: Stack }) {
   const item = stack.selected();
-  if (!item?.hash) return <></>;
-  const content = stack.getContent(item.hash).value;
+  if (!item) return <></>;
+  const content = itemGetContent(item).value;
   if (!content) return <></>;
 
   return (

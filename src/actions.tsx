@@ -7,7 +7,7 @@ import { b64ToUtf8 } from "./utils";
 import { addToStackMode, editorMode, modes, pipeMode } from "./modals";
 
 import { Icon } from "./ui/icons";
-import { Action, Stack } from "./types";
+import { Action, Stack, itemGetContent } from "./types";
 
 export const actions: Action[] = [
   {
@@ -73,7 +73,7 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => {
       const item = stack.selected();
       if (!item?.hash) return false;
-      const content = stack.getContent(item.hash);
+      const content = itemGetContent(item);
       if (typeof (content.value) == "undefined") return false;
       const url = b64ToUtf8(content.value);
       console.log("OPEN", url);

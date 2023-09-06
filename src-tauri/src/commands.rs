@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{MimeType, Settings};
+use crate::store::{AddPacket, MimeType, Packet, Settings};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -73,14 +73,18 @@ pub async fn store_pipe_to_command(
 
 #[tauri::command]
 pub async fn store_pipe_to_gpt(
+    app: tauri::AppHandle,
     state: tauri::State<'_, SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
     let (settings, content) = {
-        let state = state.lock().unwrap();
+        let mut state = state.lock().unwrap();
 
         let settings = state.store.settings_get().ok_or(())?.clone();
         let item = state.view.items.get(&source_id).ok_or(())?;
+        let stack_id = item.stack_id.ok_or(())?;
+
+        println!("GPT: {:?} {:?}", source_id, stack_id);
 
         let hash = item.hash.clone().ok_or(())?;
 
@@ -91,10 +95,31 @@ pub async fn store_pipe_to_gpt(
 
         let content = state.store.cas_read(&hash).unwrap();
 
+        let packet = Packet::Add(AddPacket {
+            id: scru128::new(),
+            hash: None,
+            stack_id: Some(stack_id),
+            source: None,
+        });
+
+        state.merge(packet);
+        app.emit_all("refresh-items", true).unwrap();
         (settings, content)
     };
 
+    #[derive(Clone, serde::Serialize)]
+    struct Payload {
+        message: String,
+    }
+
     for _ in 0..3 {
+        app.emit_all(
+            "foo",
+            Payload {
+                message: "yack yack yack".into(),
+            },
+        )
+        .unwrap();
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         println!("GPT: {:?} {:?} {:?}", source_id, settings, content);
     }

@@ -103,7 +103,6 @@ export default {
     state.availOptions.value = ["Command"];
     invoke<Record<string, string>>("store_settings_get", {}).then(
       (settings: Record<string, string>) => {
-        console.log("SETTINGS", settings);
         if (settings) {
           state.availOptions.value = ["Command", "GPT"];
         }
