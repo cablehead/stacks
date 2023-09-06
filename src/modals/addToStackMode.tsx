@@ -7,7 +7,7 @@ import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
-import { Item, Stack, itemGetTerse } from "../types";
+import { Item, itemGetTerse, Stack } from "../types";
 
 function dn(): string {
   const date = new Date();
@@ -37,7 +37,9 @@ const state = (() => {
     availOptions.value
       .filter((item) =>
         currFilter.value == "" ||
-        itemGetTerse(item).toLowerCase().includes(currFilter.value.toLowerCase())
+        itemGetTerse(item).toLowerCase().includes(
+          currFilter.value.toLowerCase(),
+        )
       )
   );
 

@@ -1,7 +1,6 @@
 import { computed, effect, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
-import { hide } from "tauri-plugin-spotlight-api";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, overlay } from "../ui/app.css";
@@ -49,7 +48,6 @@ const state = (() => {
         if (item) {
           invoke("store_pipe_to_gpt", { sourceId: item.id });
           modes.deactivate();
-          hide();
           return;
         }
       }

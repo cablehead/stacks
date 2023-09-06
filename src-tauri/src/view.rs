@@ -45,7 +45,7 @@ impl View {
                         let children = stack.children.clone();
                         for child_id in children {
                             if let Some(child) = self.items.get_mut(&child_id) {
-                                if child.hash == packet.hash {
+                                if packet.hash.is_some() && child.hash == packet.hash {
                                     // If it exists, update it
                                     child.touched.push(packet.id);
                                     child.last_touched = packet.id;

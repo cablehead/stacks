@@ -2,6 +2,10 @@ export function b64ToUtf8(str: string) {
   return decodeURIComponent(escape(window.atob(str)));
 }
 
+export function utf8ToB64(str: string) {
+  return window.btoa(unescape(encodeURIComponent(str)));
+}
+
 export function truncateUrl(url: string, maxLength: number): string {
   const urlObj = new URL(url);
 

@@ -152,7 +152,7 @@ const RowIcon = ({ item }: { item: Item }) => {
 
 // @ts-ignore
 function Preview({ stack, item }: { stack: Stack; item: Item }) {
-  const content = itemGetContent(item).value;
+  const content = itemGetContent(item);
   if (!content) return <div>loading...</div>;
 
   if (item.mime_type === "image/png") {

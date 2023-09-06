@@ -3,8 +3,10 @@ import { JSXInternal } from "preact/src/jsx";
 import { effect, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
-import { listen } from "@tauri-apps/api/event";
+import { Event, listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
+
+import { b64ToUtf8 } from "./utils";
 
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
@@ -23,12 +25,15 @@ export interface Item {
   tiktokens: number;
 }
 
-export function itemGetContent(item: Item): Signal<string | undefined> {
-  return item.hash ? CAS.getSignal(item.hash) : signal("b2ggaGFpCg==");
+export function itemGetContent(item: Item): string {
+  return item.hash ? CAS.getSignal(item.hash).value : Ephemeral.getSignal(item.id).value.content;
 }
 
 export function itemGetTerse(item: Item): string {
-  return item.hash ? item.terse : "oh hai";
+  const terse = item.hash
+    ? item.terse
+    : b64ToUtf8(Ephemeral.getSignal(item.id).value.content);
+  return terse.trim() ? terse : "...";
 }
 
 export interface Layer {
@@ -57,6 +62,12 @@ const createFilter = () => {
   };
 };
 
+export interface EphemeralItem {
+  id: Scru128Id;
+  tiktokens: number;
+  content: string;
+}
+
 export class Stack {
   filter: {
     curr: Signal<string>;
@@ -84,8 +95,9 @@ export class Stack {
       console.log('listen("refresh-items');
       this.refresh();
     });
-    const d2 = await listen("foo", (payload) => {
-      console.log('listen("foo', payload);
+    const d2 = await listen("foo", (event: Event<EphemeralItem>) => {
+      const item = event.payload;
+      Ephemeral.getSignal(item.id).value = item;
     });
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
@@ -164,8 +176,26 @@ export interface Action {
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
+export const Ephemeral = (() => {
+  const signalCache: Map<Scru128Id, Signal<EphemeralItem>> = new Map();
+
+  function getSignal(id: Scru128Id): Signal<EphemeralItem> {
+    const cachedSignal = signalCache.get(id);
+    if (cachedSignal !== undefined) {
+      return cachedSignal;
+    }
+    const ret: Signal<EphemeralItem> = signal({ id: id, content: "", tiktokens: 0 });
+    signalCache.set(id, ret);
+    return ret;
+  }
+
+  return {
+    getSignal,
+  };
+})();
+
 export const CAS = (() => {
-  const signalCache: Map<string, Signal<string>> = new Map();
+  const signalCache: Map<SSRI, Signal<string>> = new Map();
 
   function getSignal(hash: SSRI): Signal<string> {
     const cachedSignal = signalCache.get(hash);

@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{AddPacket, MimeType, Packet, Settings};
+use crate::store::{count_tiktokens, AddPacket, MimeType, Packet, Settings};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -77,7 +77,7 @@ pub async fn store_pipe_to_gpt(
     state: tauri::State<'_, SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
-    let (settings, content) = {
+    let (packet, settings, content) = {
         let mut state = state.lock().unwrap();
 
         let settings = state.store.settings_get().ok_or(())?.clone();
@@ -102,21 +102,32 @@ pub async fn store_pipe_to_gpt(
             source: None,
         });
 
-        state.merge(packet);
+        state.merge(packet.clone());
+
+        let item = state.view.items.get(&packet.id()).cloned();
+        state.ui.select(item.as_ref());
         app.emit_all("refresh-items", true).unwrap();
-        (settings, content)
+        (packet, settings, content)
     };
 
     #[derive(Clone, serde::Serialize)]
     struct Payload {
-        message: String,
+        id: Scru128Id,
+        tiktokens: usize,
+        content: String,
     }
 
+    let mut aggregate = String::new();
+
     for _ in 0..3 {
+        let message = "yack yack yack".to_string();
+        aggregate.push_str(&message);
         app.emit_all(
             "foo",
             Payload {
-                message: "yack yack yack".into(),
+                id: packet.id(),
+                tiktokens: count_tiktokens(&aggregate),
+                content: general_purpose::STANDARD.encode(&aggregate),
             },
         )
         .unwrap();
