@@ -41,6 +41,12 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 let packet = if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
+                    if let Ok(str_ref) = std::str::from_utf8(&content) {
+                        if str_ref.trim().is_empty() {
+                            continue;
+                        }
+                    }
+
                     Some(
                         state
                             .store
