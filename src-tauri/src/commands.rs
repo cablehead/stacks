@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{Settings, MimeType};
+use crate::store::{MimeType, Settings};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -70,17 +70,32 @@ pub async fn store_pipe_to_command(
 }
 
 #[tauri::command]
-pub fn store_pipe_to_gpt(state: tauri::State<'_, SharedState>, source_id: scru128::Scru128Id) {
-    let state = state.lock().unwrap();
-    if let Some(item) = state.view.items.get(&source_id) {
+pub async fn store_pipe_to_gpt(
+    state: tauri::State<'_, SharedState>,
+    source_id: scru128::Scru128Id,
+) -> Result<(), ()> {
+    let (settings, content) = {
+        let state = state.lock().unwrap();
+
+        let settings = state.store.settings_get().ok_or(())?.clone();
+        let item = state.view.items.get(&source_id).ok_or(())?;
+
         let meta = state.store.get_content_meta(&item.hash).unwrap();
         if meta.mime_type != MimeType::TextPlain {
-            return;
+            return Ok(());
         }
+
         let content = state.store.cas_read(&item.hash).unwrap();
-        let settings = state.store.settings_get();
+
+        (settings, content)
+    };
+
+    for _ in 0..3 {
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
         println!("GPT: {:?} {:?} {:?}", source_id, settings, content);
     }
+
+    Ok(())
 }
 
 #[tauri::command]
