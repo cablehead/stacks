@@ -542,9 +542,13 @@ mod tests {
         let stored_update_packet = store.scan().last().unwrap();
         assert_eq!(update_packet, stored_update_packet);
 
-        match update_packet {
-            Packet::Update(packet) => {
-                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
+        match stored_update_packet {
+            Packet {
+                packet_type: PacketType::Update,
+                hash: Some(hash),
+                ..
+            } => {
+                let stored_content = store.cas_read(&hash).unwrap();
                 assert_eq!(updated_content.to_vec(), stored_content);
             }
             _ => panic!("Expected UpdatePacket"),
