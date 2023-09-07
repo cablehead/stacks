@@ -409,6 +409,12 @@ impl Store {
         stream.append(content);
         stream.packet.clone()
     }
+
+    pub fn end_stream(&mut self, id: Scru128Id) -> Packet {
+        let mut stream = self.in_progress_streams.remove(&id).unwrap();
+        stream.packet.ephemeral = false;
+        stream.packet
+    }
 }
 
 fn is_valid_https_url(url: &[u8]) -> bool {
