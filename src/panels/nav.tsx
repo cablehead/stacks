@@ -5,7 +5,7 @@ import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { borderRight } from "../ui/app.css";
 
-import { Item, itemGetContent, itemGetTerse, Layer, Stack } from "../types";
+import { Item, itemGetContent, Layer, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused }: {
@@ -66,7 +66,7 @@ const TerseRow = (
           textOverflow: "ellipsis",
         }}
       >
-        {itemGetTerse(item)}
+        {item.terse}
       </div>
     </div>
   );
