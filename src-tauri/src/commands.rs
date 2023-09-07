@@ -91,6 +91,7 @@ pub async fn store_pipe_to_gpt(
 
         let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
         let item = state.view.items.get(&packet.id).cloned();
+        println!("GPT: let's go: {:?}", packet.hash);
         state.ui.select(item.as_ref());
 
         (settings, content, packet)

@@ -242,7 +242,19 @@ impl Store {
     }
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        self.content_meta_cache.get(hash).cloned()
+        match self.content_meta_cache.get(hash) {
+            Some(meta) => Some(meta.clone()),
+            None => {
+                for stream in self.in_progress_streams.values() {
+                    if let Some(stream_hash) = &stream.packet.hash {
+                        if stream_hash == hash {
+                            return Some(stream.content_meta.clone());
+                        }
+                    }
+                }
+                None
+            }
+        }
     }
 
     pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {

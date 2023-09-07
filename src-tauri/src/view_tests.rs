@@ -230,6 +230,10 @@ fn test_stream() {
     view.merge(&packet);
     assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
 
+    // check that get_content_meta finds the ephemeral copy
+    let meta = store.get_content_meta(&packet.hash.unwrap());
+    assert_eq!(meta.unwrap().terse, "oh, hai 123");
+
     // Complete the stream
     let packet = store.end_stream(packet.id);
     view.merge(&packet);
@@ -245,4 +249,6 @@ fn test_stream() {
     assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
     let item = view.items.get(&packet.id).unwrap();
     assert!(!item.ephemeral);
+    let meta = store.get_content_meta(&packet.hash.unwrap());
+    assert_eq!(meta.unwrap().terse, "oh, hai 123");
 }

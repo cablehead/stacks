@@ -46,7 +46,8 @@ const state = (() => {
       if (selected.value == "GPT") {
         const item = stack.selected();
         if (item) {
-          invoke("store_pipe_to_gpt", { sourceId: item.id });
+          invoke("store_pipe_to_gpt", { sourceId: item.id })
+            .catch((err) => console.error("Error caught:", err));
           modes.deactivate();
           return;
         }

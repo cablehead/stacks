@@ -77,6 +77,7 @@ impl State {
     }
 
     pub fn merge(&mut self, packet: &Packet) {
+        println!("merge: {:?}", &packet.hash);
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
     }
