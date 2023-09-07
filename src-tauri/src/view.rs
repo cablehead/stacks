@@ -39,6 +39,30 @@ impl View {
     pub fn merge(&mut self, packet: Packet) {
         match packet.packet_type {
             PacketType::Add => {
+                // If this packet isn't ephemeral, check if an item with the same hash already
+                // exists in the same stack, do avoid duplicates
+                if !packet.ephemeral {
+                    if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
+                        let children = stack.children.clone();
+                        for child_id in children {
+                            if let Some(child) = self.items.get_mut(&child_id) {
+                                if &child.hash == packet.hash.as_ref().unwrap() {
+                                    // If it exists, update it
+                                    child.touched.push(packet.id);
+                                    child.last_touched = packet.id;
+                                    if let Some(stack) =
+                                        child.stack_id.and_then(|id| self.items.get_mut(&id))
+                                    {
+                                        stack.last_touched = packet.id;
+                                    }
+                                    return;
+                                }
+                            }
+                        }
+                    }
+                }
+
+                // Otherwise add a new item
                 let item = Item {
                     id: packet.id,
                     last_touched: packet.id,
