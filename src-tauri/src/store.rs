@@ -22,6 +22,63 @@ pub struct ContentMeta {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+pub struct InProgressStream {
+    pub content_meta: ContentMeta,
+    pub content: Vec<u8>,
+}
+
+impl InProgressStream {
+    pub fn new(content: &[u8]) -> Self {
+        let hash = ssri::Integrity::from(&content);
+        let text_content = String::from_utf8_lossy(content).into_owned();
+        let tiktokens = count_tiktokens(&text_content);
+        let terse = if text_content.len() > 100 {
+            text_content.chars().take(100).collect()
+        } else {
+            text_content
+        };
+
+        let content_type = if is_valid_https_url(content) {
+            "Link".to_string()
+        } else {
+            "Text".to_string()
+        };
+
+        let content_meta = ContentMeta {
+            hash: hash.clone(),
+            mime_type: MimeType::TextPlain,
+            content_type,
+            terse,
+            tiktokens,
+        };
+
+        InProgressStream {
+            content_meta,
+            content: content.to_vec(),
+        }
+    }
+
+    pub fn append(&mut self, content: &[u8]) {
+        // Append additional content
+        self.content.extend_from_slice(content);
+
+        // Update hash
+        self.content_meta.hash = ssri::Integrity::from(&self.content);
+
+        // Update tiktokens
+        let text_content = String::from_utf8_lossy(&self.content).into_owned();
+        self.content_meta.tiktokens = count_tiktokens(&text_content);
+
+        // Update terse
+        self.content_meta.terse = if text_content.len() > 100 {
+            text_content.chars().take(100).collect()
+        } else {
+            text_content
+        };
+    }
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub enum PacketType {
     Add,
     Update,
@@ -113,6 +170,7 @@ pub struct Store {
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
+    in_progress_streams: HashMap<Scru128Id, InProgressStream>,
 }
 
 impl Store {
@@ -131,6 +189,7 @@ impl Store {
             meta,
             cache_path,
             index: Index::new(path.join("index")),
+            in_progress_streams: HashMap::new(),
         };
         store.content_meta_cache = store.scan_content_meta();
         store
@@ -325,6 +384,21 @@ impl Store {
             let str = std::str::from_utf8(bytes.as_ref()).unwrap();
             serde_json::from_str(str).unwrap()
         })
+    }
+
+    pub fn start_stream(&mut self, content: &[u8], stack_id: Option<Scru128Id>) -> Packet {
+        let id = scru128::new();
+        let stream = InProgressStream::new(content);
+        let packet = Packet {
+            id,
+            packet_type: PacketType::Add,
+            source_id: None,
+            hash: Some(stream.content_meta.hash.clone()),
+            stack_id,
+            ephemeral: true,
+        };
+        self.in_progress_streams.insert(id, stream);
+        packet
     }
 }
 
