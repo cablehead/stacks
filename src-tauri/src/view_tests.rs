@@ -13,12 +13,12 @@ fn assert_view_as_expected(store: &Store, view: &View, expected: Vec<(&str, Vec<
                 .filter_map(|child_id| {
                     view.items
                         .get(child_id)
-                        .and_then(|child_item| store.cas_read(&child_item.hash))
+                        .and_then(|child_item| store.get_content(&child_item.hash))
                         .map(|content| String::from_utf8_lossy(&content).into_owned())
                 })
                 .collect::<Vec<_>>();
             store
-                .cas_read(&item.hash)
+                .get_content(&item.hash)
                 .map(|s| (String::from_utf8_lossy(&s).into_owned(), children))
         })
         .collect();
@@ -54,7 +54,7 @@ fn test_update_item() {
         None,
     );
 
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["Item 1 - updated"])]);
 }
 
@@ -72,7 +72,7 @@ fn test_fork_item() {
     // User forks the original item
     store.fork(item_id, Some(b"Item 1 - forked"), MimeType::TextPlain, None);
 
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(
         &store,
         &view,
@@ -97,7 +97,7 @@ fn test_move_item_to_new_stack() {
     // User moves the original item to "Stack 2"
     store.update(item_id, None, MimeType::TextPlain, Some(stack_id_2));
 
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(
         &store,
         &view,
@@ -127,7 +127,7 @@ fn test_delete_item() {
     // User deletes the second stack
     store.delete(stack_id_2);
 
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["Item 2"])]);
 }
 
@@ -148,7 +148,7 @@ fn test_fork_stack() {
         .id;
 
     let mut view = View::new();
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(
         &store,
         &view,
@@ -163,7 +163,7 @@ fn test_fork_stack() {
     store.fork(item_id_2, None, MimeType::TextPlain, Some(new_stack_id));
 
     let mut view = View::new();
-    store.scan().for_each(|p| view.merge(p));
+    store.scan().for_each(|p| view.merge(&p));
     assert_view_as_expected(
         &store,
         &view,
@@ -193,7 +193,7 @@ fn test_no_duplicate_entry_on_same_hash() {
         .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
         .id;
 
-    state.store.scan().for_each(|p| state.merge(p));
+    state.store.scan().for_each(|p| state.merge(&p));
 
     // Check that the stack item only has one child and that the item has been updated correctly
     assert_view_as_expected(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
@@ -202,4 +202,40 @@ fn test_no_duplicate_entry_on_same_hash() {
     let item = state.view.items.get(&id1).unwrap();
     assert_eq!(item.touched, vec![id1, id2]);
     assert_eq!(item.last_touched, id2);
+}
+
+#[test]
+fn test_stream() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    let mut store = Store::new(path);
+    let mut view = View::new();
+
+    let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
+    store.scan().for_each(|p| view.merge(&p));
+
+    // Start the stream with the content "oh, "
+    let packet = store.start_stream(Some(stack_id), b"oh, ");
+    view.merge(&packet);
+    assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, "])]);
+
+    // Add "hai " to the stream
+    let packet = store.update_stream(packet.id, b"hai ");
+    view.merge(&packet);
+    assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai "])]);
+
+    // Add "123" to the stream
+    let packet = store.update_stream(packet.id, b"123");
+    view.merge(&packet);
+    assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
+
+    // Complete the stream
+    let packet = store.end_stream(packet.id);
+    view.merge(&packet);
+    assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
+
+    // Check that the item is no longer ephemeral
+    let item = view.items.get(&packet.id).unwrap();
+    assert!(!item.ephemeral);
 }

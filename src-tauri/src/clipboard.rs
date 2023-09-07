@@ -56,7 +56,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 };
 
                 if let Some(packet) = packet {
-                    state.merge(packet);
+                    state.merge(&packet);
                 }
 
                 app.emit_all("refresh-items", true).unwrap();

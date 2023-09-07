@@ -14,6 +14,7 @@ pub struct Item {
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
     pub forked_children: Vec<Scru128Id>,
+    pub ephemeral: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -36,7 +37,7 @@ impl View {
         }
     }
 
-    pub fn merge(&mut self, packet: Packet) {
+    pub fn merge(&mut self, packet: &Packet) {
         match packet.packet_type {
             PacketType::Add => {
                 // If this packet isn't ephemeral, check if an item with the same hash already
@@ -67,10 +68,11 @@ impl View {
                     id: packet.id,
                     last_touched: packet.id,
                     touched: vec![packet.id],
-                    hash: packet.hash.unwrap(),
+                    hash: packet.hash.clone().unwrap(),
                     stack_id: packet.stack_id,
                     children: Vec::new(),
                     forked_children: Vec::new(),
+                    ephemeral: packet.ephemeral,
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
@@ -85,8 +87,8 @@ impl View {
                 if let Some(item) = self.items.get(&source_id).cloned() {
                     let mut item = item;
 
-                    if let Some(hash) = packet.hash {
-                        item.hash = hash;
+                    if let Some(hash) = &packet.hash {
+                        item.hash = hash.clone();
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -120,8 +122,8 @@ impl View {
                     new_item.forked_children = item.children.clone();
                     new_item.children = Vec::new();
 
-                    if let Some(hash) = packet.hash {
-                        new_item.hash = hash;
+                    if let Some(hash) = &packet.hash {
+                        new_item.hash = hash.clone();
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {

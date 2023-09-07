@@ -104,7 +104,7 @@ fn test_ui_render() {
     assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 
     // post initial merge state
-    state.store.scan().for_each(|p| state.merge(p));
+    state.store.scan().for_each(|p| state.merge(&p));
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -162,7 +162,7 @@ fn test_ui_render() {
 
     // user press: delete # this is the top item in the first stack
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
-    state.merge(packet);
+    state.merge(&packet);
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (

@@ -245,6 +245,22 @@ impl Store {
         self.content_meta_cache.get(hash).cloned()
     }
 
+    pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {
+        match self.cas_read(hash) {
+            Some(content) => Some(content),
+            None => {
+                for stream in self.in_progress_streams.values() {
+                    if let Some(stream_hash) = &stream.packet.hash {
+                        if stream_hash == hash {
+                            return Some(stream.content.clone());
+                        }
+                    }
+                }
+                None
+            }
+        }
+    }
+
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
 
@@ -289,7 +305,7 @@ impl Store {
         hash
     }
 
-    pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
+    fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
     }
 

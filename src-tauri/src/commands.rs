@@ -92,7 +92,7 @@ pub async fn store_pipe_to_gpt(
                 return Ok(());
             }
 
-            let content = state.store.cas_read(&hash).unwrap();
+            let content = state.store.get_content(&hash).unwrap();
 
             let packet = Packet::Add(AddPacket {
                 id: scru128::new(),
@@ -179,7 +179,7 @@ pub fn store_get_content(
     let state = state.lock().unwrap();
     state
         .store
-        .cas_read(&hash)
+        .get_content(&hash)
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
 
@@ -303,7 +303,7 @@ pub fn store_copy_to_clipboard(
             MimeType::TextPlain => "public.utf8-plain-text",
             MimeType::ImagePng => "public.png",
         };
-        let content = state.store.cas_read(&item.hash).unwrap();
+        let content = state.store.get_content(&item.hash).unwrap();
 
         let _change_num = write_to_clipboard(mime_type, &content);
         Some(())
@@ -323,14 +323,12 @@ pub fn store_new_note(
 
     let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
 
-    let packet = state.store.add(
-        content.as_bytes(),
-        MimeType::TextPlain,
-        Some(stack_id),
-    );
+    let packet = state
+        .store
+        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id));
 
     let id = packet.id;
-    state.merge(packet);
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
@@ -351,7 +349,7 @@ pub fn store_edit_note(
         MimeType::TextPlain,
         None,
     );
-    state.merge(packet);
+    state.merge(&packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -365,7 +363,7 @@ pub fn store_delete(
 ) {
     let mut state = state.lock().unwrap();
     let packet = state.store.delete(id);
-    state.merge(packet);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
 
@@ -375,7 +373,7 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
     if let Some(item) = state.view.undo.clone() {
         state.store.remove_packet(&item.last_touched);
         let mut view = View::new();
-        state.store.scan().for_each(|p| view.merge(p));
+        state.store.scan().for_each(|p| view.merge(&p));
         let mut ui = UI::new(&view);
         ui.select(view.items.get(&item.id));
         state.view = view;
@@ -416,7 +414,7 @@ pub fn store_add_to_stack(
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
 
     let id = packet.id;
-    state.merge(packet);
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
@@ -431,20 +429,15 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
+    state.merge(&packet);
+
     let packet = state
         .store
-        .add(name.as_bytes(), MimeType::TextPlain, None);
-    state.merge(packet.clone());
-
-    let packet = state.store.fork(
-        source_id,
-        None,
-        MimeType::TextPlain,
-        Some(packet.id),
-    );
+        .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
 
     let id = packet.id;
-    state.merge(packet);
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
