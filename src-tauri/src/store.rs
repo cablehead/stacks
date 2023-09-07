@@ -428,6 +428,8 @@ impl Store {
 
     pub fn end_stream(&mut self, id: Scru128Id) -> Packet {
         let mut stream = self.in_progress_streams.remove(&id).unwrap();
+        let hash = self.cas_write(&stream.content, stream.content_meta.mime_type);
+        stream.packet.hash = Some(hash);
         stream.packet.ephemeral = false;
         stream.packet
     }

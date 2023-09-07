@@ -47,7 +47,7 @@ impl View {
                         let children = stack.children.clone();
                         for child_id in children {
                             if let Some(child) = self.items.get_mut(&child_id) {
-                                if &child.hash == packet.hash.as_ref().unwrap() {
+                                if !child.ephemeral && &child.hash == packet.hash.as_ref().unwrap() {
                                     // If it exists, update it
                                     child.touched.push(packet.id);
                                     child.last_touched = packet.id;
@@ -76,8 +76,12 @@ impl View {
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
-                    stack.children.push(packet.id);
-                    stack.last_touched = packet.id;
+                    if !stack.children.contains(&packet.id) {
+                        stack.children.push(packet.id);
+                    }
+                    if packet.id > stack.last_touched {
+                        stack.last_touched = packet.id;
+                    }
                 }
                 self.items.insert(packet.id, item);
             }
