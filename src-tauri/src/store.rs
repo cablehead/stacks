@@ -431,6 +431,7 @@ impl Store {
         let hash = self.cas_write(&stream.content, stream.content_meta.mime_type);
         stream.packet.hash = Some(hash);
         stream.packet.ephemeral = false;
+        self.insert_packet(&stream.packet);
         stream.packet
     }
 }

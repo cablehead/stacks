@@ -238,4 +238,11 @@ fn test_stream() {
     // Check that the item is no longer ephemeral
     let item = view.items.get(&packet.id).unwrap();
     assert!(!item.ephemeral);
+
+    // Simulate a full restart
+    let mut view = View::new();
+    store.scan().for_each(|p| view.merge(&p));
+    assert_view_as_expected(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
+    let item = view.items.get(&packet.id).unwrap();
+    assert!(!item.ephemeral);
 }
