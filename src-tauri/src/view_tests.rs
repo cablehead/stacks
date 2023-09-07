@@ -1,6 +1,6 @@
-pub use crate::view::{Item, View};
+pub use crate::state::State;
 pub use crate::store::{MimeType, Packet, Store};
-pub use crate::state::{State};
+pub use crate::view::{Item, View};
 
 fn assert_view_as_expected(store: &Store, view: &View, expected: Vec<(&str, Vec<&str>)>) {
     let actual: Vec<(String, Vec<String>)> = view
@@ -45,9 +45,7 @@ fn test_update_item() {
     let mut view = View::new();
 
     let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id = store
-        .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
-        .id;
+    let item_id = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
     // User updates the item
     store.update(
         item_id,
@@ -69,17 +67,10 @@ fn test_fork_item() {
     let mut view = View::new();
 
     let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id = store
-        .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
-        .id;
+    let item_id = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
 
     // User forks the original item
-    store.fork(
-        item_id,
-        Some(b"Item 1 - forked"),
-        MimeType::TextPlain,
-        None,
-    );
+    store.fork(item_id, Some(b"Item 1 - forked"), MimeType::TextPlain, None);
 
     store.scan().for_each(|p| view.merge(p));
     assert_view_as_expected(
@@ -98,9 +89,7 @@ fn test_move_item_to_new_stack() {
     let mut view = View::new();
 
     let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id = store
-        .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
-        .id;
+    let item_id = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
 
     // User creates a new Stack "Stack 2"
     let stack_id_2 = store.add(b"Stack 2", MimeType::TextPlain, None).id;
@@ -125,12 +114,8 @@ fn test_delete_item() {
     let mut view = View::new();
 
     let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id_1 = store
-        .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
-        .id;
-    let _item_id_2 = store
-        .add(b"Item 2", MimeType::TextPlain, Some(stack_id))
-        .id;
+    let item_id_1 = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
+    let _item_id_2 = store.add(b"Item 2", MimeType::TextPlain, Some(stack_id)).id;
 
     let stack_id_2 = store.add(b"Stack 2", MimeType::TextPlain, None).id;
     let _item_id_3 = store
@@ -154,12 +139,8 @@ fn test_fork_stack() {
     let mut store = Store::new(path);
 
     let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id_1 = store
-        .add(b"Item 1", MimeType::TextPlain, Some(stack_id))
-        .id;
-    let item_id_2 = store
-        .add(b"Item 2", MimeType::TextPlain, Some(stack_id))
-        .id;
+    let item_id_1 = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
+    let item_id_2 = store.add(b"Item 2", MimeType::TextPlain, Some(stack_id)).id;
 
     // User forks the stack
     let new_stack_id = store
@@ -178,18 +159,8 @@ fn test_fork_stack() {
     );
 
     // User forks the items to the new stack
-    store.fork(
-        item_id_1,
-        None,
-        MimeType::TextPlain,
-        Some(new_stack_id),
-    );
-    store.fork(
-        item_id_2,
-        None,
-        MimeType::TextPlain,
-        Some(new_stack_id),
-    );
+    store.fork(item_id_1, None, MimeType::TextPlain, Some(new_stack_id));
+    store.fork(item_id_2, None, MimeType::TextPlain, Some(new_stack_id));
 
     let mut view = View::new();
     store.scan().for_each(|p| view.merge(p));
@@ -210,10 +181,7 @@ fn test_no_duplicate_entry_on_same_hash() {
 
     let mut state = State::new(path);
 
-    let stack_id = state
-        .store
-        .add(b"Stack 1", MimeType::TextPlain, None)
-        .id;
+    let stack_id = state.store.add(b"Stack 1", MimeType::TextPlain, None).id;
     let id1 = state
         .store
         .add(b"Item 1", MimeType::TextPlain, Some(stack_id))

@@ -80,11 +80,7 @@ fn test_ui_render() {
         .map(|i| {
             state
                 .store
-                .add(
-                    format!("Stack {}", i).as_bytes(),
-                    MimeType::TextPlain,
-                    None,
-                )
+                .add(format!("Stack {}", i).as_bytes(), MimeType::TextPlain, None)
                 .id
         })
         .collect();

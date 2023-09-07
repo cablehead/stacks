@@ -47,18 +47,10 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                         }
                     }
 
-                    Some(
-                        state
-                            .store
-                            .add(&content, MimeType::TextPlain, curr_stack),
-                    )
+                    Some(state.store.add(&content, MimeType::TextPlain, curr_stack))
                 } else if types.contains_key("public.png") {
                     let content = b64decode(types["public.png"].as_str().unwrap());
-                    Some(
-                        state
-                            .store
-                            .add(&content, MimeType::ImagePng, curr_stack),
-                    )
+                    Some(state.store.add(&content, MimeType::ImagePng, curr_stack))
                 } else {
                     None
                 };
