@@ -84,7 +84,6 @@ fn test_ui_render() {
                     format!("Stack {}", i).as_bytes(),
                     MimeType::TextPlain,
                     None,
-                    None,
                 )
                 .id
         })
@@ -95,14 +94,12 @@ fn test_ui_render() {
             format!("https://stack-{}.com", i + 1).as_bytes(),
             MimeType::TextPlain,
             Some(*stack_id),
-            None,
         );
         for j in 1..=3 {
             let _ = state.store.add(
                 format!("S{}::Item {}", i + 1, j).as_bytes(),
                 MimeType::TextPlain,
                 Some(*stack_id),
-                None,
             );
         }
     }

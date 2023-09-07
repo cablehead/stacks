@@ -13,7 +13,7 @@ pub struct Item {
     pub stack_id: Option<Scru128Id>,
     pub last_touched: Scru128Id,
     pub touched: Vec<Scru128Id>,
-    pub hash: Option<Integrity>,
+    pub hash: Integrity,
     pub mime_type: MimeType,
     pub content_type: String,
     pub terse: String,
@@ -225,30 +225,16 @@ impl UI {
 }
 
 pub fn with_meta(store: &Store, item: &view::Item) -> Item {
-    if let Some(hash) = &item.hash {
-        let content_meta = store.content_meta_cache.get(&hash).unwrap();
-        Item {
-            id: item.id,
-            stack_id: item.stack_id,
-            last_touched: item.last_touched,
-            touched: item.touched.clone(),
-            hash: Some(hash.clone()),
-            mime_type: content_meta.mime_type.clone(),
-            content_type: content_meta.content_type.clone(),
-            terse: content_meta.terse.clone(),
-            tiktokens: content_meta.tiktokens,
-        }
-    } else {
-        Item {
-            id: item.id,
-            stack_id: item.stack_id,
-            last_touched: item.last_touched,
-            touched: item.touched.clone(),
-            hash: None,
-            mime_type: MimeType::TextPlain,
-            content_type: "Text".to_string(),
-            terse: "".to_string(),
-            tiktokens: 0,
-        }
+    let content_meta = store.get_content_meta(&item.hash).unwrap();
+    Item {
+        id: item.id,
+        stack_id: item.stack_id,
+        last_touched: item.last_touched,
+        touched: item.touched.clone(),
+        hash: item.hash.clone(),
+        mime_type: content_meta.mime_type.clone(),
+        content_type: content_meta.content_type.clone(),
+        terse: content_meta.terse.clone(),
+        tiktokens: content_meta.tiktokens,
     }
 }

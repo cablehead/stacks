@@ -10,7 +10,7 @@ pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,
     pub touched: Vec<Scru128Id>,
-    pub hash: Option<Integrity>,
+    pub hash: Integrity,
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
     pub forked_children: Vec<Scru128Id>,
@@ -39,34 +39,11 @@ impl View {
     pub fn merge(&mut self, packet: Packet) {
         match packet.packet_type {
             PacketType::Add => {
-                // Check if an item with the same hash already exists in the same stack
-                if let Some(stack_id) = packet.stack_id {
-                    if let Some(stack) = self.items.get(&stack_id) {
-                        let children = stack.children.clone();
-                        for child_id in children {
-                            if let Some(child) = self.items.get_mut(&child_id) {
-                                if packet.hash.is_some() && child.hash == packet.hash {
-                                    // If it exists, update it
-                                    child.touched.push(packet.id);
-                                    child.last_touched = packet.id;
-                                    if let Some(stack) =
-                                        child.stack_id.and_then(|id| self.items.get_mut(&id))
-                                    {
-                                        stack.last_touched = packet.id;
-                                    }
-                                    return;
-                                }
-                            }
-                        }
-                    }
-                }
-
-                // If it doesn't exist, add it
                 let item = Item {
                     id: packet.id,
                     last_touched: packet.id,
                     touched: vec![packet.id],
-                    hash: packet.hash,
+                    hash: packet.hash.unwrap(),
                     stack_id: packet.stack_id,
                     children: Vec::new(),
                     forked_children: Vec::new(),
@@ -85,7 +62,7 @@ impl View {
                     let mut item = item;
 
                     if let Some(hash) = packet.hash {
-                        item.hash = Some(hash);
+                        item.hash = hash;
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -120,7 +97,7 @@ impl View {
                     new_item.children = Vec::new();
 
                     if let Some(hash) = packet.hash {
-                        new_item.hash = Some(hash);
+                        new_item.hash = hash;
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -241,9 +218,7 @@ impl View {
                         .into_iter()
                         .filter(|child_id| {
                             if let Some(child) = self.items.get(child_id) {
-                                if let Some(hash) = child.hash.as_ref() {
-                                    return matches.contains(&hash);
-                                }
+                                return matches.contains(&child.hash);
                             }
                             false
                         })
@@ -251,7 +226,7 @@ impl View {
                     if item.children.is_empty() {
                         return None;
                     }
-                } else if item.hash.is_none() || !matches.contains(&item.hash.as_ref().unwrap()) {
+                } else if !matches.contains(&item.hash) {
                     return None;
                 }
                 Some((item.id, item))

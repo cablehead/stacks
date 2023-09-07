@@ -30,8 +30,6 @@ pub async fn store_pipe_to_command(
         (cache_path, item.hash.clone())
     };
 
-    let hash = hash.ok_or(())?;
-
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
         Ok(val) => val,
@@ -73,9 +71,9 @@ pub async fn store_pipe_to_command(
 
 #[tauri::command]
 pub async fn store_pipe_to_gpt(
-    app: tauri::AppHandle,
-    state: tauri::State<'_, SharedState>,
-    source_id: scru128::Scru128Id,
+    _app: tauri::AppHandle,
+    _state: tauri::State<'_, SharedState>,
+    _source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
     /*
         let (packet, settings, content) = {
@@ -299,15 +297,13 @@ pub fn store_copy_to_clipboard(
     let state = state.lock().unwrap();
 
     if let Some(item) = state.view.items.get(&source_id) {
-        let hash = item.hash.as_ref()?;
-
-        let meta = state.store.get_content_meta(&hash).unwrap();
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
 
         let mime_type = match &meta.mime_type {
             MimeType::TextPlain => "public.utf8-plain-text",
             MimeType::ImagePng => "public.png",
         };
-        let content = state.store.cas_read(&hash).unwrap();
+        let content = state.store.cas_read(&item.hash).unwrap();
 
         let _change_num = write_to_clipboard(mime_type, &content);
         Some(())
@@ -331,7 +327,6 @@ pub fn store_new_note(
         content.as_bytes(),
         MimeType::TextPlain,
         Some(stack_id),
-        None,
     );
 
     let id = packet.id;
@@ -354,7 +349,6 @@ pub fn store_edit_note(
         source_id,
         Some(content.as_bytes()),
         MimeType::TextPlain,
-        None,
         None,
     );
     state.merge(packet);
@@ -419,7 +413,7 @@ pub fn store_add_to_stack(
 
     let packet = state
         .store
-        .fork(source_id, None, MimeType::TextPlain, Some(stack_id), None);
+        .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
 
     let id = packet.id;
     state.merge(packet);
@@ -439,7 +433,7 @@ pub fn store_add_to_new_stack(
 
     let packet = state
         .store
-        .add(name.as_bytes(), MimeType::TextPlain, None, None);
+        .add(name.as_bytes(), MimeType::TextPlain, None);
     state.merge(packet.clone());
 
     let packet = state.store.fork(
@@ -447,7 +441,6 @@ pub fn store_add_to_new_stack(
         None,
         MimeType::TextPlain,
         Some(packet.id),
-        None,
     );
 
     let id = packet.id;

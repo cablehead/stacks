@@ -72,7 +72,6 @@ impl State {
             stack_name.as_bytes(),
             MimeType::TextPlain,
             None,
-            Some("stream.cross.stacks".to_string()),
         );
 
         let id = packet.id;
