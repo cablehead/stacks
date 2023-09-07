@@ -71,101 +71,86 @@ pub async fn store_pipe_to_command(
 
 #[tauri::command]
 pub async fn store_pipe_to_gpt(
-    _app: tauri::AppHandle,
-    _state: tauri::State<'_, SharedState>,
-    _source_id: scru128::Scru128Id,
+    app: tauri::AppHandle,
+    state: tauri::State<'_, SharedState>,
+    source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
-    /*
-        let (packet, settings, content) = {
-            let mut state = state.lock().unwrap();
+    let (settings, content, packet) = {
+        let mut state = state.lock().unwrap();
 
-            let settings = state.store.settings_get().ok_or(())?.clone();
-            let item = state.view.items.get(&source_id).ok_or(())?;
-            let stack_id = item.stack_id.ok_or(())?;
+        let settings = state.store.settings_get().ok_or(())?.clone();
+        let item = state.view.items.get(&source_id).ok_or(())?;
+        let stack_id = item.stack_id.ok_or(())?;
 
-            println!("GPT: {:?} {:?}", source_id, stack_id);
-
-            let hash = item.hash.clone().ok_or(())?;
-
-            let meta = state.store.get_content_meta(&hash).unwrap();
-            if meta.mime_type != MimeType::TextPlain {
-                return Ok(());
-            }
-
-            let content = state.store.get_content(&hash).unwrap();
-
-            let packet = Packet::Add(AddPacket {
-                id: scru128::new(),
-                hash: None,
-                stack_id: Some(stack_id),
-                source: None,
-            });
-
-            state.merge(packet.clone());
-
-            let item = state.view.items.get(&packet.id()).cloned();
-            state.ui.select(item.as_ref());
-            app.emit_all("refresh-items", true).unwrap();
-            (packet, settings, content)
-        };
-
-        #[derive(Clone, serde::Serialize)]
-        struct Payload {
-            id: Scru128Id,
-            tiktokens: usize,
-            content: String,
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
+        if meta.mime_type != MimeType::TextPlain {
+            return Ok(());
         }
 
-        use async_openai::{
-            types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
-            Client, config::OpenAIConfig,
-        };
-        use futures::StreamExt;
+        let content = state.store.get_content(&item.hash).unwrap();
 
-        let config = OpenAIConfig::new().with_api_key(settings.openai_access_token);
+        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
+        let item = state.view.items.get(&packet.id).cloned();
+        state.ui.select(item.as_ref());
 
-        let client = Client::with_config(config);
+        (settings, content, packet)
+    };
 
-        let request = CreateChatCompletionRequestArgs::default()
-            .model(&settings.openai_selected_model)
-            .max_tokens(512u16)
-            .messages([ChatCompletionRequestMessageArgs::default()
-                .content(String::from_utf8(content).unwrap())
-                .role(Role::User)
-                .build()
-                .unwrap()])
+    #[derive(Clone, serde::Serialize)]
+    struct Payload {
+        id: Scru128Id,
+        tiktokens: usize,
+        content: String,
+    }
+
+    use async_openai::{
+        config::OpenAIConfig,
+        types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
+        Client,
+    };
+    use futures::StreamExt;
+
+    let config = OpenAIConfig::new().with_api_key(settings.openai_access_token);
+
+    let client = Client::with_config(config);
+
+    let request = CreateChatCompletionRequestArgs::default()
+        .model(&settings.openai_selected_model)
+        .max_tokens(512u16)
+        .messages([ChatCompletionRequestMessageArgs::default()
+            .content(String::from_utf8(content).unwrap())
+            .role(Role::User)
             .build()
-            .unwrap();
+            .unwrap()])
+        .build()
+        .unwrap();
 
-        let mut stream = client.chat().create_stream(request).await.unwrap();
+    let mut stream = client.chat().create_stream(request).await.unwrap();
 
-        let mut aggregate = String::new();
+    let mut packet = packet;
 
-        while let Some(result) = stream.next().await {
-            match result {
-                Ok(response) => {
-                    response.choices.iter().for_each(|chat_choice| {
-                        if let Some(ref content) = chat_choice.delta.content {
-                            aggregate.push_str(content);
-                        }
-                    });
+    while let Some(result) = stream.next().await {
+        match result {
+            Ok(response) => {
+                let aggregate = response
+                    .choices
+                    .iter()
+                    .filter_map(|chat_choice| chat_choice.delta.content.as_ref())
+                    .flat_map(|content| content.as_bytes().iter().cloned())
+                    .collect::<Vec<u8>>();
 
-                    app.emit_all(
-                        "foo",
-                        Payload {
-                            id: packet.id(),
-                            tiktokens: count_tiktokens(&aggregate),
-                            content: general_purpose::STANDARD.encode(&aggregate),
-                        },
-                    )
-                    .unwrap();
-                }
-                Err(err) => {
-                    println!("GPT error: {:#?}", err);
+                {
+                    let mut state = state.lock().unwrap();
+                    packet = state.store.update_stream(packet.id, &aggregate);
+                    state.merge(&packet);
+                    app.emit_all("refresh-items", true).unwrap();
                 }
             }
+            Err(err) => {
+                println!("GPT error: {:#?}", err);
+            }
         }
-    */
+    }
 
     Ok(())
 }
