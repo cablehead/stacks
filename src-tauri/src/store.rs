@@ -578,8 +578,12 @@ mod tests {
         assert_eq!(forked_packet, stored_fork_packet);
 
         match forked_packet {
-            Packet::Fork(packet) => {
-                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
+            Packet {
+                packet_type: PacketType::Fork,
+                hash,
+                ..
+            } => {
+                let stored_content = store.cas_read(&hash.unwrap()).unwrap();
                 assert_eq!(forked_content.to_vec(), stored_content);
             }
             _ => panic!("Expected ForkPacket"),
