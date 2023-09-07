@@ -25,10 +25,11 @@ pub struct ContentMeta {
 pub struct InProgressStream {
     pub content_meta: ContentMeta,
     pub content: Vec<u8>,
+    pub packet: Packet,
 }
 
 impl InProgressStream {
-    pub fn new(content: &[u8]) -> Self {
+    pub fn new(stack_id: Option<Scru128Id>, content: &[u8]) -> Self {
         let hash = ssri::Integrity::from(&content);
         let text_content = String::from_utf8_lossy(content).into_owned();
         let tiktokens = count_tiktokens(&text_content);
@@ -55,6 +56,14 @@ impl InProgressStream {
         InProgressStream {
             content_meta,
             content: content.to_vec(),
+            packet: Packet {
+                id: scru128::new(),
+                packet_type: PacketType::Add,
+                source_id: None,
+                hash: Some(hash.clone()),
+                stack_id,
+                ephemeral: true,
+            },
         }
     }
 
@@ -75,6 +84,8 @@ impl InProgressStream {
         } else {
             text_content
         };
+
+        self.packet.hash = Some(self.content_meta.hash.clone());
     }
 }
 
@@ -386,19 +397,17 @@ impl Store {
         })
     }
 
-    pub fn start_stream(&mut self, content: &[u8], stack_id: Option<Scru128Id>) -> Packet {
-        let id = scru128::new();
-        let stream = InProgressStream::new(content);
-        let packet = Packet {
-            id,
-            packet_type: PacketType::Add,
-            source_id: None,
-            hash: Some(stream.content_meta.hash.clone()),
-            stack_id,
-            ephemeral: true,
-        };
-        self.in_progress_streams.insert(id, stream);
+    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
+        let stream = InProgressStream::new(stack_id, content);
+        let packet = stream.packet.clone();
+        self.in_progress_streams.insert(stream.packet.id, stream);
         packet
+    }
+
+    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
+        let mut stream = self.in_progress_streams.get_mut(&id).unwrap();
+        stream.append(content);
+        stream.packet.clone()
     }
 }
 
