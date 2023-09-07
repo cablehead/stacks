@@ -41,7 +41,7 @@ impl View {
         match packet.packet_type {
             PacketType::Add => {
                 // If this packet isn't ephemeral, check if an item with the same hash already
-                // exists in the same stack, do avoid duplicates
+                // exists in the same stack, in order to avoid duplicates
                 if !packet.ephemeral {
                     if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
                         let children = stack.children.clone();
