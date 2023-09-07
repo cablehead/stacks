@@ -76,7 +76,7 @@ impl InProgressStream {
 
         // Update tiktokens
         let text_content = String::from_utf8_lossy(&self.content).into_owned();
-        self.content_meta.tiktokens = count_tiktokens(&text_content);
+        // self.content_meta.tiktokens = count_tiktokens(&text_content);
 
         // Update terse
         self.content_meta.terse = if text_content.len() > 100 {
