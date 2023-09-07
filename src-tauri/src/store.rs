@@ -14,7 +14,7 @@ pub enum MimeType {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct ContentMeta {
-    pub hash: Option<Integrity>,
+    pub hash: Integrity,
     pub mime_type: MimeType,
     pub content_type: String,
     pub terse: String,
@@ -199,7 +199,7 @@ impl Store {
         };
 
         let meta = ContentMeta {
-            hash: Some(hash.clone()),
+            hash: hash.clone(),
             mime_type: mime_type.clone(),
             content_type,
             terse,
