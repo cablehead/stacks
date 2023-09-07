@@ -75,7 +75,7 @@ impl State {
             Some("stream.cross.stacks".to_string()),
         );
 
-        let id = packet.id();
+        let id = packet.id;
         self.merge(packet);
         id
     }

@@ -22,54 +22,178 @@ pub struct ContentMeta {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub enum Packet {
-    Add(AddPacket),
-    Update(UpdatePacket),
-    Fork(ForkPacket),
-    Delete(DeletePacket),
+pub enum PacketType {
+    Add,
+    Update,
+    Fork,
+    Delete,
 }
 
-impl Packet {
-    pub fn id(&self) -> Scru128Id {
-        match self {
-            Packet::Add(packet) => packet.id,
-            Packet::Update(packet) => packet.id,
-            Packet::Fork(packet) => packet.id,
-            Packet::Delete(packet) => packet.id,
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+pub struct Packet {
+    pub id: Scru128Id,
+    pub packet_type: PacketType,
+    pub source_id: Option<Scru128Id>,
+    pub hash: Option<Integrity>,
+    pub stack_id: Option<Scru128Id>,
+    pub ephemeral: bool,
+}
+
+pub struct AddPacketBuilder {
+    hash: Integrity,
+    stack_id: Option<Scru128Id>,
+    ephemeral: bool,
+}
+
+impl AddPacketBuilder {
+    pub fn stack_id(mut self, stack_id: Scru128Id) -> Self {
+        self.stack_id = Some(stack_id);
+        self
+    }
+
+    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+        self.ephemeral = ephemeral;
+        self
+    }
+
+    pub fn build(self) -> Packet {
+        Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Add,
+            source_id: None,
+            hash: Some(self.hash),
+            stack_id: self.stack_id,
+            ephemeral: self.ephemeral,
         }
     }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct AddPacket {
-    pub id: Scru128Id,
-    pub hash: Option<Integrity>,
-    pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
+pub struct UpdatePacketBuilder {
+    source_id: Scru128Id,
+    hash: Option<Integrity>,
+    stack_id: Option<Scru128Id>,
+    ephemeral: bool,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct UpdatePacket {
-    pub id: Scru128Id,
-    pub source_id: Scru128Id,
-    pub hash: Option<Integrity>,
-    pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
+impl UpdatePacketBuilder {
+    pub fn hash(mut self, hash: Integrity) -> Self {
+        self.hash = Some(hash);
+        self
+    }
+
+    pub fn stack_id(mut self, stack_id: Scru128Id) -> Self {
+        self.stack_id = Some(stack_id);
+        self
+    }
+
+    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+        self.ephemeral = ephemeral;
+        self
+    }
+
+    pub fn build(self) -> Packet {
+        Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(self.source_id),
+            hash: self.hash,
+            stack_id: self.stack_id,
+            ephemeral: self.ephemeral,
+        }
+    }
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct ForkPacket {
-    pub id: Scru128Id,
-    pub source_id: Scru128Id,
-    pub hash: Option<Integrity>,
-    pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
+pub struct ForkPacketBuilder {
+    source_id: Scru128Id,
+    hash: Option<Integrity>,
+    stack_id: Option<Scru128Id>,
+    ephemeral: bool,
 }
 
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct DeletePacket {
-    pub id: Scru128Id,
-    pub source_id: Scru128Id,
+impl ForkPacketBuilder {
+    pub fn hash(mut self, hash: Integrity) -> Self {
+        self.hash = Some(hash);
+        self
+    }
+
+    pub fn stack_id(mut self, stack_id: Scru128Id) -> Self {
+        self.stack_id = Some(stack_id);
+        self
+    }
+
+    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+        self.ephemeral = ephemeral;
+        self
+    }
+
+    pub fn build(self) -> Packet {
+        Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Fork,
+            source_id: Some(self.source_id),
+            hash: self.hash,
+            stack_id: self.stack_id,
+            ephemeral: self.ephemeral,
+        }
+    }
+}
+
+pub struct DeletePacketBuilder {
+    id: Scru128Id,
+    ephemeral: bool,
+}
+
+impl DeletePacketBuilder {
+    pub fn ephemeral(mut self, ephemeral: bool) -> Self {
+        self.ephemeral = ephemeral;
+        self
+    }
+
+    pub fn build(self) -> Packet {
+        Packet {
+            id: self.id,
+            packet_type: PacketType::Delete,
+            source_id: None,
+            hash: None,
+            stack_id: None,
+            ephemeral: self.ephemeral,
+        }
+    }
+}
+
+impl Packet {
+    pub fn add(hash: Integrity) -> AddPacketBuilder {
+        AddPacketBuilder {
+            hash,
+            stack_id: None,
+            ephemeral: false,
+        }
+    }
+
+    pub fn update(source_id: Scru128Id) -> UpdatePacketBuilder {
+        UpdatePacketBuilder {
+            source_id,
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+        }
+    }
+
+    pub fn fork(source_id: Scru128Id) -> ForkPacketBuilder {
+        ForkPacketBuilder {
+            source_id,
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+        }
+    }
+
+    pub fn delete(id: Scru128Id) -> DeletePacketBuilder {
+        DeletePacketBuilder {
+            id,
+            ephemeral: false,
+        }
+    }
 }
 
 pub struct Index {
@@ -205,8 +329,7 @@ impl Store {
     }
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        let content_meta_cache = self.scan_content_meta();
-        content_meta_cache.get(hash).cloned()
+        self.content_meta_cache.get(hash).cloned()
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
@@ -259,9 +382,7 @@ impl Store {
 
     pub fn insert_packet(&mut self, packet: &Packet) {
         let encoded: Vec<u8> = bincode::serialize(&packet).unwrap();
-        self.packets
-            .insert(packet.id().to_bytes(), encoded)
-            .unwrap();
+        self.packets.insert(packet.id.to_bytes(), encoded).unwrap();
     }
 
     pub fn scan(&self) -> impl Iterator<Item = Packet> {
@@ -279,12 +400,14 @@ impl Store {
         source: Option<String>,
     ) -> Packet {
         let hash = self.cas_write(content, mime_type);
-        let packet = Packet::Add(AddPacket {
+        let packet = Packet {
             id: scru128::new(),
+            packet_type: PacketType::Add,
+            source_id: None,
             hash: Some(hash),
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -298,13 +421,14 @@ impl Store {
         source: Option<String>,
     ) -> Packet {
         let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
-        let packet = Packet::Update(UpdatePacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
             hash,
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -318,22 +442,27 @@ impl Store {
         source: Option<String>,
     ) -> Packet {
         let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
-        let packet = Packet::Fork(ForkPacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
+            packet_type: PacketType::Fork,
+            source_id: Some(source_id),
             hash,
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
 
     pub fn delete(&mut self, source_id: Scru128Id) -> Packet {
-        let packet = Packet::Delete(DeletePacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
-        });
+            packet_type: PacketType::Delete,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -382,8 +511,8 @@ mod tests {
         let stored_packet = store.scan().next().unwrap();
         assert_eq!(packet, stored_packet);
 
-        match packet {
-            Packet::Add(packet) => {
+        match packet.packet_type {
+            PacketType::Add => {
                 let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
                 assert_eq!(content.to_vec(), stored_content);
             }
@@ -403,7 +532,7 @@ mod tests {
 
         let updated_content = b"Hello, updated world!";
         let update_packet = store.update(
-            packet.id().clone(),
+            packet.id.clone(),
             Some(updated_content),
             MimeType::TextPlain,
             None,
@@ -434,7 +563,7 @@ mod tests {
 
         let forked_content = b"Hello, forked world!";
         let forked_packet = store.fork(
-            packet.id().clone(),
+            packet.id.clone(),
             Some(forked_content),
             MimeType::TextPlain,
             None,
@@ -460,7 +589,7 @@ mod tests {
         let mut store = Store::new(path);
         let content = b"Hello, world!";
         let packet = store.add(content, MimeType::TextPlain, None, None);
-        let delete_packet = store.delete(packet.id().clone());
+        let delete_packet = store.delete(packet.id.clone());
         let stored_delete_packet = store.scan().last().unwrap();
         assert_eq!(delete_packet, stored_delete_packet);
     }
