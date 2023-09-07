@@ -86,7 +86,7 @@ fn test_ui_render() {
                     None,
                     None,
                 )
-                .id()
+                .id
         })
         .collect();
 
