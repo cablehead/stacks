@@ -22,7 +22,7 @@ impl State {
     pub fn new(db_path: &str) -> Self {
         let store = Store::new(db_path);
         let mut view = View::new();
-        store.scan().for_each(|p| view.merge(p));
+        store.scan().for_each(|p| view.merge(&p));
 
         let ui = UI::new(&view);
         Self {
@@ -68,19 +68,16 @@ impl State {
         let local: DateTime<Local> = Local::now();
         let stack_name = format!("{}", local.format("%a, %b %d %Y, %I:%M %p"));
 
-        let packet = self.store.add(
-            stack_name.as_bytes(),
-            MimeType::TextPlain,
-            None,
-            Some("stream.cross.stacks".to_string()),
-        );
+        let packet = self
+            .store
+            .add(stack_name.as_bytes(), MimeType::TextPlain, None);
 
-        let id = packet.id();
-        self.merge(packet);
-        id
+        self.merge(&packet);
+        packet.id
     }
 
-    pub fn merge(&mut self, packet: Packet) {
+    pub fn merge(&mut self, packet: &Packet) {
+        println!("merge: {:?}", &packet.hash);
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
     }

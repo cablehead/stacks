@@ -3,17 +3,18 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
-use crate::store::Packet;
+use crate::store::{Packet, PacketType};
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,
     pub touched: Vec<Scru128Id>,
-    pub hash: Option<Integrity>,
+    pub hash: Integrity,
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
     pub forked_children: Vec<Scru128Id>,
+    pub ephemeral: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -36,16 +37,23 @@ impl View {
         }
     }
 
-    pub fn merge(&mut self, packet: Packet) {
-        match packet {
-            Packet::Add(packet) => {
-                // Check if an item with the same hash already exists in the same stack
-                if let Some(stack_id) = packet.stack_id {
-                    if let Some(stack) = self.items.get(&stack_id) {
+    pub fn merge(&mut self, packet: &Packet) {
+        match packet.packet_type {
+            PacketType::Add => {
+                // remove potentially old ephemeral versions of this packet
+                if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
+                    stack.children.retain(|id| id != &packet.id);
+                }
+
+                // If this packet isn't ephemeral, check if an item with the same hash already
+                // exists in the same stack, in order to avoid duplicates
+                if !packet.ephemeral {
+                    if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
                         let children = stack.children.clone();
                         for child_id in children {
                             if let Some(child) = self.items.get_mut(&child_id) {
-                                if packet.hash.is_some() && child.hash == packet.hash {
+                                if !child.ephemeral && &child.hash == packet.hash.as_ref().unwrap()
+                                {
                                     // If it exists, update it
                                     child.touched.push(packet.id);
                                     child.last_touched = packet.id;
@@ -61,41 +69,45 @@ impl View {
                     }
                 }
 
-                // If it doesn't exist, add it
+                // Otherwise add a new item
                 let item = Item {
                     id: packet.id,
                     last_touched: packet.id,
                     touched: vec![packet.id],
-                    hash: packet.hash,
+                    hash: packet.hash.clone().unwrap(),
                     stack_id: packet.stack_id,
                     children: Vec::new(),
                     forked_children: Vec::new(),
+                    ephemeral: packet.ephemeral,
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
                     stack.children.push(packet.id);
-                    stack.last_touched = packet.id;
+                    if packet.id > stack.last_touched {
+                        stack.last_touched = packet.id;
+                    }
                 }
                 self.items.insert(packet.id, item);
             }
 
-            Packet::Update(packet) => {
-                if let Some(item) = self.items.get(&packet.source_id).cloned() {
+            PacketType::Update => {
+                let source_id = packet.source_id.unwrap();
+                if let Some(item) = self.items.get(&source_id).cloned() {
                     let mut item = item;
 
-                    if let Some(hash) = packet.hash {
-                        item.hash = Some(hash);
+                    if let Some(hash) = &packet.hash {
+                        item.hash = hash.clone();
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
                         if let Some(old_stack) =
                             item.stack_id.and_then(|id| self.items.get_mut(&id))
                         {
-                            old_stack.children.retain(|&id| id != packet.source_id);
+                            old_stack.children.retain(|&id| id != source_id);
                         }
                         item.stack_id = Some(new_stack_id);
                         if let Some(new_stack) = self.items.get_mut(&new_stack_id) {
-                            new_stack.children.push(packet.source_id);
+                            new_stack.children.push(source_id);
                         }
                     }
 
@@ -105,20 +117,21 @@ impl View {
                         stack.last_touched = packet.id;
                     }
 
-                    self.items.insert(packet.source_id, item);
+                    self.items.insert(source_id, item);
                 }
             }
 
-            Packet::Fork(packet) => {
-                if let Some(item) = self.items.get(&packet.source_id) {
+            PacketType::Fork => {
+                let source_id = packet.source_id.unwrap();
+                if let Some(item) = self.items.get(&source_id) {
                     let mut new_item = item.clone();
                     new_item.id = packet.id;
 
                     new_item.forked_children = item.children.clone();
                     new_item.children = Vec::new();
 
-                    if let Some(hash) = packet.hash {
-                        new_item.hash = Some(hash);
+                    if let Some(hash) = &packet.hash {
+                        new_item.hash = hash.clone();
                     }
 
                     if let Some(new_stack_id) = packet.stack_id {
@@ -130,7 +143,7 @@ impl View {
 
                     if let Some(stack) = new_item.stack_id.and_then(|id| self.items.get_mut(&id)) {
                         // Remove the forked item from forked_children
-                        stack.forked_children.retain(|&id| id != packet.source_id);
+                        stack.forked_children.retain(|&id| id != source_id);
                         // And add the new item to children
                         stack.children.push(packet.id);
                         stack.last_touched = packet.id;
@@ -140,10 +153,11 @@ impl View {
                 }
             }
 
-            Packet::Delete(packet) => {
-                if let Some(mut item) = self.items.remove(&packet.source_id) {
+            PacketType::Delete => {
+                let source_id = packet.source_id.unwrap();
+                if let Some(mut item) = self.items.remove(&source_id) {
                     if let Some(stack) = item.stack_id.and_then(|id| self.items.get_mut(&id)) {
-                        stack.children.retain(|&id| id != packet.source_id);
+                        stack.children.retain(|&id| id != source_id);
                         stack.last_touched = packet.id;
                     }
                     item.last_touched = packet.id;
@@ -238,9 +252,7 @@ impl View {
                         .into_iter()
                         .filter(|child_id| {
                             if let Some(child) = self.items.get(child_id) {
-                                if let Some(hash) = child.hash.as_ref() {
-                                    return matches.contains(&hash);
-                                }
+                                return matches.contains(&child.hash);
                             }
                             false
                         })
@@ -248,7 +260,7 @@ impl View {
                     if item.children.is_empty() {
                         return None;
                     }
-                } else if item.hash.is_none() || !matches.contains(&item.hash.as_ref().unwrap()) {
+                } else if !matches.contains(&item.hash) {
                     return None;
                 }
                 Some((item.id, item))

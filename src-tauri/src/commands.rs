@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{count_tiktokens, AddPacket, MimeType, Packet, Settings};
+use crate::store::{MimeType, Settings};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -29,8 +29,6 @@ pub async fn store_pipe_to_command(
         let item = state.view.items.get(&source_id).unwrap();
         (cache_path, item.hash.clone())
     };
-
-    let hash = hash.ok_or(())?;
 
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
@@ -77,38 +75,44 @@ pub async fn store_pipe_to_gpt(
     state: tauri::State<'_, SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
-    let (packet, settings, content) = {
+    let (settings, content, packet) = {
         let mut state = state.lock().unwrap();
 
         let settings = state.store.settings_get().ok_or(())?.clone();
         let item = state.view.items.get(&source_id).ok_or(())?;
-        let stack_id = item.stack_id.ok_or(())?;
 
-        println!("GPT: {:?} {:?}", source_id, stack_id);
+        let content = if let Some(_) = item.stack_id {
+            vec![state.store.get_content(&item.hash).unwrap()]
+        } else {
+            item.children
+                .iter()
+                .filter_map(|id| {
+                    state
+                        .view
+                        .items
+                        .get(id)
+                        .and_then(|child_item| state.store.get_content(&child_item.hash))
+                })
+                .rev()
+                .collect()
+        };
 
-        let hash = item.hash.clone().ok_or(())?;
+        let stack_id = item.stack_id.unwrap_or(item.id);
+        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
+        state.ui.select(None); // focus first
 
-        let meta = state.store.get_content_meta(&hash).unwrap();
+        /*
+         * Todo
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
         if meta.mime_type != MimeType::TextPlain {
             return Ok(());
         }
+        */
 
-        let content = state.store.cas_read(&hash).unwrap();
-
-        let packet = Packet::Add(AddPacket {
-            id: scru128::new(),
-            hash: None,
-            stack_id: Some(stack_id),
-            source: None,
-        });
-
-        state.merge(packet.clone());
-
-        let item = state.view.items.get(&packet.id()).cloned();
-        state.ui.select(item.as_ref());
-        app.emit_all("refresh-items", true).unwrap();
-        (packet, settings, content)
+        (settings, content, packet)
     };
+
+    println!("GPT: let's go: {:?}", packet.hash);
 
     #[derive(Clone, serde::Serialize)]
     struct Payload {
@@ -118,8 +122,9 @@ pub async fn store_pipe_to_gpt(
     }
 
     use async_openai::{
+        config::OpenAIConfig,
         types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
-        Client, config::OpenAIConfig,
+        Client,
     };
     use futures::StreamExt;
 
@@ -127,45 +132,55 @@ pub async fn store_pipe_to_gpt(
 
     let client = Client::with_config(config);
 
+    let messages: Vec<_> = content
+        .into_iter()
+        .map(|c| {
+            ChatCompletionRequestMessageArgs::default()
+                .content(String::from_utf8(c).unwrap())
+                .role(Role::User)
+                .build()
+                .unwrap()
+        })
+        .collect();
+
     let request = CreateChatCompletionRequestArgs::default()
         .model(&settings.openai_selected_model)
         .max_tokens(512u16)
-        .messages([ChatCompletionRequestMessageArgs::default()
-            .content(String::from_utf8(content).unwrap())
-            .role(Role::User)
-            .build()
-            .unwrap()])
+        .messages(messages)
         .build()
         .unwrap();
 
     let mut stream = client.chat().create_stream(request).await.unwrap();
 
-    let mut aggregate = String::new();
+    let mut packet = packet;
 
     while let Some(result) = stream.next().await {
         match result {
             Ok(response) => {
-                response.choices.iter().for_each(|chat_choice| {
-                    if let Some(ref content) = chat_choice.delta.content {
-                        aggregate.push_str(content);
-                    }
-                });
+                let aggregate = response
+                    .choices
+                    .iter()
+                    .filter_map(|chat_choice| chat_choice.delta.content.as_ref())
+                    .flat_map(|content| content.as_bytes().iter().cloned())
+                    .collect::<Vec<u8>>();
 
-                app.emit_all(
-                    "foo",
-                    Payload {
-                        id: packet.id(),
-                        tiktokens: count_tiktokens(&aggregate),
-                        content: general_purpose::STANDARD.encode(&aggregate),
-                    },
-                )
-                .unwrap();
+                {
+                    let mut state = state.lock().unwrap();
+                    packet = state.store.update_stream(packet.id, &aggregate);
+                    state.merge(&packet);
+                    app.emit_all("refresh-items", true).unwrap();
+                }
             }
             Err(err) => {
                 println!("GPT error: {:#?}", err);
             }
         }
     }
+
+    let mut state = state.lock().unwrap();
+    packet = state.store.end_stream(packet.id);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
 
     Ok(())
 }
@@ -179,7 +194,7 @@ pub fn store_get_content(
     let state = state.lock().unwrap();
     state
         .store
-        .cas_read(&hash)
+        .get_content(&hash)
         .map(|vec| general_purpose::STANDARD.encode(vec))
 }
 
@@ -297,15 +312,13 @@ pub fn store_copy_to_clipboard(
     let state = state.lock().unwrap();
 
     if let Some(item) = state.view.items.get(&source_id) {
-        let hash = item.hash.as_ref()?;
-
-        let meta = state.store.get_content_meta(&hash).unwrap();
+        let meta = state.store.get_content_meta(&item.hash).unwrap();
 
         let mime_type = match &meta.mime_type {
             MimeType::TextPlain => "public.utf8-plain-text",
             MimeType::ImagePng => "public.png",
         };
-        let content = state.store.cas_read(&hash).unwrap();
+        let content = state.store.get_content(&item.hash).unwrap();
 
         let _change_num = write_to_clipboard(mime_type, &content);
         Some(())
@@ -325,15 +338,12 @@ pub fn store_new_note(
 
     let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
 
-    let packet = state.store.add(
-        content.as_bytes(),
-        MimeType::TextPlain,
-        Some(stack_id),
-        None,
-    );
+    let packet = state
+        .store
+        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id));
 
-    let id = packet.id();
-    state.merge(packet);
+    let id = packet.id;
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
@@ -353,9 +363,8 @@ pub fn store_edit_note(
         Some(content.as_bytes()),
         MimeType::TextPlain,
         None,
-        None,
     );
-    state.merge(packet);
+    state.merge(&packet);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -369,7 +378,7 @@ pub fn store_delete(
 ) {
     let mut state = state.lock().unwrap();
     let packet = state.store.delete(id);
-    state.merge(packet);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
 
@@ -379,7 +388,7 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
     if let Some(item) = state.view.undo.clone() {
         state.store.remove_packet(&item.last_touched);
         let mut view = View::new();
-        state.store.scan().for_each(|p| view.merge(p));
+        state.store.scan().for_each(|p| view.merge(&p));
         let mut ui = UI::new(&view);
         ui.select(view.items.get(&item.id));
         state.view = view;
@@ -417,10 +426,10 @@ pub fn store_add_to_stack(
 
     let packet = state
         .store
-        .fork(source_id, None, MimeType::TextPlain, Some(stack_id), None);
+        .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
 
-    let id = packet.id();
-    state.merge(packet);
+    let id = packet.id;
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
@@ -435,21 +444,15 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
+    state.merge(&packet);
+
     let packet = state
         .store
-        .add(name.as_bytes(), MimeType::TextPlain, None, None);
-    state.merge(packet.clone());
+        .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
 
-    let packet = state.store.fork(
-        source_id,
-        None,
-        MimeType::TextPlain,
-        Some(packet.id()),
-        None,
-    );
-
-    let id = packet.id();
-    state.merge(packet);
+    let id = packet.id;
+    state.merge(&packet);
     state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();

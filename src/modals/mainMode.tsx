@@ -5,14 +5,14 @@ import { HotKey, Modes } from "./types";
 import { default as actionsMode } from "./actionsMode";
 // import { default as addToStackMode } from "./addToStackMode";
 
-import { itemGetTerse, Stack } from "../types";
+import { Stack } from "../types";
 
 import { actions } from "../actions";
 
 export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
-    const terse = selected ? itemGetTerse(selected) : "";
+    const terse = selected ? selected.terse : "";
     return (
       <div style="
           display: flex;

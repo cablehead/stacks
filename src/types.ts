@@ -3,10 +3,8 @@ import { JSXInternal } from "preact/src/jsx";
 import { effect, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
-import { Event, listen } from "@tauri-apps/api/event";
+import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
-
-import { b64ToUtf8 } from "./utils";
 
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
@@ -18,7 +16,7 @@ export interface Item {
   stack_id?: Scru128Id;
   last_touched: Scru128Id;
   touched: Scru128Id[];
-  hash?: SSRI;
+  hash: SSRI;
   mime_type: string;
   content_type: string;
   terse: string;
@@ -26,14 +24,7 @@ export interface Item {
 }
 
 export function itemGetContent(item: Item): string {
-  return item.hash ? CAS.getSignal(item.hash).value : Ephemeral.getSignal(item.id).value.content;
-}
-
-export function itemGetTerse(item: Item): string {
-  const terse = item.hash
-    ? item.terse
-    : b64ToUtf8(Ephemeral.getSignal(item.id).value.content);
-  return terse.trim() ? terse : "...";
+  return CAS.getSignal(item.hash).value;
 }
 
 export interface Layer {
@@ -62,12 +53,6 @@ const createFilter = () => {
   };
 };
 
-export interface EphemeralItem {
-  id: Scru128Id;
-  tiktokens: number;
-  content: string;
-}
-
 export class Stack {
   filter: {
     curr: Signal<string>;
@@ -95,23 +80,31 @@ export class Stack {
       console.log('listen("refresh-items');
       this.refresh();
     });
-    const d2 = await listen("foo", (event: Event<EphemeralItem>) => {
-      const item = event.payload;
-      Ephemeral.getSignal(item.id).value = item;
-    });
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
         console.log("DISPOSE");
         if (d1) d1();
-        if (d2) d2();
       });
     }
   }
 
+  // returns the item which is currently focused
   selected(): Item | undefined {
     const nav = this.nav.value;
     if (nav.sub && nav.sub.is_focus) return nav.sub.selected;
     return nav.root?.selected;
+  }
+
+  // returns the currently selected stack item: which may not be the current
+  // focus
+  selected_stack(): Item | undefined {
+    return this.nav.value.root?.selected;
+  }
+
+  // returns the currently selected leaf item: which may not be the current
+  // focus
+  selected_item(): Item | undefined {
+    return this.nav.value.sub?.selected;
   }
 
   async getRoot(): Promise<Item[]> {
@@ -175,24 +168,6 @@ export interface Action {
   canApply?: (stack: Stack) => boolean;
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
-
-export const Ephemeral = (() => {
-  const signalCache: Map<Scru128Id, Signal<EphemeralItem>> = new Map();
-
-  function getSignal(id: Scru128Id): Signal<EphemeralItem> {
-    const cachedSignal = signalCache.get(id);
-    if (cachedSignal !== undefined) {
-      return cachedSignal;
-    }
-    const ret: Signal<EphemeralItem> = signal({ id: id, content: "", tiktokens: 0 });
-    signalCache.set(id, ret);
-    return ret;
-  }
-
-  return {
-    getSignal,
-  };
-})();
 
 export const CAS = (() => {
   const signalCache: Map<SSRI, Signal<string>> = new Map();

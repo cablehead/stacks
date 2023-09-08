@@ -44,9 +44,10 @@ const state = (() => {
         return;
       }
       if (selected.value == "GPT") {
-        const item = stack.selected();
+        const item = stack.selected_item();
         if (item) {
-          invoke("store_pipe_to_gpt", { sourceId: item.id });
+          invoke("store_pipe_to_gpt", { sourceId: item.id })
+            .catch((err) => console.error("Error caught:", err));
           modes.deactivate();
           return;
         }
@@ -70,7 +71,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Pipe to ...",
+  name: () => "Pipe item to ...",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
@@ -149,7 +150,7 @@ export default {
               type="text"
               ref={inputRef}
               onBlur={() => modes.deactivate()}
-              placeholder="Pipe to ..."
+              placeholder="Pipe item to ..."
               onInput={() => {
                 if (inputRef.current == null) return;
                 state.currFilter.value = inputRef.current.value;
