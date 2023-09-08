@@ -61,8 +61,22 @@ export const actions: Action[] = [
     name: "Pipe item to ...",
     keys: [<Icon name="IconCommandKey" />, "|"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.shiftKey && event.code == "Backslash",
+      !event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+  },
+  {
+    name: "Pipe stack to GPT",
+    keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
+    trigger: (stack: Stack) => {
+      const item = stack.selected_stack();
+      if (item) {
+        invoke("store_pipe_to_gpt", { sourceId: item.id })
+          .catch((err) => console.error("Error caught:", err));
+      }
+    },
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
   {

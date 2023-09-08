@@ -95,6 +95,12 @@ export class Stack {
     return nav.root?.selected;
   }
 
+  // returns the currently selected stack item: which may not be the current
+  // focus
+  selected_stack(): Item | undefined {
+    return this.nav.value.root?.selected;
+  }
+
   // returns the currently selected leaf item: which may not be the current
   // focus
   selected_item(): Item | undefined {

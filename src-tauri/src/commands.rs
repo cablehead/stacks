@@ -80,22 +80,39 @@ pub async fn store_pipe_to_gpt(
 
         let settings = state.store.settings_get().ok_or(())?.clone();
         let item = state.view.items.get(&source_id).ok_or(())?;
-        let stack_id = item.stack_id.ok_or(())?;
 
+        let content = if let Some(_) = item.stack_id {
+            vec![state.store.get_content(&item.hash).unwrap()]
+        } else {
+            item.children
+                .iter()
+                .filter_map(|id| {
+                    state
+                        .view
+                        .items
+                        .get(id)
+                        .and_then(|child_item| state.store.get_content(&child_item.hash))
+                })
+                .rev()
+                .collect()
+        };
+
+        let stack_id = item.stack_id.unwrap_or(item.id);
+        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
+        state.ui.select(None); // focus first
+
+        /*
+         * Todo
         let meta = state.store.get_content_meta(&item.hash).unwrap();
         if meta.mime_type != MimeType::TextPlain {
             return Ok(());
         }
-
-        let content = state.store.get_content(&item.hash).unwrap();
-
-        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
-        let item = state.view.items.get(&packet.id).cloned();
-        println!("GPT: let's go: {:?}", packet.hash);
-        state.ui.select(item.as_ref());
+        */
 
         (settings, content, packet)
     };
+
+    println!("GPT: let's go: {:?}", packet.hash);
 
     #[derive(Clone, serde::Serialize)]
     struct Payload {
@@ -115,14 +132,21 @@ pub async fn store_pipe_to_gpt(
 
     let client = Client::with_config(config);
 
+    let messages: Vec<_> = content
+        .into_iter()
+        .map(|c| {
+            ChatCompletionRequestMessageArgs::default()
+                .content(String::from_utf8(c).unwrap())
+                .role(Role::User)
+                .build()
+                .unwrap()
+        })
+        .collect();
+
     let request = CreateChatCompletionRequestArgs::default()
         .model(&settings.openai_selected_model)
         .max_tokens(512u16)
-        .messages([ChatCompletionRequestMessageArgs::default()
-            .content(String::from_utf8(content).unwrap())
-            .role(Role::User)
-            .build()
-            .unwrap()])
+        .messages(messages)
         .build()
         .unwrap();
 
