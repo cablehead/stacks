@@ -1,4 +1,6 @@
-# Stacks is a clipboard manager
+# Stacks 
+
+A clipboard manager
 
 ![screenshot](./docs/screenshots/screenshot.png)
 
