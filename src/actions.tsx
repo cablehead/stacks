@@ -58,12 +58,12 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
   {
-    name: "Pipe to ...",
+    name: "Pipe item to ...",
     keys: [<Icon name="IconCommandKey" />, "|"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
-    canApply: (stack: Stack) => !!stack.selected(),
+    canApply: (stack: Stack) => !!stack.selected_item(),
   },
   {
     name: "Open",

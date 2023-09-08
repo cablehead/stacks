@@ -88,10 +88,17 @@ export class Stack {
     }
   }
 
+  // returns the item which is currently focused
   selected(): Item | undefined {
     const nav = this.nav.value;
     if (nav.sub && nav.sub.is_focus) return nav.sub.selected;
     return nav.root?.selected;
+  }
+
+  // returns the currently selected leaf item: which may not be the current
+  // focus
+  selected_item(): Item | undefined {
+    return this.nav.value.sub?.selected;
   }
 
   async getRoot(): Promise<Item[]> {

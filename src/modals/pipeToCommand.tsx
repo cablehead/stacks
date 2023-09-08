@@ -29,7 +29,7 @@ const state = (() => {
     curr,
     res,
     accept_meta: async (stack: Stack, _: Modes) => {
-      const selected = stack.selected();
+      const selected = stack.selected_item();
       if (!selected) return;
       console.log("FOO", curr.value);
       const args = {
@@ -45,7 +45,7 @@ const state = (() => {
 
 export default {
   name: () =>
-    `Pipe to command${
+    `Pipe item to command${
       state.res.value.code != 0 ? ` :: exit code: ${state.res.value.code}` : ""
     }`,
   hotKeys: (stack: Stack, modes: Modes) => [
