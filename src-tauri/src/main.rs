@@ -119,7 +119,7 @@ fn main() {
                 Ok(path) => path,
                 Err(_) => {
                     let data_dir = app.path_resolver().app_data_dir().unwrap();
-                    data_dir.join("store-v2.0").to_str().unwrap().to_string()
+                    data_dir.join("store-v3.0").to_str().unwrap().to_string()
                 }
             };
             log::info!("PR: {:?}", db_path);

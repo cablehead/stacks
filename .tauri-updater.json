@@ -1,16 +1,16 @@
 {
-  "version": "0.9.2",
-  "notes": "This release is like a time machine for your mistakes. Undo deleted items and\nstacks—no regrets.\n\nNew hotkeys: Delete items with CMD-DEL and wipe out Stacks with CMD-SHIFT-DEL.\nDesigned to minimize those \"Oops, didn't mean to do that\" moments.\n\n",
-  "pub_date": "2023-09-04T15:33:42-04:00",
+  "version": "0.10.0",
+  "notes": "This is the initial release that enables you to pipe items and stacks to OpenAI's GPT. It's a bit raw and unpolished, but I wanted to release it for you to experiment with. Your feedback is highly valued! To configure your API key, click on the settings icon located at the bottom right.\n\nPlease note, this release necessitates another database reset.\n",
+  "pub_date": "2023-09-08T16:13:25-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFHMnJ5di9XK21wZk9VN1cyQzlZWEc4UlFwYjZJcVF3QWYyMTBiemtZQmEvSzlzUC96M05mU0RINmNGM2hyQlNiaHVuNkUwb1QvZy9DU2VhV2pIakFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzODU1OTY3CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKbGM5bmVLdlVudXgvNmdGUkdOMVBxeXZoSmo3MUlhczBDYm1ZblJoRGFFRHFERUh1N2ZSUDBNSDZxZlo3L0VNOGN1NzV1V2VCcVJVSjRkdFRYNStKRGc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.2/Stacks_0.9.2_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEt1UzBFblJVY0g3U1BYN3Q0QmdVQmFBL1RHcENjQmdhS0x5UDdxTHVudVIwdDlIVkttSG5hSDRsOFdzbE5yVmVPZjdUU0RncHlHRmtaYm55WE1XRXcwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk0MjAxOTAxCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKNmowVjQyUmhWWE1WTVdkV2F0dVV5OXVNSjlXNHoxRHBkdS9TK1lmQjNrUFdUek5yaEtScll4Z1VueDVPcFZNa2ptTWVFZndIM0FRQXMxekVTR2U4QlE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.10.0/Stacks_0.10.0_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEZnamFIM0RULzNYYXo1L1p0dHIrS2k3bHdmUVNWS0tLbmxCOE14RndtcVZFaWcvSlphYkVsOU1wa0pRYUNpV214SEFWbzVmSk53MlFSR2VHRzdiUVFFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjkzODU1NzgwCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKWXZQZll5SVhVWk1DeWcxQzhyZ2dRd2xzcDNJUllHeVVBRGNlUERlUEZEOEc2WFpWVDRReTh6bHF4T1FENURpZFhmd0ZpeWRTN1ZRa25DU0U1Q2dWQkE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.9.2/Stacks_0.9.2_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEZJcExCdXJyR0I1aW05Z1M2b3Y2bm1GNmRoOWJ4VjlCRFdlRVhXQWExV005WTdrSUtrVjdwRFltV1ltd0YwRDBCKzdHbzdxTXQ3MFB4ZVBUaHFla2dFPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk0MjAxNzkxCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKRlJDck84MHgwZzIrbkJ3RVR5QVBwbGROaEVrMHBYYVovdHJONkMwYnhTckdha2RCU2JOVUpyYytIcC9LYlhySk1vdEE1dTR5WVFjcGpSNFRIeHhmQXc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.10.0/Stacks_0.10.0_aarch64.app.tar.gz"
     }
   }
 }

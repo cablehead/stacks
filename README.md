@@ -37,10 +37,10 @@ RELEASE=v0.5.2
 
 ./scripts/build.sh
 # while that builds
-vi changes/$RELEASE
+vi changes/$RELEASE.md
 
 # after build completes
-cat changes/$RELEASE | ./scripts/release.sh
+cat changes/$RELEASE.md | ./scripts/release.sh
 
 # export the tempdir created by release.sh to RELEASE_PATH
 
