@@ -80,13 +80,8 @@ fn test_ui_render() {
         .map(|i| {
             state
                 .store
-                .add(
-                    format!("Stack {}", i).as_bytes(),
-                    MimeType::TextPlain,
-                    None,
-                    None,
-                )
-                .id()
+                .add(format!("Stack {}", i).as_bytes(), MimeType::TextPlain, None)
+                .id
         })
         .collect();
 
@@ -95,14 +90,12 @@ fn test_ui_render() {
             format!("https://stack-{}.com", i + 1).as_bytes(),
             MimeType::TextPlain,
             Some(*stack_id),
-            None,
         );
         for j in 1..=3 {
             let _ = state.store.add(
                 format!("S{}::Item {}", i + 1, j).as_bytes(),
                 MimeType::TextPlain,
                 Some(*stack_id),
-                None,
             );
         }
     }
@@ -111,7 +104,7 @@ fn test_ui_render() {
     assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 
     // post initial merge state
-    state.store.scan().for_each(|p| state.merge(p));
+    state.store.scan().for_each(|p| state.merge(&p));
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -169,7 +162,7 @@ fn test_ui_render() {
 
     // user press: delete # this is the top item in the first stack
     let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
-    state.merge(packet);
+    state.merge(&packet);
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (

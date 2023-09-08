@@ -7,7 +7,7 @@ import { b64ToUtf8 } from "./utils";
 import { addToStackMode, editorMode, modes, pipeMode } from "./modals";
 
 import { Icon } from "./ui/icons";
-import { Action, Stack } from "./types";
+import { Action, itemGetContent, Stack } from "./types";
 
 export const actions: Action[] = [
   {
@@ -36,7 +36,7 @@ export const actions: Action[] = [
   },
 
   {
-    name: "Copy to stack",
+    name: "Copy item to stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
@@ -58,12 +58,26 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
   {
-    name: "Pipe to command",
+    name: "Pipe item to ...",
     keys: [<Icon name="IconCommandKey" />, "|"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.shiftKey && event.code == "Backslash",
+      !event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
-    canApply: (stack: Stack) => !!stack.selected(),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+  },
+  {
+    name: "Pipe stack to GPT",
+    keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
+    trigger: (stack: Stack) => {
+      const item = stack.selected_stack();
+      if (item) {
+        invoke("store_pipe_to_gpt", { sourceId: item.id })
+          .catch((err) => console.error("Error caught:", err));
+      }
+    },
+    canApply: (stack: Stack) => !!stack.selected_item(),
   },
   {
     name: "Open",
@@ -72,16 +86,16 @@ export const actions: Action[] = [
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
       const item = stack.selected();
-      if (!item) return false;
-      const content = stack.getContent(item.hash);
-      if (typeof (content.value) == "undefined") return false;
-      const url = b64ToUtf8(content.value);
+      if (!item?.hash) return false;
+      const content = itemGetContent(item);
+      if (typeof (content) == "undefined") return false;
+      const url = b64ToUtf8(content);
       console.log("OPEN", url);
       open(url);
     },
     canApply: (stack: Stack) => {
       const item = stack.selected();
-      if (!item) return false;
+      if (!item?.hash) return false;
       return item.content_type == "Link";
     },
   },

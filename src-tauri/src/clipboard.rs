@@ -35,30 +35,28 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 let types = clipped["types"].as_object().unwrap();
                 let source = clipped["source"].as_str();
-                let source = source.map(|s| s.to_string());
+                let _source = source.map(|s| s.to_string());
 
                 let curr_stack = Some(state.get_curr_stack());
 
                 let packet = if types.contains_key("public.utf8-plain-text") {
                     let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
-                    Some(
-                        state
-                            .store
-                            .add(&content, MimeType::TextPlain, curr_stack, source),
-                    )
+                    if let Ok(str_ref) = std::str::from_utf8(&content) {
+                        if str_ref.trim().is_empty() {
+                            continue;
+                        }
+                    }
+
+                    Some(state.store.add(&content, MimeType::TextPlain, curr_stack))
                 } else if types.contains_key("public.png") {
                     let content = b64decode(types["public.png"].as_str().unwrap());
-                    Some(
-                        state
-                            .store
-                            .add(&content, MimeType::ImagePng, curr_stack, source),
-                    )
+                    Some(state.store.add(&content, MimeType::ImagePng, curr_stack))
                 } else {
                     None
                 };
 
                 if let Some(packet) = packet {
-                    state.merge(packet);
+                    state.merge(&packet);
                 }
 
                 app.emit_all("refresh-items", true).unwrap();

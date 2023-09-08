@@ -11,15 +11,15 @@ import { actions } from "../actions";
 
 export default {
   name: (stack: Stack) => {
+    const selected = stack.nav.value.root?.selected;
+    const terse = selected ? selected.terse : "";
     return (
-      <div
-      style="
+      <div style="
           display: flex;
           gap: 0.75ch;
           align-items: center;
           overflow: hidden;
-          "
-          >
+          ">
         <div
           style={{
             flexShrink: 0,
@@ -31,7 +31,7 @@ export default {
         >
           <Icon name="IconStack" />
         </div>
-        {stack.nav.value.root?.selected.terse || ""}
+        {terse}
       </div>
     );
   },

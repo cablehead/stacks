@@ -14,7 +14,7 @@ pub enum MimeType {
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct ContentMeta {
-    pub hash: Option<Integrity>,
+    pub hash: Integrity,
     pub mime_type: MimeType,
     pub content_type: String,
     pub terse: String,
@@ -22,54 +22,89 @@ pub struct ContentMeta {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub enum Packet {
-    Add(AddPacket),
-    Update(UpdatePacket),
-    Fork(ForkPacket),
-    Delete(DeletePacket),
+pub struct InProgressStream {
+    pub content_meta: ContentMeta,
+    pub content: Vec<u8>,
+    pub packet: Packet,
 }
 
-impl Packet {
-    pub fn id(&self) -> Scru128Id {
-        match self {
-            Packet::Add(packet) => packet.id,
-            Packet::Update(packet) => packet.id,
-            Packet::Fork(packet) => packet.id,
-            Packet::Delete(packet) => packet.id,
+impl InProgressStream {
+    pub fn new(stack_id: Option<Scru128Id>, content: &[u8]) -> Self {
+        let hash = ssri::Integrity::from(&content);
+        let text_content = String::from_utf8_lossy(content).into_owned();
+        let tiktokens = count_tiktokens(&text_content);
+        let terse = if text_content.len() > 100 {
+            text_content.chars().take(100).collect()
+        } else {
+            text_content
+        };
+
+        let content_type = if is_valid_https_url(content) {
+            "Link".to_string()
+        } else {
+            "Text".to_string()
+        };
+
+        let content_meta = ContentMeta {
+            hash: hash.clone(),
+            mime_type: MimeType::TextPlain,
+            content_type,
+            terse,
+            tiktokens,
+        };
+
+        InProgressStream {
+            content_meta,
+            content: content.to_vec(),
+            packet: Packet {
+                id: scru128::new(),
+                packet_type: PacketType::Add,
+                source_id: None,
+                hash: Some(hash.clone()),
+                stack_id,
+                ephemeral: true,
+            },
         }
+    }
+
+    pub fn append(&mut self, content: &[u8]) {
+        // Append additional content
+        self.content.extend_from_slice(content);
+
+        // Update hash
+        self.content_meta.hash = ssri::Integrity::from(&self.content);
+
+        // Update tiktokens
+        let text_content = String::from_utf8_lossy(&self.content).into_owned();
+        // self.content_meta.tiktokens = count_tiktokens(&text_content);
+
+        // Update terse
+        self.content_meta.terse = if text_content.len() > 100 {
+            text_content.chars().take(100).collect()
+        } else {
+            text_content
+        };
+
+        self.packet.hash = Some(self.content_meta.hash.clone());
     }
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct AddPacket {
-    pub id: Scru128Id,
-    pub hash: Integrity,
-    pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
+pub enum PacketType {
+    Add,
+    Update,
+    Fork,
+    Delete,
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct UpdatePacket {
+pub struct Packet {
     pub id: Scru128Id,
-    pub source_id: Scru128Id,
+    pub packet_type: PacketType,
+    pub source_id: Option<Scru128Id>,
     pub hash: Option<Integrity>,
     pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct ForkPacket {
-    pub id: Scru128Id,
-    pub source_id: Scru128Id,
-    pub hash: Option<Integrity>,
-    pub stack_id: Option<Scru128Id>,
-    pub source: Option<String>,
-}
-
-#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
-pub struct DeletePacket {
-    pub id: Scru128Id,
-    pub source_id: Scru128Id,
+    pub ephemeral: bool,
 }
 
 pub struct Index {
@@ -133,13 +168,20 @@ impl Index {
     }
 }
 
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct Settings {
+    pub openai_access_token: String,
+    pub openai_selected_model: String,
+}
+
 pub struct Store {
     packets: sled::Tree,
-    pub content_meta: sled::Tree,
-    pub content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
+    content_meta: sled::Tree,
+    content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
+    in_progress_streams: HashMap<Scru128Id, InProgressStream>,
 }
 
 impl Store {
@@ -158,6 +200,7 @@ impl Store {
             meta,
             cache_path,
             index: Index::new(path.join("index")),
+            in_progress_streams: HashMap::new(),
         };
         store.content_meta_cache = store.scan_content_meta();
         store
@@ -199,8 +242,35 @@ impl Store {
     }
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        let content_meta_cache = self.scan_content_meta();
-        content_meta_cache.get(hash).cloned()
+        match self.content_meta_cache.get(hash) {
+            Some(meta) => Some(meta.clone()),
+            None => {
+                for stream in self.in_progress_streams.values() {
+                    if let Some(stream_hash) = &stream.packet.hash {
+                        if stream_hash == hash {
+                            return Some(stream.content_meta.clone());
+                        }
+                    }
+                }
+                None
+            }
+        }
+    }
+
+    pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {
+        match self.cas_read(hash) {
+            Some(content) => Some(content),
+            None => {
+                for stream in self.in_progress_streams.values() {
+                    if let Some(stream_hash) = &stream.packet.hash {
+                        if stream_hash == hash {
+                            return Some(stream.content.clone());
+                        }
+                    }
+                }
+                None
+            }
+        }
     }
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
@@ -227,7 +297,7 @@ impl Store {
         };
 
         let meta = ContentMeta {
-            hash: Some(hash.clone()),
+            hash: hash.clone(),
             mime_type: mime_type.clone(),
             content_type,
             terse,
@@ -247,15 +317,13 @@ impl Store {
         hash
     }
 
-    pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
+    fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
     }
 
     pub fn insert_packet(&mut self, packet: &Packet) {
         let encoded: Vec<u8> = bincode::serialize(&packet).unwrap();
-        self.packets
-            .insert(packet.id().to_bytes(), encoded)
-            .unwrap();
+        self.packets.insert(packet.id.to_bytes(), encoded).unwrap();
     }
 
     pub fn scan(&self) -> impl Iterator<Item = Packet> {
@@ -270,15 +338,16 @@ impl Store {
         content: &[u8],
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
-        source: Option<String>,
     ) -> Packet {
         let hash = self.cas_write(content, mime_type);
-        let packet = Packet::Add(AddPacket {
+        let packet = Packet {
             id: scru128::new(),
-            hash,
+            packet_type: PacketType::Add,
+            source_id: None,
+            hash: Some(hash),
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -289,16 +358,16 @@ impl Store {
         content: Option<&[u8]>,
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
-        source: Option<String>,
     ) -> Packet {
         let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
-        let packet = Packet::Update(UpdatePacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
             hash,
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -309,25 +378,29 @@ impl Store {
         content: Option<&[u8]>,
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
-        source: Option<String>,
     ) -> Packet {
         let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
-        let packet = Packet::Fork(ForkPacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
+            packet_type: PacketType::Fork,
+            source_id: Some(source_id),
             hash,
             stack_id,
-            source,
-        });
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
 
     pub fn delete(&mut self, source_id: Scru128Id) -> Packet {
-        let packet = Packet::Delete(DeletePacket {
+        let packet = Packet {
             id: scru128::new(),
-            source_id,
-        });
+            packet_type: PacketType::Delete,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+        };
         self.insert_packet(&packet);
         packet
     }
@@ -335,6 +408,43 @@ impl Store {
     pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
         removed.and_then(|value| bincode::deserialize(&value).ok())
+    }
+
+    pub fn settings_save(&mut self, settings: Settings) {
+        let settings_str = serde_json::to_string(&settings).unwrap();
+        self.meta
+            .insert("settings", settings_str.as_bytes())
+            .unwrap();
+    }
+
+    pub fn settings_get(&self) -> Option<Settings> {
+        let res = self.meta.get("settings").unwrap();
+        res.map(|bytes| {
+            let str = std::str::from_utf8(bytes.as_ref()).unwrap();
+            serde_json::from_str(str).unwrap()
+        })
+    }
+
+    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
+        let stream = InProgressStream::new(stack_id, content);
+        let packet = stream.packet.clone();
+        self.in_progress_streams.insert(stream.packet.id, stream);
+        packet
+    }
+
+    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
+        let mut stream = self.in_progress_streams.get_mut(&id).unwrap();
+        stream.append(content);
+        stream.packet.clone()
+    }
+
+    pub fn end_stream(&mut self, id: Scru128Id) -> Packet {
+        let mut stream = self.in_progress_streams.remove(&id).unwrap();
+        let hash = self.cas_write(&stream.content, stream.content_meta.mime_type);
+        stream.packet.hash = Some(hash);
+        stream.packet.ephemeral = false;
+        self.insert_packet(&stream.packet);
+        stream.packet
     }
 }
 
@@ -356,14 +466,14 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None, None);
+        let packet = store.add(content, MimeType::TextPlain, None);
 
         let stored_packet = store.scan().next().unwrap();
         assert_eq!(packet, stored_packet);
 
-        match packet {
-            Packet::Add(packet) => {
-                let stored_content = store.cas_read(&packet.hash).unwrap();
+        match packet.packet_type {
+            PacketType::Add => {
+                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
                 assert_eq!(content.to_vec(), stored_content);
             }
             _ => panic!("Expected AddPacket"),
@@ -378,23 +488,26 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None, None);
+        let packet = store.add(content, MimeType::TextPlain, None);
 
         let updated_content = b"Hello, updated world!";
         let update_packet = store.update(
-            packet.id().clone(),
+            packet.id.clone(),
             Some(updated_content),
             MimeType::TextPlain,
-            None,
             None,
         );
 
         let stored_update_packet = store.scan().last().unwrap();
         assert_eq!(update_packet, stored_update_packet);
 
-        match update_packet {
-            Packet::Update(packet) => {
-                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
+        match stored_update_packet {
+            Packet {
+                packet_type: PacketType::Update,
+                hash: Some(hash),
+                ..
+            } => {
+                let stored_content = store.cas_read(&hash).unwrap();
                 assert_eq!(updated_content.to_vec(), stored_content);
             }
             _ => panic!("Expected UpdatePacket"),
@@ -409,14 +522,13 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None, None);
+        let packet = store.add(content, MimeType::TextPlain, None);
 
         let forked_content = b"Hello, forked world!";
         let forked_packet = store.fork(
-            packet.id().clone(),
+            packet.id.clone(),
             Some(forked_content),
             MimeType::TextPlain,
-            None,
             None,
         );
 
@@ -424,8 +536,12 @@ mod tests {
         assert_eq!(forked_packet, stored_fork_packet);
 
         match forked_packet {
-            Packet::Fork(packet) => {
-                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
+            Packet {
+                packet_type: PacketType::Fork,
+                hash,
+                ..
+            } => {
+                let stored_content = store.cas_read(&hash.unwrap()).unwrap();
                 assert_eq!(forked_content.to_vec(), stored_content);
             }
             _ => panic!("Expected ForkPacket"),
@@ -438,8 +554,8 @@ mod tests {
         let path = dir.path().to_str().unwrap();
         let mut store = Store::new(path);
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None, None);
-        let delete_packet = store.delete(packet.id().clone());
+        let packet = store.add(content, MimeType::TextPlain, None);
+        let delete_packet = store.delete(packet.id.clone());
         let stored_delete_packet = store.scan().last().unwrap();
         assert_eq!(delete_packet, stored_delete_packet);
     }
@@ -455,9 +571,9 @@ mod tests {
         let content2 = b"Hello, fuzzy world!";
         let content3 = b"Hello, there!";
 
-        store.add(content1, MimeType::TextPlain, None, None);
-        store.add(content2, MimeType::TextPlain, None, None);
-        store.add(content3, MimeType::TextPlain, None, None);
+        store.add(content1, MimeType::TextPlain, None);
+        store.add(content2, MimeType::TextPlain, None);
+        store.add(content3, MimeType::TextPlain, None);
 
         let results = store.index.query("fzzy");
         let results: Vec<_> = results

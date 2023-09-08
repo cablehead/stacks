@@ -5,7 +5,7 @@ import { Scru128Id } from "scru128";
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item, Stack } from "../types";
+import { Item, itemGetContent, Stack } from "../types";
 import { b64ToUtf8, truncateUrl } from "../utils";
 
 function getTextMeta(input: string): { words: number; chars: number } {
@@ -20,25 +20,31 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(_: Stack, item: Item, content: string): MetaValue[] {
+function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
 
   let meta: MetaValue[] = [
-    { name: "ID", value: item.id },
-    { name: "Content Type", value: item.stack_id ? item.content_type : "Stack" },
+    { name: item.stack_id ? item.content_type : "Stack", value: item.id },
   ];
 
-  if (item.content_type == "Text") {
-    const textMeta = getTextMeta(b64ToUtf8(content));
+  if (!item.stack_id) {
+    meta.push({
+      name: "Tiktokens",
+      value: (
+        <span>
+          {stack.nav.value.sub?.items.reduce(
+            (sum, item) => sum + item.tiktokens,
+            0,
+          ) || 0}
+        </span>
+      ),
+    });
+  }
 
-    /*
-    const pluralize = (s: string, n: number): string => {
-      if (n !== 1) return s + "s";
-      return s;
-    };
-    */
+  if (item.stack_id && item.content_type == "Text") {
+    const textMeta = getTextMeta(b64ToUtf8(content));
 
     const info = [
       { s: "word", n: textMeta.words },
@@ -135,7 +141,7 @@ function MetaInfoRow(meta: MetaValue) {
 export function MetaPanel({ stack }: { stack: Stack }) {
   const item = stack.selected();
   if (!item) return <></>;
-  const content = stack.getContent(item.hash).value;
+  const content = itemGetContent(item);
   if (!content) return <></>;
 
   return (

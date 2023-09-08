@@ -225,7 +225,7 @@ impl UI {
 }
 
 pub fn with_meta(store: &Store, item: &view::Item) -> Item {
-    let content_meta = store.content_meta_cache.get(&item.hash).unwrap();
+    let content_meta = store.get_content_meta(&item.hash).unwrap();
     Item {
         id: item.id,
         stack_id: item.stack_id,

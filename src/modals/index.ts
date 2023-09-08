@@ -11,6 +11,7 @@ import { default as editorMode } from "./editorMode";
 import { default as newNoteMode } from "./newNoteMode";
 import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
+import { default as pipeToCommand } from "./pipeToCommand";
 import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
@@ -23,6 +24,7 @@ export {
   mainMode,
   newNoteMode,
   pipeMode,
+  pipeToCommand,
   settingsMode,
 };
 

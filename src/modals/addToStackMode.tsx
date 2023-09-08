@@ -37,7 +37,9 @@ const state = (() => {
     availOptions.value
       .filter((item) =>
         currFilter.value == "" ||
-        item.terse.toLowerCase().includes(currFilter.value.toLowerCase())
+        item.terse.toLowerCase().includes(
+          currFilter.value.toLowerCase(),
+        )
       )
   );
 
@@ -107,7 +109,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Copy to stack",
+  name: () => "Copy item to stack",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
