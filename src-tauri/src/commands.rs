@@ -153,6 +153,11 @@ pub async fn store_pipe_to_gpt(
         }
     }
 
+    let mut state = state.lock().unwrap();
+    packet = state.store.end_stream(packet.id);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+
     Ok(())
 }
 
