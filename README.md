@@ -1,8 +1,6 @@
-# Stacks
+# Stacks is a clipboard manager
 
 ![screenshot](./docs/screenshots/screenshot.png)
-
-Stacks is a clipboard manager
 
 ## Install
 
