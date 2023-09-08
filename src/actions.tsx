@@ -36,7 +36,7 @@ export const actions: Action[] = [
   },
 
   {
-    name: "Copy to stack",
+    name: "Copy item to stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
