@@ -8,11 +8,12 @@ import { borderRight } from "../ui/app.css";
 import { Item, itemGetContent, Layer, Stack } from "../types";
 
 const TerseRow = (
-  { stack, item, isSelected, isFocused }: {
+  { stack, item, isSelected, isFocused, showIcons }: {
     stack: Stack;
     item: Item;
     isSelected: boolean;
     isFocused: boolean;
+    showIcons: boolean;
   },
 ) => {
   const theRef = useRef<HTMLDivElement>(null);
@@ -44,7 +45,7 @@ const TerseRow = (
           cursor: pointer;
           "
     >
-      {false &&
+      {showIcons &&
         (
           <div
             style={{
@@ -76,6 +77,7 @@ const renderItems = (
   stack: Stack,
   key: string,
   layer: Layer,
+  showIcons: boolean,
 ) => {
   if (layer.items.length == 0) return <i>no items</i>;
   return (
@@ -97,6 +99,7 @@ const renderItems = (
             key={item.id}
             isSelected={item.id == layer.selected.id}
             isFocused={layer.is_focus}
+            showIcons={showIcons}
           />
         ))}
     </div>
@@ -111,7 +114,7 @@ export function Nav({ stack }: { stack: Stack }) {
       {nav.root
         ? (
           <>
-            {renderItems(stack, "root", nav.root)}
+            {renderItems(stack, "root", nav.root, false)}
             {nav.sub
               ? (
                 <>
@@ -119,6 +122,7 @@ export function Nav({ stack }: { stack: Stack }) {
                     stack,
                     nav.root.selected.id,
                     nav.sub,
+                    true,
                   )}
                   <div style="flex: 3; overflow: auto; height: 100%">
                     <Preview stack={stack} item={nav.sub.selected} />
