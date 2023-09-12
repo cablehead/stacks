@@ -56,8 +56,9 @@ pub async fn store_pipe_to_command(
 
     let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
     let mut reader = cacache::Reader::open_hash(cache_path, hash).await.unwrap();
-    tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
-    drop(stdin);
+    tokio::spawn(async move {
+        tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
+    });
 
     let output = cmd.wait_with_output().await.unwrap();
     let output = CommandOutput {
