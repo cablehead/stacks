@@ -58,6 +58,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            commands::store_win_move,
             commands::store_get_content,
             commands::store_get_root,
             commands::store_nav_refresh,
@@ -113,6 +114,8 @@ fn main() {
             if std::env::var("STACK_DEVTOOLS").is_ok() {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
+                use tauri_plugin_positioner::{WindowExt, Position};
+                let _ = window.move_window(Position::Center);
             }
 
             let db_path = match std::env::var("STACK_DB_PATH") {

@@ -351,6 +351,13 @@ pub fn store_new_note(
 }
 
 #[tauri::command]
+pub fn store_win_move(app: tauri::AppHandle) {
+    let win = app.get_window("main").unwrap();
+    use tauri_plugin_positioner::{Position, WindowExt};
+    let _ = win.move_window(Position::TopRight);
+}
+
+#[tauri::command]
 pub fn store_edit_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

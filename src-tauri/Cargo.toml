@@ -36,6 +36,7 @@ tantivy = "0.20.2"
 chrono = "0.4.26"
 async-openai = "0.14.0"
 futures = "0.3.28"
+tauri-plugin-positioner = "1.0.4"
 
 [dev-dependencies]
 indoc = "1.0.7"

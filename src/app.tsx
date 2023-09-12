@@ -25,6 +25,8 @@ import { attemptAction } from "./actions";
 
 import { Stack } from "./types";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { default as theme } from "./theme";
 
 const stack = new Stack({});
@@ -71,6 +73,12 @@ async function globalKeyHandler(event: KeyboardEvent) {
     case event.metaKey && event.key === "k":
       event.preventDefault();
       modes.toggle(stack, actionsMode);
+      return;
+
+    case event.metaKey && event.key === "l":
+      event.preventDefault();
+      console.log("store_win_move");
+      invoke("store_win_move", {});
       return;
 
     case event.metaKey && event.key === ",":

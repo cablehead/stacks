@@ -60,9 +60,9 @@
         "visible": false,
         "decorations": false,
         "transparent": true,
-        "title": "stacks",
         "width": 970,
-        "height": 500
+        "height": 520,
+        "title": "stacks"
       }
     ]
   }
