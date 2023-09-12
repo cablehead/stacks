@@ -18,6 +18,7 @@ pub struct Item {
     pub content_type: String,
     pub terse: String,
     pub tiktokens: usize,
+    pub ephemeral: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -236,5 +237,6 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
         content_type: content_meta.content_type.clone(),
         terse: content_meta.terse.clone(),
         tiktokens: content_meta.tiktokens,
+        ephemeral: item.ephemeral,
     }
 }

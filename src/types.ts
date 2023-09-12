@@ -6,6 +6,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
 
+import { b64ToUtf8 } from "./utils";
+
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
 const SSRIBrand = Symbol("SSRI");
@@ -21,10 +23,15 @@ export interface Item {
   content_type: string;
   terse: string;
   tiktokens: number;
+  ephemeral: boolean;
 }
 
 export function itemGetContent(item: Item): string {
-  return CAS.getSignal(item.hash).value;
+  const ret = item.ephemeral
+    ? EphemeralCAS.getSignal(item).value
+    : CAS.getSignal(item.hash).value;
+  // console.log("itemGetContent", item, b64ToUtf8(ret));
+  return ret;
 }
 
 export interface Layer {
@@ -169,6 +176,28 @@ export interface Action {
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
+export const EphemeralCAS = (() => {
+  const signalCache: Map<Scru128Id, Signal<string>> = new Map();
+
+  function getSignal(item: Item): Signal<string> {
+    let ret = signalCache.get(item.id);
+    if (!ret) {
+      ret = new Signal("");
+      signalCache.set(item.id, ret);
+    }
+
+    (async () => {
+      ret.value = await invoke("store_get_content", { hash: item.hash });
+    })();
+
+    return ret;
+  }
+
+  return {
+    getSignal,
+  };
+})();
+
 export const CAS = (() => {
   const signalCache: Map<SSRI, Signal<string>> = new Map();
 
@@ -177,6 +206,7 @@ export const CAS = (() => {
     if (cachedSignal !== undefined) {
       return cachedSignal;
     }
+    // console.log("CAS", hash);
     const ret: Signal<string> = signal("");
     (async () => {
       ret.value = await invoke("store_get_content", { hash: hash });
