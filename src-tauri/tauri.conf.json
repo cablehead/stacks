@@ -56,7 +56,6 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": false,
         "alwaysOnTop": true,
         "visible": false,
         "decorations": false,

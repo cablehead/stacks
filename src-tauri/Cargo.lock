@@ -4089,7 +4089,6 @@ dependencies = [
 [[package]]
 name = "tauri-plugin-spotlight"
 version = "0.1.2"
-source = "git+https://github.com/zzzze/tauri-plugin-spotlight#f492b7a5c1eae05e952c0820954e724f23ebfd1d"
 dependencies = [
  "cocoa 0.24.1",
  "objc",
