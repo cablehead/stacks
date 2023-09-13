@@ -1,7 +1,8 @@
+use futures::StreamExt;
 use std::str::FromStr;
 
 use hyper::service::{make_service_fn, service_fn};
-use hyper::{Method, Body, Error, Request, Response, Server, StatusCode};
+use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 
 use crate::state::SharedState;
 
@@ -13,7 +14,7 @@ async fn handle(req: Request<Body>, state: SharedState) -> Result<Response<Body>
 
     match (req.method(), id) {
         (&Method::GET, Some(id)) => get(id, state).await,
-        (&Method::POST, None) if path == "/" => post().await,
+        (&Method::POST, None) if path == "/" => post(req, state.clone()).await,
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(Body::from("Not Found"))
@@ -49,10 +50,41 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body
     }
 }
 
-async fn post() -> Result<Response<Body>, Error> {
+async fn post(req: Request<Body>, state: SharedState) -> Result<Response<Body>, Error> {
+    let mut packet = {
+        let mut state = state.lock().unwrap();
+        let stack = state.get_curr_stack();
+        state.ui.select(None); // focus first
+        state.store.start_stream(Some(stack), "".as_bytes())
+    };
+    let id = packet.id.clone();
+
+    let mut bytes_stream = req.into_body();
+    while let Some(chunk_result) = bytes_stream.next().await {
+        match chunk_result {
+            Ok(chunk) => {
+                let data = chunk.to_vec();
+                {
+                    let mut state = state.lock().unwrap();
+                    packet = state.store.update_stream(packet.id, &data);
+                    state.merge(&packet);
+                }
+            }
+            Err(_) => {
+                // TODO
+            }
+        }
+    }
+
+    {
+        let mut state = state.lock().unwrap();
+        packet = state.store.end_stream(packet.id);
+        state.merge(&packet);
+    }
+
     Ok(Response::builder()
         .status(StatusCode::OK)
-        .body(Body::from("todo"))
+        .body(Body::from(id.to_string()))
         .unwrap())
 }
 
