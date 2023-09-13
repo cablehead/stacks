@@ -19,7 +19,23 @@ async fn handle(req: Request<Body>, state: SharedState) -> Result<Response<Body>
         });
 
     match item {
-        Some(item) => Ok(Response::new(Body::from(item.hash.to_string()))),
+        Some(item) => {
+            let cache_path = {
+                let state = state.lock().unwrap();
+                state.store.cache_path.clone()
+            };
+            let reader = cacache::Reader::open_hash(cache_path, item.hash)
+                .await
+                .unwrap();
+
+            let stream = Body::wrap_stream(tokio_util::io::ReaderStream::new(reader));
+            let response = Response::builder()
+                .status(StatusCode::OK)
+                .body(stream)
+                .unwrap();
+
+            Ok(response)
+        }
         None => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(Body::from("Not Found"))
@@ -28,7 +44,6 @@ async fn handle(req: Request<Body>, state: SharedState) -> Result<Response<Body>
 }
 
 pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
-    let state = state.clone();
     tauri::async_runtime::spawn(async move {
         let addr = ([127, 0, 0, 1], 9146).into();
 
@@ -36,7 +51,6 @@ pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
             let state = state.clone();
             async move {
                 Ok::<_, hyper::Error>(service_fn(move |req: Request<Body>| {
-                    let state = state.clone();
                     handle(req, state.clone())
                 }))
             }
