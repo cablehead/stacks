@@ -15,6 +15,7 @@ mod store;
 mod ui;
 mod view;
 
+#[cfg(debug_assertions)]
 mod http;
 
 #[cfg(test)]
