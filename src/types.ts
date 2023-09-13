@@ -180,12 +180,21 @@ export const EphemeralCAS = (() => {
   function getSignal(item: Item): Signal<string> {
     let ret = signalCache.get(item.id);
     if (!ret) {
+      console.log("EphemeralCAS: new signal");
       ret = new Signal("");
       signalCache.set(item.id, ret);
     }
 
     (async () => {
-      ret.value = await invoke("store_get_content", { hash: item.hash });
+      const content = await invoke<string>("store_get_content", {
+        hash: item.hash,
+      });
+      // TODO: content can be null: my guess is because the content hash has
+      // already been replaced in the backend cache: we should fetch by
+      // item.id, not hash
+      if (content) {
+        ret.value = content;
+      }
     })();
 
     return ret;
