@@ -109,6 +109,28 @@ const renderItems = (
 export function Nav({ stack }: { stack: Stack }) {
   const nav = stack.nav.value;
 
+  useEffect(() => {
+    console.log("component: mounted.");
+    return () => {
+      console.log("component: will unmount.");
+    };
+  }, []);
+
+  const preRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    console.log("<pre> inserted", preRef.current);
+  }, [preRef.current]);
+
+  useEffect(() => {
+    const item = nav.sub ? nav.sub.selected : null;
+    const content = item ? itemGetContent(item) : null;
+    if (preRef.current && content) {
+      preRef.current.textContent = b64ToUtf8(content);
+      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
+    }
+  }, [nav.sub?.selected.hash]);
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
       {nav.root
@@ -124,11 +146,15 @@ export function Nav({ stack }: { stack: Stack }) {
                     nav.sub,
                     true,
                   )}
+
                   <div style="flex: 3; overflow: auto; height: 100%">
-                    <Preview
-                      stack={stack}
-                      item={nav.sub.selected}
-                    />
+                    <div>
+                      <pre
+                        key={nav.sub.selected.id}
+                        ref={preRef}
+                        style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
+                      ></pre>
+                    </div>
                   </div>
                 </>
               )
@@ -156,58 +182,3 @@ const RowIcon = ({ item }: { item: Item }) => {
 
   return <Icon name="IconBell" />;
 };
-
-// @ts-ignore
-function Preview({ stack, item }: { stack: Stack; item: Item }) {
-  const content = itemGetContent(item);
-  if (!content) return <div>loading...</div>;
-
-  if (item.mime_type === "image/png") {
-    return (
-      <img
-        src={"data:image/png;base64," + content}
-        style={{
-          opacity: 0.95,
-          borderRadius: "0.5rem",
-          maxHeight: "100%",
-          height: "auto",
-          width: "auto",
-          objectFit: "contain",
-        }}
-      />
-    );
-  }
-
-  const preRef = useRef<HTMLPreElement>(null);
-
-  useEffect(() => {
-    console.log("<pre> inserted", preRef.current);
-  }, [preRef.current]);
-
-  console.log("item", item.id, content.length, item.ephemeral);
-
-  useEffect(() => {
-    console.log("Preview component mounted.");
-
-    return () => {
-      console.log("Preview component will unmount.");
-    };
-  }, []);
-
-  useEffect(() => {
-    if (preRef.current && content) {
-      preRef.current.textContent = b64ToUtf8(content);
-      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
-    }
-  }, [item]);
-
-  return (
-    <div>
-      <pre
-        key={item.id}
-        ref={preRef}
-        style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
-      ></pre>
-    </div>
-  );
-}
