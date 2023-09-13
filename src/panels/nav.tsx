@@ -125,7 +125,10 @@ export function Nav({ stack }: { stack: Stack }) {
                     true,
                   )}
                   <div style="flex: 3; overflow: auto; height: 100%">
-                    <Preview stack={stack} item={nav.sub.selected} />
+                    <Preview
+                      stack={stack}
+                      item={nav.sub.selected}
+                    />
                   </div>
                 </>
               )
@@ -178,17 +181,33 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
   const preRef = useRef<HTMLPreElement>(null);
 
   useEffect(() => {
-    if (preRef.current) {
+    console.log("<pre> inserted", preRef.current);
+  }, [preRef.current]);
+
+  console.log("item", item.id, content.length, item.ephemeral);
+
+  useEffect(() => {
+    console.log("Preview component mounted.");
+
+    return () => {
+      console.log("Preview component will unmount.");
+    };
+  }, []);
+
+  useEffect(() => {
+    if (preRef.current && content) {
+      preRef.current.textContent = b64ToUtf8(content);
       preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
     }
   }, [item]);
 
   return (
-    <pre
-      ref={preRef}
-      style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
-    >
-    { b64ToUtf8(content) }
-    </pre>
+    <div>
+      <pre
+        key={item.id}
+        ref={preRef}
+        style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
+      ></pre>
+    </div>
   );
 }
