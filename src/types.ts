@@ -6,8 +6,6 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
 
-import { b64ToUtf8 } from "./utils";
-
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
 const SSRIBrand = Symbol("SSRI");

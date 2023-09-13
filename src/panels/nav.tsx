@@ -175,8 +175,19 @@ function Preview({ stack, item }: { stack: Stack; item: Item }) {
     );
   }
 
+  const preRef = useRef<HTMLPreElement>(null);
+
+  useEffect(() => {
+    if (preRef.current) {
+      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
+    }
+  }, [item]);
+
   return (
-    <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
+    <pre
+      ref={preRef}
+      style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
+    >
     { b64ToUtf8(content) }
     </pre>
   );
