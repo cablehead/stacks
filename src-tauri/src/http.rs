@@ -1,12 +1,17 @@
 use futures::StreamExt;
 use std::str::FromStr;
+use tauri::Manager;
 
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 
 use crate::state::SharedState;
 
-async fn handle(req: Request<Body>, state: SharedState) -> Result<Response<Body>, Error> {
+async fn handle(
+    req: Request<Body>,
+    state: SharedState,
+    app_handle: tauri::AppHandle,
+) -> Result<Response<Body>, Error> {
     let path = req.uri().path();
     let id = path
         .strip_prefix("/")
@@ -14,7 +19,7 @@ async fn handle(req: Request<Body>, state: SharedState) -> Result<Response<Body>
 
     match (req.method(), id) {
         (&Method::GET, Some(id)) => get(id, state).await,
-        (&Method::POST, None) if path == "/" => post(req, state.clone()).await,
+        (&Method::POST, None) if path == "/" => post(req, state.clone(), app_handle.clone()).await,
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
             .body(Body::from("Not Found"))
@@ -50,7 +55,11 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body
     }
 }
 
-async fn post(req: Request<Body>, state: SharedState) -> Result<Response<Body>, Error> {
+async fn post(
+    req: Request<Body>,
+    state: SharedState,
+    app_handle: tauri::AppHandle,
+) -> Result<Response<Body>, Error> {
     let mut packet = {
         let mut state = state.lock().unwrap();
         let stack = state.get_curr_stack();
@@ -63,11 +72,13 @@ async fn post(req: Request<Body>, state: SharedState) -> Result<Response<Body>, 
     while let Some(chunk_result) = bytes_stream.next().await {
         match chunk_result {
             Ok(chunk) => {
+                println!("chunk: {:?}", chunk);
                 let data = chunk.to_vec();
                 {
                     let mut state = state.lock().unwrap();
                     packet = state.store.update_stream(packet.id, &data);
                     state.merge(&packet);
+                    app_handle.emit_all("refresh-items", true).unwrap();
                 }
             }
             Err(_) => {
@@ -80,6 +91,7 @@ async fn post(req: Request<Body>, state: SharedState) -> Result<Response<Body>, 
         let mut state = state.lock().unwrap();
         packet = state.store.end_stream(packet.id);
         state.merge(&packet);
+        app_handle.emit_all("refresh-items", true).unwrap();
     }
 
     Ok(Response::builder()
@@ -94,9 +106,10 @@ pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
 
         let make_svc = make_service_fn(move |_conn| {
             let state = state.clone();
+            let app_handle = app_handle.clone();
             async move {
                 Ok::<_, hyper::Error>(service_fn(move |req: Request<Body>| {
-                    handle(req, state.clone())
+                    handle(req, state.clone(), app_handle.clone())
                 }))
             }
         });
