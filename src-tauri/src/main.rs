@@ -15,6 +15,8 @@ mod store;
 mod ui;
 mod view;
 
+mod http;
+
 #[cfg(test)]
 mod ui_tests;
 
@@ -114,7 +116,7 @@ fn main() {
             if std::env::var("STACK_DEVTOOLS").is_ok() {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
-                use tauri_plugin_positioner::{WindowExt, Position};
+                use tauri_plugin_positioner::{Position, WindowExt};
                 let _ = window.move_window(Position::Center);
             }
 
@@ -130,6 +132,12 @@ fn main() {
             let state = State::new(&db_path);
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
+
+            // start HTTP api if in debug mode
+            #[cfg(debug_assertions)]
+            {
+                http::start(app.handle().clone(), state.clone());
+            }
 
             clipboard::start(app.handle(), &state);
 

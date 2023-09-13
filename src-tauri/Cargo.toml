@@ -37,6 +37,7 @@ chrono = "0.4.26"
 async-openai = "0.14.0"
 futures = "0.3.28"
 tauri-plugin-positioner = "1.0.4"
+hyper = { version = "0.14.27", features = ["full"] }
 
 [dev-dependencies]
 indoc = "1.0.7"
