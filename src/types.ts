@@ -82,7 +82,7 @@ export class Stack {
   async initListener() {
     console.log("CREATE D1");
     const d1 = await listen("refresh-items", () => {
-      console.log('listen("refresh-items');
+      // console.log('listen("refresh-items');
       this.refresh();
     });
     if (import.meta.hot) {
