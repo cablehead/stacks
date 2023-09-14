@@ -26,6 +26,7 @@ pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
     pub is_focus: bool,
+    pub preview: String,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -161,6 +162,9 @@ impl UI {
 
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
+            let selected = with_meta(store, focused);
+            let preview = generate_preview(&selected);
+
             Nav {
                 root: Some(Layer {
                     items: self
@@ -171,6 +175,7 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
+                    preview: "".to_string(),
                 }),
                 sub: Some(Layer {
                     items: self
@@ -180,12 +185,14 @@ impl UI {
                         .cloned()
                         .map(|item| with_meta(store, item))
                         .collect(),
-                    selected: with_meta(store, focused),
+                    selected,
                     is_focus: true,
+                    preview: preview,
                 }),
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
         } else {
+            // the root layer is focused
             let children: Vec<_> = self
                 .view
                 .children(focused)
@@ -201,6 +208,7 @@ impl UI {
                     items: children.iter().map(|item| with_meta(store, item)).collect(),
                     selected: with_meta(store, selected),
                     is_focus: false,
+                    preview: "2 B".to_string(),
                 })
             } else {
                 None
@@ -217,6 +225,7 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, focused),
                     is_focus: true,
+                    preview: "".to_string(),
                 }),
                 sub,
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
@@ -239,4 +248,12 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
         tiktokens: content_meta.tiktokens,
         ephemeral: item.ephemeral,
     }
+}
+
+pub fn generate_preview(item: &Item) -> String {
+    let html_content = format!(
+        "<div><h1>{}</h1><p>{}</p></div>",
+        item.id, item.content_type
+    );
+    html_content
 }

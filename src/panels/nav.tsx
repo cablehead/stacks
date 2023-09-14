@@ -150,13 +150,9 @@ export function Nav({ stack }: { stack: Stack }) {
                   )}
 
                   <div style="flex: 3; overflow: auto; height: 100%">
-                    <div>
-                      <pre
-                        key={nav.sub.selected.id}
-                        ref={preRef}
-                        style="margin: 0; white-space: pre-wrap; overflow-x: hidden"
-                      ></pre>
-                    </div>
+
+                  <div dangerouslySetInnerHTML={{ __html: nav.sub?.preview || "<i>loading</i>"  }}></div>
+
                   </div>
                 </>
               )
