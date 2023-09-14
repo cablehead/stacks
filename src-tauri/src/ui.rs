@@ -203,12 +203,14 @@ impl UI {
             let sub = if !children.is_empty() {
                 let possible = self.last_selected.get(&focused.id).or(children.get(0));
                 let selected = self.view.get_best_focus(possible).unwrap();
+                let selected = with_meta(store, selected);
+                let preview = generate_preview(&selected);
 
                 Some(Layer {
                     items: children.iter().map(|item| with_meta(store, item)).collect(),
-                    selected: with_meta(store, selected),
+                    selected,
                     is_focus: false,
-                    preview: "2 B".to_string(),
+                    preview,
                 })
             } else {
                 None
