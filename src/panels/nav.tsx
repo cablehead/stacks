@@ -127,7 +127,9 @@ export function Nav({ stack }: { stack: Stack }) {
     const content = item ? itemGetContent(item) : null;
     if (preRef.current && content) {
       preRef.current.textContent = b64ToUtf8(content);
-      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
+      if (item.ephemeral) {
+        preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
+      }
     }
   }, [nav.sub?.selected.hash]);
 
