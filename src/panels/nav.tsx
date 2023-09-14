@@ -7,6 +7,11 @@ import { borderRight } from "../ui/app.css";
 
 import { Item, itemGetContent, Layer, Stack } from "../types";
 
+import Prism from "prismjs";
+window.Prism = Prism;
+import "prismjs/components/prism-rust";
+import "prism-themes/themes/prism-one-dark.css";
+
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
     stack: Stack;
@@ -123,13 +128,20 @@ export function Nav({ stack }: { stack: Stack }) {
   }, [preRef.current]);
 
   useEffect(() => {
+    if (!preRef.current) return;
+
     const item = nav.sub ? nav.sub.selected : null;
-    const content = item ? itemGetContent(item) : null;
-    if (preRef.current && content) {
-      preRef.current.textContent = b64ToUtf8(content);
-      if (item.ephemeral) {
-        preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
-      }
+    if (!item) return;
+
+    const content = itemGetContent(item);
+    if (!content) return;
+
+    preRef.current.textContent = b64ToUtf8(content);
+    if (item.hash == "sha256-0UDbFR5u3lzm+mrjUy5ZLgVbU57It1YMUbX5CN11gYs=") {
+      Prism.highlightElement(preRef.current);
+    }
+    if (item.ephemeral) {
+      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
     }
   }, [nav.sub?.selected.hash]);
 
