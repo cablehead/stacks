@@ -13,6 +13,7 @@ mod commands;
 mod state;
 mod store;
 mod ui;
+mod util;
 mod view;
 
 #[cfg(debug_assertions)]

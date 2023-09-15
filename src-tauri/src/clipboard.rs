@@ -5,11 +5,7 @@ use serde_json::Value;
 
 use crate::state::SharedState;
 use crate::store::MimeType;
-
-use base64::{engine::general_purpose, Engine as _};
-fn b64decode(encoded: &str) -> Vec<u8> {
-    general_purpose::STANDARD.decode(encoded).unwrap()
-}
+use crate::util;
 
 pub fn start(app: tauri::AppHandle, state: &SharedState) {
     let (mut rx, _child) = Command::new_sidecar("x-macos-pasteboard")
@@ -40,7 +36,8 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let curr_stack = Some(state.get_curr_stack());
 
                 let packet = if types.contains_key("public.utf8-plain-text") {
-                    let content = b64decode(types["public.utf8-plain-text"].as_str().unwrap());
+                    let content =
+                        util::b64decode(types["public.utf8-plain-text"].as_str().unwrap());
                     if let Ok(str_ref) = std::str::from_utf8(&content) {
                         if str_ref.trim().is_empty() {
                             continue;
@@ -49,7 +46,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                     Some(state.store.add(&content, MimeType::TextPlain, curr_stack))
                 } else if types.contains_key("public.png") {
-                    let content = b64decode(types["public.png"].as_str().unwrap());
+                    let content = util::b64decode(types["public.png"].as_str().unwrap());
                     Some(state.store.add(&content, MimeType::ImagePng, curr_stack))
                 } else {
                     None

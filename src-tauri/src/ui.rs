@@ -5,6 +5,7 @@ use ssri::Integrity;
 
 pub use crate::store::{MimeType, Packet, Store};
 
+use crate::util;
 use crate::view;
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -163,7 +164,8 @@ impl UI {
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
             let selected = with_meta(store, focused);
-            let preview = generate_preview(&selected);
+            let content = store.get_content(&selected.hash);
+            let preview = generate_preview(&selected, &content);
 
             Nav {
                 root: Some(Layer {
@@ -204,7 +206,8 @@ impl UI {
                 let possible = self.last_selected.get(&focused.id).or(children.get(0));
                 let selected = self.view.get_best_focus(possible).unwrap();
                 let selected = with_meta(store, selected);
-                let preview = generate_preview(&selected);
+                let content = store.get_content(&selected.hash);
+                let preview = generate_preview(&selected, &content);
 
                 Some(Layer {
                     items: children.iter().map(|item| with_meta(store, item)).collect(),
@@ -252,10 +255,18 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
     }
 }
 
-pub fn generate_preview(item: &Item) -> String {
-    let html_content = format!(
-        "<div><h1>{}</h1><p>{}</p></div>",
-        item.id, item.content_type
-    );
-    html_content
+pub fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
+    match content {
+        None => "loading...".to_string(),
+        Some(data) => {
+            if item.mime_type == MimeType::ImagePng {
+                format!("<img src=\"data:image/png;base64,{}\" style=\"opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain\" />", util::b64encode(data))
+            } else {
+                format!(
+                    "<pre style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
+                    std::str::from_utf8(&data).unwrap()
+                )
+            }
+        }
+    }
 }
