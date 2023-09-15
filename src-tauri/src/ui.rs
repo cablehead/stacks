@@ -255,17 +255,38 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
     }
 }
 
-pub fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
+use comrak::plugins::syntect::SyntectAdapter;
+use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
+
+pub fn markdown_to_html(input: &Vec<u8>) -> String {
+    let adapter = SyntectAdapter::new("base16-ocean.dark");
+    let options = ComrakOptions::default();
+    let mut plugins = ComrakPlugins::default();
+
+    plugins.render.codefence_syntax_highlighter = Some(&adapter);
+
+    let input_str = String::from_utf8(input.clone()).unwrap();
+    markdown_to_html_with_plugins(&input_str, &options, &plugins)
+}
+
+fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
     match content {
         None => "loading...".to_string(),
         Some(data) => {
             if item.mime_type == MimeType::ImagePng {
                 format!("<img src=\"data:image/png;base64,{}\" style=\"opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain\" />", util::b64encode(data))
             } else {
-                format!(
+                if item.id.to_string() == "03A9G2LCYWHCVYCQGV0UD3ZA5" {
+                    format!(
+                    "<pre style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
+                    markdown_to_html(data)
+                )
+                } else {
+                    format!(
                     "<pre style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
                     std::str::from_utf8(&data).unwrap()
                 )
+                }
             }
         }
     }
