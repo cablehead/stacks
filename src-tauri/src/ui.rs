@@ -276,16 +276,16 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
             if item.mime_type == MimeType::ImagePng {
                 format!("<img src=\"data:image/png;base64,{}\" style=\"opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain\" />", util::b64encode(data))
             } else {
-                if item.id.to_string() == "03A9G2LCYWHCVYCQGV0UD3ZA5" {
+                if true { // item.id.to_string() == "03AA4778N243DNF96I8NDK7DP" {
                     format!(
-                    "<pre style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
-                    markdown_to_html(data)
-                )
+                        "<div class=\"scroll-me\" style=\"margin: 0\">{}</div>",
+                        markdown_to_html(data)
+                    )
                 } else {
                     format!(
-                    "<pre style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
-                    std::str::from_utf8(&data).unwrap()
-                )
+    "<pre class=\"scroll-me\" style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
+    std::str::from_utf8(&data).unwrap()
+)
                 }
             }
         }

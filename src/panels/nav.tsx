@@ -145,6 +145,21 @@ export function Nav({ stack }: { stack: Stack }) {
     }
   }, [nav.sub?.selected.hash]);
 
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    console.log("1", anchorRef.current);
+    if (anchorRef.current) {
+      const scrollMeElem = anchorRef.current.querySelector(".scroll-me");
+      console.log("2", scrollMeElem);
+      if (scrollMeElem) {
+        console.log("scroll scroll");
+        // scrollMeElem.scrollTop = scrollMeElem.scrollHeight;
+        scrollMeElem.scrollIntoView({ block: "end", behavior: "auto" });
+      }
+    }
+  }, [nav.sub?.preview]);
+
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
       {nav.root
@@ -161,10 +176,16 @@ export function Nav({ stack }: { stack: Stack }) {
                     true,
                   )}
 
-                  <div style="flex: 3; overflow: auto; height: 100%">
-
-                  <div dangerouslySetInnerHTML={{ __html: nav.sub?.preview || "<i>loading</i>"  }}></div>
-
+                  <div
+                    style="flex: 3; overflow: auto; height: 100%"
+                    ref={anchorRef}
+                  >
+                    <div
+                      dangerouslySetInnerHTML={{
+                        __html: nav.sub?.preview || "<i>loading</i>",
+                      }}
+                    >
+                    </div>
                   </div>
                 </>
               )
