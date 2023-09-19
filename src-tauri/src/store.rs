@@ -63,6 +63,7 @@ impl InProgressStream {
                 hash: Some(hash.clone()),
                 stack_id,
                 ephemeral: true,
+                content_type: None,
             },
         }
     }
@@ -98,6 +99,16 @@ pub enum PacketType {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+pub struct PacketV3 {
+    pub id: Scru128Id,
+    pub packet_type: PacketType,
+    pub source_id: Option<Scru128Id>,
+    pub hash: Option<Integrity>,
+    pub stack_id: Option<Scru128Id>,
+    pub ephemeral: bool,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct Packet {
     pub id: Scru128Id,
     pub packet_type: PacketType,
@@ -105,6 +116,23 @@ pub struct Packet {
     pub hash: Option<Integrity>,
     pub stack_id: Option<Scru128Id>,
     pub ephemeral: bool,
+    pub content_type: Option<String>,
+}
+
+fn deserialize_packet(value: &[u8]) -> Option<Packet> {
+    bincode::deserialize::<Packet>(&value)
+        .or_else(|_| {
+            bincode::deserialize::<PacketV3>(&value).map(|v3_packet| Packet {
+                id: v3_packet.id,
+                packet_type: v3_packet.packet_type,
+                source_id: v3_packet.source_id,
+                hash: v3_packet.hash,
+                stack_id: v3_packet.stack_id,
+                ephemeral: v3_packet.ephemeral,
+                content_type: None,
+            })
+        })
+        .ok()
 }
 
 pub struct Index {
@@ -327,10 +355,9 @@ impl Store {
     }
 
     pub fn scan(&self) -> impl Iterator<Item = Packet> {
-        self.packets.iter().filter_map(|item| {
-            item.ok()
-                .and_then(|(_, value)| bincode::deserialize::<Packet>(&value).ok())
-        })
+        self.packets
+            .iter()
+            .filter_map(|item| item.ok().and_then(|(_, value)| deserialize_packet(&value)))
     }
 
     pub fn add(
@@ -347,6 +374,7 @@ impl Store {
             hash: Some(hash),
             stack_id,
             ephemeral: false,
+            content_type: None,
         };
         self.insert_packet(&packet);
         packet
@@ -367,6 +395,7 @@ impl Store {
             hash,
             stack_id,
             ephemeral: false,
+            content_type: None,
         };
         self.insert_packet(&packet);
         packet
@@ -387,6 +416,7 @@ impl Store {
             hash,
             stack_id,
             ephemeral: false,
+            content_type: None,
         };
         self.insert_packet(&packet);
         packet
@@ -400,6 +430,7 @@ impl Store {
             hash: None,
             stack_id: None,
             ephemeral: false,
+            content_type: None,
         };
         self.insert_packet(&packet);
         packet
@@ -407,7 +438,7 @@ impl Store {
 
     pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
-        removed.and_then(|value| bincode::deserialize(&value).ok())
+        removed.and_then(|value| deserialize_packet(&value))
     }
 
     pub fn settings_save(&mut self, settings: Settings) {
