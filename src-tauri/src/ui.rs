@@ -255,8 +255,11 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
     }
 }
 
+use html::media::Image;
+use html::text_content::{PreformattedText, Division};
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
+use std::borrow::Cow;
 
 pub fn markdown_to_html(input: &Vec<u8>) -> String {
     let adapter = SyntectAdapter::new("base16-ocean.dark");
@@ -274,20 +277,30 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
         None => "loading...".to_string(),
         Some(data) => {
             if item.mime_type == MimeType::ImagePng {
-                format!("<img src=\"data:image/png;base64,{}\" style=\"opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain\" />", util::b64encode(data))
+                let img = Image::builder()
+                    .src(format!("data:image/png;base64,{}", util::b64encode(data)))
+                    .style("opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain")
+                    .build()
+                    .to_string();
+                img
+            } else if item.content_type == "markdown" {
+                let div = Division::builder()
+                    .class("scroll-me")
+                    .style("margin: 0")
+                    .text(markdown_to_html(data))
+                    .build()
+                    .to_string();
+                div
             } else {
-                if true { // item.id.to_string() == "03AA4778N243DNF96I8NDK7DP" {
-                    format!(
-                        "<div class=\"scroll-me\" style=\"margin: 0\">{}</div>",
-                        markdown_to_html(data)
-                    )
-                } else {
-                    format!(
-    "<pre class=\"scroll-me\" style=\"margin: 0; white-space: pre-wrap; overflow-x: hidden\">{}</pre>",
-    std::str::from_utf8(&data).unwrap()
-)
-                }
+                let pre = PreformattedText::builder()
+                    .class("scroll-me")
+                    .style("margin: 0; white-space: pre-wrap; overflow-x: hidden")
+                    .text(String::from_utf8(data.clone()).unwrap())
+                    .build()
+                    .to_string();
+                pre
             }
         }
     }
 }
+

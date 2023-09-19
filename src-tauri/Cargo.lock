@@ -1925,6 +1925,21 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7f24254aa9a54b5c858eaee2f5bccdb46aaf0e486a595ed5fd8f86ba55232a70"
 
 [[package]]
+name = "html"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cea14c3f175853af71e4e2dcc4e13798f3d9fc373b9d4cc36e211747e757b2e"
+dependencies = [
+ "html-sys",
+]
+
+[[package]]
+name = "html-sys"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "bef3495e1b580e93c46559fddaf91f6e10b7f6231b6a77f2e09e2be8bb1c68ab"
+
+[[package]]
 name = "html5ever"
 version = "0.25.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4163,6 +4178,7 @@ dependencies = [
  "comrak",
  "dirs",
  "futures",
+ "html",
  "hyper",
  "indoc",
  "log",
