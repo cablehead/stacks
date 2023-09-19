@@ -259,7 +259,6 @@ use html::media::Image;
 use html::text_content::{PreformattedText, Division};
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
-use std::borrow::Cow;
 
 pub fn markdown_to_html(input: &Vec<u8>) -> String {
     let adapter = SyntectAdapter::new("base16-ocean.dark");
@@ -292,10 +291,13 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                     .to_string();
                 div
             } else {
+                let data = data.clone();
+                let data = String::from_utf8(data).unwrap();
+                let encoded = html_escape::encode_text(&data).into_owned();
                 let pre = PreformattedText::builder()
                     .class("scroll-me")
                     .style("margin: 0; white-space: pre-wrap; overflow-x: hidden")
-                    .text(String::from_utf8(data.clone()).unwrap())
+                    .text(encoded)
                     .build()
                     .to_string();
                 pre
