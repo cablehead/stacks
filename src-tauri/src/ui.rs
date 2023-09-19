@@ -281,18 +281,18 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                     img src=(img_data) style="opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain";
                 };
                 img.into_string()
-            } else if item.content_type == "Text" {
+            } else if item.content_type == "Markdown" {
                 let md_html = markdown_to_html(data);
                 let div = html! {
-                    div class="scroll-me" style="margin: 0" {
-                        (maud::PreEscaped(md_html))
+                    div.("scroll-me")[item.ephemeral] style="margin: 0" {
+                        (md_html)
                     }
                 };
                 div.into_string()
             } else {
                 let data = String::from_utf8(data.clone()).unwrap();
                 let pre = html! {
-                    pre class="scroll-me" style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
+                    pre.("scroll-me")[item.ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
                         (data)
                     }
                 };
