@@ -40,8 +40,7 @@ futures = "0.3.28"
 tauri-plugin-positioner = "1.0.4"
 hyper = { version = "0.14.27", features = ["full"] }
 comrak = { version = "0.18.0", features = ["syntect"] }
-html = "0.6.1"
-html-escape = "0.2.13"
+maud = "0.25.0"
 
 [dev-dependencies]
 indoc = "1.0.7"

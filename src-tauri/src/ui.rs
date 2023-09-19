@@ -255,8 +255,6 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
     }
 }
 
-use html::media::Image;
-use html::text_content::{PreformattedText, Division};
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
@@ -271,36 +269,34 @@ pub fn markdown_to_html(input: &Vec<u8>) -> String {
     markdown_to_html_with_plugins(&input_str, &options, &plugins)
 }
 
+use maud::html;
+
 fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
     match content {
         None => "loading...".to_string(),
         Some(data) => {
             if item.mime_type == MimeType::ImagePng {
-                let img = Image::builder()
-                    .src(format!("data:image/png;base64,{}", util::b64encode(data)))
-                    .style("opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain")
-                    .build()
-                    .to_string();
-                img
+                let img_data = format!("data:image/png;base64,{}", util::b64encode(data));
+                let img = html! {
+                    img src=(img_data) style="opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain";
+                };
+                img.into_string()
             } else if item.content_type == "markdown" {
-                let div = Division::builder()
-                    .class("scroll-me")
-                    .style("margin: 0")
-                    .text(markdown_to_html(data))
-                    .build()
-                    .to_string();
-                div
+                let md_html = markdown_to_html(data);
+                let div = html! {
+                    div class="scroll-me" style="margin: 0" {
+                        (md_html)
+                    }
+                };
+                div.into_string()
             } else {
-                let data = data.clone();
-                let data = String::from_utf8(data).unwrap();
-                let encoded = html_escape::encode_text(&data).into_owned();
-                let pre = PreformattedText::builder()
-                    .class("scroll-me")
-                    .style("margin: 0; white-space: pre-wrap; overflow-x: hidden")
-                    .text(encoded)
-                    .build()
-                    .to_string();
-                pre
+                let data = String::from_utf8(data.clone()).unwrap();
+                let pre = html! {
+                    pre class="scroll-me" style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
+                        (data)
+                    }
+                };
+                pre.into_string()
             }
         }
     }
