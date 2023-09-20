@@ -379,6 +379,21 @@ pub fn store_edit_note(
 }
 
 #[tauri::command]
+pub fn store_set_content_type(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    hash: ssri::Integrity,
+    content_type: String,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_content_type(
+        hash,
+        content_type);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

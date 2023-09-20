@@ -401,6 +401,27 @@ impl Store {
         packet
     }
 
+    pub fn update_content_type(
+        &mut self,
+        hash: ssri::Integrity,
+        content_type: String,
+    ) -> Packet {
+        let mut meta = self.content_meta_cache.get(&hash).unwrap().clone();
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: None,
+            hash: Some(hash.clone()),
+            stack_id: None,
+            ephemeral: false,
+            content_type: Some(content_type.clone()),
+        };
+        self.insert_packet(&packet);
+        meta.content_type = content_type;
+        self.content_meta_cache.insert(hash, meta);
+        packet
+    }
+
     pub fn fork(
         &mut self,
         source_id: Scru128Id,
