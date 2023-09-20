@@ -51,11 +51,10 @@ globalStyle(".preview.markdown", {
   marginLeft: "auto",
   marginRight: "auto",
   letterSpacing: "normal",
-  // lineHeight: "1.5em",
 });
 
 globalStyle(".preview.markdown code", {
-  backgroundColor: vars.borderColor,
+  backgroundColor: vars.backgroundColorHover,
   fontSize: "13.6px",
   fontFamily: "ui-monospace",
   padding: "0.2ch 0.4ch",
