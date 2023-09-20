@@ -43,6 +43,26 @@ globalStyle("html, body", {
   overflow: "hidden",
 });
 
+globalStyle(".preview.markdown", {
+  fontFamily: "system-ui",
+  padding: "0px 1ch",
+  fontSize: "16px",
+  maxWidth: "60ch",
+  marginLeft: "auto",
+  marginRight: "auto",
+  letterSpacing: "normal",
+  // lineHeight: "1.5em",
+});
+
+globalStyle(".preview.markdown code", {
+  backgroundColor: vars.borderColor,
+  fontSize: "13.6px",
+  fontFamily: "ui-monospace",
+  padding: "0.2ch 0.4ch",
+  borderRadius: "6px",
+  display: "inline",
+});
+
 globalStyle("main", {
   color: vars.textColor,
   backgroundColor: vars.backgroundColorTransparent,

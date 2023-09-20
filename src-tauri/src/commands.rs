@@ -235,6 +235,7 @@ pub fn store_nav_set_filter(
     let content_type = match content_type.as_str() {
         "Links" => "Link",
         "Images" => "Image",
+        "Markdown" => "Markdown",
         _ => "All",
     };
     state.nav_set_filter(&filter, content_type);

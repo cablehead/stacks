@@ -272,7 +272,7 @@ impl Store {
                 if let Some(hash) = p.hash.clone() {
                     if let Some(content_type) = p.content_type.clone() {
                         if let Some(meta) = content_meta_cache.get_mut(&hash) {
-                            println!("SCAN: {:?} {:?}", &p, &meta);
+                            println!("SCAN: {:?} {:?}", &meta, &content_type);
                             meta.content_type = content_type;
                         }
                     }
@@ -317,6 +317,9 @@ impl Store {
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
+        if let Some(_) = self.content_meta_cache.get(&hash) {
+            return hash;
+        }
 
         let (content_type, terse, tiktokens) = match mime_type {
             MimeType::TextPlain => {

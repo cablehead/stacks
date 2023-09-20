@@ -285,7 +285,7 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                 let md_html = markdown_to_html(data);
                 let md_html = maud::PreEscaped(md_html);
                 let div = html! {
-                    div.("scroll-me")[item.ephemeral] style="margin: 0" {
+                    div.("scroll-me")[item.ephemeral] .preview.markdown {
                         (md_html)
                     }
                 };
