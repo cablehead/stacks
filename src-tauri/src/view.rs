@@ -91,6 +91,9 @@ impl View {
             }
 
             PacketType::Update => {
+                if packet.source_id.is_none() {
+                    return;
+                }
                 let source_id = packet.source_id.unwrap();
                 if let Some(item) = self.items.get(&source_id).cloned() {
                     let mut item = item;

@@ -266,6 +266,20 @@ impl Store {
                 }
             }
         }
+
+        self.scan().for_each(|p| {
+            if p.packet_type == PacketType::Update {
+                if let Some(hash) = p.hash.clone() {
+                    if let Some(content_type) = p.content_type.clone() {
+                        if let Some(meta) = content_meta_cache.get_mut(&hash) {
+                            println!("SCAN: {:?} {:?}", &p, &meta);
+                            meta.content_type = content_type;
+                        }
+                    }
+                }
+            }
+        });
+
         content_meta_cache
     }
 
@@ -401,11 +415,7 @@ impl Store {
         packet
     }
 
-    pub fn update_content_type(
-        &mut self,
-        hash: ssri::Integrity,
-        content_type: String,
-    ) -> Packet {
+    pub fn update_content_type(&mut self, hash: ssri::Integrity, content_type: String) -> Packet {
         let mut meta = self.content_meta_cache.get(&hash).unwrap().clone();
         let packet = Packet {
             id: scru128::new(),

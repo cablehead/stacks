@@ -283,6 +283,7 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                 img.into_string()
             } else if item.content_type == "Markdown" {
                 let md_html = markdown_to_html(data);
+                let md_html = maud::PreEscaped(md_html);
                 let div = html! {
                     div.("scroll-me")[item.ephemeral] style="margin: 0" {
                         (md_html)
