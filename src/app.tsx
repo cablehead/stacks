@@ -10,6 +10,7 @@ import {
   newNoteMode,
   pipeMode,
   pipeToCommand,
+  setContentTypeAction,
   settingsMode,
 } from "./modals";
 
@@ -202,6 +203,9 @@ export function App() {
               )}
               {modes.isActive(pipeToCommand) && (
                 <pipeToCommand.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(setContentTypeAction) && (
+                <setContentTypeAction.Modal stack={stack} modes={modes} />
               )}
               {modes.isActive(filterContentTypeMode) &&
                 <filterContentTypeMode.Modal stack={stack} modes={modes} />}

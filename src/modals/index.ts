@@ -13,6 +13,7 @@ import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
 import { default as pipeToCommand } from "./pipeToCommand";
 import { default as settingsMode } from "./settingsMode";
+import { default as setContentTypeAction  } from "./setContentTypeAction";
 
 import { Stack } from "../types";
 
@@ -25,6 +26,7 @@ export {
   newNoteMode,
   pipeMode,
   pipeToCommand,
+  setContentTypeAction,
   settingsMode,
 };
 
