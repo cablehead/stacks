@@ -43,7 +43,7 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.stack_id && item.content_type == "Text") {
+  if (item.stack_id && item.mime_type == "text/plain") {
     const textMeta = getTextMeta(b64ToUtf8(content));
 
     const info = [
