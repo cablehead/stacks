@@ -117,8 +117,8 @@ export default function createActionMode(
           style={{
             position: "absolute",
             width: "40ch",
-            overflow: "auto",
-            maxHeight: "10lh",
+            // overflow: "auto",
+            maxHeight: "10.5lh",
             //bottom: "0.25lh",
             bottom: "0",
             fontSize: "0.9rem",
@@ -126,15 +126,15 @@ export default function createActionMode(
             // borderRadius: "0.5rem",
             borderRadius: "0.5rem 0.5rem 0 0",
             zIndex: 100,
+            display: "flex",
+            flexDirection: "column",
           }}
         >
           <div
             className={borderBottom}
             style="
         padding:1ch;
-        display: flex;
         width: 100%;
-        align-items: center;
         "
           >
             <div style="width: 100%">
@@ -177,9 +177,13 @@ export default function createActionMode(
             </div>
           </div>
 
-          <div style="
-        padding:1ch;
-        ">
+          <div
+            style={{
+              overflow: "auto",
+              flex: 1,
+              padding: "1ch",
+            }}
+          >
             {state.options.value.map(
               (item) => {
                 return (
