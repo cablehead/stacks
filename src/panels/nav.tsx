@@ -7,13 +7,6 @@ import { borderRight } from "../ui/app.css";
 
 import { Item, itemGetContent, Layer, Stack } from "../types";
 
-/*
-import Prism from "prismjs";
-window.Prism = Prism;
-import "prismjs/components/prism-rust";
-import "prism-themes/themes/prism-one-dark.css";
-*/
-
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
     stack: Stack;
@@ -218,7 +211,6 @@ const RowIcon = ({ item }: { item: Item }) => {
     case "JSON":
     case "Python":
     case "JavaScript":
-    case "Rust":
     case "HTML":
     case "Shell":
     case "Go":
