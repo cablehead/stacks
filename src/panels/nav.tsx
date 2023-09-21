@@ -7,10 +7,12 @@ import { borderRight } from "../ui/app.css";
 
 import { Item, itemGetContent, Layer, Stack } from "../types";
 
+/*
 import Prism from "prismjs";
 window.Prism = Prism;
 import "prismjs/components/prism-rust";
 import "prism-themes/themes/prism-one-dark.css";
+*/
 
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
@@ -137,9 +139,11 @@ export function Nav({ stack }: { stack: Stack }) {
     if (!content) return;
 
     preRef.current.textContent = b64ToUtf8(content);
+    /*
     if (item.hash == "sha256-0UDbFR5u3lzm+mrjUy5ZLgVbU57It1YMUbX5CN11gYs=") {
       Prism.highlightElement(preRef.current);
     }
+    */
     if (item.ephemeral) {
       preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
     }

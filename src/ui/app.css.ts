@@ -47,13 +47,21 @@ globalStyle(".preview.markdown", {
   fontFamily: "system-ui",
   padding: "0px 1ch",
   fontSize: "16px",
-  maxWidth: "60ch",
-  marginLeft: "auto",
-  marginRight: "auto",
   letterSpacing: "normal",
+
+  maxWidth: "75ch",
+  margin: "0 auto",
+  textAlign: "left",
 });
 
-globalStyle(".preview.markdown code", {
+globalStyle(".preview.markdown pre", {
+  padding: "1ch",
+  borderRadius: "0.5ch",
+  fontSize: "13.6px",
+  fontFamily: "ui-monospace",
+});
+
+globalStyle(".preview.markdown code:not([class^='language-'])", {
   backgroundColor: vars.backgroundColorHover,
   fontSize: "13.6px",
   fontFamily: "ui-monospace",
