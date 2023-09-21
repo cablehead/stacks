@@ -94,12 +94,22 @@ export default function createActionMode(
 
     Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
       const inputRef = useRef<HTMLInputElement>(null);
+      const selectedRef = useRef<HTMLDivElement>(null);
 
       useEffect(() => {
         if (inputRef.current != null) {
           inputRef.current.focus();
         }
       }, []);
+
+      useEffect(() => {
+        if (selectedRef.current) {
+          selectedRef.current.scrollIntoView({
+            behavior: "smooth",
+            block: "nearest",
+          });
+        }
+      }, [selectedRef.current]);
 
       return (
         <div
@@ -174,6 +184,7 @@ export default function createActionMode(
               (item) => {
                 return (
                   <div
+                    ref={item == state.selected.value ? selectedRef : null}
                     className={"terserow" +
                       (item == state.selected.value ? " hover" : "")}
                     style={{
