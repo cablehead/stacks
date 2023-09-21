@@ -269,6 +269,24 @@ pub fn markdown_to_html(input: &Vec<u8>) -> String {
     markdown_to_html_with_plugins(&input_str, &options, &plugins)
 }
 
+use syntect::highlighting::ThemeSet;
+use syntect::html::highlighted_html_for_string;
+use syntect::parsing::SyntaxSet;
+
+pub fn rust_to_html(input: &Vec<u8>) -> String {
+    let ps = SyntaxSet::load_defaults_newlines();
+    let ts = ThemeSet::load_defaults();
+
+    println!("SYN: {:?}", ps.syntaxes().iter().map(|syn| syn.file_extensions.clone()).collect::<Vec<_>>());
+
+    let syntax = ps.find_syntax_by_extension("rs").unwrap();
+    let theme = &ts.themes["base16-ocean.dark"];
+    let input_str = String::from_utf8(input.clone()).unwrap();
+    let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
+
+    highlighted_html.unwrap()
+}
+
 use maud::html;
 
 fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
@@ -287,6 +305,15 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                 let div = html! {
                     div.("scroll-me")[item.ephemeral] .preview.markdown {
                         (md_html)
+                    }
+                };
+                div.into_string()
+            } else if item.content_type == "Rust" {
+                let html = rust_to_html(data);
+                let html = maud::PreEscaped(html);
+                let div = html! {
+                    div.("scroll-me")[item.ephemeral] .preview.rust {
+                        (html)
                     }
                 };
                 div.into_string()

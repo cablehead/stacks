@@ -4197,6 +4197,7 @@ dependencies = [
  "serde_json",
  "sled",
  "ssri",
+ "syntect",
  "tantivy",
  "tauri",
  "tauri-build",

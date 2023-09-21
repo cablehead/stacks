@@ -43,6 +43,11 @@ globalStyle("html, body", {
   overflow: "hidden",
 });
 
+globalStyle(".preview.rust pre", {
+  padding: "1ch",
+  borderRadius: "0.5ch",
+});
+
 globalStyle(".preview.markdown", {
   fontFamily: "system-ui",
   padding: "0px 1ch",

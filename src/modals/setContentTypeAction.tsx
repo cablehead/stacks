@@ -9,7 +9,21 @@ import { Modes } from "./types";
 const setContentType = createActionMode(
   (_stack: Stack) => "Set content type",
   (_stack: Stack, availOptions: Signal<string[]>) => {
-    availOptions.value = ["Markdown", "Rust"];
+    availOptions.value = [
+      "Plain Text",
+      "Markdown",
+      "JSON",
+      "Python",
+      "JavaScript",
+      "Rust",
+      "HTML",
+      "Shell",
+      "Go",
+      "Ruby",
+      "SQL",
+      "XML",
+      "YAML",
+    ];
   },
   (stack: Stack, modes: Modes, content_type: string) => {
     console.log(`Content type set to: ${content_type}`);

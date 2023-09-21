@@ -41,6 +41,7 @@ tauri-plugin-positioner = "1.0.4"
 hyper = { version = "0.14.27", features = ["full"] }
 comrak = { version = "0.18.0", features = ["syntect"] }
 maud = "0.25.0"
+syntect = "5.1.0"
 
 [dev-dependencies]
 indoc = "1.0.7"

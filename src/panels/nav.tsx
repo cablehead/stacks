@@ -213,6 +213,9 @@ const RowIcon = ({ item }: { item: Item }) => {
 
     case "Markdown":
       return <Icon name="IconDocument" />;
+
+    case "Rust":
+      return <Icon name="IconCode" />;
   }
 
   return <Icon name="IconBell" />;
