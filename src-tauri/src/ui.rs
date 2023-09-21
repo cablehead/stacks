@@ -27,7 +27,7 @@ pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
     pub is_focus: bool,
-    pub preview: String,
+    pub previews: Vec<String>,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -165,9 +165,14 @@ impl UI {
 
         // the sub layer is focused
         if let Some(stack_id) = focused.stack_id {
+            let items: Vec<_> = self
+                .view
+                .get_peers(focused)
+                .iter()
+                .cloned()
+                .map(|item| with_meta(store, item))
+                .collect();
             let selected = with_meta(store, focused);
-            let content = store.get_content(&selected.hash);
-            let preview = generate_preview(&self.theme_mode, &selected, &content);
 
             Nav {
                 root: Some(Layer {
@@ -179,19 +184,19 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
-                    preview: "".to_string(),
+                    previews: Vec::new(),
                 }),
                 sub: Some(Layer {
-                    items: self
-                        .view
-                        .get_peers(focused)
-                        .iter()
-                        .cloned()
-                        .map(|item| with_meta(store, item))
-                        .collect(),
+                    items: items.clone(),
                     selected,
                     is_focus: true,
-                    preview: preview,
+                    previews: items
+                        .iter()
+                        .map(|item| {
+                            let content = store.get_content(&item.hash);
+                            generate_preview(&self.theme_mode, &item, &content)
+                        })
+                        .collect(),
                 }),
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
@@ -208,14 +213,19 @@ impl UI {
                 let possible = self.last_selected.get(&focused.id).or(children.get(0));
                 let selected = self.view.get_best_focus(possible).unwrap();
                 let selected = with_meta(store, selected);
-                let content = store.get_content(&selected.hash);
-                let preview = generate_preview(&self.theme_mode, &selected, &content);
+                let items: Vec<_> = children.iter().map(|item| with_meta(store, item)).collect();
 
                 Some(Layer {
-                    items: children.iter().map(|item| with_meta(store, item)).collect(),
+                    items: items.clone(),
                     selected,
                     is_focus: false,
-                    preview,
+                    previews: items
+                        .iter()
+                        .map(|item| {
+                            let content = store.get_content(&item.hash);
+                            generate_preview(&self.theme_mode, &item, &content)
+                        })
+                        .collect(),
                 })
             } else {
                 None
@@ -232,7 +242,7 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, focused),
                     is_focus: true,
-                    preview: "".to_string(),
+                    previews: Vec::new(),
                 }),
                 sub,
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),

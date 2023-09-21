@@ -106,6 +106,43 @@ const renderItems = (
   );
 };
 
+export function Preview(
+  { content, active }: { content: string; active: boolean },
+) {
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (active && anchorRef.current) {
+      const yOffset = -30;
+      const parent = anchorRef.current.parentElement;
+      if (parent) {
+        const topPosition = anchorRef.current.offsetTop + yOffset;
+        parent.scrollTop = topPosition;
+      }
+    }
+  }, [active, anchorRef]);
+
+  const extra = active
+    ? {
+      boxShadow: "0px -4px 8px rgba(0, 0, 0, 0.1), 0px 4px 8px rgba(0, 0, 0, 0.1)",
+    }
+    : { opacity: "0.5", filter: "grayscale(50%)" };
+
+  return (
+    <div
+      style={{
+        padding: "0.25lh 0",
+        ...extra,
+      }}
+      ref={anchorRef}
+      dangerouslySetInnerHTML={{
+        __html: content || "<i>loading</i>",
+      }}
+    >
+    </div>
+  );
+}
+
 export function Nav({ stack }: { stack: Stack }) {
   const nav = stack.nav.value;
 
@@ -142,6 +179,7 @@ export function Nav({ stack }: { stack: Stack }) {
     }
   }, [nav.sub?.selected.hash]);
 
+  /*
   const anchorRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -155,7 +193,8 @@ export function Nav({ stack }: { stack: Stack }) {
         scrollMeElem.scrollIntoView({ block: "end", behavior: "auto" });
       }
     }
-  }, [nav.sub?.preview]);
+  }, [nav.sub]);
+  */
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
@@ -174,12 +213,24 @@ export function Nav({ stack }: { stack: Stack }) {
                   )}
 
                   <div
-                    style="flex: 3; overflow: auto; height: 100%"
-                    ref={anchorRef}
-                    dangerouslySetInnerHTML={{
-                      __html: nav.sub?.preview || "<i>loading</i>",
+                    style={{
+                      flex: 3,
+                      overflow: "auto",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      scrollBehavior: "smooth",
                     }}
                   >
+                    {nav.sub.previews.map((content, idx) => {
+                      let item = nav.sub?.items[idx];
+                      return (
+                        <Preview
+                          content={content}
+                          active={item?.id == nav.sub?.selected.id}
+                        />
+                      );
+                    })}
                   </div>
                 </>
               )

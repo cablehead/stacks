@@ -36,7 +36,7 @@ export interface Layer {
   items: Item[];
   selected: Item;
   is_focus: boolean;
-  preview?: string;
+  previews: string[];
 }
 
 export interface Nav {
