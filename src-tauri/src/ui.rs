@@ -43,6 +43,7 @@ pub struct UI {
     pub last_selected: HashMap<Scru128Id, view::Item>,
     pub matches: Option<HashSet<ssri::Integrity>>,
     pub view: view::View,
+    pub theme_mode: String,
 }
 
 impl UI {
@@ -52,6 +53,7 @@ impl UI {
             last_selected: HashMap::new(),
             matches: None,
             view: v.clone(),
+            theme_mode: "".to_string(),
         }
     }
 
@@ -165,7 +167,7 @@ impl UI {
         if let Some(stack_id) = focused.stack_id {
             let selected = with_meta(store, focused);
             let content = store.get_content(&selected.hash);
-            let preview = generate_preview(&selected, &content);
+            let preview = generate_preview(&self.theme_mode, &selected, &content);
 
             Nav {
                 root: Some(Layer {
@@ -207,7 +209,7 @@ impl UI {
                 let selected = self.view.get_best_focus(possible).unwrap();
                 let selected = with_meta(store, selected);
                 let content = store.get_content(&selected.hash);
-                let preview = generate_preview(&selected, &content);
+                let preview = generate_preview(&self.theme_mode, &selected, &content);
 
                 Some(Layer {
                     items: children.iter().map(|item| with_meta(store, item)).collect(),
@@ -258,8 +260,8 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
-pub fn markdown_to_html(input: &Vec<u8>) -> String {
-    let adapter = SyntectAdapter::new("base16-ocean.light");
+pub fn markdown_to_html(theme_mode: &str, input: &Vec<u8>) -> String {
+    let adapter = SyntectAdapter::new(&format!("base16-ocean.{}", theme_mode));
     let options = ComrakOptions::default();
     let mut plugins = ComrakPlugins::default();
 
@@ -273,11 +275,11 @@ use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-pub fn code_to_html(input: &Vec<u8>, ext: &str) -> String {
+pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
-    let theme = &ts.themes["base16-ocean.light"];
+    let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
     highlighted_html.unwrap()
@@ -285,7 +287,7 @@ pub fn code_to_html(input: &Vec<u8>, ext: &str) -> String {
 
 use maud::html;
 
-fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
+fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),
         ("JSON", "json"),
@@ -313,7 +315,7 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                 };
                 img.into_string()
             } else if item.content_type == "Markdown" {
-                let md_html = markdown_to_html(data);
+                let md_html = markdown_to_html(theme_mode, data);
                 let md_html = maud::PreEscaped(md_html);
                 let div = html! {
                     div.("scroll-me")[item.ephemeral] .preview.markdown {
@@ -322,7 +324,7 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                 };
                 div.into_string()
             } else if let Some(ext) = file_extensions.get(item.content_type.as_str()) {
-                let html = code_to_html(data, ext);
+                let html = code_to_html(theme_mode, data, ext);
                 let html = maud::PreEscaped(html);
                 let div = html! {
                     div.("scroll-me")[item.ephemeral] .preview.rust {

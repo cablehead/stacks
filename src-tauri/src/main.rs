@@ -82,6 +82,7 @@ fn main() {
             commands::store_edit_note,
             commands::store_settings_save,
             commands::store_settings_get,
+            commands::store_set_theme_mode,
             commands::store_pipe_to_command,
             commands::store_set_content_type,
             commands::store_pipe_to_gpt,

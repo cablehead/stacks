@@ -400,6 +400,17 @@ pub fn store_set_content_type(
 }
 
 #[tauri::command]
+pub fn store_set_theme_mode(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    mode: String,
+) {
+    let mut state = state.lock().unwrap();
+    state.ui.theme_mode = mode;
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
