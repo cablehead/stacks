@@ -259,7 +259,7 @@ use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
 pub fn markdown_to_html(input: &Vec<u8>) -> String {
-    let adapter = SyntectAdapter::new("base16-ocean.dark");
+    let adapter = SyntectAdapter::new("base16-ocean.light");
     let options = ComrakOptions::default();
     let mut plugins = ComrakPlugins::default();
 
@@ -277,7 +277,7 @@ pub fn code_to_html(input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
-    let theme = &ts.themes["base16-ocean.dark"];
+    let theme = &ts.themes["base16-ocean.light"];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
     highlighted_html.unwrap()

@@ -46,6 +46,7 @@ globalStyle("html, body", {
 globalStyle(".preview.rust pre", {
   padding: "1ch",
   borderRadius: "0.5ch",
+  whiteSpace: "pre-wrap",
 });
 
 globalStyle(".preview.markdown", {
@@ -64,13 +65,14 @@ globalStyle(".preview.markdown pre", {
   borderRadius: "0.5ch",
   fontSize: "13.6px",
   fontFamily: "ui-monospace",
+  whiteSpace: "pre-wrap",
 });
 
 globalStyle(".preview.markdown code:not([class^='language-'])", {
   backgroundColor: vars.backgroundColorHover,
   fontSize: "13.6px",
   fontFamily: "ui-monospace",
-  padding: "0.2ch 0.4ch",
+  padding: "0.15ch 0.4ch",
   borderRadius: "6px",
   display: "inline",
 });
