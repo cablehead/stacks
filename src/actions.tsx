@@ -82,6 +82,7 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
+  /*
   {
     name: "Pipe stack to GPT",
     keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
@@ -97,6 +98,7 @@ export const actions: Action[] = [
     },
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
+  */
   {
     name: "Open",
     keys: [<Icon name="IconCommandKey" />, "O"],
