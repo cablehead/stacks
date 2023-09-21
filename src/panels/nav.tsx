@@ -215,6 +215,17 @@ const RowIcon = ({ item }: { item: Item }) => {
       return <Icon name="IconDocument" />;
 
     case "Rust":
+    case "JSON":
+    case "Python":
+    case "JavaScript":
+    case "Rust":
+    case "HTML":
+    case "Shell":
+    case "Go":
+    case "Ruby":
+    case "SQL":
+    case "XML":
+    case "YAML":
       return <Icon name="IconCode" />;
   }
 

@@ -273,23 +273,36 @@ use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-pub fn rust_to_html(input: &Vec<u8>) -> String {
+pub fn code_to_html(input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
-
-    println!("SYN: {:?}", ps.syntaxes().iter().map(|syn| syn.file_extensions.clone()).collect::<Vec<_>>());
-
-    let syntax = ps.find_syntax_by_extension("rs").unwrap();
+    let syntax = ps.find_syntax_by_extension(ext).unwrap();
     let theme = &ts.themes["base16-ocean.dark"];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
-
     highlighted_html.unwrap()
 }
 
 use maud::html;
 
 fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
+    let file_extensions: HashMap<&str, &str> = [
+        ("Rust", "rs"),
+        ("JSON", "json"),
+        ("Python", "py"),
+        ("JavaScript", "js"),
+        ("HTML", "html"),
+        ("Shell", "sh"),
+        ("Go", "go"),
+        ("Ruby", "rb"),
+        ("SQL", "sql"),
+        ("XML", "xml"),
+        ("YAML", "yaml"),
+    ]
+    .iter()
+    .cloned()
+    .collect();
+
     match content {
         None => "loading...".to_string(),
         Some(data) => {
@@ -308,8 +321,8 @@ fn generate_preview(item: &Item, content: &Option<Vec<u8>>) -> String {
                     }
                 };
                 div.into_string()
-            } else if item.content_type == "Rust" {
-                let html = rust_to_html(data);
+            } else if let Some(ext) = file_extensions.get(item.content_type.as_str()) {
+                let html = code_to_html(data, ext);
                 let html = maud::PreEscaped(html);
                 let div = html! {
                     div.("scroll-me")[item.ephemeral] .preview.rust {

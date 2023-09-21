@@ -389,7 +389,12 @@ pub fn store_set_content_type(
     let mut state = state.lock().unwrap();
     let packet = state.store.update_content_type(
         hash,
-        content_type);
+        if content_type == "Plain Text" {
+            "Text".to_string()
+        } else {
+            content_type
+        },
+    );
     state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }
