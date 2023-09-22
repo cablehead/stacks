@@ -3,7 +3,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { b64ToUtf8 } from "../utils";
 
 import { Icon } from "../ui/icons";
-import { borderRight } from "../ui/app.css";
+import { borderRight, vars } from "../ui/app.css";
 
 import { Item, itemGetContent, Layer, Stack } from "../types";
 
@@ -124,7 +124,8 @@ export function Preview(
 
   const extra = active
     ? {
-      boxShadow: "0px -4px 8px rgba(0, 0, 0, 0.1), 0px 4px 8px rgba(0, 0, 0, 0.1)",
+      boxShadow: "0 0 6px " + vars.shadowColor,
+      backgroundColor: vars.backgroundColor,
     }
     : { opacity: "0.5", filter: "grayscale(50%)" };
 
