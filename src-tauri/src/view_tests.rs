@@ -149,49 +149,6 @@ fn test_delete_item() {
 }
 
 #[test]
-fn test_fork_stack() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().to_str().unwrap();
-
-    let mut store = Store::new(path);
-
-    let stack_id = store.add(b"Stack 1", MimeType::TextPlain, None).id;
-    let item_id_1 = store.add(b"Item 1", MimeType::TextPlain, Some(stack_id)).id;
-    let item_id_2 = store.add(b"Item 2", MimeType::TextPlain, Some(stack_id)).id;
-
-    // User forks the stack
-    let new_stack_id = store
-        .fork(stack_id, Some(b"Stack 2"), MimeType::TextPlain, None)
-        .id;
-
-    let mut view = View::new();
-    store.scan().for_each(|p| view.merge(&p));
-    assert_view_as_expected!(
-        &store,
-        &view,
-        vec![
-            ("Stack 2", vec!["Item 2", "Item 1"]),
-            ("Stack 1", vec!["Item 2", "Item 1"]),
-        ],
-    );
-
-    // User forks the items to the new stack
-    store.fork(item_id_1, None, MimeType::TextPlain, Some(new_stack_id));
-    store.fork(item_id_2, None, MimeType::TextPlain, Some(new_stack_id));
-
-    let mut view = View::new();
-    store.scan().for_each(|p| view.merge(&p));
-    assert_view_as_expected!(
-        &store,
-        &view,
-        vec![
-            ("Stack 2", vec!["Item 2", "Item 1"]),
-            ("Stack 1", vec!["Item 2", "Item 1"]),
-        ],
-    );
-}
-
-#[test]
 fn test_no_duplicate_entry_on_same_hash() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
@@ -287,12 +244,20 @@ fn test_no_duplicate_entry_on_same_hash_on_stream_end() {
     // Start a stream with the same content
     let packet = state.store.start_stream(Some(stack_id), b"Item");
     state.merge(&packet);
-    assert_view_as_expected!(&state.store, &state.view, vec![("Stack 1", vec!["Item", "Item 1"])]);
+    assert_view_as_expected!(
+        &state.store,
+        &state.view,
+        vec![("Stack 1", vec!["Item", "Item 1"])]
+    );
 
     // Update the stream with the same content
     let packet = state.store.update_stream(packet.id, b" 1");
     state.merge(&packet);
-    assert_view_as_expected!(&state.store, &state.view, vec![("Stack 1", vec!["Item 1", "Item 1"])]);
+    assert_view_as_expected!(
+        &state.store,
+        &state.view,
+        vec![("Stack 1", vec!["Item 1", "Item 1"])]
+    );
 
     // End the stream
     let packet = state.store.end_stream(packet.id);

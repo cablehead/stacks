@@ -13,7 +13,6 @@ pub struct Item {
     pub hash: Integrity,
     pub stack_id: Option<Scru128Id>,
     pub children: Vec<Scru128Id>,
-    pub forked_children: Vec<Scru128Id>,
     pub ephemeral: bool,
 }
 
@@ -77,7 +76,6 @@ impl View {
                     hash: packet.hash.clone().unwrap(),
                     stack_id: packet.stack_id,
                     children: Vec::new(),
-                    forked_children: Vec::new(),
                     ephemeral: packet.ephemeral,
                 };
 
@@ -126,11 +124,14 @@ impl View {
 
             PacketType::Fork => {
                 let source_id = packet.source_id.unwrap();
+
+
                 if let Some(item) = self.items.get(&source_id) {
+                    assert!(item.stack_id.is_some(), "Forking Stacks is not supported yet");
+
                     let mut new_item = item.clone();
                     new_item.id = packet.id;
 
-                    new_item.forked_children = item.children.clone();
                     new_item.children = Vec::new();
 
                     if let Some(hash) = &packet.hash {
@@ -145,8 +146,6 @@ impl View {
                     new_item.last_touched = packet.id;
 
                     if let Some(stack) = new_item.stack_id.and_then(|id| self.items.get_mut(&id)) {
-                        // Remove the forked item from forked_children
-                        stack.forked_children.retain(|&id| id != source_id);
                         // And add the new item to children
                         stack.children.push(packet.id);
                         stack.last_touched = packet.id;
@@ -183,7 +182,6 @@ impl View {
 
     pub fn children(&self, item: &Item) -> Vec<Scru128Id> {
         let mut children = item.children.clone();
-        children.extend(&item.forked_children);
         children.sort_by_key(|child| {
             self.items
                 .get(child)
