@@ -12,8 +12,9 @@ pub struct Item {
     pub touched: Vec<Scru128Id>,
     pub hash: Integrity,
     pub stack_id: Option<Scru128Id>,
-    pub children: Vec<Scru128Id>,
+    children: Vec<Scru128Id>,
     pub ephemeral: bool,
+    ordered: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -77,6 +78,7 @@ impl View {
                     stack_id: packet.stack_id,
                     children: Vec::new(),
                     ephemeral: packet.ephemeral,
+                    ordered: false,
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
@@ -93,6 +95,24 @@ impl View {
                     return;
                 }
                 let source_id = packet.source_id.unwrap();
+
+                if let Some(movement) = &packet.movement {
+                    if let Some(item) = &self.items.get(&source_id) {
+                        if let Some(stack) = item.stack_id.and_then(|id| self.items.get_mut(&id)) {
+                            println!("UPDATE PACKET: {:?} {:?}", movement, stack);
+                            if let Some(index) =
+                                stack.children.iter().position(|id| item.id == *id)
+                            {
+                                if index < stack.children.len() - 1 {
+                                    stack.children.swap(index, index + 1);
+                                }
+                            }
+                            stack.ordered = true;
+                        }
+                    }
+                    return;
+                }
+
                 if let Some(item) = self.items.get(&source_id).cloned() {
                     let mut item = item;
 
@@ -125,9 +145,11 @@ impl View {
             PacketType::Fork => {
                 let source_id = packet.source_id.unwrap();
 
-
                 if let Some(item) = self.items.get(&source_id) {
-                    assert!(item.stack_id.is_some(), "Forking Stacks is not supported yet");
+                    assert!(
+                        item.stack_id.is_some(),
+                        "Forking Stacks is not supported yet"
+                    );
 
                     let mut new_item = item.clone();
                     new_item.id = packet.id;

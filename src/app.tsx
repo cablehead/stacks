@@ -99,6 +99,18 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case event.metaKey &&
+      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+      event.preventDefault();
+      stack.moveDown();
+      return;
+
+    case event.metaKey &&
+      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+      event.preventDefault();
+      stack.moveUp();
+      return;
+
     case !event.metaKey &&
       ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
       event.preventDefault();

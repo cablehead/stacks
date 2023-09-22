@@ -85,6 +85,8 @@ pub async fn store_pipe_to_gpt(
         let content = if let Some(_) = item.stack_id {
             vec![state.store.get_content(&item.hash).unwrap()]
         } else {
+            return Ok(());
+            /*
             item.children
                 .iter()
                 .filter_map(|id| {
@@ -96,6 +98,7 @@ pub async fn store_pipe_to_gpt(
                 })
                 .rev()
                 .collect()
+                */
         };
 
         let stack_id = item.stack_id.unwrap_or(item.id);

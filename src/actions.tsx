@@ -77,7 +77,8 @@ export const actions: Action[] = [
     name: "Pipe item to ...",
     keys: [<Icon name="IconCommandKey" />, "P"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      !event.altKey && event.metaKey && event.key.toLowerCase() === "p",
+      !event.ctrlKey && !event.altKey && event.metaKey &&
+      event.key.toLowerCase() === "p",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },

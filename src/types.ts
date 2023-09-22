@@ -165,6 +165,18 @@ export class Stack {
   async selectLeft() {
     this.nav.value = await invoke<Nav>("store_nav_select_left", {});
   }
+
+  async moveUp() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke("store_move_up", { sourceId: item.id });
+  }
+
+  async moveDown() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke("store_move_down", { sourceId: item.id });
+  }
 }
 
 export interface Action {
