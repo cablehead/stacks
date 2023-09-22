@@ -464,13 +464,13 @@ pub fn store_add_to_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    state.ui.focused = state.view.get_next_best_focus(state.ui.focused.as_ref()).cloned();
+
     let packet = state
         .store
-        .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
+        .update(source_id, None, MimeType::TextPlain, Some(stack_id));
 
-    let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -484,16 +484,18 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    state.ui.focused = state.view.get_next_best_focus(state.ui.focused.as_ref()).cloned();
+
     let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
     state.merge(&packet);
 
     let packet = state
         .store
-        .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
+        .update(source_id, None, MimeType::TextPlain, Some(packet.id));
 
-    let id = packet.id;
+    // let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
+    // state.ui.focused = state.view.items.get(&id).cloned();
 
     app.emit_all("refresh-items", true).unwrap();
 }

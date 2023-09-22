@@ -243,6 +243,26 @@ impl View {
             .or(Some(peers[peers.len() - 1]))
     }
 
+    // get_next_best_focus is similar to get_best_focus, but it ignores the currently focused item.
+    // this is useful when moving an item, but trying to preserve focus in the current context
+    pub fn get_next_best_focus(&self, item: Option<&Item>) -> Option<&Item> {
+        if item.is_none() {
+            return self.first();
+        }
+        let item = item.unwrap();
+
+        let peers = self.get_peers(item);
+        if peers.is_empty() {
+            return item.stack_id.and_then(|id| self.items.get(&id));
+        }
+
+        peers
+            .iter()
+            .position(|peer| peer.last_touched < item.last_touched)
+            .map(|position| peers[position])
+            .or(Some(peers[peers.len() - 1]))
+    }
+
     pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
         let items: HashMap<Scru128Id, Item> = self
             .items
