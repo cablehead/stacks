@@ -64,6 +64,7 @@ impl InProgressStream {
                 stack_id,
                 ephemeral: true,
                 content_type: None,
+                movement: None,
             },
         }
     }
@@ -109,6 +110,13 @@ pub struct PacketV3 {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Movement {
+    Up,
+    Down,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct Packet {
     pub id: Scru128Id,
     pub packet_type: PacketType,
@@ -117,6 +125,7 @@ pub struct Packet {
     pub stack_id: Option<Scru128Id>,
     pub ephemeral: bool,
     pub content_type: Option<String>,
+    pub movement: Option<Movement>,
 }
 
 fn deserialize_packet(value: &[u8]) -> Option<Packet> {
@@ -130,6 +139,7 @@ fn deserialize_packet(value: &[u8]) -> Option<Packet> {
                 stack_id: v3_packet.stack_id,
                 ephemeral: v3_packet.ephemeral,
                 content_type: None,
+                movement: None,
             })
         })
         .ok()
@@ -392,6 +402,7 @@ impl Store {
             stack_id,
             ephemeral: false,
             content_type: None,
+            movement: None,
         };
         self.insert_packet(&packet);
         packet
@@ -413,6 +424,7 @@ impl Store {
             stack_id,
             ephemeral: false,
             content_type: None,
+            movement: None,
         };
         self.insert_packet(&packet);
         packet
@@ -428,10 +440,26 @@ impl Store {
             stack_id: None,
             ephemeral: false,
             content_type: Some(content_type.clone()),
+            movement: None,
         };
         self.insert_packet(&packet);
         meta.content_type = content_type;
         self.content_meta_cache.insert(hash, meta);
+        packet
+    }
+
+    pub fn update_move(&mut self, source_id: Scru128Id, movement: Movement) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: Some(movement),
+        };
+        self.insert_packet(&packet);
         packet
     }
 
@@ -451,6 +479,7 @@ impl Store {
             stack_id,
             ephemeral: false,
             content_type: None,
+            movement: None,
         };
         self.insert_packet(&packet);
         packet
@@ -465,6 +494,7 @@ impl Store {
             stack_id: None,
             ephemeral: false,
             content_type: None,
+            movement: None,
         };
         self.insert_packet(&packet);
         packet

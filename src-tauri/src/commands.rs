@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{MimeType, Settings};
+use crate::store::{MimeType, Movement, Settings};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -400,11 +400,7 @@ pub fn store_set_content_type(
 }
 
 #[tauri::command]
-pub fn store_set_theme_mode(
-    app: tauri::AppHandle,
-    state: tauri::State<SharedState>,
-    mode: String,
-) {
+pub fn store_set_theme_mode(app: tauri::AppHandle, state: tauri::State<SharedState>, mode: String) {
     let mut state = state.lock().unwrap();
     state.ui.theme_mode = mode;
     app.emit_all("refresh-items", true).unwrap();
@@ -464,7 +460,10 @@ pub fn store_add_to_stack(
 ) {
     let mut state = state.lock().unwrap();
 
-    state.ui.focused = state.view.get_next_best_focus(state.ui.focused.as_ref()).cloned();
+    state.ui.focused = state
+        .view
+        .get_next_best_focus(state.ui.focused.as_ref())
+        .cloned();
 
     let packet = state
         .store
@@ -484,7 +483,10 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
-    state.ui.focused = state.view.get_next_best_focus(state.ui.focused.as_ref()).cloned();
+    state.ui.focused = state
+        .view
+        .get_next_best_focus(state.ui.focused.as_ref())
+        .cloned();
 
     let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
     state.merge(&packet);
@@ -497,5 +499,29 @@ pub fn store_add_to_new_stack(
     state.merge(&packet);
     // state.ui.focused = state.view.items.get(&id).cloned();
 
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_move_up(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_move(source_id, Movement::Up);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_move_down(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_move(source_id, Movement::Down);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }

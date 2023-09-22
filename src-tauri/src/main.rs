@@ -80,6 +80,8 @@ fn main() {
             commands::store_undo,
             commands::store_new_note,
             commands::store_edit_note,
+            commands::store_move_up,
+            commands::store_move_down,
             commands::store_settings_save,
             commands::store_settings_get,
             commands::store_set_theme_mode,
