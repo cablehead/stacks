@@ -100,7 +100,7 @@ export default {
                   modes.deactivate();
                   break;
 
-                case (event.metaKey && event.key === "p"):
+                case (event.metaKey && event.key === "u"):
                   event.preventDefault();
                   modes.deactivate();
                   break;

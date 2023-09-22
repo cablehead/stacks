@@ -66,7 +66,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.deactivate();
       return;
 
-    case (event.metaKey && event.key === "u"):
+    case (event.metaKey && event.key === "z"):
       event.preventDefault();
       stack.undo();
       return;
@@ -99,24 +99,26 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case !event.metaKey &&
+      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+      event.preventDefault();
+      stack.selectDown();
+      return;
+
+    case !event.metaKey &&
+      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+      event.preventDefault();
+      stack.selectUp();
+      return;
+
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
       modes.toggle(stack, newNoteMode);
       return;
 
-    case (event.metaKey && event.key === "p"):
+    case (event.metaKey && event.key === "u"):
       event.preventDefault();
       modes.toggle(stack, filterContentTypeMode);
-      return;
-
-    case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
-      event.preventDefault();
-      stack.selectDown();
-      return;
-
-    case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-      event.preventDefault();
-      stack.selectUp();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):

@@ -69,7 +69,7 @@ export function Filter({ stack }: { stack: Stack }) {
         {stack.filter.content_type.value == "All"
           ? "Content type"
           : stack.filter.content_type.value}&nbsp;
-        <RenderKeys keys={[<Icon name="IconCommandKey" />, "P"]} />
+        <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
       </div>
 
       <VertDiv />
@@ -100,7 +100,7 @@ export function Filter({ stack }: { stack: Stack }) {
               }}
             >
               Undo delete&nbsp;
-              <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
+              <RenderKeys keys={[<Icon name="IconCommandKey" />, "Z"]} />
             </div>
           </>
         )}
