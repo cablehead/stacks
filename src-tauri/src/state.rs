@@ -44,7 +44,12 @@ impl State {
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
-        let curr_stack = self.view.root().first().map(|item| item.id);
+        let curr_stack = self
+            .view
+            .root()
+            .iter()
+            .find(|&&item| !item.locked)
+            .map(|&item| item.id);
 
         if let Some(id) = curr_stack {
             if let Some(item) = self.view.items.get(&id) {

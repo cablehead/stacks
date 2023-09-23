@@ -25,7 +25,6 @@ const VertDiv = () => (
 const Lock = ({ stack }: { stack: Stack }) => {
   const currStack = stack.nav.value.root?.selected;
   if (!currStack) return <span></span>;
-  console.log(currStack);
   return (
     <div
       onMouseDown={() => {
@@ -54,7 +53,6 @@ const Lock = ({ stack }: { stack: Stack }) => {
 const SortOrder = ({ stack }: { stack: Stack }) => {
   const currStack = stack.nav.value.root?.selected;
   if (!currStack) return <span></span>;
-  console.log(currStack);
   return (
     <div
       onMouseDown={() => {
