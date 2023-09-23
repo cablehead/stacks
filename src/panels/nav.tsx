@@ -1,11 +1,9 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { b64ToUtf8 } from "../utils";
-
 import { Icon } from "../ui/icons";
 import { borderRight, vars } from "../ui/app.css";
 
-import { Item, itemGetContent, Layer, Stack } from "../types";
+import { Item, Layer, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
@@ -153,49 +151,6 @@ export function Nav({ stack }: { stack: Stack }) {
       console.log("component: will unmount.");
     };
   }, []);
-
-  const preRef = useRef<HTMLPreElement>(null);
-
-  useEffect(() => {
-    console.log("<pre> inserted", preRef.current);
-  }, [preRef.current]);
-
-  useEffect(() => {
-    if (!preRef.current) return;
-
-    const item = nav.sub ? nav.sub.selected : null;
-    if (!item) return;
-
-    const content = itemGetContent(item);
-    if (!content) return;
-
-    preRef.current.textContent = b64ToUtf8(content);
-    /*
-    if (item.hash == "sha256-0UDbFR5u3lzm+mrjUy5ZLgVbU57It1YMUbX5CN11gYs=") {
-      Prism.highlightElement(preRef.current);
-    }
-    */
-    if (item.ephemeral) {
-      preRef.current.scrollIntoView({ block: "end", behavior: "auto" });
-    }
-  }, [nav.sub?.selected.hash]);
-
-  /*
-  const anchorRef = useRef<HTMLDivElement>(null);
-
-  useEffect(() => {
-    console.log("1", anchorRef.current);
-    if (anchorRef.current) {
-      const scrollMeElem = anchorRef.current.querySelector(".scroll-me");
-      console.log("2", scrollMeElem);
-      if (scrollMeElem) {
-        console.log("scroll scroll");
-        // scrollMeElem.scrollTop = scrollMeElem.scrollHeight;
-        scrollMeElem.scrollIntoView({ block: "end", behavior: "auto" });
-      }
-    }
-  }, [nav.sub]);
-  */
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
