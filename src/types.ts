@@ -22,6 +22,8 @@ export interface Item {
   terse: string;
   tiktokens: number;
   ephemeral: boolean;
+  locked: boolean;
+  ordered: boolean;
 }
 
 export function itemGetContent(item: Item): string {

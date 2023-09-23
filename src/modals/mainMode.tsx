@@ -1,9 +1,10 @@
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { Icon } from "../ui/icons";
 
 import { HotKey, Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
-// import { default as addToStackMode } from "./addToStackMode";
 
 import { Stack } from "../types";
 
@@ -21,37 +22,68 @@ const VertDiv = () => (
   />
 );
 
-const Lock = () => (
-  <div class="hoverable">
-    <span style="
+const Lock = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+  console.log(currStack);
+  return (
+    <div
+      onMouseDown={() => {
+        const command = currStack.locked
+          ? "store_stack_unlock"
+          : "store_stack_lock";
+        invoke(command, { sourceId: currStack.id });
+      }}
+      class="hoverable"
+    >
+      <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
             text-align: center;
             border-radius: 5px;
             ">
-      <Icon name="IconLockOpen" />
-    </span>
-  </div>
-);
+        {currStack.locked
+          ? <Icon name="IconLockClosed" />
+          : <Icon name="IconLockOpen" />}
+      </span>
+    </div>
+  );
+};
 
-const SortOrder = () => (
-  <div class="hoverable">
-    <span style="
+const SortOrder = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+  console.log(currStack);
+  return (
+    <div
+      onMouseDown={() => {
+        const command = currStack.ordered
+          ? "store_stack_sort_auto"
+          : "store_stack_sort_manual";
+        invoke(command, { sourceId: currStack.id });
+      }}
+      class="hoverable"
+    >
+      <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
             text-align: center;
             border-radius: 5px;
             ">
-      <Icon name="IconStack" />
-    </span>
-  </div>
-);
+        {currStack.ordered
+          ? <Icon name="IconStackSorted" />
+          : <Icon name="IconStack" />}
+      </span>
+    </div>
+  );
+};
 
 export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
+    if (!selected) return <span></span>;
     const terse = selected ? selected.terse : "";
     return (
       <div
@@ -62,9 +94,9 @@ export default {
           marginLeft: "-1ch",
         }}
       >
-        <Lock />
+        <Lock stack={stack} />
         <VertDiv />
-        <SortOrder />
+        <SortOrder stack={stack} />
         <VertDiv />
         <div>
           {terse}

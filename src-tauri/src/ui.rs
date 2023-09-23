@@ -20,6 +20,8 @@ pub struct Item {
     pub terse: String,
     pub tiktokens: usize,
     pub ephemeral: bool,
+    pub ordered: bool,
+    pub locked: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -240,6 +242,8 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
         terse: content_meta.terse.clone(),
         tiktokens: content_meta.tiktokens,
         ephemeral: item.ephemeral,
+        ordered: item.ordered,
+        locked: item.locked,
     }
 }
 

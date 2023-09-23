@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
-use crate::store::{Packet, PacketType, Movement};
+use crate::store::{Movement, Packet, PacketType, StackLockStatus, StackSortOrder};
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
@@ -14,7 +14,8 @@ pub struct Item {
     pub stack_id: Option<Scru128Id>,
     children: Vec<Scru128Id>,
     pub ephemeral: bool,
-    ordered: bool,
+    pub ordered: bool,
+    pub locked: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -85,6 +86,7 @@ impl View {
                     children: Vec::new(),
                     ephemeral: packet.ephemeral,
                     ordered: false,
+                    locked: false,
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
@@ -124,6 +126,26 @@ impl View {
                                 }
                             }
                             stack.ordered = true;
+                        }
+                    }
+                    return;
+                }
+
+                if let Some(sort_order) = &packet.sort_order {
+                    if let Some(item) = self.items.get_mut(&source_id) {
+                        match sort_order {
+                            StackSortOrder::Auto => item.ordered = false,
+                            StackSortOrder::Manual => item.ordered = true,
+                        }
+                    }
+                    return;
+                }
+
+                if let Some(lock_status) = &packet.lock_status {
+                    if let Some(item) = self.items.get_mut(&source_id) {
+                        match lock_status {
+                            StackLockStatus::Unlocked => item.locked = false,
+                            StackLockStatus::Locked => item.locked = true,
                         }
                     }
                     return;
