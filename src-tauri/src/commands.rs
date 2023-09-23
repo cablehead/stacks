@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{MimeType, Movement, Settings};
+use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -522,6 +522,62 @@ pub fn store_move_down(
 ) {
     let mut state = state.lock().unwrap();
     let packet = state.store.update_move(source_id, Movement::Down);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_lock(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_lock_status(source_id, StackLockStatus::Locked);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_unlock(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_lock_status(source_id, StackLockStatus::Unlocked);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_sort_manual(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_sort_order(source_id, StackSortOrder::Manual);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_sort_auto(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_sort_order(source_id, StackSortOrder::Auto);
     state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }

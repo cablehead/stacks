@@ -65,6 +65,8 @@ impl InProgressStream {
                 ephemeral: true,
                 content_type: None,
                 movement: None,
+                lock_status: None,
+                sort_order: None,
             },
         }
     }
@@ -117,6 +119,20 @@ pub enum Movement {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum StackLockStatus {
+    Unlocked,
+    Locked,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum StackSortOrder {
+    Auto,
+    Manual,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct Packet {
     pub id: Scru128Id,
     pub packet_type: PacketType,
@@ -126,6 +142,8 @@ pub struct Packet {
     pub ephemeral: bool,
     pub content_type: Option<String>,
     pub movement: Option<Movement>,
+    pub lock_status: Option<StackLockStatus>,
+    pub sort_order: Option<StackSortOrder>,
 }
 
 fn deserialize_packet(value: &[u8]) -> Option<Packet> {
@@ -140,6 +158,8 @@ fn deserialize_packet(value: &[u8]) -> Option<Packet> {
                 ephemeral: v3_packet.ephemeral,
                 content_type: None,
                 movement: None,
+                lock_status: None,
+                sort_order: None,
             })
         })
         .ok()
@@ -403,6 +423,8 @@ impl Store {
             ephemeral: false,
             content_type: None,
             movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -425,6 +447,8 @@ impl Store {
             ephemeral: false,
             content_type: None,
             movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -441,6 +465,8 @@ impl Store {
             ephemeral: false,
             content_type: Some(content_type.clone()),
             movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         meta.content_type = content_type;
@@ -458,6 +484,50 @@ impl Store {
             ephemeral: false,
             content_type: None,
             movement: Some(movement),
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_stack_lock_status(
+        &mut self,
+        source_id: Scru128Id,
+        lock_status: StackLockStatus,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: Some(lock_status),
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_stack_sort_order(
+        &mut self,
+        source_id: Scru128Id,
+        sort_order: StackSortOrder,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: Some(sort_order),
         };
         self.insert_packet(&packet);
         packet
@@ -480,6 +550,8 @@ impl Store {
             ephemeral: false,
             content_type: None,
             movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -495,6 +567,8 @@ impl Store {
             ephemeral: false,
             content_type: None,
             movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet

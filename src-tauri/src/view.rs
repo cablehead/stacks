@@ -107,7 +107,7 @@ impl View {
                         let stack_id = item.stack_id;
                         let item_id = item.id;
                         if let Some(stack) = stack_id.and_then(|id| self.items.get_mut(&id)) {
-                            println!("UPDATE PACKET: {:?} {:?}", movement, stack);
+                            println!("MOVE PACKET: {:?} {:?}", movement, stack);
                             if let Some(index) = stack.children.iter().position(|id| item_id == *id)
                             {
                                 match movement {
