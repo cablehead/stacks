@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
-use crate::store::{Packet, PacketType};
+use crate::store::{Packet, PacketType, Movement};
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
@@ -110,8 +110,17 @@ impl View {
                             println!("UPDATE PACKET: {:?} {:?}", movement, stack);
                             if let Some(index) = stack.children.iter().position(|id| item_id == *id)
                             {
-                                if index < stack.children.len() - 1 {
-                                    stack.children.swap(index, index + 1);
+                                match movement {
+                                    Movement::Up => {
+                                        if index > 0 {
+                                            stack.children.swap(index, index - 1);
+                                        }
+                                    }
+                                    Movement::Down => {
+                                        if index < stack.children.len() - 1 {
+                                            stack.children.swap(index, index + 1);
+                                        }
+                                    }
                                 }
                             }
                             stack.ordered = true;
@@ -295,7 +304,7 @@ impl View {
             idx = idx.saturating_add(offset as usize)
         };
 
-        if idx > peers.len() {
+        if idx >= peers.len() {
             idx = peers.len() - 1;
         }
         return Some(Focus {

@@ -97,7 +97,8 @@ impl UI {
     }
 
     pub fn select_down(&mut self) {
-        self.select(self.view.get_best_focus_next(&self.focused));
+        let focused = self.focused.clone().or(self.view.first());
+        self.select(self.view.get_best_focus_next(&focused));
     }
 
     pub fn select_left(&mut self) {
