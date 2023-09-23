@@ -93,11 +93,11 @@ impl UI {
     }
 
     pub fn select_up(&mut self) {
-        self.select(self.view.get_best_focus_prev(&self.focused))
+        self.select(self.view.get_best_focus_prev(&self.focused));
     }
 
     pub fn select_down(&mut self) {
-        self.select(self.view.get_best_focus_next(&self.focused))
+        self.select(self.view.get_best_focus_next(&self.focused));
     }
 
     pub fn select_left(&mut self) {

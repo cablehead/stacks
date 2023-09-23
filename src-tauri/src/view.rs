@@ -271,11 +271,7 @@ impl View {
         })
     }
 
-    pub fn get_best_focus_with_offset(
-        &self,
-        focus: &Option<Focus>,
-        offset: isize,
-    ) -> Option<Focus> {
+    pub fn get_best_focus_with_offset(&self, focus: &Option<Focus>, offset: i8) -> Option<Focus> {
         if focus.is_none() {
             return self.first();
         }
@@ -294,9 +290,9 @@ impl View {
             .unwrap_or(focus.index);
 
         if offset.is_negative() {
-            idx.saturating_sub((-offset) as usize)
+            idx = idx.saturating_sub((-offset) as usize)
         } else {
-            idx.saturating_add(offset as usize)
+            idx = idx.saturating_add(offset as usize)
         };
 
         if idx > peers.len() {
