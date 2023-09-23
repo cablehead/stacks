@@ -23,7 +23,7 @@ const TerseRow = (
         block: "nearest",
       });
     }
-  }, [isSelected, theRef.current]);
+  }, [isSelected, isFocused, theRef.current]);
 
   return (
     <div
