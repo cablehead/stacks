@@ -161,7 +161,7 @@ fn test_ui_render() {
     );
 
     // user press: delete # this is the top item in the first stack
-    let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
+    let packet = state.store.delete(state.ui.focused.as_ref().unwrap().item.id);
     state.merge(&packet);
     assert_nav_as_expected!(
         &state.ui.render(&state.store),

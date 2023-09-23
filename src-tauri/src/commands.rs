@@ -349,7 +349,10 @@ pub fn store_new_note(
 
     let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
+
+    let focus = state.view.get_focus_for_id(&id);
+
+    state.ui.select(focus);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
@@ -429,7 +432,7 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
         let mut view = View::new();
         state.store.scan().for_each(|p| view.merge(&p));
         let mut ui = UI::new(&view);
-        ui.select(view.items.get(&item.id));
+        ui.select(view.get_focus_for_id(&item.id));
         state.view = view;
         state.ui = ui;
         app.emit_all("refresh-items", true).unwrap();
@@ -463,10 +466,12 @@ pub fn store_add_to_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    /*
     state.ui.focused = state
         .view
         .get_next_best_focus(state.ui.focused.as_ref())
         .cloned();
+        */
 
     let packet = state
         .store
@@ -486,10 +491,12 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
+    /*
     state.ui.focused = state
         .view
         .get_next_best_focus(state.ui.focused.as_ref())
         .cloned();
+        */
 
     let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
     state.merge(&packet);

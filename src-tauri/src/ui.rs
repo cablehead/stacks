@@ -39,8 +39,8 @@ pub struct Nav {
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct UI {
-    pub focused: Option<view::Item>,
-    pub last_selected: HashMap<Scru128Id, view::Item>,
+    pub focused: Option<view::Focus>,
+    pub last_selected: HashMap<Scru128Id, view::Focus>,
     pub matches: Option<HashSet<ssri::Integrity>>,
     pub view: view::View,
     pub theme_mode: String,
@@ -83,77 +83,50 @@ impl UI {
         }
     }
 
-    pub fn select(&mut self, item: Option<&view::Item>) {
-        self.focused = item.cloned();
-        if let Some(item) = item {
-            if let Some(stack_id) = item.stack_id {
-                self.last_selected.insert(stack_id, item.clone());
+    pub fn select(&mut self, focus: Option<view::Focus>) {
+        if let Some(focus) = focus.as_ref() {
+            if let Some(stack_id) = focus.item.stack_id {
+                self.last_selected.insert(stack_id, focus.clone());
             }
         }
+        self.focused = focus;
     }
 
     pub fn select_up(&mut self) {
-        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
-            let view = self.view.clone();
-            let peers = view.get_peers(focused);
-            let index = peers
-                .iter()
-                .cloned()
-                .position(|peer| peer.last_touched <= focused.last_touched)
-                .unwrap();
-            if index > 0 {
-                self.select(peers.get(index - 1).cloned());
-            }
-        }
+        self.select(self.view.get_best_focus_prev(&self.focused))
     }
 
     pub fn select_down(&mut self) {
-        if let Some(focused) = self.view.get_best_focus(self.focused.as_ref()) {
-            let view = self.view.clone();
-            let peers = view.get_peers(focused);
-            let index = peers
-                .iter()
-                .position(|peer| peer.last_touched <= focused.last_touched)
-                .unwrap();
-            if index < peers.len() - 1 {
-                self.select(peers.get(index + 1).cloned());
-            }
-        }
+        self.select(self.view.get_best_focus_next(&self.focused))
     }
 
     pub fn select_left(&mut self) {
-        let focused = { self.view.get_best_focus(self.focused.as_ref()).cloned() };
-        let target = {
-            focused
-                .and_then(|focused| focused.stack_id)
-                .and_then(|id| self.view.items.get(&id))
-                .cloned()
-        };
+        let focused = { self.view.get_best_focus(&self.focused) };
+        let target = focused
+            .and_then(|focused| focused.item.stack_id)
+            .and_then(|id| self.view.get_focus_for_id(&id));
         if let Some(target) = target {
-            self.select(Some(&target));
+            self.select(Some(target));
         }
     }
 
     pub fn select_right(&mut self) {
-        let target = self
-            .view
-            .get_best_focus(self.focused.as_ref())
-            .and_then(|focused| {
-                self.last_selected
-                    .get(&focused.id)
-                    .or_else(|| {
-                        self.view
-                            .children(focused)
-                            .first()
-                            .and_then(|id| self.view.items.get(id))
-                    })
-                    .cloned()
-            });
-        self.select(target.as_ref());
+        let target = self.view.get_best_focus(&self.focused).and_then(|focused| {
+            self.last_selected
+                .get(&focused.item.id)
+                .cloned()
+                .or_else(|| {
+                    self.view
+                        .children(&focused.item)
+                        .first()
+                        .and_then(|id| self.view.get_focus_for_id(id))
+                })
+        });
+        self.select(target);
     }
 
     pub fn render(&self, store: &Store) -> Nav {
-        let focused = self.view.get_best_focus(self.focused.as_ref());
+        let focused = self.view.get_best_focus(&self.focused);
         if focused.is_none() {
             return Nav {
                 root: None,
@@ -164,15 +137,15 @@ impl UI {
         let focused = focused.unwrap();
 
         // the sub layer is focused
-        if let Some(stack_id) = focused.stack_id {
+        if let Some(stack_id) = focused.item.stack_id {
             let items: Vec<_> = self
                 .view
-                .get_peers(focused)
+                .get_peers(&focused.item)
                 .iter()
                 .cloned()
                 .map(|item| with_meta(store, item))
                 .collect();
-            let selected = with_meta(store, focused);
+            let selected = with_meta(store, &focused.item);
 
             Nav {
                 root: Some(Layer {
@@ -204,15 +177,17 @@ impl UI {
             // the root layer is focused
             let children: Vec<_> = self
                 .view
-                .children(focused)
+                .children(&focused.item)
                 .iter()
                 .map(|id| self.view.items.get(id).unwrap().clone())
                 .collect();
 
             let sub = if !children.is_empty() {
-                let possible = self.last_selected.get(&focused.id).or(children.get(0));
-                let selected = self.view.get_best_focus(possible).unwrap();
-                let selected = with_meta(store, selected);
+                let possible = self.last_selected.get(&focused.item.id).cloned();
+                let possible =
+                    possible.or(self.view.get_focus_for_id(&children.get(0).unwrap().id));
+                let selected = self.view.get_best_focus(&possible).unwrap();
+                let selected = with_meta(store, &selected.item);
                 let items: Vec<_> = children.iter().map(|item| with_meta(store, item)).collect();
 
                 Some(Layer {
@@ -240,7 +215,7 @@ impl UI {
                         .cloned()
                         .map(|item| with_meta(store, item))
                         .collect(),
-                    selected: with_meta(store, focused),
+                    selected: with_meta(store, &focused.item),
                     is_focus: true,
                     previews: Vec::new(),
                 }),

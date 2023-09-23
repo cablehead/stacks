@@ -18,6 +18,12 @@ pub struct Item {
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
+pub struct Focus {
+    pub item: Item,
+    pub index: usize,
+}
+
+#[derive(serde::Serialize, Debug, Clone)]
 pub struct View {
     pub items: HashMap<Scru128Id, Item>,
     pub undo: Option<Item>,
@@ -97,11 +103,12 @@ impl View {
                 let source_id = packet.source_id.unwrap();
 
                 if let Some(movement) = &packet.movement {
-                    if let Some(item) = &self.items.get(&source_id) {
-                        if let Some(stack) = item.stack_id.and_then(|id| self.items.get_mut(&id)) {
+                    if let Some(item) = self.items.get(&source_id) {
+                        let stack_id = item.stack_id;
+                        let item_id = item.id;
+                        if let Some(stack) = stack_id.and_then(|id| self.items.get_mut(&id)) {
                             println!("UPDATE PACKET: {:?} {:?}", movement, stack);
-                            if let Some(index) =
-                                stack.children.iter().position(|id| item.id == *id)
+                            if let Some(index) = stack.children.iter().position(|id| item_id == *id)
                             {
                                 if index < stack.children.len() - 1 {
                                     stack.children.swap(index, index + 1);
@@ -204,6 +211,9 @@ impl View {
 
     pub fn children(&self, item: &Item) -> Vec<Scru128Id> {
         let mut children = item.children.clone();
+        if item.ordered {
+            return children;
+        }
         children.sort_by_key(|child| {
             self.items
                 .get(child)
@@ -214,7 +224,7 @@ impl View {
         children
     }
 
-    pub fn first(&self) -> Option<&Item> {
+    pub fn first(&self) -> Option<Focus> {
         let root = self.root();
         if !root.is_empty() {
             let stack = &root[0];
@@ -224,7 +234,12 @@ impl View {
             } else {
                 stack.id
             };
-            self.items.get(&id)
+            self.items.get(&id).and_then(|item| {
+                Some(Focus {
+                    item: item.clone(),
+                    index: 0,
+                })
+            })
         } else {
             None
         }
@@ -241,46 +256,68 @@ impl View {
         }
     }
 
-    pub fn get_best_focus(&self, item: Option<&Item>) -> Option<&Item> {
-        if item.is_none() {
-            return self.first();
-        }
-
-        let item = item.unwrap();
-        if let Some(item) = self.items.get(&item.id) {
-            return Some(item);
-        }
-
-        let peers = self.get_peers(item);
-        if peers.is_empty() {
-            return item.stack_id.and_then(|id| self.items.get(&id));
-        }
-
-        peers
-            .iter()
-            .position(|peer| peer.last_touched < item.last_touched)
-            .map(|position| peers[position])
-            .or(Some(peers[peers.len() - 1]))
+    pub fn get_focus_for_id(&self, id: &Scru128Id) -> Option<Focus> {
+        self.items.get(id).and_then(|item| {
+            let peers = self.get_peers(&item);
+            peers
+                .iter()
+                .position(|&peer| item.id == peer.id)
+                .and_then(|index| {
+                    Some(Focus {
+                        item: item.clone(),
+                        index,
+                    })
+                })
+        })
     }
 
-    // get_next_best_focus is similar to get_best_focus, but it ignores the currently focused item.
-    // this is useful when moving an item, but trying to preserve focus in the current context
-    pub fn get_next_best_focus(&self, item: Option<&Item>) -> Option<&Item> {
-        if item.is_none() {
+    pub fn get_best_focus_with_offset(
+        &self,
+        focus: &Option<Focus>,
+        offset: isize,
+    ) -> Option<Focus> {
+        if focus.is_none() {
             return self.first();
         }
-        let item = item.unwrap();
+        let focus = focus.as_ref().unwrap();
 
+        let item = self.items.get(&focus.item.id).unwrap_or(&focus.item);
         let peers = self.get_peers(item);
+
         if peers.is_empty() {
-            return item.stack_id.and_then(|id| self.items.get(&id));
+            return item.stack_id.and_then(|id| self.get_focus_for_id(&id));
         }
 
-        peers
+        let mut idx = peers
             .iter()
-            .position(|peer| peer.last_touched < item.last_touched)
-            .map(|position| peers[position])
-            .or(Some(peers[peers.len() - 1]))
+            .position(|&peer| item.id == peer.id)
+            .unwrap_or(focus.index);
+
+        if offset.is_negative() {
+            idx.saturating_sub((-offset) as usize)
+        } else {
+            idx.saturating_add(offset as usize)
+        };
+
+        if idx > peers.len() {
+            idx = peers.len() - 1;
+        }
+        return Some(Focus {
+            item: peers[idx].clone(),
+            index: idx,
+        });
+    }
+
+    pub fn get_best_focus(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, 0)
+    }
+
+    pub fn get_best_focus_next(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, 1)
+    }
+
+    pub fn get_best_focus_prev(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, -1)
     }
 
     pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
