@@ -345,7 +345,7 @@ pub fn store_new_note(
 
     let packet = state
         .store
-        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id));
+        .add(content.as_bytes(), MimeType::TextPlain, stack_id);
 
     let id = packet.id;
     state.merge(&packet);
@@ -487,7 +487,7 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
-    let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
+    let packet = state.store.add_stack(name.as_bytes(), StackLockStatus::Locked);
     state.merge(&packet);
 
     let packet = state

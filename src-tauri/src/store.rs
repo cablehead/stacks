@@ -411,7 +411,7 @@ impl Store {
         &mut self,
         content: &[u8],
         mime_type: MimeType,
-        stack_id: Option<Scru128Id>,
+        stack_id: Scru128Id,
     ) -> Packet {
         let hash = self.cas_write(content, mime_type);
         let packet = Packet {
@@ -419,11 +419,33 @@ impl Store {
             packet_type: PacketType::Add,
             source_id: None,
             hash: Some(hash),
-            stack_id,
+            stack_id: Some(stack_id),
             ephemeral: false,
             content_type: None,
             movement: None,
             lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn add_stack(
+        &mut self,
+        name: &[u8],
+        lock_status: StackLockStatus,
+    ) -> Packet {
+        let hash = self.cas_write(name, MimeType::TextPlain);
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Add,
+            source_id: None,
+            hash: Some(hash),
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: Some(lock_status),
             sort_order: None,
         };
         self.insert_packet(&packet);

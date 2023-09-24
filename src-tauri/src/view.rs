@@ -86,7 +86,10 @@ impl View {
                     children: Vec::new(),
                     ephemeral: packet.ephemeral,
                     ordered: false,
-                    locked: false,
+                    locked: match packet.lock_status {
+                        Some(StackLockStatus::Locked) => true,
+                        _ => false,
+                    },
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {

@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Packet, Store};
+pub use crate::store::{MimeType, Packet, Store, StackLockStatus};
 pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 
@@ -75,7 +75,7 @@ impl State {
 
         let packet = self
             .store
-            .add(stack_name.as_bytes(), MimeType::TextPlain, None);
+            .add_stack(stack_name.as_bytes(), StackLockStatus::Unlocked);
 
         self.merge(&packet);
         packet.id

@@ -33,7 +33,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let source = clipped["source"].as_str();
                 let _source = source.map(|s| s.to_string());
 
-                let curr_stack = Some(state.get_curr_stack());
+                let curr_stack = state.get_curr_stack();
 
                 let packet = if types.contains_key("public.utf8-plain-text") {
                     let content =
