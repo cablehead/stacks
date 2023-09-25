@@ -3,7 +3,7 @@ use std::sync::{Arc, Mutex};
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Packet, Store};
+pub use crate::store::{MimeType, Packet, Store, StackLockStatus};
 pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 
@@ -39,12 +39,17 @@ impl State {
     }
 
     pub fn nav_select(&mut self, focused_id: &Scru128Id) {
-        let focused = self.view.items.get(focused_id);
-        self.ui.select(self.view.get_best_focus(focused));
+        let focused = self.view.get_focus_for_id(&focused_id);
+        self.ui.select(focused);
     }
 
     pub fn get_curr_stack(&mut self) -> Scru128Id {
-        let curr_stack = self.view.root().first().map(|item| item.id);
+        let curr_stack = self
+            .view
+            .root()
+            .iter()
+            .find(|&&item| !item.locked)
+            .map(|&item| item.id);
 
         if let Some(id) = curr_stack {
             if let Some(item) = self.view.items.get(&id) {
@@ -70,7 +75,7 @@ impl State {
 
         let packet = self
             .store
-            .add(stack_name.as_bytes(), MimeType::TextPlain, None);
+            .add_stack(stack_name.as_bytes(), StackLockStatus::Unlocked);
 
         self.merge(&packet);
         packet.id

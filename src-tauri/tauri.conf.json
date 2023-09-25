@@ -56,14 +56,13 @@
     "windows": [
       {
         "fullscreen": false,
-        "resizable": false,
         "alwaysOnTop": true,
         "visible": false,
         "decorations": false,
         "transparent": true,
-        "title": "stacks",
-        "width": 970,
-        "height": 500
+        "width": 1000,
+        "height": 600,
+        "title": "stacks"
       }
     ]
   }

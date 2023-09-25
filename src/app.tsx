@@ -10,6 +10,7 @@ import {
   newNoteMode,
   pipeMode,
   pipeToCommand,
+  setContentTypeAction,
   settingsMode,
 } from "./modals";
 
@@ -24,6 +25,8 @@ import { Filter } from "./panels/filter";
 import { attemptAction } from "./actions";
 
 import { Stack } from "./types";
+
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { default as theme } from "./theme";
 
@@ -63,14 +66,25 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.deactivate();
       return;
 
-    case (event.metaKey && event.key === "u"):
+    case (event.metaKey && event.key === "z"):
       event.preventDefault();
       stack.undo();
+      return;
+
+    case (event.metaKey && event.key === "t"):
+      event.preventDefault();
+      stack.touch();
       return;
 
     case event.metaKey && event.key === "k":
       event.preventDefault();
       modes.toggle(stack, actionsMode);
+      return;
+
+    case event.metaKey && event.key === "l":
+      event.preventDefault();
+      console.log("store_win_move");
+      invoke("store_win_move", {});
       return;
 
     case event.metaKey && event.key === ",":
@@ -90,24 +104,38 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case event.metaKey &&
+      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+      event.preventDefault();
+      stack.moveDown();
+      return;
+
+    case event.metaKey &&
+      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+      event.preventDefault();
+      stack.moveUp();
+      return;
+
+    case !event.metaKey &&
+      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+      event.preventDefault();
+      stack.selectDown();
+      return;
+
+    case !event.metaKey &&
+      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+      event.preventDefault();
+      stack.selectUp();
+      return;
+
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
       modes.toggle(stack, newNoteMode);
       return;
 
-    case (event.metaKey && event.key === "p"):
+    case (event.metaKey && event.key === "u"):
       event.preventDefault();
       modes.toggle(stack, filterContentTypeMode);
-      return;
-
-    case (event.ctrlKey && event.key === "n") || event.key === "ArrowDown":
-      event.preventDefault();
-      stack.selectDown();
-      return;
-
-    case event.ctrlKey && event.key === "p" || event.key === "ArrowUp":
-      event.preventDefault();
-      stack.selectUp();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -194,6 +222,9 @@ export function App() {
               )}
               {modes.isActive(pipeToCommand) && (
                 <pipeToCommand.Modal stack={stack} modes={modes} />
+              )}
+              {modes.isActive(setContentTypeAction) && (
+                <setContentTypeAction.Modal stack={stack} modes={modes} />
               )}
               {modes.isActive(filterContentTypeMode) &&
                 <filterContentTypeMode.Modal stack={stack} modes={modes} />}

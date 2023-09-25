@@ -43,6 +43,40 @@ globalStyle("html, body", {
   overflow: "hidden",
 });
 
+globalStyle(".preview.rust pre", {
+  padding: "1ch",
+  borderRadius: "0.5ch",
+  whiteSpace: "pre-wrap",
+});
+
+globalStyle(".preview.markdown", {
+  fontFamily: "system-ui",
+  padding: "0px 1ch",
+  fontSize: "16px",
+  letterSpacing: "normal",
+
+  maxWidth: "75ch",
+  margin: "0 auto",
+  textAlign: "left",
+});
+
+globalStyle(".preview.markdown pre", {
+  padding: "1ch",
+  borderRadius: "0.5ch",
+  fontSize: "13.6px",
+  fontFamily: "ui-monospace",
+  whiteSpace: "pre-wrap",
+});
+
+globalStyle(".preview.markdown code:not([class^='language-'])", {
+  backgroundColor: vars.backgroundColorHover,
+  fontSize: "13.6px",
+  fontFamily: "ui-monospace",
+  padding: "0.15ch 0.4ch",
+  borderRadius: "6px",
+  display: "inline",
+});
+
 globalStyle("main", {
   color: vars.textColor,
   backgroundColor: vars.backgroundColorTransparent,

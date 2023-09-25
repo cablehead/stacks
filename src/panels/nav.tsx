@@ -1,18 +1,17 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { b64ToUtf8 } from "../utils";
-
 import { Icon } from "../ui/icons";
-import { borderRight } from "../ui/app.css";
+import { borderRight, vars } from "../ui/app.css";
 
-import { Item, itemGetContent, Layer, Stack } from "../types";
+import { Item, Layer, Stack } from "../types";
 
 const TerseRow = (
-  { stack, item, isSelected, isFocused }: {
+  { stack, item, isSelected, isFocused, showIcons }: {
     stack: Stack;
     item: Item;
     isSelected: boolean;
     isFocused: boolean;
+    showIcons: boolean;
   },
 ) => {
   const theRef = useRef<HTMLDivElement>(null);
@@ -24,7 +23,7 @@ const TerseRow = (
         block: "nearest",
       });
     }
-  }, [isSelected, theRef.current]);
+  }, [isSelected, isFocused, theRef.current]);
 
   return (
     <div
@@ -44,7 +43,7 @@ const TerseRow = (
           cursor: pointer;
           "
     >
-      {false &&
+      {showIcons &&
         (
           <div
             style={{
@@ -76,6 +75,7 @@ const renderItems = (
   stack: Stack,
   key: string,
   layer: Layer,
+  showIcons: boolean,
 ) => {
   if (layer.items.length == 0) return <i>no items</i>;
   return (
@@ -97,21 +97,67 @@ const renderItems = (
             key={item.id}
             isSelected={item.id == layer.selected.id}
             isFocused={layer.is_focus}
+            showIcons={showIcons}
           />
         ))}
     </div>
   );
 };
 
+export function Preview(
+  { content, active }: { content: string; active: boolean },
+) {
+  const anchorRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (active && anchorRef.current) {
+      const yOffset = -30;
+      const parent = anchorRef.current.parentElement;
+      if (parent) {
+        const topPosition = anchorRef.current.offsetTop + yOffset;
+        parent.scrollTop = topPosition;
+      }
+    }
+  }, [active, anchorRef]);
+
+  const extra = active
+    ? {
+      boxShadow: "0 0 6px " + vars.shadowColor,
+      backgroundColor: vars.backgroundColor,
+    }
+    : { opacity: "0.5", filter: "grayscale(50%)" };
+
+  return (
+    <div
+      style={{
+        padding: "0.25lh 0",
+        ...extra,
+      }}
+      ref={anchorRef}
+      dangerouslySetInnerHTML={{
+        __html: content || "<i>loading</i>",
+      }}
+    >
+    </div>
+  );
+}
+
 export function Nav({ stack }: { stack: Stack }) {
   const nav = stack.nav.value;
+
+  useEffect(() => {
+    console.log("component: mounted.");
+    return () => {
+      console.log("component: will unmount.");
+    };
+  }, []);
 
   return (
     <div style="flex: 3; display: flex; height: 100%; overflow: hidden; gap: 0.5ch;">
       {nav.root
         ? (
           <>
-            {renderItems(stack, "root", nav.root)}
+            {renderItems(stack, "root", nav.root, false)}
             {nav.sub
               ? (
                 <>
@@ -119,9 +165,28 @@ export function Nav({ stack }: { stack: Stack }) {
                     stack,
                     nav.root.selected.id,
                     nav.sub,
+                    true,
                   )}
-                  <div style="flex: 3; overflow: auto; height: 100%">
-                    <Preview stack={stack} item={nav.sub.selected} />
+
+                  <div
+                    style={{
+                      flex: 3,
+                      overflow: "auto",
+                      height: "100%",
+                      display: "flex",
+                      flexDirection: "column",
+                      scrollBehavior: "smooth",
+                    }}
+                  >
+                    {nav.sub.previews.map((content, idx) => {
+                      let item = nav.sub?.items[idx];
+                      return (
+                        <Preview
+                          content={content}
+                          active={item?.id == nav.sub?.selected.id}
+                        />
+                      );
+                    })}
                   </div>
                 </>
               )
@@ -145,35 +210,23 @@ const RowIcon = ({ item }: { item: Item }) => {
 
     case "Text":
       return <Icon name="IconClipboard" />;
+
+    case "Markdown":
+      return <Icon name="IconDocument" />;
+
+    case "Rust":
+    case "JSON":
+    case "Python":
+    case "JavaScript":
+    case "HTML":
+    case "Shell":
+    case "Go":
+    case "Ruby":
+    case "SQL":
+    case "XML":
+    case "YAML":
+      return <Icon name="IconCode" />;
   }
 
   return <Icon name="IconBell" />;
 };
-
-// @ts-ignore
-function Preview({ stack, item }: { stack: Stack; item: Item }) {
-  const content = itemGetContent(item);
-  if (!content) return <div>loading...</div>;
-
-  if (item.mime_type === "image/png") {
-    return (
-      <img
-        src={"data:image/png;base64," + content}
-        style={{
-          opacity: 0.95,
-          borderRadius: "0.5rem",
-          maxHeight: "100%",
-          height: "auto",
-          width: "auto",
-          objectFit: "contain",
-        }}
-      />
-    );
-  }
-
-  return (
-    <pre style="margin: 0; white-space: pre-wrap; overflow-x: hidden">
-    { b64ToUtf8(content) }
-    </pre>
-  );
-}

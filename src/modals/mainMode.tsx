@@ -1,37 +1,104 @@
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { Icon } from "../ui/icons";
 
 import { HotKey, Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
-// import { default as addToStackMode } from "./addToStackMode";
 
 import { Stack } from "../types";
 
 import { actions } from "../actions";
 
+import { borderRight } from "../ui/app.css";
+
+const VertDiv = () => (
+  <div
+    className={borderRight}
+    style={{
+      width: "1px",
+      height: "1.5em",
+    }}
+  />
+);
+
+const Lock = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+  return (
+    <div
+      onMouseDown={() => {
+        const command = currStack.locked
+          ? "store_stack_unlock"
+          : "store_stack_lock";
+        invoke(command, { sourceId: currStack.id });
+      }}
+      class="hoverable"
+    >
+      <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+        {currStack.locked
+          ? <Icon name="IconLockClosed" />
+          : <Icon name="IconLockOpen" />}
+      </span>
+    </div>
+  );
+};
+
+const SortOrder = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+  return (
+    <div
+      onMouseDown={() => {
+        const command = currStack.ordered
+          ? "store_stack_sort_auto"
+          : "store_stack_sort_manual";
+        invoke(command, { sourceId: currStack.id });
+      }}
+      class="hoverable"
+    >
+      <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+        {currStack.ordered
+          ? <Icon name="IconStack" />
+          : <Icon name="IconStackSorted" />}
+      </span>
+    </div>
+  );
+};
+
 export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
+    if (!selected) return <span></span>;
     const terse = selected ? selected.terse : "";
     return (
-      <div style="
-          display: flex;
-          gap: 0.75ch;
-          align-items: center;
-          overflow: hidden;
-          ">
-        <div
-          style={{
-            flexShrink: 0,
-            marginTop: "-2px",
-            width: "2ch",
-            whiteSpace: "nowrap",
-            overflow: "hidden",
-          }}
-        >
-          <Icon name="IconStack" />
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: "0.5ch",
+          marginLeft: "-1ch",
+        }}
+      >
+        <Lock stack={stack} />
+        <VertDiv />
+        <SortOrder stack={stack} />
+        <VertDiv />
+        <div>
+          {terse}
         </div>
-        {terse}
       </div>
     );
   },

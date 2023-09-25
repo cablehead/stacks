@@ -63,6 +63,10 @@ impl InProgressStream {
                 hash: Some(hash.clone()),
                 stack_id,
                 ephemeral: true,
+                content_type: None,
+                movement: None,
+                lock_status: None,
+                sort_order: None,
             },
         }
     }
@@ -98,6 +102,37 @@ pub enum PacketType {
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+pub struct PacketV3 {
+    pub id: Scru128Id,
+    pub packet_type: PacketType,
+    pub source_id: Option<Scru128Id>,
+    pub hash: Option<Integrity>,
+    pub stack_id: Option<Scru128Id>,
+    pub ephemeral: bool,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum Movement {
+    Up,
+    Down,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum StackLockStatus {
+    Unlocked,
+    Locked,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
+#[serde(rename_all = "lowercase")]
+pub enum StackSortOrder {
+    Auto,
+    Manual,
+}
+
+#[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub struct Packet {
     pub id: Scru128Id,
     pub packet_type: PacketType,
@@ -105,6 +140,29 @@ pub struct Packet {
     pub hash: Option<Integrity>,
     pub stack_id: Option<Scru128Id>,
     pub ephemeral: bool,
+    pub content_type: Option<String>,
+    pub movement: Option<Movement>,
+    pub lock_status: Option<StackLockStatus>,
+    pub sort_order: Option<StackSortOrder>,
+}
+
+fn deserialize_packet(value: &[u8]) -> Option<Packet> {
+    bincode::deserialize::<Packet>(&value)
+        .or_else(|_| {
+            bincode::deserialize::<PacketV3>(&value).map(|v3_packet| Packet {
+                id: v3_packet.id,
+                packet_type: v3_packet.packet_type,
+                source_id: v3_packet.source_id,
+                hash: v3_packet.hash,
+                stack_id: v3_packet.stack_id,
+                ephemeral: v3_packet.ephemeral,
+                content_type: None,
+                movement: None,
+                lock_status: None,
+                sort_order: None,
+            })
+        })
+        .ok()
 }
 
 pub struct Index {
@@ -238,6 +296,20 @@ impl Store {
                 }
             }
         }
+
+        self.scan().for_each(|p| {
+            if p.packet_type == PacketType::Update {
+                if let Some(hash) = p.hash.clone() {
+                    if let Some(content_type) = p.content_type.clone() {
+                        if let Some(meta) = content_meta_cache.get_mut(&hash) {
+                            println!("SCAN: {:?} {:?}", &meta, &content_type);
+                            meta.content_type = content_type;
+                        }
+                    }
+                }
+            }
+        });
+
         content_meta_cache
     }
 
@@ -275,6 +347,9 @@ impl Store {
 
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
+        if let Some(_) = self.content_meta_cache.get(&hash) {
+            return hash;
+        }
 
         let (content_type, terse, tiktokens) = match mime_type {
             MimeType::TextPlain => {
@@ -327,17 +402,16 @@ impl Store {
     }
 
     pub fn scan(&self) -> impl Iterator<Item = Packet> {
-        self.packets.iter().filter_map(|item| {
-            item.ok()
-                .and_then(|(_, value)| bincode::deserialize::<Packet>(&value).ok())
-        })
+        self.packets
+            .iter()
+            .filter_map(|item| item.ok().and_then(|(_, value)| deserialize_packet(&value)))
     }
 
     pub fn add(
         &mut self,
         content: &[u8],
         mime_type: MimeType,
-        stack_id: Option<Scru128Id>,
+        stack_id: Scru128Id,
     ) -> Packet {
         let hash = self.cas_write(content, mime_type);
         let packet = Packet {
@@ -345,8 +419,34 @@ impl Store {
             packet_type: PacketType::Add,
             source_id: None,
             hash: Some(hash),
-            stack_id,
+            stack_id: Some(stack_id),
             ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn add_stack(
+        &mut self,
+        name: &[u8],
+        lock_status: StackLockStatus,
+    ) -> Packet {
+        let hash = self.cas_write(name, MimeType::TextPlain);
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Add,
+            source_id: None,
+            hash: Some(hash),
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: Some(lock_status),
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -367,6 +467,109 @@ impl Store {
             hash,
             stack_id,
             ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_touch(
+        &mut self,
+        source_id: Scru128Id,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_content_type(&mut self, hash: ssri::Integrity, content_type: String) -> Packet {
+        let mut meta = self.content_meta_cache.get(&hash).unwrap().clone();
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: None,
+            hash: Some(hash.clone()),
+            stack_id: None,
+            ephemeral: false,
+            content_type: Some(content_type.clone()),
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        meta.content_type = content_type;
+        self.content_meta_cache.insert(hash, meta);
+        packet
+    }
+
+    pub fn update_move(&mut self, source_id: Scru128Id, movement: Movement) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: Some(movement),
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_stack_lock_status(
+        &mut self,
+        source_id: Scru128Id,
+        lock_status: StackLockStatus,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: Some(lock_status),
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn update_stack_sort_order(
+        &mut self,
+        source_id: Scru128Id,
+        sort_order: StackSortOrder,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: Some(sort_order),
         };
         self.insert_packet(&packet);
         packet
@@ -387,6 +590,10 @@ impl Store {
             hash,
             stack_id,
             ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -400,6 +607,10 @@ impl Store {
             hash: None,
             stack_id: None,
             ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
         };
         self.insert_packet(&packet);
         packet
@@ -407,7 +618,7 @@ impl Store {
 
     pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
-        removed.and_then(|value| bincode::deserialize(&value).ok())
+        removed.and_then(|value| deserialize_packet(&value))
     }
 
     pub fn settings_save(&mut self, settings: Settings) {
@@ -466,7 +677,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let stored_packet = store.scan().next().unwrap();
         assert_eq!(packet, stored_packet);
@@ -488,7 +699,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let updated_content = b"Hello, updated world!";
         let update_packet = store.update(
@@ -522,7 +733,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let forked_content = b"Hello, forked world!";
         let forked_packet = store.fork(
@@ -554,7 +765,7 @@ mod tests {
         let path = dir.path().to_str().unwrap();
         let mut store = Store::new(path);
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
         let delete_packet = store.delete(packet.id.clone());
         let stored_delete_packet = store.scan().last().unwrap();
         assert_eq!(delete_packet, stored_delete_packet);
@@ -571,9 +782,9 @@ mod tests {
         let content2 = b"Hello, fuzzy world!";
         let content3 = b"Hello, there!";
 
-        store.add(content1, MimeType::TextPlain, None);
-        store.add(content2, MimeType::TextPlain, None);
-        store.add(content3, MimeType::TextPlain, None);
+        store.add_stack(content1, StackLockStatus::Unlocked);
+        store.add_stack(content2, StackLockStatus::Unlocked);
+        store.add_stack(content3, StackLockStatus::Unlocked);
 
         let results = store.index.query("fzzy");
         let results: Vec<_> = results

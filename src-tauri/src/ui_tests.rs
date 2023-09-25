@@ -1,5 +1,5 @@
 use crate::state::State;
-use crate::store::MimeType;
+use crate::store::{MimeType, StackLockStatus};
 
 use crate::ui::Nav;
 
@@ -80,7 +80,7 @@ fn test_ui_render() {
         .map(|i| {
             state
                 .store
-                .add(format!("Stack {}", i).as_bytes(), MimeType::TextPlain, None)
+                .add_stack(format!("Stack {}", i).as_bytes(), StackLockStatus::Unlocked)
                 .id
         })
         .collect();
@@ -89,13 +89,13 @@ fn test_ui_render() {
         let _ = state.store.add(
             format!("https://stack-{}.com", i + 1).as_bytes(),
             MimeType::TextPlain,
-            Some(*stack_id),
+            *stack_id,
         );
         for j in 1..=3 {
             let _ = state.store.add(
                 format!("S{}::Item {}", i + 1, j).as_bytes(),
                 MimeType::TextPlain,
-                Some(*stack_id),
+                *stack_id,
             );
         }
     }
@@ -161,7 +161,9 @@ fn test_ui_render() {
     );
 
     // user press: delete # this is the top item in the first stack
-    let packet = state.store.delete(state.ui.focused.as_ref().unwrap().id);
+    let packet = state
+        .store
+        .delete(state.ui.focused.as_ref().unwrap().item.id);
     state.merge(&packet);
     assert_nav_as_expected!(
         &state.ui.render(&state.store),

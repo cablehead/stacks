@@ -14,7 +14,7 @@ tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
 tauri = { version = "1.4", features = ["clipboard-write-text", "global-shortcut", "macos-private-api", "process-command-api", "shell-open", "system-tray", "updater", "window-hide"] }
-tauri-plugin-spotlight = { git = "https://github.com/zzzze/tauri-plugin-spotlight" }
+tauri-plugin-spotlight = { path = "../vendored/tauri-plugin-spotlight" }
 tauri-plugin-log = { git = "https://github.com/tauri-apps/plugins-workspace", branch = "v1" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -23,6 +23,7 @@ log = "^0.4"
 base64 = "0.21.2"
 regex = "1.8.4"
 tokio = { version = "1.28.2", features = ["time", "process"] }
+tokio-util = { version = "0.7.3", features = ["full"] }
 reqwest = { version = "0.11", features = ["json"] }
 cacache = { version = "11.6.0", default-features = false, features = ["tokio-runtime"] }
 sled = "0.34.7"
@@ -36,6 +37,11 @@ tantivy = "0.20.2"
 chrono = "0.4.26"
 async-openai = "0.14.0"
 futures = "0.3.28"
+tauri-plugin-positioner = "1.0.4"
+hyper = { version = "0.14.27", features = ["full"] }
+comrak = { version = "0.18.0", features = ["syntect"] }
+maud = "0.25.0"
+syntect = "5.1.0"
 
 [dev-dependencies]
 indoc = "1.0.7"

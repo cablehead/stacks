@@ -8,7 +8,7 @@ import { Modes } from "./types";
 import { Stack } from "../types";
 
 const state = (() => {
-  const options = ["All", "Links", "Images"];
+  const options = ["All", "Links", "Images", "Markdown"];
   const selected = signal(0);
   const normalizedSelected = computed(() => {
     let val = selected.value % (options.length);
@@ -100,7 +100,7 @@ export default {
                   modes.deactivate();
                   break;
 
-                case (event.metaKey && event.key === "p"):
+                case (event.metaKey && event.key === "u"):
                   event.preventDefault();
                   modes.deactivate();
                   break;

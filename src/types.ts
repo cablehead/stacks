@@ -21,16 +21,24 @@ export interface Item {
   content_type: string;
   terse: string;
   tiktokens: number;
+  ephemeral: boolean;
+  locked: boolean;
+  ordered: boolean;
 }
 
 export function itemGetContent(item: Item): string {
-  return CAS.getSignal(item.hash).value;
+  const ret = item.ephemeral
+    ? EphemeralCAS.getSignal(item).value
+    : CAS.getSignal(item.hash).value;
+  // console.log("itemGetContent", item, b64ToUtf8(ret));
+  return ret;
 }
 
 export interface Layer {
   items: Item[];
   selected: Item;
   is_focus: boolean;
+  previews: string[];
 }
 
 export interface Nav {
@@ -77,7 +85,7 @@ export class Stack {
   async initListener() {
     console.log("CREATE D1");
     const d1 = await listen("refresh-items", () => {
-      console.log('listen("refresh-items');
+      // console.log('listen("refresh-items');
       this.refresh();
     });
     if (import.meta.hot) {
@@ -113,6 +121,14 @@ export class Stack {
 
   async undo() {
     await invoke<Item[]>("store_undo", {});
+  }
+
+  async touch() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke<Item[]>("store_touch", {
+      sourceId: item.id,
+    });
   }
 
   async refresh() {
@@ -159,6 +175,18 @@ export class Stack {
   async selectLeft() {
     this.nav.value = await invoke<Nav>("store_nav_select_left", {});
   }
+
+  async moveUp() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke("store_move_up", { sourceId: item.id });
+  }
+
+  async moveDown() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke("store_move_down", { sourceId: item.id });
+  }
 }
 
 export interface Action {
@@ -169,6 +197,37 @@ export interface Action {
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
 
+export const EphemeralCAS = (() => {
+  const signalCache: Map<Scru128Id, Signal<string>> = new Map();
+
+  function getSignal(item: Item): Signal<string> {
+    let ret = signalCache.get(item.id);
+    if (!ret) {
+      console.log("EphemeralCAS: new signal");
+      ret = new Signal("");
+      signalCache.set(item.id, ret);
+    }
+
+    (async () => {
+      const content = await invoke<string>("store_get_content", {
+        hash: item.hash,
+      });
+      // TODO: content can be null: my guess is because the content hash has
+      // already been replaced in the backend cache: we should fetch by
+      // item.id, not hash
+      if (content) {
+        ret.value = content;
+      }
+    })();
+
+    return ret;
+  }
+
+  return {
+    getSignal,
+  };
+})();
+
 export const CAS = (() => {
   const signalCache: Map<SSRI, Signal<string>> = new Map();
 
@@ -177,6 +236,7 @@ export const CAS = (() => {
     if (cachedSignal !== undefined) {
       return cachedSignal;
     }
+    // console.log("CAS", hash);
     const ret: Signal<string> = signal("");
     (async () => {
       ret.value = await invoke("store_get_content", { hash: hash });

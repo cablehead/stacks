@@ -5,7 +5,7 @@ use base64::{engine::general_purpose, Engine as _};
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{MimeType, Settings};
+use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
@@ -56,8 +56,9 @@ pub async fn store_pipe_to_command(
 
     let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
     let mut reader = cacache::Reader::open_hash(cache_path, hash).await.unwrap();
-    tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
-    drop(stdin);
+    tokio::spawn(async move {
+        tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
+    });
 
     let output = cmd.wait_with_output().await.unwrap();
     let output = CommandOutput {
@@ -84,6 +85,8 @@ pub async fn store_pipe_to_gpt(
         let content = if let Some(_) = item.stack_id {
             vec![state.store.get_content(&item.hash).unwrap()]
         } else {
+            return Ok(());
+            /*
             item.children
                 .iter()
                 .filter_map(|id| {
@@ -95,6 +98,7 @@ pub async fn store_pipe_to_gpt(
                 })
                 .rev()
                 .collect()
+                */
         };
 
         let stack_id = item.stack_id.unwrap_or(item.id);
@@ -234,6 +238,7 @@ pub fn store_nav_set_filter(
     let content_type = match content_type.as_str() {
         "Links" => "Link",
         "Images" => "Image",
+        "Markdown" => "Markdown",
         _ => "All",
     };
     state.nav_set_filter(&filter, content_type);
@@ -340,14 +345,24 @@ pub fn store_new_note(
 
     let packet = state
         .store
-        .add(content.as_bytes(), MimeType::TextPlain, Some(stack_id));
+        .add(content.as_bytes(), MimeType::TextPlain, stack_id);
 
     let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
+
+    let focus = state.view.get_focus_for_id(&id);
+
+    state.ui.select(focus);
 
     state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_win_move(app: tauri::AppHandle) {
+    let win = app.get_window("main").unwrap();
+    use tauri_plugin_positioner::{Position, WindowExt};
+    let _ = win.move_window(Position::TopRight);
 }
 
 #[tauri::command]
@@ -371,6 +386,45 @@ pub fn store_edit_note(
 }
 
 #[tauri::command]
+pub fn store_touch(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_touch(source_id);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_set_content_type(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    hash: ssri::Integrity,
+    content_type: String,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_content_type(
+        hash,
+        if content_type == "Plain Text" {
+            "Text".to_string()
+        } else {
+            content_type
+        },
+    );
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_set_theme_mode(app: tauri::AppHandle, state: tauri::State<SharedState>, mode: String) {
+    let mut state = state.lock().unwrap();
+    state.ui.theme_mode = mode;
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -390,7 +444,7 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
         let mut view = View::new();
         state.store.scan().for_each(|p| view.merge(&p));
         let mut ui = UI::new(&view);
-        ui.select(view.items.get(&item.id));
+        ui.select(view.get_focus_for_id(&item.id));
         state.view = view;
         state.ui = ui;
         app.emit_all("refresh-items", true).unwrap();
@@ -428,9 +482,10 @@ pub fn store_add_to_stack(
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
 
-    let id = packet.id;
+    // let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
+    // let focus = state.view.get_focus_for_id(&id);
+    // state.ui.select(focus);
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -444,16 +499,99 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
-    let packet = state.store.add(name.as_bytes(), MimeType::TextPlain, None);
+    let packet = state
+        .store
+        .add_stack(name.as_bytes(), StackLockStatus::Locked);
     state.merge(&packet);
 
     let packet = state
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
 
-    let id = packet.id;
+    // let id = packet.id;
     state.merge(&packet);
-    state.ui.focused = state.view.items.get(&id).cloned();
+    // let focus = state.view.get_focus_for_id(&id);
+    // state.ui.select(focus);
 
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_move_up(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_move(source_id, Movement::Up);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_move_down(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_move(source_id, Movement::Down);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_lock(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_lock_status(source_id, StackLockStatus::Locked);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_unlock(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_lock_status(source_id, StackLockStatus::Unlocked);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_sort_manual(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_sort_order(source_id, StackSortOrder::Manual);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
+pub fn store_stack_sort_auto(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .update_stack_sort_order(source_id, StackSortOrder::Auto);
+    state.merge(&packet);
     app.emit_all("refresh-items", true).unwrap();
 }

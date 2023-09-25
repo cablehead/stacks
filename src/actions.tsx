@@ -4,7 +4,13 @@ import { open } from "@tauri-apps/api/shell";
 
 import { b64ToUtf8 } from "./utils";
 
-import { addToStackMode, editorMode, modes, pipeMode } from "./modals";
+import {
+  addToStackMode,
+  editorMode,
+  modes,
+  pipeMode,
+  setContentTypeAction,
+} from "./modals";
 
 import { Icon } from "./ui/icons";
 import { Action, itemGetContent, Stack } from "./types";
@@ -36,6 +42,16 @@ export const actions: Action[] = [
   },
 
   {
+    name: "Set content type",
+    // keys: ["TAB"],
+    // matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
+    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
+    trigger: (stack: Stack) => {
+      modes.activate(stack, setContentTypeAction);
+    },
+  },
+
+  {
     name: "Copy item to stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
@@ -59,17 +75,20 @@ export const actions: Action[] = [
   },
   {
     name: "Pipe item to ...",
-    keys: [<Icon name="IconCommandKey" />, "|"],
+    keys: [<Icon name="IconCommandKey" />, "P"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      !event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
+      !event.ctrlKey && !event.altKey && event.metaKey &&
+      event.key.toLowerCase() === "p",
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
+  /*
   {
     name: "Pipe stack to GPT",
     keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.altKey && event.metaKey && event.shiftKey && event.code == "Backslash",
+      event.altKey && event.metaKey && event.shiftKey &&
+      event.code == "Backslash",
     trigger: (stack: Stack) => {
       const item = stack.selected_stack();
       if (item) {
@@ -79,6 +98,7 @@ export const actions: Action[] = [
     },
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
+  */
   {
     name: "Open",
     keys: [<Icon name="IconCommandKey" />, "O"],

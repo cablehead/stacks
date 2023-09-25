@@ -1,6 +1,8 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 
+#![recursion_limit = "512"]
+
 use std::sync::{Arc, Mutex};
 
 use tauri::CustomMenuItem;
@@ -13,7 +15,11 @@ mod commands;
 mod state;
 mod store;
 mod ui;
+mod util;
 mod view;
+
+#[cfg(debug_assertions)]
+mod http;
 
 #[cfg(test)]
 mod ui_tests;
@@ -58,6 +64,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
+            commands::store_win_move,
             commands::store_get_content,
             commands::store_get_root,
             commands::store_nav_refresh,
@@ -73,9 +80,18 @@ fn main() {
             commands::store_undo,
             commands::store_new_note,
             commands::store_edit_note,
+            commands::store_move_up,
+            commands::store_touch,
+            commands::store_move_down,
+            commands::store_stack_lock,
+            commands::store_stack_unlock,
+            commands::store_stack_sort_auto,
+            commands::store_stack_sort_manual,
             commands::store_settings_save,
             commands::store_settings_get,
+            commands::store_set_theme_mode,
             commands::store_pipe_to_command,
+            commands::store_set_content_type,
             commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
@@ -113,6 +129,8 @@ fn main() {
             if std::env::var("STACK_DEVTOOLS").is_ok() {
                 let window = app.get_window("main").unwrap();
                 window.open_devtools();
+                use tauri_plugin_positioner::{Position, WindowExt};
+                let _ = window.move_window(Position::Center);
             }
 
             let db_path = match std::env::var("STACK_DB_PATH") {
@@ -127,6 +145,12 @@ fn main() {
             let state = State::new(&db_path);
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
+
+            // start HTTP api if in debug mode
+            #[cfg(debug_assertions)]
+            {
+                http::start(app.handle().clone(), state.clone());
+            }
 
             clipboard::start(app.handle(), &state);
 

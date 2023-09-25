@@ -3,7 +3,7 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
-use crate::store::{Packet, PacketType};
+use crate::store::{Movement, Packet, PacketType, StackLockStatus, StackSortOrder};
 
 #[derive(serde::Serialize, Debug, Clone)]
 pub struct Item {
@@ -12,9 +12,16 @@ pub struct Item {
     pub touched: Vec<Scru128Id>,
     pub hash: Integrity,
     pub stack_id: Option<Scru128Id>,
-    pub children: Vec<Scru128Id>,
-    pub forked_children: Vec<Scru128Id>,
+    children: Vec<Scru128Id>,
     pub ephemeral: bool,
+    pub ordered: bool,
+    pub locked: bool,
+}
+
+#[derive(serde::Serialize, Debug, Clone)]
+pub struct Focus {
+    pub item: Item,
+    pub index: usize,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -77,8 +84,12 @@ impl View {
                     hash: packet.hash.clone().unwrap(),
                     stack_id: packet.stack_id,
                     children: Vec::new(),
-                    forked_children: Vec::new(),
                     ephemeral: packet.ephemeral,
+                    ordered: false,
+                    locked: match packet.lock_status {
+                        Some(StackLockStatus::Locked) => true,
+                        _ => false,
+                    },
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
@@ -91,7 +102,83 @@ impl View {
             }
 
             PacketType::Update => {
+                if packet.source_id.is_none() {
+                    return;
+                }
                 let source_id = packet.source_id.unwrap();
+
+                if let Some(movement) = &packet.movement {
+                    let item = self.items.get(&source_id);
+                    if item.is_none() {
+                        return;
+                    }
+                    let item = item.unwrap().clone();
+
+                    if item.stack_id.is_none() {
+                        return;
+                    }
+                    let stack_id = item.stack_id.unwrap();
+                    let item_id = item.id;
+
+                    let stack = self.items.get(&stack_id);
+                    if stack.is_none() {
+                        return;
+                    }
+                    let stack = stack.unwrap().clone();
+
+                    let ordered_children = if !stack.ordered {
+                        // when switching from time modified desc to manual sort order, preserve
+                        // the current ordering so the initial movement feels right
+                        self.children(&stack)
+                    } else {
+                        stack.children
+                    };
+
+                    // grab stack again from self.items, this time as mutable
+                    let stack = self.items.get_mut(&stack_id).unwrap();
+
+                    stack.children = ordered_children;
+
+                    if let Some(index) = stack.children.iter().position(|id| item_id == *id) {
+                        match movement {
+                            Movement::Up => {
+                                if index > 0 {
+                                    stack.children.swap(index, index - 1);
+                                }
+                            }
+                            Movement::Down => {
+                                if index < stack.children.len() - 1 {
+                                    stack.children.swap(index, index + 1);
+                                }
+                            }
+                        }
+                    }
+
+                    stack.ordered = true;
+
+                    return;
+                }
+
+                if let Some(sort_order) = &packet.sort_order {
+                    if let Some(item) = self.items.get_mut(&source_id) {
+                        match sort_order {
+                            StackSortOrder::Auto => item.ordered = false,
+                            StackSortOrder::Manual => item.ordered = true,
+                        }
+                    }
+                    return;
+                }
+
+                if let Some(lock_status) = &packet.lock_status {
+                    if let Some(item) = self.items.get_mut(&source_id) {
+                        match lock_status {
+                            StackLockStatus::Unlocked => item.locked = false,
+                            StackLockStatus::Locked => item.locked = true,
+                        }
+                    }
+                    return;
+                }
+
                 if let Some(item) = self.items.get(&source_id).cloned() {
                     let mut item = item;
 
@@ -123,11 +210,16 @@ impl View {
 
             PacketType::Fork => {
                 let source_id = packet.source_id.unwrap();
+
                 if let Some(item) = self.items.get(&source_id) {
+                    assert!(
+                        item.stack_id.is_some(),
+                        "Forking Stacks is not supported yet"
+                    );
+
                     let mut new_item = item.clone();
                     new_item.id = packet.id;
 
-                    new_item.forked_children = item.children.clone();
                     new_item.children = Vec::new();
 
                     if let Some(hash) = &packet.hash {
@@ -142,8 +234,6 @@ impl View {
                     new_item.last_touched = packet.id;
 
                     if let Some(stack) = new_item.stack_id.and_then(|id| self.items.get_mut(&id)) {
-                        // Remove the forked item from forked_children
-                        stack.forked_children.retain(|&id| id != source_id);
                         // And add the new item to children
                         stack.children.push(packet.id);
                         stack.last_touched = packet.id;
@@ -180,7 +270,9 @@ impl View {
 
     pub fn children(&self, item: &Item) -> Vec<Scru128Id> {
         let mut children = item.children.clone();
-        children.extend(&item.forked_children);
+        if item.ordered {
+            return children;
+        }
         children.sort_by_key(|child| {
             self.items
                 .get(child)
@@ -191,7 +283,7 @@ impl View {
         children
     }
 
-    pub fn first(&self) -> Option<&Item> {
+    pub fn first(&self) -> Option<Focus> {
         let root = self.root();
         if !root.is_empty() {
             let stack = &root[0];
@@ -201,7 +293,12 @@ impl View {
             } else {
                 stack.id
             };
-            self.items.get(&id)
+            self.items.get(&id).and_then(|item| {
+                Some(Focus {
+                    item: item.clone(),
+                    index: 0,
+                })
+            })
         } else {
             None
         }
@@ -218,26 +315,64 @@ impl View {
         }
     }
 
-    pub fn get_best_focus(&self, item: Option<&Item>) -> Option<&Item> {
-        if item.is_none() {
+    pub fn get_focus_for_id(&self, id: &Scru128Id) -> Option<Focus> {
+        self.items.get(id).and_then(|item| {
+            let peers = self.get_peers(&item);
+            peers
+                .iter()
+                .position(|&peer| item.id == peer.id)
+                .and_then(|index| {
+                    Some(Focus {
+                        item: item.clone(),
+                        index,
+                    })
+                })
+        })
+    }
+
+    pub fn get_best_focus_with_offset(&self, focus: &Option<Focus>, offset: i8) -> Option<Focus> {
+        if focus.is_none() {
             return self.first();
         }
+        let focus = focus.as_ref().unwrap();
 
-        let item = item.unwrap();
-        if let Some(item) = self.items.get(&item.id) {
-            return Some(item);
-        }
-
+        let item = self.items.get(&focus.item.id).unwrap_or(&focus.item);
         let peers = self.get_peers(item);
+
         if peers.is_empty() {
-            return item.stack_id.and_then(|id| self.items.get(&id));
+            return item.stack_id.and_then(|id| self.get_focus_for_id(&id));
         }
 
-        peers
+        let mut idx = peers
             .iter()
-            .position(|peer| peer.last_touched < item.last_touched)
-            .map(|position| peers[position])
-            .or(Some(peers[peers.len() - 1]))
+            .position(|&peer| item.id == peer.id)
+            .unwrap_or(focus.index);
+
+        if offset.is_negative() {
+            idx = idx.saturating_sub((-offset) as usize)
+        } else {
+            idx = idx.saturating_add(offset as usize)
+        };
+
+        if idx >= peers.len() {
+            idx = peers.len() - 1;
+        }
+        return Some(Focus {
+            item: peers[idx].clone(),
+            index: idx,
+        });
+    }
+
+    pub fn get_best_focus(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, 0)
+    }
+
+    pub fn get_best_focus_next(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, 1)
+    }
+
+    pub fn get_best_focus_prev(&self, focus: &Option<Focus>) -> Option<Focus> {
+        self.get_best_focus_with_offset(focus, -1)
     }
 
     pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
