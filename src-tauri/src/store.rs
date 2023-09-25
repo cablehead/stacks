@@ -657,7 +657,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let stored_packet = store.scan().next().unwrap();
         assert_eq!(packet, stored_packet);
@@ -679,7 +679,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let updated_content = b"Hello, updated world!";
         let update_packet = store.update(
@@ -713,7 +713,7 @@ mod tests {
         let mut store = Store::new(path);
 
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
         let forked_content = b"Hello, forked world!";
         let forked_packet = store.fork(
@@ -745,7 +745,7 @@ mod tests {
         let path = dir.path().to_str().unwrap();
         let mut store = Store::new(path);
         let content = b"Hello, world!";
-        let packet = store.add(content, MimeType::TextPlain, None);
+        let packet = store.add_stack(content, StackLockStatus::Unlocked);
         let delete_packet = store.delete(packet.id.clone());
         let stored_delete_packet = store.scan().last().unwrap();
         assert_eq!(delete_packet, stored_delete_packet);
@@ -762,9 +762,9 @@ mod tests {
         let content2 = b"Hello, fuzzy world!";
         let content3 = b"Hello, there!";
 
-        store.add(content1, MimeType::TextPlain, None);
-        store.add(content2, MimeType::TextPlain, None);
-        store.add(content3, MimeType::TextPlain, None);
+        store.add_stack(content1, StackLockStatus::Unlocked);
+        store.add_stack(content2, StackLockStatus::Unlocked);
+        store.add_stack(content3, StackLockStatus::Unlocked);
 
         let results = store.index.query("fzzy");
         let results: Vec<_> = results
