@@ -54,9 +54,19 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
 
                 if let Some(packet) = packet {
                     state.merge(&packet);
-                }
 
-                app.emit_all("refresh-items", true).unwrap();
+                    // if Stacks isn't active, focus the new clip
+                    let is_visible = app
+                        .get_window("main")
+                        .and_then(|win| win.is_visible().ok())
+                        .unwrap_or(true);
+                    if !is_visible {
+                        let focus = state.view.get_focus_for_id(&packet.id);
+                        state.ui.select(focus);
+                    }
+
+                    app.emit_all("refresh-items", true).unwrap();
+                }
             }
         }
     });
