@@ -470,10 +470,10 @@ pub fn store_add_to_stack(
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
 
-    let id = packet.id;
+    // let id = packet.id;
     state.merge(&packet);
-    let focus = state.view.get_focus_for_id(&id);
-    state.ui.select(focus);
+    // let focus = state.view.get_focus_for_id(&id);
+    // state.ui.select(focus);
 
     app.emit_all("refresh-items", true).unwrap();
 }
@@ -494,10 +494,10 @@ pub fn store_add_to_new_stack(
         .store
         .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
 
-    let id = packet.id;
+    // let id = packet.id;
     state.merge(&packet);
-    let focus = state.view.get_focus_for_id(&id);
-    state.ui.select(focus);
+    // let focus = state.view.get_focus_for_id(&id);
+    // state.ui.select(focus);
 
     app.emit_all("refresh-items", true).unwrap();
 }
