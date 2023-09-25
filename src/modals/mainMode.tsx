@@ -71,8 +71,8 @@ const SortOrder = ({ stack }: { stack: Stack }) => {
             border-radius: 5px;
             ">
         {currStack.ordered
-          ? <Icon name="IconStackSorted" />
-          : <Icon name="IconStack" />}
+          ? <Icon name="IconStack" />
+          : <Icon name="IconStackSorted" />}
       </span>
     </div>
   );
