@@ -16,7 +16,7 @@ const state = (() => {
       const selected = stack.selected();
       if (!selected) return;
       const args = {
-        stackId: selected.stack_id,
+        stackId: selected.stack_id || selected.id,
         content: curr.value,
       };
 
