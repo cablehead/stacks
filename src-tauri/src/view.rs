@@ -108,29 +108,54 @@ impl View {
                 let source_id = packet.source_id.unwrap();
 
                 if let Some(movement) = &packet.movement {
-                    if let Some(item) = self.items.get(&source_id) {
-                        let stack_id = item.stack_id;
-                        let item_id = item.id;
-                        if let Some(stack) = stack_id.and_then(|id| self.items.get_mut(&id)) {
-                            println!("MOVE PACKET: {:?} {:?}", movement, stack);
-                            if let Some(index) = stack.children.iter().position(|id| item_id == *id)
-                            {
-                                match movement {
-                                    Movement::Up => {
-                                        if index > 0 {
-                                            stack.children.swap(index, index - 1);
-                                        }
-                                    }
-                                    Movement::Down => {
-                                        if index < stack.children.len() - 1 {
-                                            stack.children.swap(index, index + 1);
-                                        }
-                                    }
+                    let item = self.items.get(&source_id);
+                    if item.is_none() {
+                        return;
+                    }
+                    let item = item.unwrap().clone();
+
+                    if item.stack_id.is_none() {
+                        return;
+                    }
+                    let stack_id = item.stack_id.unwrap();
+                    let item_id = item.id;
+
+                    let stack = self.items.get(&stack_id);
+                    if stack.is_none() {
+                        return;
+                    }
+                    let stack = stack.unwrap().clone();
+
+                    let ordered_children = if !stack.ordered {
+                        // when switching from time modified desc to manual sort order, preserve
+                        // the current ordering so the initial movement feels right
+                        self.children(&stack)
+                    } else {
+                        stack.children
+                    };
+
+                    // grab stack again from self.items, this time as mutable
+                    let stack = self.items.get_mut(&stack_id).unwrap();
+
+                    stack.children = ordered_children;
+
+                    if let Some(index) = stack.children.iter().position(|id| item_id == *id) {
+                        match movement {
+                            Movement::Up => {
+                                if index > 0 {
+                                    stack.children.swap(index, index - 1);
                                 }
                             }
-                            stack.ordered = true;
+                            Movement::Down => {
+                                if index < stack.children.len() - 1 {
+                                    stack.children.swap(index, index + 1);
+                                }
+                            }
                         }
                     }
+
+                    stack.ordered = true;
+
                     return;
                 }
 
