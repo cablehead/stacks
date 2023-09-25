@@ -81,6 +81,7 @@ fn main() {
             commands::store_new_note,
             commands::store_edit_note,
             commands::store_move_up,
+            commands::store_touch,
             commands::store_move_down,
             commands::store_stack_lock,
             commands::store_stack_unlock,

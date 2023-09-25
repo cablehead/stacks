@@ -386,6 +386,18 @@ pub fn store_edit_note(
 }
 
 #[tauri::command]
+pub fn store_touch(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    source_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.update_touch(source_id);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_set_content_type(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -487,7 +499,9 @@ pub fn store_add_to_new_stack(
 ) {
     let mut state = state.lock().unwrap();
 
-    let packet = state.store.add_stack(name.as_bytes(), StackLockStatus::Locked);
+    let packet = state
+        .store
+        .add_stack(name.as_bytes(), StackLockStatus::Locked);
     state.merge(&packet);
 
     let packet = state

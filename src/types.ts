@@ -123,6 +123,14 @@ export class Stack {
     await invoke<Item[]>("store_undo", {});
   }
 
+  async touch() {
+    const item = this.selected();
+    if (!item) return;
+    await invoke<Item[]>("store_touch", {
+      sourceId: item.id,
+    });
+  }
+
   async refresh() {
     this.nav.value = await invoke<Nav>("store_nav_refresh", {});
   }

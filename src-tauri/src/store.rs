@@ -476,6 +476,26 @@ impl Store {
         packet
     }
 
+    pub fn update_touch(
+        &mut self,
+        source_id: Scru128Id,
+    ) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: Some(source_id),
+            hash: None,
+            stack_id: None,
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
     pub fn update_content_type(&mut self, hash: ssri::Integrity, content_type: String) -> Packet {
         let mut meta = self.content_meta_cache.get(&hash).unwrap().clone();
         let packet = Packet {
