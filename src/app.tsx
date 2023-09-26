@@ -40,7 +40,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
   if (attemptAction(event, stack)) return;
 
   switch (true) {
-    case event.key === "Enter":
+    case !event.metaKey && event.key === "Enter":
       await stack.triggerCopy();
       return;
 

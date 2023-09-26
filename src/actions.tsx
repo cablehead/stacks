@@ -17,34 +17,7 @@ import { Action, itemGetContent, Stack } from "./types";
 
 export const actions: Action[] = [
   {
-    name: "Copy entire stack",
-    keys: [
-      <Icon name="IconCommandKey" />,
-      <Icon name="IconReturnKey" />,
-    ],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.key === "Enter",
-    canApply: (_: Stack) => false,
-    // stack.item.value?.content_type === "Stack" || !!stack.parent?.item.value,
-    trigger: (_: Stack) => {
-      /*
-      let item = stack.item.value?.content_type === "Stack"
-        ? stack.item.value
-        : stack.parent?.item.value;
-      if (item) {
-        invoke("store_copy_entire_stack_to_clipboard", {
-          stackHash: item.hash,
-        });
-        hide();
-      }
-        */
-    },
-  },
-
-  {
     name: "Set content type",
-    // keys: ["TAB"],
-    // matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
     trigger: (stack: Stack) => {
       modes.activate(stack, setContentTypeAction);
@@ -63,9 +36,9 @@ export const actions: Action[] = [
 
   {
     name: "Edit",
-    keys: [<Icon name="IconCommandKey" />, "E"],
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconReturnKey" />],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.key.toLowerCase() === "e",
+      event.metaKey && event.key === "Enter",
     canApply: (stack: Stack) => {
       const item = stack.selected();
       if (!item) return false;

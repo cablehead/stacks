@@ -106,7 +106,7 @@ export default {
     let ret = [];
 
     ret.push({
-      name: "Copy",
+      name: "Copy & Hide",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
         stack.triggerCopy();
