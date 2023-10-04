@@ -1,7 +1,7 @@
 import { useEffect, useRef } from "preact/hooks";
 
 import { Icon } from "../ui/icons";
-import { borderRight, vars } from "../ui/app.css";
+import { borderRight, previewItem } from "../ui/app.css";
 
 import { Item, Layer, Stack } from "../types";
 
@@ -105,7 +105,9 @@ const renderItems = (
 };
 
 export function Preview(
-  { content, active }: { content: string; active: boolean },
+  { content, active, ...rest }:
+    & { content: string; active: boolean }
+    & JSX.HTMLAttributes,
 ) {
   const anchorRef = useRef<HTMLDivElement>(null);
 
@@ -120,23 +122,14 @@ export function Preview(
     }
   }, [active, anchorRef]);
 
-  const extra = active
-    ? {
-      boxShadow: "0 0 6px " + vars.shadowColor,
-      backgroundColor: vars.backgroundColor,
-    }
-    : { opacity: "0.5", filter: "grayscale(50%)" };
-
   return (
     <div
-      style={{
-        padding: "0.25lh 0",
-        ...extra,
-      }}
-      ref={anchorRef}
+      className={`${previewItem} ${active ? "active" : "not-active"}`}
+      ref={anchorRef as any}
       dangerouslySetInnerHTML={{
         __html: content || "<i>loading</i>",
       }}
+      {...rest}
     >
     </div>
   );
@@ -182,6 +175,10 @@ export function Nav({ stack }: { stack: Stack }) {
                       let item = nav.sub?.items[idx];
                       return (
                         <Preview
+                          onMouseDown={() => {
+                            if (!item) return;
+                            stack.select(item.id);
+                          }}
                           content={content}
                           active={item?.id == nav.sub?.selected.id}
                         />
