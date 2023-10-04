@@ -102,8 +102,9 @@ export const previewItem = style({
       filter: "grayscale(30%)",
     },
     "&.not-active:hover": {
-      opacity: "0.5",
-      filter: "grayscale(50%)",
+      opacity: "0.6",
+      filter: "grayscale(60%)",
+      backgroundColor: vars.backgroundColor,
     },
     "&.active": {
       boxShadow: `0 0 6px ${vars.shadowColor}`,
