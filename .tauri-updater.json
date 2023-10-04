@@ -1,16 +1,16 @@
 {
-  "version": "0.11.1",
-  "notes": "Initially aimed at enhancing pipe interactions, this release unexpectedly pivoted to quality of life improvements.\n\n- The thing you'll notice first with the 0.11 release is the preview now shows all items in a Stack, not just the active one. A game-changer for todo lists and document drafting.\n\n- A feature that warrants the use of \"finally\": Manually order items in a Stack. Use movement keys (Ctrl N/P or arrow keys) with the CMD modifier. Look for the sort order indicator at the bottom left of the status bar to toggle between manual and auto sort.\n\n- Also note the padlock indicator at the bottom left of the status bar. Locking a Stack keeps new clipboard items from polluting it. Manually created Stacks default to locked.\n  \n- You can now set content types for clips to activate syntax highlighting in previews. Think HTML or Python code.\n\n- Want a Stack at the top? Just hit CMD-T for \"Touch\" or \"Top\".\n\nThis release leaves some known issues unaddressed, most notably errors around the ChatGPT API.\n",
-  "pub_date": "2023-09-25T15:01:51-04:00",
+  "version": "0.11.2",
+  "notes": "\nMinor Release Notes\n\n- Changed edit hotkey to `CMD-Enter` from `CMD-e`.\n- Improved styling for peer clips, which are adjacent to the focused clip:\n  - Reduced opacity to make the focused clip more prominent.\n  - Added hover highlight.\n  - Enabled click-to-focus on peer clip previews.\n",
+  "pub_date": "2023-10-04T15:24:48-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEJ3cG02LzFpRjJOdGZmb3ZYSnVxUUFmdVNVMXNTMWhsUkpuSVRlNDVrTXFVUlNMTklVazA4YVRwckxSWGd1NVJNak55TEY3c1FxM1JSYVpIQzV5a2dJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk1NjY4MjM4CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKQWdkZkVaeGEwRjZqMStVK1QvRkh2U3ZrUHVMdEhJZld2djJEeWNkZG9OLytEcUVwZ0QvK0U3WHp4RHBzczdMT1dNN2V2VWFkdUdkV3J6K3pyd0ltREE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.1/Stacks_0.11.1_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEhRcHduY3lDVFZaUlNoNGVMRUU2QlI0VERGQjJweTJvdlVOQ0pPSzdUdkhnbGFZYjFxWGc1VU5vbzIyei9FV2tWTlFuRFdqaHRHUWFwMWZHM2JJbVFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk2NDQ3NDU2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYUNYSERQSnhadkw4UExua1BvSElWTzg2K2p1WHhoUXRoaGlQd0h6ODYxZTlQZk1UL1pNeGpLRmx6czI0N2RqOU1ralRUREwzVjBYWjJsSFovZ3U4QWc9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVROTNNL1NjK09yOFZnM01WWW5aalhZOEVjSHBrZ0Z6SDJQYzlncnl1VlB6OW5sMEI4QU9PS0hNdUs5ZENGbVVuVVJNSG5SWGhhaWFQb01ZZjlFY2cwPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk1NjY4MDEzCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKT1c1aUx3ZFljbi9BSlRkUmlYa1RhS0t1ZHd6dU5MNVdTMXpMV3ZMQm9hMzFHWTFBZGFkTlo3LzduMWVtd0dZQ3YvQ0Q1bktpRVNtakV4YXlCZnVFQXc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.1/Stacks_0.11.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE56UkNwTG5lQkVUZVU1ZjRZcTFQcVhoM3RCN2RZd0wrc0Q5b2hzTFV2bkNRSk11SUNZaVI0SmNBdXBjUFErNmJ3cUlOUjVCV2ZTNU5FUlpDMjU1NHdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk2NDQ3MzA2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYmFUMkgwdi8yMGJrRnR5UmtTTHlteGVKeXFtczdjTDhLQ2tWR01xaXRFUEVmeGF5ak1wUyt1QlNDNmxaLzBVeTE1OUdOeWY4bk4ySVltNnBqOWtSQ0E9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.app.tar.gz"
     }
   }
 }
