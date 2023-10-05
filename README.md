@@ -6,7 +6,7 @@ A terrific clipboard manager
 
 ## Download
 
-`.DMG` installers, notarized by Apple for a secure and seamless installation.
+`.DMG` installers that have been notarized by Apple.
 
 [![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.dmg)
 [![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.dmg)
