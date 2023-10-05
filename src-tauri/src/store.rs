@@ -407,12 +407,7 @@ impl Store {
             .filter_map(|item| item.ok().and_then(|(_, value)| deserialize_packet(&value)))
     }
 
-    pub fn add(
-        &mut self,
-        content: &[u8],
-        mime_type: MimeType,
-        stack_id: Scru128Id,
-    ) -> Packet {
+    pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
         let hash = self.cas_write(content, mime_type);
         let packet = Packet {
             id: scru128::new(),
@@ -430,11 +425,7 @@ impl Store {
         packet
     }
 
-    pub fn add_stack(
-        &mut self,
-        name: &[u8],
-        lock_status: StackLockStatus,
-    ) -> Packet {
+    pub fn add_stack(&mut self, name: &[u8], lock_status: StackLockStatus) -> Packet {
         let hash = self.cas_write(name, MimeType::TextPlain);
         let packet = Packet {
             id: scru128::new(),
@@ -476,10 +467,7 @@ impl Store {
         packet
     }
 
-    pub fn update_touch(
-        &mut self,
-        source_id: Scru128Id,
-    ) -> Packet {
+    pub fn update_touch(&mut self, source_id: Scru128Id) -> Packet {
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -644,7 +632,7 @@ impl Store {
     }
 
     pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
-        let mut stream = self.in_progress_streams.get_mut(&id).unwrap();
+        let stream = self.in_progress_streams.get_mut(&id).unwrap();
         stream.append(content);
         stream.packet.clone()
     }
