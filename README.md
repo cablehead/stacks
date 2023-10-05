@@ -1,12 +1,19 @@
 # Stacks
 
-## Install
+A terrific clipboard manager
 
-Download the .DMG installers, notarized by Apple for a secure and seamless macOS installation.
+## Download
 
-| &nbsp; | &nbsp; |
-| :---: | :---: |
-| [![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.dmg) | [![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.dmg) |
+`.DMG` installers, notarized by Apple for a secure and seamless installation.
+
+<p align="center">
+    <a href="https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.dmg">
+        <img src="docs/assets/MacOS-Intel.svg" alt="MacOS (Intel)">
+    </a>
+    <a href="https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.dmg">
+        <img src="docs/assets/MacOS-Apple.Silicon.svg" alt="MacOS (Apple Silicon)">
+    </a>
+</p>
 
 ![screenshot](./docs/screenshots/screenshot.png)
 
