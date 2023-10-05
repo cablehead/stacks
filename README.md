@@ -1,6 +1,6 @@
 # Stacks
 
-A terrifically capable clipboard manager for macOS. Looking for contributions to expand to Linux and Windows.
+Stacks is a versatile clipboard manager for macOS. Looking for contributions to expand to Linux and Windows.
 
 ![screenshot](./docs/screenshots/screenshot.png)
 
