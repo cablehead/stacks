@@ -2,6 +2,9 @@
 
 A terrifically capable clipboard manager for macOS. Looking for contributions to expand to Linux and Windows.
 
+![MacOS (Intel)](docs/assets/MacOS-Intel.svg)
+![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)
+
 ![screenshot](./docs/screenshots/screenshot.png)
 
 ## Install
