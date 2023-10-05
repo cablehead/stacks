@@ -1,0 +1,58 @@
+{
+  "name": "tauri-plugin-spotlight-api",
+  "version": "0.1.2",
+  "description": "Tauri plugin that provides a MacOS Spotlight-like search functionality for Tauri windows.",
+  "homepage": "https://github.com/zzzze/tauri-plugin-spotlight",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/zzzze/tauri-plugin-spotlight"
+  },
+  "bugs": {
+    "url": "https://github.com/zzzze/tauri-plugin-spotlight/issues"
+  },
+  "main": "dist-js/index.mjs",
+  "type": "module",
+  "browser": "dist-js/index.min.js",
+  "module": "dist-js/index.mjs",
+  "types": "dist-js/index.d.ts",
+  "exports": {
+    "import": "./dist-js/index.mjs",
+    "types": "./dist-js/index.d.ts",
+    "browser": "./dist-js/index.min.js"
+  },
+  "scripts": {
+    "build": "rollup -c"
+  },
+  "files": [
+    "dist-js",
+    "!dist-js/**/*.map",
+    "README.md",
+    "LICENSE"
+  ],
+  "devDependencies": {
+    "@rollup/plugin-node-resolve": "^15.0.1",
+    "@rollup/plugin-terser": "^0.4.0",
+    "@rollup/plugin-typescript": "^11.0.0",
+    "@typescript-eslint/eslint-plugin": "^5.51.0",
+    "@typescript-eslint/parser": "^5.51.0",
+    "eslint": "^8.33.0",
+    "eslint-config-standard": "^17.0.0",
+    "eslint-config-standard-with-typescript": "^34.0.0",
+    "eslint-plugin-import": "^2.27.5",
+    "eslint-plugin-n": "^15.6.1",
+    "eslint-plugin-promise": "^6.1.1",
+    "eslint-plugin-react": "^7.32.2",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "rollup": "^3.17.0",
+    "typescript": "^4.9.5"
+  },
+  "dependencies": {
+    "@tauri-apps/api": "^1.2.0"
+  },
+  "keywords": [
+    "tauri",
+    "spotlight"
+  ],
+  "author": "VinZhang <zhangzs0000@gmail.com>",
+  "license": "MIT"
+}
