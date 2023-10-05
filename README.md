@@ -1,15 +1,15 @@
 # Stacks
 
-Stacks is a versatile clipboard manager for macOS. Looking for contributions to expand to Linux and Windows.
+A terrific clipboard manager
 
 ![screenshot](./docs/screenshots/screenshot.png)
 
-## Install
+## Download
 
-Download the .DMG installers, notarized by Apple for a secure and seamless macOS installation.
+`.DMG` installers that have been notarized by Apple.
 
-- [Apple Silicon](https://github.com/cablehead/stacks/releases/download/v0.10.0/Stacks_0.10.0_aarch64.dmg)
-- [Intel](https://github.com/cablehead/stacks/releases/download/v0.10.0/Stacks_0.10.0_x86_64.dmg)
+[![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.dmg)
+[![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.dmg)
 
 ## Usage
 
