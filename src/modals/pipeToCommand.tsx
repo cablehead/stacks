@@ -148,8 +148,10 @@ export default {
               color: vars.textColor,
               borderColor: vars.borderColor,
             }}
+            dangerouslySetInnerHTML={{
+              __html: state.res.value.out,
+            }}
           >
-            {state.res.value.out}
           </div>
           {state.res.value.err != "" &&
             (

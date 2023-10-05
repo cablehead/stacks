@@ -4,9 +4,12 @@ use base64::{engine::general_purpose, Engine as _};
 
 use scru128::Scru128Id;
 
+use maud::html;
+
 use crate::state::SharedState;
 use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
+use crate::util;
 use crate::view::View;
 
 #[derive(Debug, serde::Serialize)]
@@ -61,12 +64,18 @@ pub async fn store_pipe_to_command(
     });
 
     let output = cmd.wait_with_output().await.unwrap();
+
+    let img_data = format!("data:image/png;base64,{}", util::b64encode(&output.stdout));
+    let img = html! {
+        img src=(img_data) style="opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain";
+    };
+
     let output = CommandOutput {
-        out: String::from_utf8_lossy(&output.stdout).into_owned(),
+        // out: String::from_utf8_lossy(&output.stdout).into_owned(),
+        out: img.into_string(),
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
     };
-    println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
 
