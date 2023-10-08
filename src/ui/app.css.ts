@@ -20,6 +20,9 @@ export const [darkThemeClass, vars] = createTheme({
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
   backgroundColorHover: "#333333",
+
+  backgroundColorBroadcastActive:
+    "linear-gradient(45deg, #0057B8, #0057B8 30%, #FFD700 70%, #FFD700)",
   borderColor: "#3e3e3e",
   shadowColor: "rgba(102, 102, 102, 0.4)",
 });
@@ -35,6 +38,13 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
   backgroundColorHover: "#E2E2E2",
+  backgroundColorBroadcastActive:
+
+      "linear-gradient(45deg, #4A8AD2, #4A8AD2 30%, #FFCB22 70%, #FFCB22)",
+
+
+
+
   borderColor: "#ccc",
   shadowColor: "rgba(0, 0, 0, 0.2)",
 });
@@ -192,8 +202,8 @@ export const enchantedForestGradient = composeStyles(
   button,
   style({
     ":hover": {
-    backgroundImage:
-      "linear-gradient(45deg, #1A4576, #1A4576 30%, #998519 70%, #998519)",
+      backgroundImage:
+        "linear-gradient(45deg, #1A4576, #1A4576 30%, #998519 70%, #998519)",
       backgroundSize: "200% 200%",
       animation: `${swirlAnimation} 3s infinite alternate`,
     },
@@ -203,14 +213,11 @@ export const enchantedForestGradient = composeStyles(
 export const enchantedForestGradientActive = composeStyles(
   button,
   style({
-    backgroundImage:
-      "linear-gradient(45deg, #0057B8, #0057B8 30%, #FFD700 70%, #FFD700)",
+    backgroundImage: vars.backgroundColorBroadcastActive,
     backgroundSize: "200% 200%",
     animation: `${swirlAnimation} 3s infinite alternate`,
     ":hover": {
-      // backgroundImage: "linear-gradient(45deg, #0057B8, #0057B8 40%, #FFD700 60%, #FFD700)",
       backgroundSize: "150% 150%",
-      // animation: "none",
     },
   }),
 );
