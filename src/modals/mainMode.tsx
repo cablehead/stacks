@@ -10,7 +10,7 @@ import { Stack } from "../types";
 
 import { actions } from "../actions";
 
-import { borderRight } from "../ui/app.css";
+import { borderRight, enchantedForestGradient } from "../ui/app.css";
 
 const VertDiv = () => (
   <div
@@ -78,6 +78,35 @@ const SortOrder = ({ stack }: { stack: Stack }) => {
   );
 };
 
+const Broadcast = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+  return (
+    <div
+      onMouseDown={() => {
+        return;
+        /*
+        const command = currStack.ordered
+          ? "store_stack_sort_auto"
+          : "store_stack_sort_manual";
+        invoke(command, { sourceId: currStack.id });
+        */
+      }}
+      className={`${enchantedForestGradient} hoverable`}
+    >
+      <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+        {false ? <Icon name="IconBolt" /> : <Icon name="IconBoltSlash" />}
+      </span>
+    </div>
+  );
+};
+
 export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
@@ -95,6 +124,8 @@ export default {
         <Lock stack={stack} />
         <VertDiv />
         <SortOrder stack={stack} />
+        <VertDiv />
+        <Broadcast stack={stack} />
         <VertDiv />
         <div>
           {terse}

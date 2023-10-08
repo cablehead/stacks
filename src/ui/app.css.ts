@@ -1,7 +1,12 @@
 // Will need:
 // https://github.com/Qix-/color#readme
 
-import { createTheme, globalStyle, style } from "@vanilla-extract/css";
+import {
+  createTheme,
+  globalStyle,
+  keyframes,
+  style,
+} from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
   textColor: "#c5c6c7",
@@ -166,4 +171,22 @@ export const iconStyle = style({
   paddingLeft: "1ch",
   paddingRight: "1ch",
   paddingBottom: "0.2ch",
+});
+
+const swirlAnimation = keyframes({
+  "0%": {
+    backgroundPosition: "0% 50%",
+  },
+  "50%": {
+    backgroundPosition: "100% 50%",
+  },
+  "100%": {
+    backgroundPosition: "0% 50%",
+  },
+});
+
+export const enchantedForestGradient = style({
+  backgroundImage: "linear-gradient(135deg, #6E9C58, #4C7A45)",
+  backgroundSize: "200% 200%",
+  animation: `${swirlAnimation} 30s infinite`,
 });
