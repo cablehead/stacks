@@ -1,5 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
+import { useSignal } from "@preact/signals";
+
 import { Icon } from "../ui/icons";
 
 import { HotKey, Modes } from "./types";
@@ -10,7 +12,11 @@ import { Stack } from "../types";
 
 import { actions } from "../actions";
 
-import { borderRight, enchantedForestGradient } from "../ui/app.css";
+import {
+  borderRight,
+  enchantedForestGradient,
+  enchantedForestGradientActive,
+} from "../ui/app.css";
 
 const VertDiv = () => (
   <div
@@ -81,9 +87,13 @@ const SortOrder = ({ stack }: { stack: Stack }) => {
 const Broadcast = ({ stack }: { stack: Stack }) => {
   const currStack = stack.nav.value.root?.selected;
   if (!currStack) return <span></span>;
+
+  const active = useSignal(false);
   return (
     <div
       onMouseDown={() => {
+        console.log("active", active.value);
+        active.value = !active.value;
         return;
         /*
         const command = currStack.ordered
@@ -92,7 +102,9 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
         invoke(command, { sourceId: currStack.id });
         */
       }}
-      className={`${enchantedForestGradient} hoverable`}
+      className={active.value
+        ? enchantedForestGradientActive
+        : enchantedForestGradient}
     >
       <span style="
             display: inline-block;
@@ -101,7 +113,9 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
             text-align: center;
             border-radius: 5px;
             ">
-        {false ? <Icon name="IconBolt" /> : <Icon name="IconBoltSlash" />}
+        {active.value
+          ? <Icon name="IconBolt" />
+          : <Icon name="IconBoltSlash" />}
       </span>
     </div>
   );

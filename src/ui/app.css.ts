@@ -175,27 +175,35 @@ export const iconStyle = style({
 
 const swirlAnimation = keyframes({
   "0%": {
-    backgroundPosition: "0% 0%",
-  },
-  "25%": {
-    backgroundPosition: "100% 0%",
+    backgroundPosition: "0% 50%",
   },
   "50%": {
-    backgroundPosition: "100% 100%",
-  },
-  "75%": {
-    backgroundPosition: "0% 100%",
+    backgroundPosition: "100% 50%",
   },
   "100%": {
-    backgroundPosition: "0% 0%",
+    backgroundPosition: "0% 50%",
   },
 });
 
-
 export const enchantedForestGradient = style({
-  backgroundImage: 'linear-gradient(45deg, #6E9C58 0%, #6A5B8A 100%)', 
-  backgroundSize: '200% 200%',
-  animation: `${swirlAnimation} 5s infinite`,
+  borderRadius: "4px",
+  padding: "4px",
+
+  ":hover": {
+    backgroundImage: "linear-gradient(135deg, #3C4339, #32382F)",
+    backgroundSize: "200% 200%",
+    animation: `${swirlAnimation} 5s infinite`,
+  },
 });
 
+export const enchantedForestGradientActive = style({
+  borderRadius: "4px",
+  padding: "4px",
+  backgroundImage: "linear-gradient(135deg, #6E9C58, #4C7A45)",
+  backgroundSize: "200% 200%",
+  animation: `${swirlAnimation} 5s infinite`,
 
+  ":hover": {
+    backgroundImage: "linear-gradient(135deg, #57A064, #3E7A3B)",
+  },
+});
