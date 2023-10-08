@@ -191,8 +191,11 @@ const swirlAnimation = keyframes({
   },
 });
 
+
 export const enchantedForestGradient = style({
-  backgroundImage: "linear-gradient(45deg, #6E9C58, #4B0082)", // Added deep purple (#4B0082)
-  backgroundSize: "400% 400%",
+  backgroundImage: 'linear-gradient(45deg, #6E9C58 0%, #6A5B8A 100%)', 
+  backgroundSize: '200% 200%',
   animation: `${swirlAnimation} 5s infinite`,
 });
+
+
