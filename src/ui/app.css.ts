@@ -2,6 +2,7 @@
 // https://github.com/Qix-/color#readme
 
 import {
+  composeStyles,
   createTheme,
   globalStyle,
   keyframes,
@@ -175,35 +176,41 @@ export const iconStyle = style({
 
 const swirlAnimation = keyframes({
   "0%": {
-    backgroundPosition: "0% 50%",
-  },
-  "50%": {
-    backgroundPosition: "100% 50%",
+    backgroundPosition: "20% 80%",
   },
   "100%": {
-    backgroundPosition: "0% 50%",
+    backgroundPosition: "30% 70%",
   },
 });
 
-export const enchantedForestGradient = style({
+export const button = style({
   borderRadius: "4px",
   padding: "4px",
+});
 
-  ":hover": {
-    backgroundImage: "linear-gradient(135deg, #3C4339, #32382F)",
+export const enchantedForestGradient = composeStyles(
+  button,
+  style({
+    ":hover": {
+    backgroundImage:
+      "linear-gradient(45deg, #1A4576, #1A4576 30%, #998519 70%, #998519)",
+      backgroundSize: "200% 200%",
+      animation: `${swirlAnimation} 3s infinite alternate`,
+    },
+  }),
+);
+
+export const enchantedForestGradientActive = composeStyles(
+  button,
+  style({
+    backgroundImage:
+      "linear-gradient(45deg, #0057B8, #0057B8 30%, #FFD700 70%, #FFD700)",
     backgroundSize: "200% 200%",
-    animation: `${swirlAnimation} 5s infinite`,
-  },
-});
-
-export const enchantedForestGradientActive = style({
-  borderRadius: "4px",
-  padding: "4px",
-  backgroundImage: "linear-gradient(135deg, #6E9C58, #4C7A45)",
-  backgroundSize: "200% 200%",
-  animation: `${swirlAnimation} 5s infinite`,
-
-  ":hover": {
-    backgroundImage: "linear-gradient(135deg, #57A064, #3E7A3B)",
-  },
-});
+    animation: `${swirlAnimation} 3s infinite alternate`,
+    ":hover": {
+      // backgroundImage: "linear-gradient(45deg, #0057B8, #0057B8 40%, #FFD700 60%, #FFD700)",
+      backgroundSize: "180% 180%",
+      // animation: "none",
+    },
+  }),
+);
