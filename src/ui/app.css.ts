@@ -209,7 +209,7 @@ export const enchantedForestGradientActive = composeStyles(
     animation: `${swirlAnimation} 3s infinite alternate`,
     ":hover": {
       // backgroundImage: "linear-gradient(45deg, #0057B8, #0057B8 40%, #FFD700 60%, #FFD700)",
-      backgroundSize: "180% 180%",
+      backgroundSize: "150% 150%",
       // animation: "none",
     },
   }),
