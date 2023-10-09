@@ -21,8 +21,12 @@ export const [darkThemeClass, vars] = createTheme({
   backgroundColorButton: "#4A4A4A",
   backgroundColorHover: "#333333",
 
+  backgroundColorBroadcast:
+    "linear-gradient(45deg, #3E3E68, #3E3E68 30%, #5E5B30 70%, #5E5B30)",
+
   backgroundColorBroadcastActive:
     "linear-gradient(45deg, #0057B8, #0057B8 30%, #FFD700 70%, #FFD700)",
+
   borderColor: "#3e3e3e",
   shadowColor: "rgba(102, 102, 102, 0.4)",
 });
@@ -38,12 +42,12 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
   backgroundColorHover: "#E2E2E2",
+
+  backgroundColorBroadcast:
+    "linear-gradient(45deg, #B0CFF7, #B0CFF7 30%, #FBF9D6 70%, #FBF9D6)",
+
   backgroundColorBroadcastActive:
-
-      "linear-gradient(45deg, #4A8AD2, #4A8AD2 30%, #FFCB22 70%, #FFCB22)",
-
-
-
+    "linear-gradient(45deg, #0090FF, #0090FF 30%, #FFF05E 70%, #FFF05E)",
 
   borderColor: "#ccc",
   shadowColor: "rgba(0, 0, 0, 0.2)",
@@ -186,10 +190,10 @@ export const iconStyle = style({
 
 const swirlAnimation = keyframes({
   "0%": {
-    backgroundPosition: "20% 80%",
+    backgroundPosition: "0% 0%",
   },
   "100%": {
-    backgroundPosition: "30% 70%",
+    backgroundPosition: "10% 10%",
   },
 });
 
@@ -201,11 +205,11 @@ export const button = style({
 export const enchantedForestGradient = composeStyles(
   button,
   style({
+    transition: "0.2s",
     ":hover": {
-      backgroundImage:
-        "linear-gradient(45deg, #1A4576, #1A4576 30%, #998519 70%, #998519)",
-      backgroundSize: "200% 200%",
-      animation: `${swirlAnimation} 3s infinite alternate`,
+      backgroundImage: vars.backgroundColorBroadcast,
+      boxShadow: "0 0 2px " + vars.textColor,
+      backgroundSize: "200% auto",
     },
   }),
 );
@@ -214,10 +218,12 @@ export const enchantedForestGradientActive = composeStyles(
   button,
   style({
     backgroundImage: vars.backgroundColorBroadcastActive,
-    backgroundSize: "200% 200%",
-    animation: `${swirlAnimation} 3s infinite alternate`,
+    backgroundSize: "200% auto",
+    transition: "0.2s",
+    boxShadow: "0 0 1px " + vars.textColor,
+    animation: `${swirlAnimation} 1s infinite alternate`,
     ":hover": {
-      backgroundSize: "150% 150%",
+      boxShadow: "0 0 5px " + vars.textColor,
     },
   }),
 );
