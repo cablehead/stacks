@@ -22,6 +22,7 @@ pub struct Item {
     pub ephemeral: bool,
     pub ordered: bool,
     pub locked: bool,
+    pub cross_stream: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -244,6 +245,7 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
         ephemeral: item.ephemeral,
         ordered: item.ordered,
         locked: item.locked,
+        cross_stream: item.cross_stream,
     }
 }
 

@@ -529,6 +529,18 @@ pub fn store_move_up(
 }
 
 #[tauri::command]
+pub fn store_mark_as_cross_stream(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    stack_id: scru128::Scru128Id,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state.store.mark_as_cross_stream(stack_id);
+    state.merge(&packet);
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_move_down(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

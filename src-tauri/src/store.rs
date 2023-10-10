@@ -67,6 +67,7 @@ impl InProgressStream {
                 movement: None,
                 lock_status: None,
                 sort_order: None,
+                cross_stream: false,
             },
         }
     }
@@ -144,6 +145,7 @@ pub struct Packet {
     pub movement: Option<Movement>,
     pub lock_status: Option<StackLockStatus>,
     pub sort_order: Option<StackSortOrder>,
+    pub cross_stream: bool,
 }
 
 fn deserialize_packet(value: &[u8]) -> Option<Packet> {
@@ -160,6 +162,7 @@ fn deserialize_packet(value: &[u8]) -> Option<Packet> {
                 movement: None,
                 lock_status: None,
                 sort_order: None,
+                cross_stream: false,
             })
         })
         .ok()
@@ -230,6 +233,7 @@ impl Index {
 pub struct Settings {
     pub openai_access_token: String,
     pub openai_selected_model: String,
+    pub cross_stream_access_token: Option<String>,
 }
 
 pub struct Store {
@@ -420,6 +424,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -438,6 +443,7 @@ impl Store {
             movement: None,
             lock_status: Some(lock_status),
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -462,6 +468,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -479,6 +486,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -497,6 +505,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         meta.content_type = content_type;
@@ -516,6 +525,25 @@ impl Store {
             movement: Some(movement),
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
+        };
+        self.insert_packet(&packet);
+        packet
+    }
+
+    pub fn mark_as_cross_stream(&mut self, stack_id: Scru128Id) -> Packet {
+        let packet = Packet {
+            id: scru128::new(),
+            packet_type: PacketType::Update,
+            source_id: None,
+            hash: None,
+            stack_id: Some(stack_id),
+            ephemeral: false,
+            content_type: None,
+            movement: None,
+            lock_status: None,
+            sort_order: None,
+            cross_stream: true,
         };
         self.insert_packet(&packet);
         packet
@@ -537,6 +565,7 @@ impl Store {
             movement: None,
             lock_status: Some(lock_status),
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -558,6 +587,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: Some(sort_order),
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -582,6 +612,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
@@ -599,6 +630,7 @@ impl Store {
             movement: None,
             lock_status: None,
             sort_order: None,
+            cross_stream: false,
         };
         self.insert_packet(&packet);
         packet
