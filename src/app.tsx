@@ -81,6 +81,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       modes.toggle(stack, actionsMode);
       return;
 
+    case event.metaKey && event.key === ",":
+      event.preventDefault();
+      modes.toggle(stack, settingsMode);
+      return;
+
     case event.metaKey && event.key === "l":
       event.preventDefault();
       console.log("store_win_move");

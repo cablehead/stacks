@@ -47,7 +47,7 @@ export const lightThemeClass = createTheme(vars, {
     "linear-gradient(45deg, #B0CFF7, #B0CFF7 30%, #FBF9D6 70%, #FBF9D6)",
 
   backgroundColorBroadcastActive:
-    "linear-gradient(45deg, #0090FF, #0090FF 30%, #FFF05E 70%, #FFF05E)",
+    "linear-gradient(45deg, #00A5FF, #00A5FF 30%, #FFF375 70%, #FFF375)",
 
   borderColor: "#ccc",
   shadowColor: "rgba(0, 0, 0, 0.2)",
