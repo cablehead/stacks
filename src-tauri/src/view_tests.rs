@@ -1,5 +1,5 @@
 pub use crate::state::State;
-pub use crate::store::{MimeType, Packet, Store, StackLockStatus};
+pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
 pub use crate::view::{Item, View};
 
 macro_rules! assert_view_as_expected {
@@ -135,9 +135,7 @@ fn test_delete_item() {
     let _item_id_2 = store.add(b"Item 2", MimeType::TextPlain, stack_id).id;
 
     let stack_id_2 = store.add_stack(b"Stack 2", StackLockStatus::Unlocked).id;
-    let _item_id_3 = store
-        .add(b"Item 3", MimeType::TextPlain, stack_id_2)
-        .id;
+    let _item_id_3 = store.add(b"Item 3", MimeType::TextPlain, stack_id_2).id;
 
     // User deletes the first item
     store.delete(item_id_1);
@@ -155,17 +153,14 @@ fn test_no_duplicate_entry_on_same_hash() {
 
     let mut state = State::new(path);
 
-    let stack_id = state.store.add_stack(b"Stack 1", StackLockStatus::Unlocked).id;
-    let id1 = state
+    let stack_id = state
         .store
-        .add(b"Item 1", MimeType::TextPlain, stack_id)
+        .add_stack(b"Stack 1", StackLockStatus::Unlocked)
         .id;
+    let id1 = state.store.add(b"Item 1", MimeType::TextPlain, stack_id).id;
 
     // Add second item with same hash
-    let id2 = state
-        .store
-        .add(b"Item 1", MimeType::TextPlain, stack_id)
-        .id;
+    let id2 = state.store.add(b"Item 1", MimeType::TextPlain, stack_id).id;
 
     state.store.scan().for_each(|p| state.merge(&p));
 
@@ -234,11 +229,11 @@ fn test_no_duplicate_entry_on_same_hash_on_stream_end() {
 
     let mut state = State::new(path);
 
-    let stack_id = state.store.add_stack(b"Stack 1", StackLockStatus::Unlocked).id;
-    let id1 = state
+    let stack_id = state
         .store
-        .add(b"Item 1", MimeType::TextPlain, stack_id)
+        .add_stack(b"Stack 1", StackLockStatus::Unlocked)
         .id;
+    let id1 = state.store.add(b"Item 1", MimeType::TextPlain, stack_id).id;
     state.store.scan().for_each(|p| state.merge(&p));
 
     // Start a stream with the same content

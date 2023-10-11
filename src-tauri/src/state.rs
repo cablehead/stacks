@@ -1,10 +1,10 @@
-use std::sync::{Arc, Mutex};
 use std::sync::mpsc::Sender;
+use std::sync::{Arc, Mutex};
 
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Packet, Store, StackLockStatus};
+pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
 pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 

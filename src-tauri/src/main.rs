@@ -1,6 +1,5 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 #![recursion_limit = "512"]
 
 use std::sync::{Arc, Mutex};
@@ -148,16 +147,57 @@ fn main() {
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
 
+            let state_clone = state.clone();
             std::thread::spawn(move || {
+                let mut previous_preview = String::new();
                 for view in packet_receiver {
-                    let cross_stream_id = view.items.iter()
+                    let state = state_clone.lock().unwrap();
+                    let cross_stream_id = view
+                        .items
+                        .iter()
                         .filter(|(_, item)| item.cross_stream)
                         .map(|(id, _)| *id)
                         .next();
-                    log::info!("{:?}", cross_stream_id);
                     if let Some(id) = cross_stream_id {
                         let children = view.children(view.items.get(&id).unwrap());
-                        log::info!("Children of id {:?}: {:?}", id, children);
+                        let mut previews = Vec::new();
+                        for child_id in &children {
+                            let child = view.items.get(child_id).unwrap();
+                            let content = state.store.get_content(&child.hash);
+                            let mut ui_item = ui::with_meta(&state.store, child);
+
+                            if ui_item.content_type == "Text" {
+                                ui_item.content_type = "Markdown".into();
+                            }
+                            log::info!("{:?}", &ui_item.content_type);
+
+                            let preview =
+                                ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
+                            previews.push(preview);
+                        }
+                        let previews = previews
+                            .iter()
+                            .map(|preview| format!("<div>{}</div>", preview))
+                            .collect::<Vec<String>>()
+                            .join("");
+                        if previews != previous_preview {
+                            let client = reqwest::blocking::Client::new();
+                            let res = client
+                                .post("http://localhost:8080")
+                                .header("Authorization", "Bearer 1234")
+                                .body(previews.clone())
+                                .send();
+                            match res {
+                                Ok(_) => {
+                                    log::info!(
+                                        "Successfully posted preview of {} bytes",
+                                        previews.len()
+                                    );
+                                    previous_preview = previews;
+                                }
+                                Err(e) => log::error!("Failed to POST preview: {}", e),
+                            }
+                        }
                     }
                 }
             });
