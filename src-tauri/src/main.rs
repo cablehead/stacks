@@ -142,9 +142,25 @@ fn main() {
             };
             log::info!("PR: {:?}", db_path);
 
-            let state = State::new(&db_path);
+            let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
+
+            let state = State::new(&db_path, packet_sender);
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
+
+            std::thread::spawn(move || {
+                for view in packet_receiver {
+                    let cross_stream_id = view.items.iter()
+                        .filter(|(_, item)| item.cross_stream)
+                        .map(|(id, _)| *id)
+                        .next();
+                    log::info!("{:?}", cross_stream_id);
+                    if let Some(id) = cross_stream_id {
+                        let children = view.children(view.items.get(&id).unwrap());
+                        log::info!("Children of id {:?}: {:?}", id, children);
+                    }
+                }
+            });
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]
