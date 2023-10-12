@@ -37,6 +37,10 @@ export const Icon: FunctionComponent<IconProps> = ({ name }) => {
       return <IconImage />;
     case "IconReturnKey":
       return <IconReturnKey />;
+    case "IconBolt":
+      return <IconBolt />;
+    case "IconBoltSlash":
+      return <IconBoltSlash />;
     case "IconSun":
       return <IconSun />;
     case "IconMoon":
@@ -321,6 +325,40 @@ const IconLockOpen: FunctionComponent = () => (
       stroke-linecap="round"
       stroke-linejoin="round"
       d="M13.5 10.5V6.75a4.5 4.5 0 119 0v3.75M3.75 21.75h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H3.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z"
+    />
+  </svg>
+);
+
+const IconBolt: FunctionComponent = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke-width="1.5"
+    stroke="currentColor"
+    class="w-6 h-6"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z"
+    />
+  </svg>
+);
+
+const IconBoltSlash: FunctionComponent = () => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    fill="none"
+    viewBox="0 0 24 24"
+    stroke-width="1.5"
+    stroke="currentColor"
+    class="w-6 h-6"
+  >
+    <path
+      stroke-linecap="round"
+      stroke-linejoin="round"
+      d="M11.412 15.655L9.75 21.75l3.745-4.012M9.257 13.5H3.75l2.659-2.849m2.048-2.194L14.25 2.25 12 10.5h8.25l-4.707 5.043M8.457 8.457L3 3m5.457 5.457l7.086 7.086m0 0L21 21"
     />
   </svg>
 );

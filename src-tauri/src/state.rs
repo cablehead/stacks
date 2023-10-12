@@ -1,9 +1,10 @@
+use std::sync::mpsc::Sender;
 use std::sync::{Arc, Mutex};
 
 use chrono::prelude::*;
 use scru128::Scru128Id;
 
-pub use crate::store::{MimeType, Packet, Store, StackLockStatus};
+pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
 pub use crate::ui::UI;
 pub use crate::view::{Item, View};
 
@@ -16,21 +17,25 @@ pub struct State {
     // about the item in the store. To avoid the clipboard poller from duplicating this
     // information, we use skip_change_num to ignore the change id associated with the item.
     pub skip_change_num: Option<i64>,
+    pub packet_sender: Sender<View>,
 }
 
 impl State {
-    pub fn new(db_path: &str) -> Self {
+    pub fn new(db_path: &str, packet_sender: Sender<View>) -> Self {
         let store = Store::new(db_path);
         let mut view = View::new();
         store.scan().for_each(|p| view.merge(&p));
 
         let ui = UI::new(&view);
-        Self {
+        let state = Self {
             view,
             store,
             ui,
             skip_change_num: None,
-        }
+            packet_sender,
+        };
+        let _ = state.packet_sender.send(state.view.clone());
+        state
     }
 
     pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
@@ -85,6 +90,7 @@ impl State {
         println!("merge: {:?}", &packet.hash);
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
+        let _ = self.packet_sender.send(self.view.clone());
     }
 }
 

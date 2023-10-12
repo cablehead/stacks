@@ -1,6 +1,5 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
-
 #![recursion_limit = "512"]
 
 use std::sync::{Arc, Mutex};
@@ -95,7 +94,7 @@ fn main() {
             commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
-            // commands::store_copy_entire_stack_to_clipboard,
+            commands::store_mark_as_cross_stream,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {
@@ -142,9 +141,79 @@ fn main() {
             };
             log::info!("PR: {:?}", db_path);
 
-            let state = State::new(&db_path);
+            let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
+
+            let state = State::new(&db_path, packet_sender);
             let state: SharedState = Arc::new(Mutex::new(state));
             app.manage(state.clone());
+
+            let state_clone = state.clone();
+            std::thread::spawn(move || {
+                let mut previous_preview = String::new();
+                for view in packet_receiver {
+                    let state = state_clone.lock().unwrap();
+                    let settings = state.store.settings_get();
+                    let cross_stream_token = match settings.and_then(|s| s.cross_stream_access_token) {
+                        Some(token) => token,
+                        None => continue,
+                    };
+
+                    if cross_stream_token.len() != 64 {
+                        continue
+                    }
+
+                    let cross_stream_id = view
+                        .items
+                        .iter()
+                        .filter(|(_, item)| item.cross_stream)
+                        .map(|(id, _)| *id)
+                        .next();
+                    let previews = if let Some(id) = cross_stream_id {
+                        let children = view.children(view.items.get(&id).unwrap());
+                        let mut previews = Vec::new();
+                        for child_id in &children {
+                            let child = view.items.get(child_id).unwrap();
+                            let content = state.store.get_content(&child.hash);
+                            let mut ui_item = ui::with_meta(&state.store, child);
+
+                            if ui_item.content_type == "Text" {
+                                ui_item.content_type = "Markdown".into();
+                            }
+                            log::info!("{:?}", &ui_item.content_type);
+
+                            let preview =
+                                ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
+                            previews.push(preview);
+                        }
+                        previews
+                            .iter()
+                            .map(|preview| format!("<div>{}</div>", preview))
+                            .collect::<Vec<String>>()
+                            .join("")
+                    } else {
+                        "".to_string()
+                    };
+
+                    if previews != previous_preview {
+                        let client = reqwest::blocking::Client::new();
+                        let res = client
+                            .post("https://cross.stream")
+                            .header("Authorization", format!("Bearer {}", cross_stream_token))
+                            .body(previews.clone())
+                            .send();
+                        match res {
+                            Ok(_) => {
+                                log::info!(
+                                    "Successfully posted preview of {} bytes",
+                                    previews.len()
+                                );
+                                previous_preview = previews;
+                            }
+                            Err(e) => log::error!("Failed to POST preview: {}", e),
+                        }
+                    }
+                }
+            });
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

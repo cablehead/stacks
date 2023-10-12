@@ -56,10 +56,12 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                     state.merge(&packet);
 
                     // if Stacks isn't active, focus the new clip
+                    log::info!("is_visible start");
                     let is_visible = app
                         .get_window("main")
                         .and_then(|win| win.is_visible().ok())
                         .unwrap_or(true);
+                    log::info!("is_visible done");
                     if !is_visible {
                         let focus = state.view.get_focus_for_id(&packet.id);
                         state.ui.select(focus);

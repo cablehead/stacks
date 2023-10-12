@@ -24,6 +24,7 @@ export interface Item {
   ephemeral: boolean;
   locked: boolean;
   ordered: boolean;
+  cross_stream: boolean;
 }
 
 export function itemGetContent(item: Item): string {

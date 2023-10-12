@@ -20,6 +20,7 @@ const state = (() => {
       }
       const formData = new FormData(form.value);
       const settings = Object.fromEntries(formData.entries());
+      console.log("save", settings);
       if (settings.openai_access_token === "") return;
       await invoke("store_settings_save", { settings: settings });
       modes.deactivate();
@@ -56,6 +57,7 @@ export default {
         state.form.value = formRef.current;
         invoke<Record<string, string>>("store_settings_get", {}).then(
           (settings: Record<string, string>) => {
+              console.log("settings", settings);
             if (formRef.current) {
               for (const key in settings) {
                 (formRef.current.elements.namedItem(key) as HTMLInputElement)
@@ -83,8 +85,8 @@ export default {
           zIndex: 1000,
         }}
       >
-        <p>OpenAI API Access</p>
         <form ref={formRef}>
+          <p>OpenAI API access</p>
           <div
             style={{
               display: "flex",
@@ -94,7 +96,7 @@ export default {
               marginBottom: "0.25lh",
             }}
           >
-            <label style={{ width: "15ch" }}>Access Token</label>
+            <label style={{ width: "15ch" }}>Access token</label>
             <input
               type="text"
               placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
@@ -120,7 +122,7 @@ export default {
               textAlign: "right",
             }}
           >
-            <label style={{ width: "15ch" }}>Preferred Model</label>
+            <label style={{ width: "15ch" }}>Preferred model</label>
             <select
               name="openai_selected_model"
               value={"davinci"}
@@ -140,6 +142,43 @@ export default {
               <option value="gpt-3.5-turbo">gpt-3.5-turbo</option>
               <option value="gpt-3.5-turbo-16k">gpt-3.5-turbo-16k</option>
             </select>
+          </div>
+
+          <div
+            style={{
+              margin: "2ch 0",
+              borderTop: "1px solid",
+              borderColor: vars.borderColor,
+            }}
+          />
+
+          <p>cross.stream garden</p>
+          <div
+            style={{
+              display: "flex",
+              gap: "1ch",
+              alignItems: "center",
+              textAlign: "right",
+              marginBottom: "0.25lh",
+            }}
+          >
+            <label style={{ width: "15ch" }}>Access Token</label>
+            <input
+              type="text"
+              placeholder="1234"
+              style={{
+                flex: 1,
+                maxWidth: "52ch",
+                outline: "none",
+                borderColor: vars.borderColor,
+                borderWidth: "1px",
+                borderStyle: "solid",
+                borderRadius: "0.25rem",
+              }}
+              name="cross_stream_access_token"
+              value={""}
+              onChange={() => {}}
+            />
           </div>
         </form>
       </div>

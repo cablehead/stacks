@@ -22,6 +22,7 @@ pub struct Item {
     pub ephemeral: bool,
     pub ordered: bool,
     pub locked: bool,
+    pub cross_stream: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -55,7 +56,7 @@ impl UI {
             last_selected: HashMap::new(),
             matches: None,
             view: v.clone(),
-            theme_mode: "".to_string(),
+            theme_mode: "light".to_string(),
         }
     }
 
@@ -244,6 +245,7 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
         ephemeral: item.ephemeral,
         ordered: item.ordered,
         locked: item.locked,
+        cross_stream: item.cross_stream,
     }
 }
 
@@ -269,6 +271,7 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
+    log::info!("Theme mode: {}", theme_mode);
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
@@ -277,7 +280,7 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
 
 use maud::html;
 
-fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
+pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),
         ("JSON", "json"),

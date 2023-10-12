@@ -16,6 +16,7 @@ pub struct Item {
     pub ephemeral: bool,
     pub ordered: bool,
     pub locked: bool,
+    pub cross_stream: bool,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -90,6 +91,7 @@ impl View {
                         Some(StackLockStatus::Locked) => true,
                         _ => false,
                     },
+                    cross_stream: false,
                 };
 
                 if let Some(stack) = packet.stack_id.and_then(|id| self.items.get_mut(&id)) {
@@ -102,6 +104,29 @@ impl View {
             }
 
             PacketType::Update => {
+                if packet.cross_stream {
+                    println!("XS {:?}", packet.cross_stream);
+
+                    let mut previously_cross_stream = None;
+
+                    for (_, item) in &mut self.items {
+                        if item.cross_stream {
+                            item.cross_stream = false;
+                            previously_cross_stream = Some(item.id);
+                        }
+                    }
+
+                    let stack_id = packet.stack_id.unwrap();
+
+                    if Some(stack_id) != previously_cross_stream {
+                        if let Some(item) = self.items.get_mut(&stack_id) {
+                            item.cross_stream = true;
+                        }
+                    }
+
+                    return;
+                }
+
                 if packet.source_id.is_none() {
                     return;
                 }

@@ -1,5 +1,8 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
+import { useEffect } from "preact/hooks";
+import { useSignal } from "@preact/signals";
+
 import { Icon } from "../ui/icons";
 
 import { HotKey, Modes } from "./types";
@@ -10,7 +13,11 @@ import { Stack } from "../types";
 
 import { actions } from "../actions";
 
-import { borderRight } from "../ui/app.css";
+import {
+  borderRight,
+  enchantedForestGradient,
+  enchantedForestGradientActive,
+} from "../ui/app.css";
 
 const VertDiv = () => (
   <div
@@ -78,6 +85,52 @@ const SortOrder = ({ stack }: { stack: Stack }) => {
   );
 };
 
+const Broadcast = ({ stack }: { stack: Stack }) => {
+  const currStack = stack.nav.value.root?.selected;
+  if (!currStack) return <span></span>;
+
+  const tokenLooksGood = useSignal(false);
+
+  useEffect(() => {
+    (async () => {
+      const settings = await invoke<Record<string, string>>("store_settings_get", {});
+      if (settings && settings.cross_stream_access_token && settings.cross_stream_access_token.length === 64) {
+        tokenLooksGood.value = true;
+      }
+    })();
+  }, []);
+
+  if (!tokenLooksGood.value) return <span></span>;
+
+  const active = currStack.cross_stream;
+
+  return (
+    <>
+      <div
+        onMouseDown={() => {
+        invoke("store_mark_as_cross_stream", { stackId: currStack.id });
+      }}
+      className={active
+        ? enchantedForestGradientActive
+        : enchantedForestGradient}
+    >
+      <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+        {active
+          ? <Icon name="IconBolt" />
+          : <Icon name="IconBoltSlash" />}
+      </span>
+    </div>
+        <VertDiv />
+    </>
+  );
+};
+
 export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
@@ -96,6 +149,7 @@ export default {
         <VertDiv />
         <SortOrder stack={stack} />
         <VertDiv />
+        <Broadcast stack={stack} />
         <div>
           {terse}
         </div>

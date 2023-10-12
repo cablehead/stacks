@@ -1,7 +1,13 @@
 // Will need:
 // https://github.com/Qix-/color#readme
 
-import { createTheme, globalStyle, style } from "@vanilla-extract/css";
+import {
+  composeStyles,
+  createTheme,
+  globalStyle,
+  keyframes,
+  style,
+} from "@vanilla-extract/css";
 
 export const [darkThemeClass, vars] = createTheme({
   textColor: "#c5c6c7",
@@ -14,6 +20,13 @@ export const [darkThemeClass, vars] = createTheme({
   backgroundColorSelected: "#4A4A4A",
   backgroundColorButton: "#4A4A4A",
   backgroundColorHover: "#333333",
+
+  backgroundColorBroadcast:
+    "linear-gradient(45deg, #3E3E68, #3E3E68 30%, #5E5B30 70%, #5E5B30)",
+
+  backgroundColorBroadcastActive:
+    "linear-gradient(45deg, #0057B8, #0057B8 30%, #FFD700 70%, #FFD700)",
+
   borderColor: "#3e3e3e",
   shadowColor: "rgba(102, 102, 102, 0.4)",
 });
@@ -29,6 +42,13 @@ export const lightThemeClass = createTheme(vars, {
   backgroundColorSelected: "#D1D1D1",
   backgroundColorButton: "#D1D1D1",
   backgroundColorHover: "#E2E2E2",
+
+  backgroundColorBroadcast:
+    "linear-gradient(45deg, #B0CFF7, #B0CFF7 30%, #FBF9D6 70%, #FBF9D6)",
+
+  backgroundColorBroadcastActive:
+    "linear-gradient(45deg, #00A5FF, #00A5FF 30%, #FFF375 70%, #FFF375)",
+
   borderColor: "#ccc",
   shadowColor: "rgba(0, 0, 0, 0.2)",
 });
@@ -167,3 +187,43 @@ export const iconStyle = style({
   paddingRight: "1ch",
   paddingBottom: "0.2ch",
 });
+
+const swirlAnimation = keyframes({
+  "0%": {
+    backgroundPosition: "0% 0%",
+  },
+  "100%": {
+    backgroundPosition: "10% 10%",
+  },
+});
+
+export const button = style({
+  borderRadius: "4px",
+  padding: "4px",
+});
+
+export const enchantedForestGradient = composeStyles(
+  button,
+  style({
+    transition: "0.2s",
+    ":hover": {
+      backgroundImage: vars.backgroundColorBroadcast,
+      boxShadow: "0 0 2px " + vars.textColor,
+      backgroundSize: "200% auto",
+    },
+  }),
+);
+
+export const enchantedForestGradientActive = composeStyles(
+  button,
+  style({
+    backgroundImage: vars.backgroundColorBroadcastActive,
+    backgroundSize: "200% auto",
+    transition: "0.2s",
+    boxShadow: "0 0 1px " + vars.textColor,
+    animation: `${swirlAnimation} 1s infinite alternate`,
+    ":hover": {
+      boxShadow: "0 0 5px " + vars.textColor,
+    },
+  }),
+);

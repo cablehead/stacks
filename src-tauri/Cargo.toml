@@ -24,7 +24,7 @@ base64 = "0.21.2"
 regex = "1.8.4"
 tokio = { version = "1.28.2", features = ["time", "process"] }
 tokio-util = { version = "0.7.3", features = ["full"] }
-reqwest = { version = "0.11", features = ["json"] }
+reqwest = { version = "0.11", features = ["json", "blocking"] }
 cacache = { version = "11.6.0", default-features = false, features = ["tokio-runtime"] }
 sled = "0.34.7"
 bincode = "1.3.3"
