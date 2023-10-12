@@ -152,6 +152,16 @@ fn main() {
                 let mut previous_preview = String::new();
                 for view in packet_receiver {
                     let state = state_clone.lock().unwrap();
+                    let settings = state.store.settings_get();
+                    let cross_stream_token = match settings.and_then(|s| s.cross_stream_access_token) {
+                        Some(token) => token,
+                        None => continue,
+                    };
+
+                    if cross_stream_token.len() != 64 {
+                        continue
+                    }
+
                     let cross_stream_id = view
                         .items
                         .iter()
@@ -187,8 +197,8 @@ fn main() {
                     if previews != previous_preview {
                         let client = reqwest::blocking::Client::new();
                         let res = client
-                            .post("http://localhost:8080")
-                            .header("Authorization", "Bearer 1234")
+                            .post("https://cross.stream")
+                            .header("Authorization", format!("Bearer {}", cross_stream_token))
                             .body(previews.clone())
                             .send();
                         match res {
