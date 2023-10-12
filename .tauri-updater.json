@@ -1,16 +1,16 @@
 {
-  "version": "0.11.2",
-  "notes": "\nMinor Release Notes\n\n- Changed edit hotkey to `CMD-Enter` from `CMD-e`.\n- Improved styling for peer clips, which are adjacent to the focused clip:\n  - Reduced opacity to make the focused clip more prominent.\n  - Added hover highlight.\n  - Enabled click-to-focus on peer clip previews.\n",
-  "pub_date": "2023-10-04T15:24:48-04:00",
+  "version": "0.12.1",
+  "notes": "\nThis release is experimental. It allows you to mirror a single Stack to cross.stream.\n\nFor Stacks power users, you'll get an access token for https://cross.stream. Input this token into the settings panel.\n\nYou'll see a lightning bolt icon at the bottom left after that. It shows if the current Stack is broadcasting. To publish a Stack, select it and activate the broadcast feature.\n\nTo view your live Stack, go to https://<yourusername>.cross.stream.\n",
+  "pub_date": "2023-10-12T13:21:34-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEhRcHduY3lDVFZaUlNoNGVMRUU2QlI0VERGQjJweTJvdlVOQ0pPSzdUdkhnbGFZYjFxWGc1VU5vbzIyei9FV2tWTlFuRFdqaHRHUWFwMWZHM2JJbVFrPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk2NDQ3NDU2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYUNYSERQSnhadkw4UExua1BvSElWTzg2K2p1WHhoUXRoaGlQd0h6ODYxZTlQZk1UL1pNeGpLRmx6czI0N2RqOU1ralRUREwzVjBYWjJsSFovZ3U4QWc9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEZNRXFMUjJyRnNTSHZ5MnNaQWZDT3FoTE1uUmx0R29LL2VtNzlkZzZlS0FueXIxa1FhdVlHcDVBaWM5Mmc2WGZhTktoWlhxWGVCV1lHNVNLdXhhV1E4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MTMxMDczCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKeGh0NG5FSFB1WlZTQVRjSTE3UVhtWEZKUWVWbmNYcisyRzRpTjRzVUsyRkw5NVFseUErRjA0Mmh4SVZ5STRoK0lMZWVTelFQTmhqQ1ljWHJVUGNYQ3c9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.1/Stacks_0.12.1_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcE56UkNwTG5lQkVUZVU1ZjRZcTFQcVhoM3RCN2RZd0wrc0Q5b2hzTFV2bkNRSk11SUNZaVI0SmNBdXBjUFErNmJ3cUlOUjVCV2ZTNU5FUlpDMjU1NHdvPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk2NDQ3MzA2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKYmFUMkgwdi8yMGJrRnR5UmtTTHlteGVKeXFtczdjTDhLQ2tWR01xaXRFUEVmeGF5ak1wUyt1QlNDNmxaLzBVeTE1OUdOeWY4bk4ySVltNnBqOWtSQ0E9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.11.2/Stacks_0.11.2_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVncHdmL0FGemRrVWtTb2ZLR1VDOGhrWWdOTmZIOHF1OXBLQUdBcXJhZ3hCa0R2c3FCOFIxS2M2b21HU0k3R09NNEk1ZStaTm4vZEJzb1lURDJFb0FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MTMwODM1CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKaTVOY2hhRXM4RXlKOVBPbjlTNmt4R0VmNEFqTTJXbzZ6azVVSDh2WC8rVEZUZk5CaUdxWVl6L3ZhbStHUU9MOXE2clVKTlRobEJweGQzVTYzbnBXQlE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.1/Stacks_0.12.1_aarch64.app.tar.gz"
     }
   }
 }
