@@ -158,7 +158,7 @@ fn main() {
                         .filter(|(_, item)| item.cross_stream)
                         .map(|(id, _)| *id)
                         .next();
-                    if let Some(id) = cross_stream_id {
+                    let previews = if let Some(id) = cross_stream_id {
                         let children = view.children(view.items.get(&id).unwrap());
                         let mut previews = Vec::new();
                         for child_id in &children {
@@ -175,28 +175,31 @@ fn main() {
                                 ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
                             previews.push(preview);
                         }
-                        let previews = previews
+                        previews
                             .iter()
                             .map(|preview| format!("<div>{}</div>", preview))
                             .collect::<Vec<String>>()
-                            .join("");
-                        if previews != previous_preview {
-                            let client = reqwest::blocking::Client::new();
-                            let res = client
-                                .post("http://localhost:8080")
-                                .header("Authorization", "Bearer 1234")
-                                .body(previews.clone())
-                                .send();
-                            match res {
-                                Ok(_) => {
-                                    log::info!(
-                                        "Successfully posted preview of {} bytes",
-                                        previews.len()
-                                    );
-                                    previous_preview = previews;
-                                }
-                                Err(e) => log::error!("Failed to POST preview: {}", e),
+                            .join("")
+                    } else {
+                        "".to_string()
+                    };
+
+                    if previews != previous_preview {
+                        let client = reqwest::blocking::Client::new();
+                        let res = client
+                            .post("http://localhost:8080")
+                            .header("Authorization", "Bearer 1234")
+                            .body(previews.clone())
+                            .send();
+                        match res {
+                            Ok(_) => {
+                                log::info!(
+                                    "Successfully posted preview of {} bytes",
+                                    previews.len()
+                                );
+                                previous_preview = previews;
                             }
+                            Err(e) => log::error!("Failed to POST preview: {}", e),
                         }
                     }
                 }
