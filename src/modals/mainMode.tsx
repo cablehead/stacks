@@ -1,5 +1,8 @@
 import { invoke } from "@tauri-apps/api/tauri";
 
+import { useEffect } from "preact/hooks";
+import { useSignal } from "@preact/signals";
+
 import { Icon } from "../ui/icons";
 
 import { HotKey, Modes } from "./types";
@@ -86,11 +89,25 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
   const currStack = stack.nav.value.root?.selected;
   if (!currStack) return <span></span>;
 
+  const tokenLooksGood = useSignal(false);
+
+  useEffect(() => {
+    (async () => {
+      const settings = await invoke<Record<string, string>>("store_settings_get", {});
+      if (settings && settings.cross_stream_access_token && settings.cross_stream_access_token.length === 64) {
+        tokenLooksGood.value = true;
+      }
+    })();
+  }, []);
+
+  if (!tokenLooksGood.value) return <span></span>;
+
   const active = currStack.cross_stream;
 
   return (
-    <div
-      onMouseDown={() => {
+    <>
+      <div
+        onMouseDown={() => {
         invoke("store_mark_as_cross_stream", { stackId: currStack.id });
       }}
       className={active
@@ -109,6 +126,8 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
           : <Icon name="IconBoltSlash" />}
       </span>
     </div>
+        <VertDiv />
+    </>
   );
 };
 
@@ -131,7 +150,6 @@ export default {
         <SortOrder stack={stack} />
         <VertDiv />
         <Broadcast stack={stack} />
-        <VertDiv />
         <div>
           {terse}
         </div>
