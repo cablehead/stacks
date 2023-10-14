@@ -46,7 +46,14 @@ fn main() {
     let system_tray = tauri::SystemTray::new().with_menu(menu);
 
     tauri::Builder::default()
-        .on_window_event(|event| log::info!("EVENT: {:?}", event.event()))
+        .on_window_event(|event| {
+            log::info!("EVENT: {:?}", event.event());
+            if let tauri::WindowEvent::Focused(is_focused) = event.event() {
+                let state = event.window().state::<SharedState>();
+                let mut state = state.lock().unwrap();
+                state.ui.is_visible = *is_focused;
+            }
+        })
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
@@ -153,13 +160,14 @@ fn main() {
                 for view in packet_receiver {
                     let state = state_clone.lock().unwrap();
                     let settings = state.store.settings_get();
-                    let cross_stream_token = match settings.and_then(|s| s.cross_stream_access_token) {
-                        Some(token) => token,
-                        None => continue,
-                    };
+                    let cross_stream_token =
+                        match settings.and_then(|s| s.cross_stream_access_token) {
+                            Some(token) => token,
+                            None => continue,
+                        };
 
                     if cross_stream_token.len() != 64 {
-                        continue
+                        continue;
                     }
 
                     let cross_stream_id = view

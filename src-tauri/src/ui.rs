@@ -47,6 +47,7 @@ pub struct UI {
     pub matches: Option<HashSet<ssri::Integrity>>,
     pub view: view::View,
     pub theme_mode: String,
+    pub is_visible: bool,
 }
 
 impl UI {
@@ -57,6 +58,7 @@ impl UI {
             matches: None,
             view: v.clone(),
             theme_mode: "light".to_string(),
+            is_visible: false,
         }
     }
 
