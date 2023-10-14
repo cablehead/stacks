@@ -10,6 +10,7 @@ https://github.com/tauri-apps/tauri/pull/7616/files
 # make sure dev console is disabled
 
 # update Cargo.toml and tauri.conf.json for new version
+# also update README.md
 # export RELEASE to the new version (with the 'v'), e.g
 RELEASE=v0.5.2
 

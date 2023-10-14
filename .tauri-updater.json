@@ -1,16 +1,16 @@
 {
-  "version": "0.12.1",
-  "notes": "\nThis release is experimental. It allows you to mirror a single Stack to cross.stream.\n\nFor Stacks power users, you'll get an access token for https://cross.stream. Input this token into the settings panel.\n\nYou'll see a lightning bolt icon at the bottom left after that. It shows if the current Stack is broadcasting. To publish a Stack, select it and activate the broadcast feature.\n\nTo view your live Stack, go to https://<yourusername>.cross.stream.\n",
-  "pub_date": "2023-10-12T13:21:34-04:00",
+  "version": "0.12.2",
+  "notes": "\nBug Fix:\n\n- Implemented a workaround for intermittent Tauri hang when querying window.is_visible.\n\nThis fix is expected to resolve known beach balling issues.\n\n",
+  "pub_date": "2023-10-14T16:09:43-04:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEZNRXFMUjJyRnNTSHZ5MnNaQWZDT3FoTE1uUmx0R29LL2VtNzlkZzZlS0FueXIxa1FhdVlHcDVBaWM5Mmc2WGZhTktoWlhxWGVCV1lHNVNLdXhhV1E4PQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MTMxMDczCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKeGh0NG5FSFB1WlZTQVRjSTE3UVhtWEZKUWVWbmNYcisyRzRpTjRzVUsyRkw5NVFseUErRjA0Mmh4SVZ5STRoK0lMZWVTelFQTmhqQ1ljWHJVUGNYQ3c9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.1/Stacks_0.12.1_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEs1MXdRTi9OVUc5OUEydEVaamdvaFA1VHdUSllHZlROVXh1R3d0V0dOM05uTHRHTVNTckwyUmNCdVdxeWVIS3FZMWltZ01Iak1PQ2luK0VRNGJCdHdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MzE0MTY0CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKVGwwVVZuaWQrNlgyVkFDUTZMVGJISDIvdVNCYmxleWF5R2dkR2xTYmRKbjNLRjZ4bXcvVlBRMEFrVU1VZjB0YitkVlAvMmFWcDN6R1U1ZjEwL1MyQ3c9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEVncHdmL0FGemRrVWtTb2ZLR1VDOGhrWWdOTmZIOHF1OXBLQUdBcXJhZ3hCa0R2c3FCOFIxS2M2b21HU0k3R09NNEk1ZStaTm4vZEJzb1lURDJFb0FjPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MTMwODM1CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKaTVOY2hhRXM4RXlKOVBPbjlTNmt4R0VmNEFqTTJXbzZ6azVVSDh2WC8rVEZUZk5CaUdxWVl6L3ZhbStHUU9MOXE2clVKTlRobEJweGQzVTYzbnBXQlE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.1/Stacks_0.12.1_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFOREl2SEMwUUVOcjZrUllUaE5rN2l3WkxCWlNaOHdibHkrWVZGQlJzTkd3MGt5SWRUWExaRmZQak93WGN6Ukk4Mm9STkQ3UEhZL2NDM2lnTUdlWUFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MzE0MDExCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKRVliN3VFZTlqRVE3alBleWU2SHU1aU90aFpXWEU1RjY1WXhIUVAwSWFlQVcrQnV3RU0vNDExQnNZa3ZsdllESWV4bkI2dW5raSthWHBiMXNjVFhpREE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_aarch64.app.tar.gz"
     }
   }
 }
