@@ -52,6 +52,7 @@ export default {
     useEffect(() => {
       if (inputRef.current != null) {
         inputRef.current.focus();
+        inputRef.current.select();
       }
     }, []);
 
