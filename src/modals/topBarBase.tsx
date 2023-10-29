@@ -7,9 +7,19 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
 
-export function createModal() {
+type Options = {
+  name: () => string;
+  options: string[];
+  rightOffset: () => number;
+  accept: (stack: Stack, modes: Modes, chosen: string) => void;
+  // activate: (stack: Stack, selected: typeof signal, normalizedSelected: typeof computed) => void,
+  // hotKeys: (stack: Stack, modes: Modes) => any,
+  // positioning: () => number,
+};
+
+export function createModal(opt: Options) {
   const state = (() => {
-    const options = ["All", "Links", "Images", "Markdown"];
+    const options = opt.options;
     const selected = signal(0);
     const normalizedSelected = computed(() => {
       let val = selected.value % (options.length);
@@ -21,14 +31,13 @@ export function createModal() {
       selected,
       normalizedSelected,
       accept: (stack: Stack, modes: Modes) => {
-        stack.filter.content_type.value = options[normalizedSelected.value];
-        modes.deactivate();
+        opt.accept(stack, modes, options[normalizedSelected.value]);
       },
     };
   })();
 
   const modal = {
-    name: () => "Filter by content type",
+    name: opt.name,
 
     hotKeys: (stack: Stack, modes: Modes) => [
       {
@@ -60,17 +69,6 @@ export function createModal() {
         }
       }, []);
 
-      const rightOffset = (() => {
-        const element = document.getElementById("filter-content-type");
-        if (element && element.parentElement) {
-          const elementRect = element.getBoundingClientRect();
-          const parentRect = element.parentElement.getBoundingClientRect();
-          return parentRect.right - elementRect.right;
-        }
-
-        return 300;
-      })();
-
       return (
         <div
           className={overlay}
@@ -81,7 +79,7 @@ export function createModal() {
             top: "0",
             fontSize: "0.9rem",
             padding: "1ch",
-            right: rightOffset,
+            right: opt.rightOffset(),
             borderRadius: "0 0 0.5rem 0.5rem",
             zIndex: 100,
           }}
