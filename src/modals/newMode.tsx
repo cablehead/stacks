@@ -12,7 +12,9 @@ import { createModal } from "./topBarBase";
 export default createModal(
   {
     name: () => "New ...",
+
     options: ["Note", "Stack"],
+
     rightOffset: (() => {
       const element = document.getElementById("trigger-new");
       if (element && element.parentElement) {
@@ -22,6 +24,7 @@ export default createModal(
       }
       return 300;
     }),
+
     accept: (stack: Stack, modes: Modes, chosen: string) => {
       if (chosen == "Note") {
         modes.activate(stack, newNoteMode);
@@ -42,7 +45,6 @@ export default createModal(
     },
   },
 );
-
 
 /*
   activate: (_: Stack) => {
