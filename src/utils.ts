@@ -51,3 +51,21 @@ export function truncateUrl(url: string, maxLength: number): string {
     "..";
   return join();
 }
+
+export function dn(): string {
+  const date = new Date();
+  const options: Intl.DateTimeFormatOptions = {
+    weekday: "short",
+    year: "numeric",
+    month: "short",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: true,
+    timeZoneName: "short",
+  };
+  const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
+    date,
+  );
+  return formattedDate;
+}

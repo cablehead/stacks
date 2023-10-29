@@ -1,8 +1,12 @@
 import { useEffect, useRef } from "preact/hooks";
 import { computed, signal } from "@preact/signals";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
+
+import { dn } from "../utils";
 
 import { Modes } from "./types";
 import { Stack } from "../types";
@@ -22,11 +26,21 @@ const state = (() => {
     selected,
     normalizedSelected,
     accept: (stack: Stack, modes: Modes) => {
-      console.log(options[normalizedSelected.value]);
       if (options[normalizedSelected.value] == "Note") {
         modes.activate(stack, newNoteMode);
         return;
       }
+
+      if (options[normalizedSelected.value] == "Stack") {
+        (async () => {
+          await invoke("store_new_stack", {
+            name: dn(),
+          });
+          modes.deactivate();
+        })();
+        return;
+      }
+
       modes.deactivate();
     },
   };

@@ -5,27 +5,10 @@ import { invoke } from "@tauri-apps/api/tauri";
 
 import { borderBottom, overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
+import { dn } from "../utils";
 
 import { Modes } from "./types";
 import { Item, Stack } from "../types";
-
-function dn(): string {
-  const date = new Date();
-  const options: Intl.DateTimeFormatOptions = {
-    weekday: "short",
-    year: "numeric",
-    month: "short",
-    day: "2-digit",
-    hour: "2-digit",
-    minute: "2-digit",
-    hour12: true,
-    timeZoneName: "short",
-  };
-  const formattedDate = new Intl.DateTimeFormat("en-US", options).format(
-    date,
-  );
-  return formattedDate;
-}
 
 const state = (() => {
   const selected = signal("");
