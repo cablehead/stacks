@@ -43,14 +43,14 @@ export default createModal(
 
       modes.deactivate();
     },
+
+    activate: (_: Stack, state: any) => {
+      state.selected.value = 0;
+    },
   },
 );
 
 /*
-  activate: (_: Stack) => {
-    state.selected.value = 0;
-  },
-
             onKeyDown={(event) => {
               event.stopPropagation();
               switch (true) {

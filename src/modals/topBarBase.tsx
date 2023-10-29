@@ -12,9 +12,7 @@ type Options = {
   options: string[];
   rightOffset: () => number;
   accept: (stack: Stack, modes: Modes, chosen: string) => void;
-  // activate: (stack: Stack, selected: typeof signal, normalizedSelected: typeof computed) => void,
-  // hotKeys: (stack: Stack, modes: Modes) => any,
-  // positioning: () => number,
+  activate: (stack: Stack, state: any) => void,
 };
 
 export function createModal(opt: Options) {
@@ -55,8 +53,7 @@ export function createModal(opt: Options) {
     ],
 
     activate: (stack: Stack) => {
-      const idx = state.options.indexOf(stack.filter.content_type.value);
-      state.selected.value = idx == -1 ? 0 : idx;
+        opt.activate(stack, state);
     },
 
     Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {

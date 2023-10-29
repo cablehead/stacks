@@ -24,5 +24,10 @@ export default createModal(
       stack.filter.content_type.value = chosen;
       modes.deactivate();
     },
+
+    activate: (stack: Stack, state: any) => {
+      const idx = state.options.indexOf(stack.filter.content_type.value);
+      state.selected.value = idx == -1 ? 0 : idx;
+    },
   },
 );
