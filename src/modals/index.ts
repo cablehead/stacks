@@ -4,17 +4,17 @@ import { hide } from "tauri-plugin-spotlight-api";
 
 import { Mode } from "./types";
 
-import { default as mainMode } from "./mainMode";
-import { default as filterContentTypeMode } from "./filterContentTypeMode";
-import { default as newMode} from "./newMode";
+import { default as actionsMode } from "./actionsMode";
 import { default as addToStackMode } from "./addToStackMode";
 import { default as editorMode } from "./editorMode";
+import { default as filterContentTypeMode } from "./filterContentTypeMode";
+import { default as mainMode } from "./mainMode";
+import { default as newMode} from "./newMode";
 import { default as newNoteMode } from "./newNoteMode";
-import { default as actionsMode } from "./actionsMode";
 import { default as pipeMode } from "./pipeMode";
 import { default as pipeToCommand } from "./pipeToCommand";
-import { default as settingsMode } from "./settingsMode";
 import { default as setContentTypeAction  } from "./setContentTypeAction";
+import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
 
@@ -23,8 +23,8 @@ export {
   addToStackMode,
   editorMode,
   filterContentTypeMode,
-  newMode,
   mainMode,
+  newMode,
   newNoteMode,
   pipeMode,
   pipeToCommand,
