@@ -7,6 +7,8 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
 
+import { default as newNoteMode } from "./newNoteMode";
+
 const state = (() => {
   const options = ["Note", "Stack"];
   const selected = signal(0);
@@ -20,8 +22,11 @@ const state = (() => {
     selected,
     normalizedSelected,
     accept: (stack: Stack, modes: Modes) => {
-      console.log(stack);
-      // stack.filter.content_type.value = options[normalizedSelected.value];
+      console.log(options[normalizedSelected.value]);
+      if (options[normalizedSelected.value] == "Note") {
+        modes.activate(stack, newNoteMode);
+        return;
+      }
       modes.deactivate();
     },
   };
@@ -60,11 +65,11 @@ export default {
     }, []);
 
     const rightOffset = (() => {
-      const element = document.getElementById("filter-content-type");
+      const element = document.getElementById("trigger-new");
       if (element && element.parentElement) {
         const elementRect = element.getBoundingClientRect();
         const parentRect = element.parentElement.getBoundingClientRect();
-        return parentRect.right - elementRect.right;
+        return parentRect.right - elementRect.right - 5;
       }
 
       return 300;
@@ -75,7 +80,7 @@ export default {
         className={overlay}
         style={{
           position: "absolute",
-          width: "20ch",
+          width: "13ch",
           overflow: "hidden",
           top: "0",
           fontSize: "0.9rem",

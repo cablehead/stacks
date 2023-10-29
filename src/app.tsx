@@ -7,6 +7,7 @@ import {
   filterContentTypeMode,
   mainMode,
   modes,
+  newMode,
   newNoteMode,
   pipeMode,
   pipeToCommand,
@@ -135,7 +136,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case (event.metaKey && event.key === "n"):
       event.preventDefault();
-      modes.toggle(stack, newNoteMode);
+      modes.toggle(stack, newMode);
       return;
 
     case (event.metaKey && event.key === "u"):
@@ -233,6 +234,8 @@ export function App() {
               )}
               {modes.isActive(filterContentTypeMode) &&
                 <filterContentTypeMode.Modal stack={stack} modes={modes} />}
+              {modes.isActive(newMode) &&
+                <newMode.Modal stack={stack} modes={modes} />}
             </div>
             <StatusBar stack={stack} />
           </>
