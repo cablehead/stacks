@@ -60,6 +60,13 @@ export const modes = {
     this.active.value = mainMode;
   },
 
+  showActiveOverlay(stack: Stack) {
+    if ("Modal" in this.active.value) {
+      const Modal = this.active.value.Modal as preact.ComponentType<any>;
+      return <Modal stack={stack} modes={this} />;
+    }
+  },
+
   attemptAction(event: KeyboardEvent, stack: Stack): boolean {
     switch (true) {
       case event.metaKey && event.key === "k":

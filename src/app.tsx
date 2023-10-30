@@ -2,16 +2,8 @@ import { useEffect } from "preact/hooks";
 
 import {
   actionsMode,
-  addToStackMode,
-  editorMode,
-  filterContentTypeMode,
   mainMode,
   modes,
-  newMode,
-  newNoteMode,
-  pipeMode,
-  pipeToCommand,
-  setContentTypeAction,
   settingsMode,
 } from "./modals";
 
@@ -192,35 +184,9 @@ export function App() {
             position: relative;
         ">
               <Nav stack={stack} />
-
               <MetaPanel stack={stack} />
-
-              {modes.isActive(addToStackMode) && (
-                <addToStackMode.Modal stack={stack} modes={modes} />
-              )}
               {modes.isActive(actionsMode) && <Actions stack={stack} />}
-              {modes.isActive(editorMode) && (
-                <editorMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(settingsMode) && (
-                <settingsMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(newNoteMode) && (
-                <newNoteMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(pipeMode) && (
-                <pipeMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(pipeToCommand) && (
-                <pipeToCommand.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(setContentTypeAction) && (
-                <setContentTypeAction.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(filterContentTypeMode) &&
-                <filterContentTypeMode.Modal stack={stack} modes={modes} />}
-              {modes.isActive(newMode) &&
-                <newMode.Modal stack={stack} modes={modes} />}
+              {modes.showActiveOverlay(stack)}
             </div>
             <StatusBar stack={stack} />
           </>
