@@ -491,6 +491,21 @@ pub fn store_add_to_stack(
 }
 
 #[tauri::command]
+pub fn store_new_stack(
+    app: tauri::AppHandle,
+    state: tauri::State<SharedState>,
+    name: String,
+) {
+    let mut state = state.lock().unwrap();
+    let packet = state
+        .store
+        .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
+    state.merge(&packet);
+    state.ui.select(None); // focus first
+    app.emit_all("refresh-items", true).unwrap();
+}
+
+#[tauri::command]
 pub fn store_add_to_new_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

@@ -2,15 +2,8 @@ import { useEffect } from "preact/hooks";
 
 import {
   actionsMode,
-  addToStackMode,
-  editorMode,
-  filterContentTypeMode,
   mainMode,
   modes,
-  newNoteMode,
-  pipeMode,
-  pipeToCommand,
-  setContentTypeAction,
   settingsMode,
 } from "./modals";
 
@@ -76,11 +69,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       stack.touch();
       return;
 
-    case event.metaKey && event.key === "k":
-      event.preventDefault();
-      modes.toggle(stack, actionsMode);
-      return;
-
     case event.metaKey && event.key === ",":
       event.preventDefault();
       modes.toggle(stack, settingsMode);
@@ -131,16 +119,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
       event.preventDefault();
       stack.selectUp();
-      return;
-
-    case (event.metaKey && event.key === "n"):
-      event.preventDefault();
-      modes.toggle(stack, newNoteMode);
-      return;
-
-    case (event.metaKey && event.key === "u"):
-      event.preventDefault();
-      modes.toggle(stack, filterContentTypeMode);
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -206,33 +184,9 @@ export function App() {
             position: relative;
         ">
               <Nav stack={stack} />
-
               <MetaPanel stack={stack} />
-
-              {modes.isActive(addToStackMode) && (
-                <addToStackMode.Modal stack={stack} modes={modes} />
-              )}
               {modes.isActive(actionsMode) && <Actions stack={stack} />}
-              {modes.isActive(editorMode) && (
-                <editorMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(settingsMode) && (
-                <settingsMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(newNoteMode) && (
-                <newNoteMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(pipeMode) && (
-                <pipeMode.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(pipeToCommand) && (
-                <pipeToCommand.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(setContentTypeAction) && (
-                <setContentTypeAction.Modal stack={stack} modes={modes} />
-              )}
-              {modes.isActive(filterContentTypeMode) &&
-                <filterContentTypeMode.Modal stack={stack} modes={modes} />}
+              {modes.showActiveOverlay(stack)}
             </div>
             <StatusBar stack={stack} />
           </>

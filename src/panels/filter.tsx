@@ -4,7 +4,7 @@ import { borderBottom, borderRight } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
 
 import { Stack } from "../types";
-import { filterContentTypeMode, modes, newNoteMode } from "../modals";
+import { filterContentTypeMode, modes, newMode } from "../modals";
 
 export function Filter({ stack }: { stack: Stack }) {
   const inputRef = useRef<HTMLInputElement>(null);
@@ -74,15 +74,16 @@ export function Filter({ stack }: { stack: Stack }) {
 
       <VertDiv />
       <div
+        id="trigger-new"
         class="hoverable"
-        onMouseDown={() => modes.toggle(stack, newNoteMode)}
+        onMouseDown={() => modes.toggle(stack, newMode)}
         style={{
           fontSize: "0.9rem",
           display: "flex",
           alignItems: "center",
         }}
       >
-        New note&nbsp;
+        New&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "N"]} />
       </div>
 
