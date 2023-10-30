@@ -114,6 +114,9 @@ export function Actions({ stack }: {
             onKeyDown={(event) => {
               console.log("ACTIONS", event);
               event.stopPropagation();
+
+              if (modes.attemptAction(event, stack)) return;
+
               switch (true) {
                 case event.key === "Escape":
                   event.preventDefault();
@@ -127,11 +130,6 @@ export function Actions({ stack }: {
                     actionsAvailable.value[normalizedSelected.value];
                   if (!action || !action.trigger) return;
                   action.trigger(stack);
-                  break;
-
-                case event.metaKey && event.key === "k":
-                  event.preventDefault();
-                  modes.toggle(stack, actionsMode);
                   break;
 
                 case (event.ctrlKey && event.key === "n") ||
