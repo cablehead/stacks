@@ -77,11 +77,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       stack.touch();
       return;
 
-    case event.metaKey && event.key === "k":
-      event.preventDefault();
-      modes.toggle(stack, actionsMode);
-      return;
-
     case event.metaKey && event.key === ",":
       event.preventDefault();
       modes.toggle(stack, settingsMode);
@@ -132,16 +127,6 @@ async function globalKeyHandler(event: KeyboardEvent) {
       (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
       event.preventDefault();
       stack.selectUp();
-      return;
-
-    case (event.metaKey && event.key === "n"):
-      event.preventDefault();
-      modes.toggle(stack, newMode);
-      return;
-
-    case (event.metaKey && event.key === "u"):
-      event.preventDefault();
-      modes.toggle(stack, filterContentTypeMode);
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):

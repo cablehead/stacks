@@ -22,4 +22,5 @@ export interface Modes {
   activate: (stack: Stack, mode: Mode) => void;
   toggle: (stack: Stack, mode: Mode) => void;
   deactivate: () => void;
+  attemptAction: (event: KeyboardEvent, stack: Stack) => boolean;
 }

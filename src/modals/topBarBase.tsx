@@ -90,13 +90,11 @@ export function createModal(opt: Options) {
               ref={inputRef}
               onKeyDown={(event) => {
                 event.stopPropagation();
+
+                if (modes.attemptAction(event, stack)) return;
+
                 switch (true) {
                   case event.key === "Escape":
-                    event.preventDefault();
-                    modes.deactivate();
-                    break;
-
-                  case (event.metaKey && event.key === "u"):
                     event.preventDefault();
                     modes.deactivate();
                     break;
