@@ -6,7 +6,7 @@ import { RenderKeys } from "../ui/icons";
 
 import { Action, Stack } from "../types";
 
-import { actionsMode, modes } from "../modals";
+import { modes } from "../modals";
 
 import { actions, attemptAction } from "../actions";
 

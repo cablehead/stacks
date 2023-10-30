@@ -101,6 +101,7 @@ fn main() {
             commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
+            commands::store_new_stack,
             commands::store_mark_as_cross_stream,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(

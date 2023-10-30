@@ -495,24 +495,13 @@ pub fn store_new_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     name: String,
-    source_id: scru128::Scru128Id,
 ) {
     let mut state = state.lock().unwrap();
-
     let packet = state
         .store
-        .add_stack(name.as_bytes(), StackLockStatus::Locked);
+        .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
     state.merge(&packet);
-
-    let packet = state
-        .store
-        .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
-
-    // let id = packet.id;
-    state.merge(&packet);
-    // let focus = state.view.get_focus_for_id(&id);
-    // state.ui.select(focus);
-
+    state.ui.select(None); // focus first
     app.emit_all("refresh-items", true).unwrap();
 }
 
