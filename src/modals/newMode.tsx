@@ -49,37 +49,3 @@ export default createModal(
     },
   },
 );
-
-/*
-            onKeyDown={(event) => {
-              event.stopPropagation();
-              switch (true) {
-                case event.key === "Escape":
-                  event.preventDefault();
-                  modes.deactivate();
-                  break;
-
-                case (event.metaKey && event.key === "n"):
-                  event.preventDefault();
-                  modes.deactivate();
-                  break;
-
-                case (event.ctrlKey && event.key === "n") ||
-                  event.key === "ArrowDown":
-                  event.preventDefault();
-                  selected.value += 1;
-                  break;
-
-                case event.ctrlKey && event.key === "p" ||
-                  event.key === "ArrowUp":
-                  event.preventDefault();
-                  selected.value -= 1;
-                  break;
-
-                case event.key === "Enter":
-                  event.preventDefault();
-                  state.accept(stack, modes);
-                  break;
-              }
-            }}
-*/
