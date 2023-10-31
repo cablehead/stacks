@@ -4,6 +4,8 @@ use base64::{engine::general_purpose, Engine as _};
 
 use scru128::Scru128Id;
 
+use tracing::error;
+
 use crate::state::SharedState;
 use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
 use crate::ui::{with_meta, Item as UIItem, Nav, UI};
@@ -22,7 +24,6 @@ pub async fn store_pipe_to_command(
     source_id: scru128::Scru128Id,
     command: String,
 ) -> Result<CommandOutput, ()> {
-    println!("PIPE: {} {}", &source_id, &command);
     let (cache_path, hash) = {
         let state = state.lock().unwrap();
         let cache_path = state.store.cache_path.clone();
@@ -66,7 +67,6 @@ pub async fn store_pipe_to_command(
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
     };
-    println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
 
@@ -115,8 +115,6 @@ pub async fn store_pipe_to_gpt(
 
         (settings, content, packet)
     };
-
-    println!("GPT: let's go: {:?}", packet.hash);
 
     #[derive(Clone, serde::Serialize)]
     struct Payload {
@@ -176,7 +174,7 @@ pub async fn store_pipe_to_gpt(
                 }
             }
             Err(err) => {
-                println!("GPT error: {:#?}", err);
+                error!("GPT error: {:#?}", err);
             }
         }
     }
@@ -194,7 +192,6 @@ pub fn store_get_content(
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
 ) -> Option<String> {
-    println!("CACHE MISS: {}", &hash);
     let state = state.lock().unwrap();
     state
         .store

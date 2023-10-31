@@ -306,7 +306,6 @@ impl Store {
                 if let Some(hash) = p.hash.clone() {
                     if let Some(content_type) = p.content_type.clone() {
                         if let Some(meta) = content_meta_cache.get_mut(&hash) {
-                            println!("SCAN: {:?} {:?}", &meta, &content_type);
                             meta.content_type = content_type;
                         }
                     }

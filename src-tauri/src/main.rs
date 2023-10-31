@@ -7,7 +7,8 @@ use std::sync::{Arc, Mutex};
 use tauri::CustomMenuItem;
 use tauri::Manager;
 use tauri::SystemTrayMenu;
-use tauri_plugin_log::LogTarget;
+
+use tracing::{info, error};
 
 mod clipboard;
 mod commands;
@@ -47,7 +48,7 @@ fn main() {
 
     tauri::Builder::default()
         .on_window_event(|event| {
-            log::info!("EVENT: {:?}", event.event());
+            info!("EVENT: {:?}", event.event());
             if let tauri::WindowEvent::Focused(is_focused) = event.event() {
                 let state = event.window().state::<SharedState>();
                 let mut state = state.lock().unwrap();
@@ -59,7 +60,6 @@ fn main() {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
                 match id.as_str() {
                     "check-updates" => {
-                        println!("update");
                         app.trigger_global("tauri://update", None);
                     }
                     "quit" => {
@@ -119,16 +119,6 @@ fn main() {
                 global_close_shortcut: None,
             },
         )))
-        .plugin(
-            tauri_plugin_log::Builder::default()
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
-                .level_for("want", log::LevelFilter::Debug)
-                .level_for("tao", log::LevelFilter::Debug)
-                .level_for("sled", log::LevelFilter::Info)
-                .level_for("attohttpc", log::LevelFilter::Info)
-                .level_for("tantivy", log::LevelFilter::Warn)
-                .build(),
-        )
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -147,7 +137,7 @@ fn main() {
                     data_dir.join("store-v3.0").to_str().unwrap().to_string()
                 }
             };
-            log::info!("PR: {:?}", db_path);
+            info!("PR: {:?}", db_path);
 
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
@@ -188,7 +178,7 @@ fn main() {
                             if ui_item.content_type == "Text" {
                                 ui_item.content_type = "Markdown".into();
                             }
-                            log::info!("{:?}", &ui_item.content_type);
+                            info!("{:?}", &ui_item.content_type);
 
                             let preview =
                                 ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
@@ -212,13 +202,13 @@ fn main() {
                             .send();
                         match res {
                             Ok(_) => {
-                                log::info!(
+                                info!(
                                     "Successfully posted preview of {} bytes",
                                     previews.len()
                                 );
                                 previous_preview = previews;
                             }
-                            Err(e) => log::error!("Failed to POST preview: {}", e),
+                            Err(e) => error!("Failed to POST preview: {}", e),
                         }
                     }
                 }

@@ -63,12 +63,6 @@ impl State {
                     .unwrap()
                     .as_millis() as u64;
                 let last_touched = item.last_touched.timestamp();
-                println!(
-                    "HERE: {:?} {:?} {:?}",
-                    now,
-                    last_touched,
-                    now - last_touched
-                );
                 if now - last_touched < 3_600_000 {
                     return id;
                 }
@@ -87,7 +81,6 @@ impl State {
     }
 
     pub fn merge(&mut self, packet: &Packet) {
-        println!("merge: {:?}", &packet.hash);
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
         let _ = self.packet_sender.send(self.view.clone());
@@ -103,13 +96,8 @@ mod tests {
     fn test_state_get_curr_stack() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
-
         let mut state = State::new(path);
-
-        let curr_stack = state.get_curr_stack();
-        println!("OH Hai: {:?}", curr_stack);
-
-        let curr_stack = state.get_curr_stack();
-        println!("OH Hai: {:?}", curr_stack);
+        let _ = state.get_curr_stack();
+        let _ = state.get_curr_stack();
     }
 }

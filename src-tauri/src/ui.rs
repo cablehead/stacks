@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
+use tracing::info;
+
 pub use crate::store::{MimeType, Packet, Store};
 
 use crate::util;
@@ -273,7 +275,7 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
-    log::info!("Theme mode: {}", theme_mode);
+    info!("Theme mode: {}", theme_mode);
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);

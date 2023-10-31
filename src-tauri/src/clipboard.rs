@@ -3,6 +3,8 @@ use tauri::Manager;
 
 use serde_json::Value;
 
+use tracing::info;
+
 use crate::state::SharedState;
 use crate::store::MimeType;
 use crate::util;
@@ -24,7 +26,7 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
                 let change_num = clipped["change"].as_i64().unwrap();
                 if let Some(skip_change_num) = state.skip_change_num {
                     if change_num == skip_change_num {
-                        log::debug!("CLIPBOARD UPDATE: {} SKIP", &change_num);
+                        info!("CLIPBOARD UPDATE: {} SKIP", &change_num);
                         continue;
                     }
                 }

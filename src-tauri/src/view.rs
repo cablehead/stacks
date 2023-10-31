@@ -105,8 +105,6 @@ impl View {
 
             PacketType::Update => {
                 if packet.cross_stream {
-                    println!("XS {:?}", packet.cross_stream);
-
                     let mut previously_cross_stream = None;
 
                     for (_, item) in &mut self.items {

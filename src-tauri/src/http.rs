@@ -5,6 +5,8 @@ use tauri::Manager;
 use hyper::service::{make_service_fn, service_fn};
 use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 
+use tracing::error;
+
 use crate::state::SharedState;
 
 async fn handle(
@@ -72,7 +74,6 @@ async fn post(
     while let Some(chunk_result) = bytes_stream.next().await {
         match chunk_result {
             Ok(chunk) => {
-                println!("chunk: {:?}", chunk);
                 let data = chunk.to_vec();
                 {
                     let mut state = state.lock().unwrap();
@@ -117,7 +118,7 @@ pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
         let server = Server::bind(&addr).serve(make_svc);
 
         if let Err(e) = server.await {
-            eprintln!("server error: {}", e);
+            error!("server error: {}", e);
         }
     });
 }
