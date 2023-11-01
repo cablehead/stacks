@@ -41,6 +41,7 @@ comrak = { version = "0.18.0", features = ["syntect"] }
 maud = "0.25.0"
 syntect = "5.1.0"
 tracing = "0.1.40"
+tracing-subscriber = { version = "0.3.17", features = ["json"] }
 
 [dev-dependencies]
 indoc = "1.0.7"

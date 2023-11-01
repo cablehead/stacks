@@ -330,6 +330,7 @@ pub fn store_copy_to_clipboard(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state, app))]
 pub fn store_new_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

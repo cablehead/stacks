@@ -30,6 +30,21 @@ mod view_tests;
 use state::{SharedState, State};
 
 fn main() {
+
+    let subscriber = tracing_subscriber::fmt()
+    .with_span_events(tracing_subscriber::fmt::format::FmtSpan::FULL)
+    .with_file(true)
+    .with_line_number(true)
+    .with_thread_names(true)
+    .with_thread_ids(true)
+    .json()
+    .with_span_list(true)
+    .finish();
+
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+
+    info!("let's go!");
+
     let context = tauri::generate_context!();
     let config = context.config();
     let version = &config.package.version.clone().unwrap();
