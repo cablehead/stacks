@@ -133,6 +133,7 @@ impl UI {
         self.select(target);
     }
 
+    #[tracing::instrument(skip(self, store))]
     pub fn render(&self, store: &Store) -> Nav {
         let focused = self.view.get_best_focus(&self.focused);
         if focused.is_none() {

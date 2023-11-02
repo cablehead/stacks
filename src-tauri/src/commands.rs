@@ -19,6 +19,7 @@ pub struct CommandOutput {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
     source_id: scru128::Scru128Id,
@@ -71,9 +72,10 @@ pub async fn store_pipe_to_command(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub async fn store_pipe_to_gpt(
-    app: tauri::AppHandle,
     state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
     source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
     let (settings, content, packet) = {
@@ -188,6 +190,7 @@ pub async fn store_pipe_to_gpt(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_get_content(
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
@@ -200,6 +203,7 @@ pub fn store_get_content(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_get_root(state: tauri::State<SharedState>) -> Vec<UIItem> {
     let state = state.lock().unwrap();
     state
@@ -211,12 +215,14 @@ pub fn store_get_root(state: tauri::State<SharedState>) -> Vec<UIItem> {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_refresh(state: tauri::State<SharedState>) -> Nav {
     let state = state.lock().unwrap();
     state.ui.render(&state.store)
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_reset(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
     let view = state.view.clone();
@@ -225,6 +231,7 @@ pub fn store_nav_reset(state: tauri::State<SharedState>) -> Nav {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_set_filter(
     state: tauri::State<SharedState>,
     filter: String,
@@ -243,6 +250,7 @@ pub fn store_nav_set_filter(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
     let mut state = state.lock().unwrap();
     state.nav_select(&focused_id);
@@ -250,6 +258,7 @@ pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id)
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_up(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
     state.ui.select_up();
@@ -257,6 +266,7 @@ pub fn store_nav_select_up(state: tauri::State<SharedState>) -> Nav {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
     state.ui.select_down();
@@ -264,6 +274,7 @@ pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
     state.ui.select_left();
@@ -271,6 +282,7 @@ pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_right(state: tauri::State<SharedState>) -> Nav {
     let mut state = state.lock().unwrap();
     state.ui.select_right();
@@ -307,6 +319,7 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_copy_to_clipboard(
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
@@ -330,7 +343,7 @@ pub fn store_copy_to_clipboard(
 }
 
 #[tauri::command]
-#[tracing::instrument(skip(state, app))]
+#[tracing::instrument(skip(app, state))]
 pub fn store_new_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -357,6 +370,7 @@ pub fn store_new_note(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app))]
 pub fn store_win_move(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
     use tauri_plugin_positioner::{Position, WindowExt};
@@ -364,6 +378,7 @@ pub fn store_win_move(app: tauri::AppHandle) {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_edit_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -384,6 +399,7 @@ pub fn store_edit_note(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_touch(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -396,6 +412,7 @@ pub fn store_touch(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_set_content_type(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -416,6 +433,7 @@ pub fn store_set_content_type(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_set_theme_mode(app: tauri::AppHandle, state: tauri::State<SharedState>, mode: String) {
     let mut state = state.lock().unwrap();
     state.ui.theme_mode = mode;
@@ -423,6 +441,7 @@ pub fn store_set_theme_mode(app: tauri::AppHandle, state: tauri::State<SharedSta
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -435,6 +454,7 @@ pub fn store_delete(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
     let mut state = state.lock().unwrap();
     if let Some(item) = state.view.undo.clone() {
@@ -453,12 +473,14 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
 // Settings related commands
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_settings_save(state: tauri::State<SharedState>, settings: Settings) {
     let mut state = state.lock().unwrap();
     state.store.settings_save(settings);
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_settings_get(state: tauri::State<SharedState>) -> Option<Settings> {
     let state = state.lock().unwrap();
     state.store.settings_get()
@@ -468,6 +490,7 @@ pub fn store_settings_get(state: tauri::State<SharedState>) -> Option<Settings> 
 // Stack related commands
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -489,6 +512,7 @@ pub fn store_add_to_stack(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_new_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -504,6 +528,7 @@ pub fn store_new_stack(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_add_to_new_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -530,6 +555,7 @@ pub fn store_add_to_new_stack(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_move_up(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -542,6 +568,7 @@ pub fn store_move_up(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_mark_as_cross_stream(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -554,6 +581,7 @@ pub fn store_mark_as_cross_stream(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_move_down(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -566,6 +594,7 @@ pub fn store_move_down(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_lock(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -580,6 +609,7 @@ pub fn store_stack_lock(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_unlock(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -594,6 +624,7 @@ pub fn store_stack_unlock(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_sort_manual(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
@@ -608,6 +639,7 @@ pub fn store_stack_sort_manual(
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_sort_auto(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,

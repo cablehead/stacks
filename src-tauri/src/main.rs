@@ -8,7 +8,7 @@ use tauri::CustomMenuItem;
 use tauri::Manager;
 use tauri::SystemTrayMenu;
 
-use tracing::{info, error};
+use tracing::{error, info};
 
 mod clipboard;
 mod commands;
@@ -29,19 +29,57 @@ mod view_tests;
 
 use state::{SharedState, State};
 
+use tracing::span::{Attributes, Record};
+use tracing::{Event, Id, Metadata, Subscriber};
+
+pub struct DebugSubscriber;
+
+impl Subscriber for DebugSubscriber {
+    fn enabled(&self, _: &Metadata<'_>) -> bool {
+        true
+    }
+
+    fn new_span(&self, span: &Attributes<'_>) -> Id {
+        println!("new_span: {:?}", span);
+        Id::from_u64(1)
+    }
+
+    fn record(&self, span: &Id, values: &Record<'_>) {
+        println!("record: {:?} {:?}", span, values);
+    }
+
+    fn record_follows_from(&self, span: &Id, follows: &Id) {
+        println!("record_follows_from: {:?} {:?}", span, follows);
+    }
+
+    fn event(&self, event: &Event<'_>) {
+        println!("event: {:?}", event);
+    }
+
+    fn enter(&self, span: &Id) {
+        println!("enter: {:?}", span);
+    }
+
+    fn exit(&self, span: &Id) {
+        println!("exit: {:?}", span);
+    }
+
+    fn clone_span(&self, id: &Id) -> Id {
+        println!("clone_span: {:?}", id);
+        id.clone()
+    }
+
+    fn try_close(&self, id: Id) -> bool {
+        println!("try_close: {:?}", id);
+        false
+    }
+}
+
 fn main() {
+    let subscriber = DebugSubscriber;
+    let dispatch = tracing::Dispatch::new(subscriber);
 
-    let subscriber = tracing_subscriber::fmt()
-    .with_span_events(tracing_subscriber::fmt::format::FmtSpan::FULL)
-    .with_file(true)
-    .with_line_number(true)
-    .with_thread_names(true)
-    .with_thread_ids(true)
-    .json()
-    .with_span_list(true)
-    .finish();
-
-    tracing::subscriber::set_global_default(subscriber).unwrap();
+    tracing::dispatcher::set_global_default(dispatch).unwrap();
 
     info!("let's go!");
 
@@ -217,10 +255,7 @@ fn main() {
                             .send();
                         match res {
                             Ok(_) => {
-                                info!(
-                                    "Successfully posted preview of {} bytes",
-                                    previews.len()
-                                );
+                                info!("Successfully posted preview of {} bytes", previews.len());
                                 previous_preview = previews;
                             }
                             Err(e) => error!("Failed to POST preview: {}", e),
