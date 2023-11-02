@@ -9,6 +9,8 @@ use tauri::Manager;
 use tauri::SystemTrayMenu;
 
 use tracing::{error, info};
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 mod clipboard;
 mod commands;
@@ -29,57 +31,11 @@ mod view_tests;
 
 use state::{SharedState, State};
 
-use tracing::span::{Attributes, Record};
-use tracing::{Event, Id, Metadata, Subscriber};
-
-pub struct DebugSubscriber;
-
-impl Subscriber for DebugSubscriber {
-    fn enabled(&self, _: &Metadata<'_>) -> bool {
-        true
-    }
-
-    fn new_span(&self, span: &Attributes<'_>) -> Id {
-        println!("new_span: {:?}", span);
-        Id::from_u64(1)
-    }
-
-    fn record(&self, span: &Id, values: &Record<'_>) {
-        println!("record: {:?} {:?}", span, values);
-    }
-
-    fn record_follows_from(&self, span: &Id, follows: &Id) {
-        println!("record_follows_from: {:?} {:?}", span, follows);
-    }
-
-    fn event(&self, event: &Event<'_>) {
-        println!("event: {:?}", event);
-    }
-
-    fn enter(&self, span: &Id) {
-        println!("enter: {:?}", span);
-    }
-
-    fn exit(&self, span: &Id) {
-        println!("exit: {:?}", span);
-    }
-
-    fn clone_span(&self, id: &Id) -> Id {
-        println!("clone_span: {:?}", id);
-        id.clone()
-    }
-
-    fn try_close(&self, id: Id) -> bool {
-        println!("try_close: {:?}", id);
-        false
-    }
-}
-
 fn main() {
-    let subscriber = DebugSubscriber;
-    let dispatch = tracing::Dispatch::new(subscriber);
-
-    tracing::dispatcher::set_global_default(dispatch).unwrap();
+    let _subscriber = tracing_subscriber::Registry::default()
+        .with(tracing_subscriber::EnvFilter::new("trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=debug"))
+        .with(tracing_forest::ForestLayer::default())
+        .init();
 
     info!("let's go!");
 
