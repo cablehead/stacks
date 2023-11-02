@@ -288,6 +288,7 @@ pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>
         ("JSON", "json"),
         ("Python", "py"),
         ("JavaScript", "js"),
+        ("Lua", "lua"),
         ("HTML", "html"),
         ("Shell", "sh"),
         ("Go", "go"),
