@@ -15,6 +15,7 @@ const setContentType = createActionMode(
       "JSON",
       "Python",
       "JavaScript",
+      "Lua",
       "Rust",
       "HTML",
       "Shell",
