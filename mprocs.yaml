@@ -1,0 +1,6 @@
+procs:
+  tauri:
+    shell: "npm run tauri dev"
+    stop: "SIGINT"
+  tsc:
+    shell: "watchexec -cw ./src -- '(tsc 2>&1 && printf OK) | head -n 30'"
