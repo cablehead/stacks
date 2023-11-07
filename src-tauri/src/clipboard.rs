@@ -10,7 +10,7 @@ use crate::store::MimeType;
 use crate::util;
 use crate::state;
 
-#[tracing::instrument(skip(state, app))]
+#[tracing::instrument(skip_all)]
 fn handle_clipboard_update(state: &mut state::State, line: &str, app: &tauri::AppHandle) {
     let clipped: Value = serde_json::from_str(line).unwrap();
 
