@@ -39,7 +39,7 @@ async fn main() {
     tokio::spawn(async move {
         let mut stdout = std::io::stdout();
         while let Ok(entry) = rx.recv().await {
-            tracing_stacks::fmt::write_entry(&mut stdout, &entry, 0).unwrap();
+            tracing_stacks::fmt::write_entry(&mut stdout, &entry).unwrap();
         }
     });
 

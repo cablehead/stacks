@@ -4251,8 +4251,8 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "tracing-stacks",
  "tracing-subscriber",
- "tracing_stacks",
 ]
 
 [[package]]
@@ -5132,6 +5132,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "tracing-stacks"
+version = "0.1.0"
+source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#c9e4ccd66b15d3706c304bf3810113ec0493b2fb"
+dependencies = [
+ "chrono",
+ "console",
+ "serde",
+ "serde_json",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "tracing-subscriber"
 version = "0.3.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -5150,20 +5164,6 @@ dependencies = [
  "tracing-core",
  "tracing-log",
  "tracing-serde",
-]
-
-[[package]]
-name = "tracing_stacks"
-version = "0.1.0"
-source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#c352a8ac2c5c391c10dc47d321882c4314aaaaf9"
-dependencies = [
- "chrono",
- "console",
- "serde",
- "serde_json",
- "tokio",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
