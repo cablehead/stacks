@@ -35,220 +35,213 @@ use state::{SharedState, State};
 async fn main() {
     let (tx, mut rx) = tokio::sync::broadcast::channel(16);
 
-    let logger = tokio::spawn(async move {
+    tokio::spawn(async move {
         let mut stdout = std::io::stdout();
         while let Ok(entry) = rx.recv().await {
             tracing_stacks::fmt::write_entry(&mut stdout, &entry, 0).unwrap();
         }
     });
 
-    {
-        let _subscriber = tracing_subscriber::Registry::default()
-            .with(tracing_subscriber::EnvFilter::new("trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=debug"))
-            .with(tracing_stacks::RootSpanLayer::new(tx, None))
-            .set_default();
+    tracing_subscriber::Registry::default()
+        .with(tracing_subscriber::EnvFilter::new(
+            "trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=debug",
+        ))
+        .with(tracing_stacks::RootSpanLayer::new(tx, None))
+        .init();
 
-        info!("let's go!");
+    info!("let's go!");
 
-        let context = tauri::generate_context!();
-        let config = context.config();
-        let version = &config.package.version.clone().unwrap();
+    let context = tauri::generate_context!();
+    let config = context.config();
+    let version = &config.package.version.clone().unwrap();
 
-        let menu = SystemTrayMenu::new()
-            .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
-            .add_item(
-                CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled(),
-            )
-            .add_native_item(tauri::SystemTrayMenuItem::Separator)
-            .add_item(CustomMenuItem::new(
-                "check-updates".to_string(),
-                "Check for Updates...",
-            ))
-            .add_native_item(tauri::SystemTrayMenuItem::Separator)
-            .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
-        let system_tray = tauri::SystemTray::new().with_menu(menu);
+    let menu = SystemTrayMenu::new()
+        .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
+        .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new(
+            "check-updates".to_string(),
+            "Check for Updates...",
+        ))
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
+    let system_tray = tauri::SystemTray::new().with_menu(menu);
 
-        tauri::Builder::default()
-            .on_window_event(|event| {
-                info!("EVENT: {:?}", event.event());
-                if let tauri::WindowEvent::Focused(is_focused) = event.event() {
-                    let state = event.window().state::<SharedState>();
-                    let mut state = state.lock().unwrap();
-                    state.ui.is_visible = *is_focused;
-                }
-            })
-            .system_tray(system_tray)
-            .on_system_tray_event(|app, event| {
-                if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
-                    match id.as_str() {
-                        "check-updates" => {
-                            app.trigger_global("tauri://update", None);
-                        }
-                        "quit" => {
-                            app.exit(0);
-                        }
-                        _ => {}
+    tauri::Builder::default()
+        .on_window_event(|event| {
+            info!("EVENT: {:?}", event.event());
+            if let tauri::WindowEvent::Focused(is_focused) = event.event() {
+                let state = event.window().state::<SharedState>();
+                let mut state = state.lock().unwrap();
+                state.ui.is_visible = *is_focused;
+            }
+        })
+        .system_tray(system_tray)
+        .on_system_tray_event(|app, event| {
+            if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
+                match id.as_str() {
+                    "check-updates" => {
+                        app.trigger_global("tauri://update", None);
                     }
-                }
-            })
-            .invoke_handler(tauri::generate_handler![
-                commands::store_win_move,
-                commands::store_get_content,
-                commands::store_get_root,
-                commands::store_nav_refresh,
-                commands::store_nav_reset,
-                commands::store_nav_set_filter,
-                commands::store_nav_select,
-                commands::store_nav_select_up,
-                commands::store_nav_select_down,
-                commands::store_nav_select_left,
-                commands::store_nav_select_right,
-                commands::store_copy_to_clipboard,
-                commands::store_delete,
-                commands::store_undo,
-                commands::store_new_note,
-                commands::store_edit_note,
-                commands::store_move_up,
-                commands::store_touch,
-                commands::store_move_down,
-                commands::store_stack_lock,
-                commands::store_stack_unlock,
-                commands::store_stack_sort_auto,
-                commands::store_stack_sort_manual,
-                commands::store_settings_save,
-                commands::store_settings_get,
-                commands::store_set_theme_mode,
-                commands::store_pipe_to_command,
-                commands::store_set_content_type,
-                commands::store_pipe_to_gpt,
-                commands::store_add_to_stack,
-                commands::store_add_to_new_stack,
-                commands::store_new_stack,
-                commands::store_mark_as_cross_stream,
-            ])
-            .plugin(tauri_plugin_spotlight::init(Some(
-                tauri_plugin_spotlight::PluginConfig {
-                    windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
-                        label: String::from("main"),
-                        shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
-                            "Option+Space"
-                        } else {
-                            "Control+Space"
-                        })
-                        .to_string(),
-                        macos_window_level: Some(20), // Default 24
-                    }]),
-                    global_close_shortcut: None,
-                },
-            )))
-            .setup(|app| {
-                app.set_activation_policy(tauri::ActivationPolicy::Accessory);
-
-                #[cfg(debug_assertions)]
-                if std::env::var("STACK_DEVTOOLS").is_ok() {
-                    let window = app.get_window("main").unwrap();
-                    window.open_devtools();
-                    use tauri_plugin_positioner::{Position, WindowExt};
-                    let _ = window.move_window(Position::Center);
-                }
-
-                let db_path = match std::env::var("STACK_DB_PATH") {
-                    Ok(path) => path,
-                    Err(_) => {
-                        let data_dir = app.path_resolver().app_data_dir().unwrap();
-                        data_dir.join("store-v3.0").to_str().unwrap().to_string()
+                    "quit" => {
+                        app.exit(0);
                     }
-                };
-                info!("PR: {:?}", db_path);
+                    _ => {}
+                }
+            }
+        })
+        .invoke_handler(tauri::generate_handler![
+            commands::store_win_move,
+            commands::store_get_content,
+            commands::store_get_root,
+            commands::store_nav_refresh,
+            commands::store_nav_reset,
+            commands::store_nav_set_filter,
+            commands::store_nav_select,
+            commands::store_nav_select_up,
+            commands::store_nav_select_down,
+            commands::store_nav_select_left,
+            commands::store_nav_select_right,
+            commands::store_copy_to_clipboard,
+            commands::store_delete,
+            commands::store_undo,
+            commands::store_new_note,
+            commands::store_edit_note,
+            commands::store_move_up,
+            commands::store_touch,
+            commands::store_move_down,
+            commands::store_stack_lock,
+            commands::store_stack_unlock,
+            commands::store_stack_sort_auto,
+            commands::store_stack_sort_manual,
+            commands::store_settings_save,
+            commands::store_settings_get,
+            commands::store_set_theme_mode,
+            commands::store_pipe_to_command,
+            commands::store_set_content_type,
+            commands::store_pipe_to_gpt,
+            commands::store_add_to_stack,
+            commands::store_add_to_new_stack,
+            commands::store_new_stack,
+            commands::store_mark_as_cross_stream,
+        ])
+        .plugin(tauri_plugin_spotlight::init(Some(
+            tauri_plugin_spotlight::PluginConfig {
+                windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
+                    label: String::from("main"),
+                    shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
+                        "Option+Space"
+                    } else {
+                        "Control+Space"
+                    })
+                    .to_string(),
+                    macos_window_level: Some(20), // Default 24
+                }]),
+                global_close_shortcut: None,
+            },
+        )))
+        .setup(|app| {
+            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
-                let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
+            #[cfg(debug_assertions)]
+            if std::env::var("STACK_DEVTOOLS").is_ok() {
+                let window = app.get_window("main").unwrap();
+                window.open_devtools();
+                use tauri_plugin_positioner::{Position, WindowExt};
+                let _ = window.move_window(Position::Center);
+            }
 
-                let state = State::new(&db_path, packet_sender);
-                let state: SharedState = Arc::new(Mutex::new(state));
-                app.manage(state.clone());
+            let db_path = match std::env::var("STACK_DB_PATH") {
+                Ok(path) => path,
+                Err(_) => {
+                    let data_dir = app.path_resolver().app_data_dir().unwrap();
+                    data_dir.join("store-v3.0").to_str().unwrap().to_string()
+                }
+            };
+            info!("PR: {:?}", db_path);
 
-                let state_clone = state.clone();
-                std::thread::spawn(move || {
-                    let mut previous_preview = String::new();
-                    for view in packet_receiver {
-                        let state = state_clone.lock().unwrap();
-                        let settings = state.store.settings_get();
-                        let cross_stream_token =
-                            match settings.and_then(|s| s.cross_stream_access_token) {
-                                Some(token) => token,
-                                None => continue,
-                            };
+            let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
-                        if cross_stream_token.len() != 64 {
-                            continue;
-                        }
+            let state = State::new(&db_path, packet_sender);
+            let state: SharedState = Arc::new(Mutex::new(state));
+            app.manage(state.clone());
 
-                        let cross_stream_id = view
-                            .items
-                            .iter()
-                            .filter(|(_, item)| item.cross_stream)
-                            .map(|(id, _)| *id)
-                            .next();
-                        let previews = if let Some(id) = cross_stream_id {
-                            let children = view.children(view.items.get(&id).unwrap());
-                            let mut previews = Vec::new();
-                            for child_id in &children {
-                                let child = view.items.get(child_id).unwrap();
-                                let content = state.store.get_content(&child.hash);
-                                let mut ui_item = ui::with_meta(&state.store, child);
-
-                                if ui_item.content_type == "Text" {
-                                    ui_item.content_type = "Markdown".into();
-                                }
-                                info!("{:?}", &ui_item.content_type);
-
-                                let preview =
-                                    ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
-                                previews.push(preview);
-                            }
-                            previews
-                                .iter()
-                                .map(|preview| format!("<div>{}</div>", preview))
-                                .collect::<Vec<String>>()
-                                .join("")
-                        } else {
-                            "".to_string()
+            let state_clone = state.clone();
+            std::thread::spawn(move || {
+                let mut previous_preview = String::new();
+                for view in packet_receiver {
+                    let state = state_clone.lock().unwrap();
+                    let settings = state.store.settings_get();
+                    let cross_stream_token =
+                        match settings.and_then(|s| s.cross_stream_access_token) {
+                            Some(token) => token,
+                            None => continue,
                         };
 
-                        if previews != previous_preview {
-                            let client = reqwest::blocking::Client::new();
-                            let res = client
-                                .post("https://cross.stream")
-                                .header("Authorization", format!("Bearer {}", cross_stream_token))
-                                .body(previews.clone())
-                                .send();
-                            match res {
-                                Ok(_) => {
-                                    info!(
-                                        "Successfully posted preview of {} bytes",
-                                        previews.len()
-                                    );
-                                    previous_preview = previews;
-                                }
-                                Err(e) => error!("Failed to POST preview: {}", e),
+                    if cross_stream_token.len() != 64 {
+                        continue;
+                    }
+
+                    let cross_stream_id = view
+                        .items
+                        .iter()
+                        .filter(|(_, item)| item.cross_stream)
+                        .map(|(id, _)| *id)
+                        .next();
+                    let previews = if let Some(id) = cross_stream_id {
+                        let children = view.children(view.items.get(&id).unwrap());
+                        let mut previews = Vec::new();
+                        for child_id in &children {
+                            let child = view.items.get(child_id).unwrap();
+                            let content = state.store.get_content(&child.hash);
+                            let mut ui_item = ui::with_meta(&state.store, child);
+
+                            if ui_item.content_type == "Text" {
+                                ui_item.content_type = "Markdown".into();
                             }
+                            info!("{:?}", &ui_item.content_type);
+
+                            let preview =
+                                ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
+                            previews.push(preview);
+                        }
+                        previews
+                            .iter()
+                            .map(|preview| format!("<div>{}</div>", preview))
+                            .collect::<Vec<String>>()
+                            .join("")
+                    } else {
+                        "".to_string()
+                    };
+
+                    if previews != previous_preview {
+                        let client = reqwest::blocking::Client::new();
+                        let res = client
+                            .post("https://cross.stream")
+                            .header("Authorization", format!("Bearer {}", cross_stream_token))
+                            .body(previews.clone())
+                            .send();
+                        match res {
+                            Ok(_) => {
+                                info!("Successfully posted preview of {} bytes", previews.len());
+                                previous_preview = previews;
+                            }
+                            Err(e) => error!("Failed to POST preview: {}", e),
                         }
                     }
-                });
-
-                // start HTTP api if in debug mode
-                #[cfg(debug_assertions)]
-                {
-                    http::start(app.handle().clone(), state.clone());
                 }
+            });
 
-                clipboard::start(app.handle(), &state);
+            // start HTTP api if in debug mode
+            #[cfg(debug_assertions)]
+            {
+                http::start(app.handle().clone(), state.clone());
+            }
 
-                Ok(())
-            })
-            .run(context)
-            .expect("error while running tauri application");
-    }
+            clipboard::start(app.handle(), &state);
 
-    let _ = logger.await;
+            Ok(())
+        })
+        .run(context)
+        .expect("error while running tauri application");
 }
