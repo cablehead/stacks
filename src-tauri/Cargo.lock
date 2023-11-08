@@ -5143,7 +5143,7 @@ dependencies = [
 [[package]]
 name = "tracing-stacks"
 version = "0.1.0"
-source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#8aa71ec44f33ffbd3d657778134aede5e72c23e2"
+source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#52eb0b63786260071641bc70c1d6669ebc19b4fd"
 dependencies = [
  "chrono",
  "console",

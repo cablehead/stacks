@@ -50,8 +50,6 @@ async fn main() {
         .with(tracing_stacks::RootSpanLayer::new(tx, None))
         .init();
 
-    info!("let's go!");
-
     let context = tauri::generate_context!();
     let config = context.config();
     let version = &config.package.version.clone().unwrap();
@@ -160,7 +158,7 @@ async fn main() {
                     data_dir.join("store-v3.0").to_str().unwrap().to_string()
                 }
             };
-            info!("PR: {:?}", db_path);
+            info!(db_path, "let's go",);
 
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
