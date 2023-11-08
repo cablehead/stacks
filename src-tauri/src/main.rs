@@ -68,13 +68,15 @@ async fn main() {
 
     tauri::Builder::default()
         .on_window_event(|event| {
-            info!("EVENT: {:?}", event.event());
-            if let tauri::WindowEvent::Focused(is_focused) = event.event() {
-                let state = event.window().state::<SharedState>();
-                state.with_lock(|state| {
-                    state.ui.is_visible = *is_focused;
-                });
-            }
+            let span = tracing::info_span!("on_window_event", "{:?}", event.event());
+            span.in_scope(|| {
+                if let tauri::WindowEvent::Focused(is_focused) = event.event() {
+                    let state = event.window().state::<SharedState>();
+                    state.with_lock(|state| {
+                        state.ui.is_visible = *is_focused;
+                    });
+                }
+            });
         })
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| {
@@ -158,7 +160,7 @@ async fn main() {
                     data_dir.join("store-v3.0").to_str().unwrap().to_string()
                 }
             };
-            info!(db_path, "let's go",);
+            info!(db_path, "let's go");
 
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
