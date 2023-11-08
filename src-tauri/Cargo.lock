@@ -4251,6 +4251,7 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+ "tracing-mutex-span",
  "tracing-stacks",
  "tracing-subscriber",
 ]
@@ -5119,6 +5120,14 @@ dependencies = [
  "lazy_static",
  "log",
  "tracing-core",
+]
+
+[[package]]
+name = "tracing-mutex-span"
+version = "0.1.0"
+source = "git+https://github.com/cablehead/tracing-mutex-span.git?branch=main#fa062adb6753a5f5103bec134e3a04725f5ecc61"
+dependencies = [
+ "tracing",
 ]
 
 [[package]]

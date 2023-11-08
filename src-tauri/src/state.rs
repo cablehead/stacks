@@ -1,8 +1,10 @@
 use std::sync::mpsc::Sender;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use chrono::prelude::*;
 use scru128::Scru128Id;
+
+use tracing_mutex_span::TracingMutexSpan;
 
 pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
 pub use crate::ui::UI;
@@ -87,7 +89,7 @@ impl State {
     }
 }
 
-pub type SharedState = Arc<Mutex<State>>;
+pub type SharedState = Arc<TracingMutexSpan<State>>;
 
 #[cfg(test)]
 mod tests {

@@ -2,7 +2,7 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![recursion_limit = "512"]
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use tauri::CustomMenuItem;
 use tauri::Manager;
@@ -164,7 +164,8 @@ async fn main() {
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
             let state = State::new(&db_path, packet_sender);
-            let state: SharedState = Arc::new(Mutex::new(state));
+            let mutex = tracing_mutex_span::TracingMutexSpan::new("SharedState", state);
+            let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
             publish::publish_previews(state.clone(), packet_receiver);
