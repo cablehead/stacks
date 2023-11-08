@@ -5125,7 +5125,7 @@ dependencies = [
 [[package]]
 name = "tracing-mutex-span"
 version = "0.1.0"
-source = "git+https://github.com/cablehead/tracing-mutex-span.git?branch=main#fa062adb6753a5f5103bec134e3a04725f5ecc61"
+source = "git+https://github.com/cablehead/tracing-mutex-span.git?branch=main#406f9309870c95bd1302367717ce9e4beabb0161"
 dependencies = [
  "tracing",
 ]

@@ -73,8 +73,9 @@ async fn main() {
             info!("EVENT: {:?}", event.event());
             if let tauri::WindowEvent::Focused(is_focused) = event.event() {
                 let state = event.window().state::<SharedState>();
-                let mut state = state.lock().unwrap();
-                state.ui.is_visible = *is_focused;
+                state.with_lock(|state| {
+                    state.ui.is_visible = *is_focused;
+                });
             }
         })
         .system_tray(system_tray)
@@ -92,7 +93,7 @@ async fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::store_win_move,
+            // commands::store_win_move,
             commands::store_get_content,
             commands::store_get_root,
             commands::store_nav_refresh,
@@ -120,7 +121,7 @@ async fn main() {
             commands::store_set_theme_mode,
             commands::store_pipe_to_command,
             commands::store_set_content_type,
-            commands::store_pipe_to_gpt,
+            // commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             commands::store_new_stack,

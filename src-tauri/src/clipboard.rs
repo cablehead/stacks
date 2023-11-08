@@ -5,10 +5,10 @@ use serde_json::Value;
 
 use tracing::info;
 
+use crate::state;
 use crate::state::SharedState;
 use crate::store::MimeType;
 use crate::util;
-use crate::state;
 
 #[tracing::instrument(skip_all)]
 fn handle_clipboard_update(state: &mut state::State, line: &str, app: &tauri::AppHandle) {
@@ -67,8 +67,9 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
     tauri::async_runtime::spawn(async move {
         while let Some(event) = rx.recv().await {
             if let CommandEvent::Stdout(line) = event {
-                let mut state = state.lock().unwrap();
-                handle_clipboard_update(&mut state, &line, &app);
+                state.with_lock(|state| {
+                    handle_clipboard_update(state, &line, &app);
+                });
             }
         }
     });
