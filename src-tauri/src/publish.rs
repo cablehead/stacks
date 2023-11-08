@@ -5,6 +5,59 @@ use std::sync::mpsc::Receiver;
 use tracing::{error, info};
 
 #[tracing::instrument(skip_all)]
+fn post(cross_stream_token: &str, previews: &str) -> Result<(), reqwest::Error> {
+    let client = reqwest::blocking::Client::new();
+    let response = client
+        .post("https://cross.stream")
+        .header("Authorization", format!("Bearer {}", cross_stream_token))
+        .body(previews.to_string())
+        .send();
+
+    response
+        .map(|_| {
+            info!("Successfully posted preview of {} bytes", previews.len());
+        })
+        .map_err(|e| {
+            error!("Failed to POST preview: {}", e);
+            e
+        })
+}
+
+fn truncate_scru128(id: &scru128::Scru128Id, len: usize) -> String {
+    let id_str = id.to_string();
+    id_str.chars().rev().take(len).collect::<String>().chars().rev().collect()
+}
+
+#[tracing::instrument(skip(state, view), fields(%id = truncate_scru128(&id, 16)))]
+fn generate_previews(state: &SharedState, view: &View, id: scru128::Scru128Id) -> String {
+    state.with_lock(|state| {
+        let children = view.children(view.items.get(&id).unwrap());
+
+        let current_span = tracing::Span::current();
+        current_span.record("n", children.len());
+
+        let mut previews = Vec::new();
+        for child_id in &children {
+            let child = view.items.get(child_id).unwrap();
+            let content = state.store.get_content(&child.hash);
+            let mut ui_item = ui::with_meta(&state.store, child);
+
+            if ui_item.content_type == "Text" {
+                ui_item.content_type = "Markdown".into();
+            }
+
+            let preview = ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
+            previews.push(preview);
+        }
+        previews
+            .iter()
+            .map(|preview| format!("<div>{}</div>", preview))
+            .collect::<Vec<String>>()
+            .join("")
+    })
+}
+
+#[tracing::instrument(skip_all)]
 fn process(state: &SharedState, view: &View, previous_preview: &mut String) {
     let (cross_stream_token, cross_stream_id) = state.with_lock(|state| {
         let settings = state.store.settings_get();
@@ -26,46 +79,17 @@ fn process(state: &SharedState, view: &View, previous_preview: &mut String) {
     };
 
     let previews = if let Some(id) = cross_stream_id {
-        // Generate previews within the lock
-        state.with_lock(|state| {
-            let children = view.children(view.items.get(&id).unwrap());
-            let mut previews = Vec::new();
-            for child_id in &children {
-                let child = view.items.get(child_id).unwrap();
-                let content = state.store.get_content(&child.hash);
-                let mut ui_item = ui::with_meta(&state.store, child);
-
-                if ui_item.content_type == "Text" {
-                    ui_item.content_type = "Markdown".into();
-                }
-                info!("{:?}", &ui_item.content_type);
-
-                let preview = ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
-                previews.push(preview);
-            }
-            previews
-                .iter()
-                .map(|preview| format!("<div>{}</div>", preview))
-                .collect::<Vec<String>>()
-                .join("")
-        })
+        generate_previews(&state, &view, id)
     } else {
         "".to_string()
     };
 
     if previews != *previous_preview {
-        let client = reqwest::blocking::Client::new();
-        let res = client
-            .post("https://cross.stream")
-            .header("Authorization", format!("Bearer {}", cross_stream_token))
-            .body(previews.clone())
-            .send();
-        match res {
+        match post(&cross_stream_token, &previews) {
             Ok(_) => {
-                info!("Successfully posted preview of {} bytes", previews.len());
                 *previous_preview = previews;
             }
-            Err(e) => error!("Failed to POST preview: {}", e),
+            Err(_) => {}
         }
     }
 }
