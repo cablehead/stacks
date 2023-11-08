@@ -167,8 +167,17 @@ pub async fn store_pipe_to_gpt(
 }
 */
 
+fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
+    hash.hashes
+        .first()
+        .map_or_else(
+            || "No hash present".to_owned(),
+            |h| h.digest.chars().take(len).collect()
+        )
+}
+
 #[tauri::command]
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
 pub fn store_get_content(
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
