@@ -285,6 +285,16 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
 
 use maud::html;
 
+#[tracing::instrument(
+    skip_all,
+    fields(
+        content_type = %item.content_type,
+        size = match content {
+            Some(c) => c.len(),
+            None => 0,
+        },
+    )
+)]
 pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),
