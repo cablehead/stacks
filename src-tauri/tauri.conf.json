@@ -25,9 +25,6 @@
     },
     "allowlist": {
       "all": false,
-      "clipboard": {
-        "writeText": true
-      },
       "window": {
         "hide": true
       },
