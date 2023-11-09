@@ -34,7 +34,7 @@ use state::{SharedState, State};
 
 #[tokio::main]
 async fn main() {
-    let (tx, mut rx) = tokio::sync::broadcast::channel(16);
+    let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
 
     tokio::spawn(async move {
         let mut stdout = std::io::stdout();
