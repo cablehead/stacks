@@ -2,15 +2,19 @@
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 #![recursion_limit = "512"]
 
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use tauri::CustomMenuItem;
 use tauri::Manager;
 use tauri::SystemTrayMenu;
-use tauri_plugin_log::LogTarget;
+
+use tracing::info;
+use tracing_subscriber::layer::SubscriberExt;
+use tracing_subscriber::util::SubscriberInitExt;
 
 mod clipboard;
 mod commands;
+mod publish;
 mod state;
 mod store;
 mod ui;
@@ -28,7 +32,24 @@ mod view_tests;
 
 use state::{SharedState, State};
 
-fn main() {
+#[tokio::main]
+async fn main() {
+    let (tx, mut rx) = tokio::sync::broadcast::channel(16);
+
+    tokio::spawn(async move {
+        let mut stdout = std::io::stdout();
+        while let Ok(entry) = rx.recv().await {
+            tracing_stacks::fmt::write_entry(&mut stdout, &entry).unwrap();
+        }
+    });
+
+    tracing_subscriber::Registry::default()
+        .with(tracing_subscriber::EnvFilter::new(
+            "trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=info,hyper=info",
+        ))
+        .with(tracing_stacks::RootSpanLayer::new(tx, None))
+        .init();
+
     let context = tauri::generate_context!();
     let config = context.config();
     let version = &config.package.version.clone().unwrap();
@@ -47,19 +68,21 @@ fn main() {
 
     tauri::Builder::default()
         .on_window_event(|event| {
-            log::info!("EVENT: {:?}", event.event());
-            if let tauri::WindowEvent::Focused(is_focused) = event.event() {
-                let state = event.window().state::<SharedState>();
-                let mut state = state.lock().unwrap();
-                state.ui.is_visible = *is_focused;
-            }
+            let span = tracing::info_span!("on_window_event", "{:?}", event.event());
+            span.in_scope(|| {
+                if let tauri::WindowEvent::Focused(is_focused) = event.event() {
+                    let state = event.window().state::<SharedState>();
+                    state.with_lock(|state| {
+                        state.ui.is_visible = *is_focused;
+                    });
+                }
+            });
         })
         .system_tray(system_tray)
         .on_system_tray_event(|app, event| {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
                 match id.as_str() {
                     "check-updates" => {
-                        println!("update");
                         app.trigger_global("tauri://update", None);
                     }
                     "quit" => {
@@ -70,7 +93,7 @@ fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::store_win_move,
+            // commands::store_win_move,
             commands::store_get_content,
             commands::store_get_root,
             commands::store_nav_refresh,
@@ -98,7 +121,7 @@ fn main() {
             commands::store_set_theme_mode,
             commands::store_pipe_to_command,
             commands::store_set_content_type,
-            commands::store_pipe_to_gpt,
+            // commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             commands::store_new_stack,
@@ -119,16 +142,6 @@ fn main() {
                 global_close_shortcut: None,
             },
         )))
-        .plugin(
-            tauri_plugin_log::Builder::default()
-                .targets([LogTarget::LogDir, LogTarget::Stdout, LogTarget::Webview])
-                .level_for("want", log::LevelFilter::Debug)
-                .level_for("tao", log::LevelFilter::Debug)
-                .level_for("sled", log::LevelFilter::Info)
-                .level_for("attohttpc", log::LevelFilter::Info)
-                .level_for("tantivy", log::LevelFilter::Warn)
-                .build(),
-        )
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -147,82 +160,16 @@ fn main() {
                     data_dir.join("store-v3.0").to_str().unwrap().to_string()
                 }
             };
-            log::info!("PR: {:?}", db_path);
+            info!(db_path, "let's go");
 
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
             let state = State::new(&db_path, packet_sender);
-            let state: SharedState = Arc::new(Mutex::new(state));
+            let mutex = tracing_mutex_span::TracingMutexSpan::new("SharedState", state);
+            let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
-            let state_clone = state.clone();
-            std::thread::spawn(move || {
-                let mut previous_preview = String::new();
-                for view in packet_receiver {
-                    let state = state_clone.lock().unwrap();
-                    let settings = state.store.settings_get();
-                    let cross_stream_token =
-                        match settings.and_then(|s| s.cross_stream_access_token) {
-                            Some(token) => token,
-                            None => continue,
-                        };
-
-                    if cross_stream_token.len() != 64 {
-                        continue;
-                    }
-
-                    let cross_stream_id = view
-                        .items
-                        .iter()
-                        .filter(|(_, item)| item.cross_stream)
-                        .map(|(id, _)| *id)
-                        .next();
-                    let previews = if let Some(id) = cross_stream_id {
-                        let children = view.children(view.items.get(&id).unwrap());
-                        let mut previews = Vec::new();
-                        for child_id in &children {
-                            let child = view.items.get(child_id).unwrap();
-                            let content = state.store.get_content(&child.hash);
-                            let mut ui_item = ui::with_meta(&state.store, child);
-
-                            if ui_item.content_type == "Text" {
-                                ui_item.content_type = "Markdown".into();
-                            }
-                            log::info!("{:?}", &ui_item.content_type);
-
-                            let preview =
-                                ui::generate_preview(&state.ui.theme_mode, &ui_item, &content);
-                            previews.push(preview);
-                        }
-                        previews
-                            .iter()
-                            .map(|preview| format!("<div>{}</div>", preview))
-                            .collect::<Vec<String>>()
-                            .join("")
-                    } else {
-                        "".to_string()
-                    };
-
-                    if previews != previous_preview {
-                        let client = reqwest::blocking::Client::new();
-                        let res = client
-                            .post("https://cross.stream")
-                            .header("Authorization", format!("Bearer {}", cross_stream_token))
-                            .body(previews.clone())
-                            .send();
-                        match res {
-                            Ok(_) => {
-                                log::info!(
-                                    "Successfully posted preview of {} bytes",
-                                    previews.len()
-                                );
-                                previous_preview = previews;
-                            }
-                            Err(e) => log::error!("Failed to POST preview: {}", e),
-                        }
-                    }
-                }
-            });
+            publish::publish_previews(state.clone(), packet_receiver);
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

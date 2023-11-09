@@ -3,6 +3,8 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
+use tracing::info;
+
 pub use crate::store::{MimeType, Packet, Store};
 
 use crate::util;
@@ -131,6 +133,7 @@ impl UI {
         self.select(target);
     }
 
+    #[tracing::instrument(skip(self, store))]
     pub fn render(&self, store: &Store) -> Nav {
         let focused = self.view.get_best_focus(&self.focused);
         if focused.is_none() {
@@ -273,7 +276,7 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
-    log::info!("Theme mode: {}", theme_mode);
+    info!("Theme mode: {}", theme_mode);
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.clone()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
@@ -282,6 +285,16 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
 
 use maud::html;
 
+#[tracing::instrument(
+    skip_all,
+    fields(
+        content_type = %item.content_type,
+        size = match content {
+            Some(c) => c.len(),
+            None => 0,
+        },
+    )
+)]
 pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),

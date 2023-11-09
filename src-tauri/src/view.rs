@@ -105,8 +105,6 @@ impl View {
 
             PacketType::Update => {
                 if packet.cross_stream {
-                    println!("XS {:?}", packet.cross_stream);
-
                     let mut previously_cross_stream = None;
 
                     for (_, item) in &mut self.items {
@@ -282,6 +280,7 @@ impl View {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn root(&self) -> Vec<&Item> {
         let mut root_items = self
             .items
@@ -293,6 +292,7 @@ impl View {
         root_items
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn children(&self, item: &Item) -> Vec<Scru128Id> {
         let mut children = item.children.clone();
         if item.ordered {
@@ -308,6 +308,7 @@ impl View {
         children
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn first(&self) -> Option<Focus> {
         let root = self.root();
         if !root.is_empty() {
@@ -329,6 +330,7 @@ impl View {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_peers(&self, item: &Item) -> Vec<&Item> {
         if let Some(stack) = item.stack_id.and_then(|id| self.items.get(&id)) {
             self.children(stack)
@@ -340,6 +342,7 @@ impl View {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_focus_for_id(&self, id: &Scru128Id) -> Option<Focus> {
         self.items.get(id).and_then(|item| {
             let peers = self.get_peers(&item);
@@ -355,6 +358,7 @@ impl View {
         })
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_best_focus_with_offset(&self, focus: &Option<Focus>, offset: i8) -> Option<Focus> {
         if focus.is_none() {
             return self.first();
@@ -388,18 +392,22 @@ impl View {
         });
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_best_focus(&self, focus: &Option<Focus>) -> Option<Focus> {
         self.get_best_focus_with_offset(focus, 0)
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_best_focus_next(&self, focus: &Option<Focus>) -> Option<Focus> {
         self.get_best_focus_with_offset(focus, 1)
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_best_focus_prev(&self, focus: &Option<Focus>) -> Option<Focus> {
         self.get_best_focus_with_offset(focus, -1)
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn filter(&self, matches: &HashSet<ssri::Integrity>) -> Self {
         let items: HashMap<Scru128Id, Item> = self
             .items

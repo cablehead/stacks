@@ -17,18 +17,17 @@ pub struct CommandOutput {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
     source_id: scru128::Scru128Id,
     command: String,
 ) -> Result<CommandOutput, ()> {
-    println!("PIPE: {} {}", &source_id, &command);
-    let (cache_path, hash) = {
-        let state = state.lock().unwrap();
+    let (cache_path, hash) = state.with_lock(|state| {
         let cache_path = state.store.cache_path.clone();
         let item = state.view.items.get(&source_id).unwrap();
         (cache_path, item.hash.clone())
-    };
+    });
 
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
@@ -66,14 +65,15 @@ pub async fn store_pipe_to_command(
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
     };
-    println!("PIPE, RES: {:?}", &output);
     Ok(output)
 }
 
+/*
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub async fn store_pipe_to_gpt(
-    app: tauri::AppHandle,
     state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
     source_id: scru128::Scru128Id,
 ) -> Result<(), ()> {
     let (settings, content, packet) = {
@@ -86,37 +86,14 @@ pub async fn store_pipe_to_gpt(
             vec![state.store.get_content(&item.hash).unwrap()]
         } else {
             return Ok(());
-            /*
-            item.children
-                .iter()
-                .filter_map(|id| {
-                    state
-                        .view
-                        .items
-                        .get(id)
-                        .and_then(|child_item| state.store.get_content(&child_item.hash))
-                })
-                .rev()
-                .collect()
-                */
         };
 
         let stack_id = item.stack_id.unwrap_or(item.id);
         let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
         state.ui.select(None); // focus first
 
-        /*
-         * Todo
-        let meta = state.store.get_content_meta(&item.hash).unwrap();
-        if meta.mime_type != MimeType::TextPlain {
-            return Ok(());
-        }
-        */
-
         (settings, content, packet)
     };
-
-    println!("GPT: let's go: {:?}", packet.hash);
 
     #[derive(Clone, serde::Serialize)]
     struct Payload {
@@ -176,7 +153,7 @@ pub async fn store_pipe_to_gpt(
                 }
             }
             Err(err) => {
-                println!("GPT error: {:#?}", err);
+                error!("GPT error: {:#?}", err);
             }
         }
     }
@@ -188,96 +165,123 @@ pub async fn store_pipe_to_gpt(
 
     Ok(())
 }
+*/
+
+fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
+    hash.hashes
+        .first()
+        .map_or_else(
+            || "No hash present".to_owned(),
+            |h| h.digest.chars().take(len).collect()
+        )
+}
 
 #[tauri::command]
+#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
 pub fn store_get_content(
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
 ) -> Option<String> {
-    println!("CACHE MISS: {}", &hash);
-    let state = state.lock().unwrap();
-    state
-        .store
-        .get_content(&hash)
-        .map(|vec| general_purpose::STANDARD.encode(vec))
+    state.with_lock(|state| {
+        state
+            .store
+            .get_content(&hash)
+            .map(|vec| general_purpose::STANDARD.encode(vec))
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_get_root(state: tauri::State<SharedState>) -> Vec<UIItem> {
-    let state = state.lock().unwrap();
-    state
-        .view
-        .root()
-        .iter()
-        .map(|item| with_meta(&state.store, item))
-        .collect()
+    state.with_lock(|state| {
+        state
+            .view
+            .root()
+            .iter()
+            .map(|item| with_meta(&state.store, item))
+            .collect()
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_refresh(state: tauri::State<SharedState>) -> Nav {
-    let state = state.lock().unwrap();
-    state.ui.render(&state.store)
+    state.with_lock(|state| state.ui.render(&state.store))
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_reset(state: tauri::State<SharedState>) -> Nav {
-    let mut state = state.lock().unwrap();
-    let view = state.view.clone();
-    state.ui.reset(view);
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        let view = state.view.clone();
+        state.ui.reset(view);
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_set_filter(
     state: tauri::State<SharedState>,
     filter: String,
     content_type: String,
 ) -> Nav {
-    let mut state = state.lock().unwrap();
-    // XXX: content_type should be an enum
-    let content_type = match content_type.as_str() {
-        "Links" => "Link",
-        "Images" => "Image",
-        "Markdown" => "Markdown",
-        _ => "All",
-    };
-    state.nav_set_filter(&filter, content_type);
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        // XXX: content_type should be an enum
+        let content_type = match content_type.as_str() {
+            "Links" => "Link",
+            "Images" => "Image",
+            "Markdown" => "Markdown",
+            _ => "All",
+        };
+        state.nav_set_filter(&filter, content_type);
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select(state: tauri::State<SharedState>, focused_id: Scru128Id) -> Nav {
-    let mut state = state.lock().unwrap();
-    state.nav_select(&focused_id);
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        state.nav_select(&focused_id);
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_up(state: tauri::State<SharedState>) -> Nav {
-    let mut state = state.lock().unwrap();
-    state.ui.select_up();
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        state.ui.select_up();
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
-    let mut state = state.lock().unwrap();
-    state.ui.select_down();
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        state.ui.select_down();
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
-    let mut state = state.lock().unwrap();
-    state.ui.select_left();
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        state.ui.select_left();
+        state.ui.render(&state.store)
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_right(state: tauri::State<SharedState>) -> Nav {
-    let mut state = state.lock().unwrap();
-    state.ui.select_right();
-    state.ui.render(&state.store)
+    state.with_lock(|state| {
+        state.ui.select_right();
+        state.ui.render(&state.store)
+    })
 }
 
 use cocoa::base::nil;
@@ -310,315 +314,339 @@ pub fn write_to_clipboard(mime_type: &str, data: &[u8]) -> Option<i64> {
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_copy_to_clipboard(
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) -> Option<()> {
-    let state = state.lock().unwrap();
+    state.with_lock(|state| {
+        if let Some(item) = state.view.items.get(&source_id) {
+            let meta = state.store.get_content_meta(&item.hash).unwrap();
 
-    if let Some(item) = state.view.items.get(&source_id) {
-        let meta = state.store.get_content_meta(&item.hash).unwrap();
+            let mime_type = match &meta.mime_type {
+                MimeType::TextPlain => "public.utf8-plain-text",
+                MimeType::ImagePng => "public.png",
+            };
+            let content = state.store.get_content(&item.hash).unwrap();
 
-        let mime_type = match &meta.mime_type {
-            MimeType::TextPlain => "public.utf8-plain-text",
-            MimeType::ImagePng => "public.png",
-        };
-        let content = state.store.get_content(&item.hash).unwrap();
-
-        let _change_num = write_to_clipboard(mime_type, &content);
-        Some(())
-    } else {
-        None
-    }
+            let _change_num = write_to_clipboard(mime_type, &content);
+            Some(())
+        } else {
+            None
+        }
+    })
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_new_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     content: String,
     stack_id: Option<scru128::Scru128Id>,
 ) {
-    let mut state = state.lock().unwrap();
+    state.with_lock(|state| {
+        let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
 
-    let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+        let packet = state
+            .store
+            .add(content.as_bytes(), MimeType::TextPlain, stack_id);
 
-    let packet = state
-        .store
-        .add(content.as_bytes(), MimeType::TextPlain, stack_id);
+        let id = packet.id;
+        state.merge(&packet);
 
-    let id = packet.id;
-    state.merge(&packet);
+        let focus = state.view.get_focus_for_id(&id);
 
-    let focus = state.view.get_focus_for_id(&id);
+        state.ui.select(focus);
 
-    state.ui.select(focus);
-
-    state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+        state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
+/*
 #[tauri::command]
+#[tracing::instrument(skip(app))]
 pub fn store_win_move(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
     use tauri_plugin_positioner::{Position, WindowExt};
     let _ = win.move_window(Position::TopRight);
 }
+*/
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_edit_note(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
     content: String,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.update(
-        source_id,
-        Some(content.as_bytes()),
-        MimeType::TextPlain,
-        None,
-    );
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.update(
+            source_id,
+            Some(content.as_bytes()),
+            MimeType::TextPlain,
+            None,
+        );
+        state.merge(&packet);
 
-    state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+        state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_touch(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.update_touch(source_id);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.update_touch(source_id);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_set_content_type(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
     content_type: String,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.update_content_type(
-        hash,
-        if content_type == "Plain Text" {
-            "Text".to_string()
-        } else {
-            content_type
-        },
-    );
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.update_content_type(
+            hash,
+            if content_type == "Plain Text" {
+                "Text".to_string()
+            } else {
+                content_type
+            },
+        );
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_set_theme_mode(app: tauri::AppHandle, state: tauri::State<SharedState>, mode: String) {
-    let mut state = state.lock().unwrap();
-    state.ui.theme_mode = mode;
+    state.with_lock(|state| {
+        state.ui.theme_mode = mode;
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_delete(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.delete(id);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.delete(id);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
-    let mut state = state.lock().unwrap();
-    if let Some(item) = state.view.undo.clone() {
-        state.store.remove_packet(&item.last_touched);
-        let mut view = View::new();
-        state.store.scan().for_each(|p| view.merge(&p));
-        let mut ui = UI::new(&view);
-        ui.select(view.get_focus_for_id(&item.id));
-        state.view = view;
-        state.ui = ui;
-        app.emit_all("refresh-items", true).unwrap();
-    }
+    state.with_lock(|state| {
+        if let Some(item) = state.view.undo.clone() {
+            state.store.remove_packet(&item.last_touched);
+            let mut view = View::new();
+            state.store.scan().for_each(|p| view.merge(&p));
+            let mut ui = UI::new(&view);
+            ui.select(view.get_focus_for_id(&item.id));
+            state.view = view;
+            state.ui = ui;
+        }
+    });
+    app.emit_all("refresh-items", true).unwrap();
 }
 
 //
 // Settings related commands
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_settings_save(state: tauri::State<SharedState>, settings: Settings) {
-    let mut state = state.lock().unwrap();
-    state.store.settings_save(settings);
+    state.with_lock(|state| {
+        state.store.settings_save(settings);
+    });
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_settings_get(state: tauri::State<SharedState>) -> Option<Settings> {
-    let state = state.lock().unwrap();
-    state.store.settings_get()
+    state.with_lock(|state| state.store.settings_get())
 }
 
 //
 // Stack related commands
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_add_to_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     stack_id: scru128::Scru128Id,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-
-    let packet = state
-        .store
-        .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
-
-    // let id = packet.id;
-    state.merge(&packet);
-    // let focus = state.view.get_focus_for_id(&id);
-    // state.ui.select(focus);
-
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
-pub fn store_new_stack(
-    app: tauri::AppHandle,
-    state: tauri::State<SharedState>,
-    name: String,
-) {
-    let mut state = state.lock().unwrap();
-    let packet = state
-        .store
-        .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
-    state.merge(&packet);
-    state.ui.select(None); // focus first
+#[tracing::instrument(skip(app, state))]
+pub fn store_new_stack(app: tauri::AppHandle, state: tauri::State<SharedState>, name: String) {
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
+        state.merge(&packet);
+        state.ui.select(None); // focus first
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_add_to_new_stack(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     name: String,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
+    state.with_lock(|state| {
+        let stack_packet = state
+            .store
+            .add_stack(name.as_bytes(), StackLockStatus::Locked);
+        state.merge(&stack_packet);
 
-    let packet = state
-        .store
-        .add_stack(name.as_bytes(), StackLockStatus::Locked);
-    state.merge(&packet);
-
-    let packet = state
-        .store
-        .fork(source_id, None, MimeType::TextPlain, Some(packet.id));
-
-    // let id = packet.id;
-    state.merge(&packet);
-    // let focus = state.view.get_focus_for_id(&id);
-    // state.ui.select(focus);
-
+        let item_packet =
+            state
+                .store
+                .fork(source_id, None, MimeType::TextPlain, Some(stack_packet.id));
+        state.merge(&item_packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_move_up(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.update_move(source_id, Movement::Up);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.update_move(source_id, Movement::Up);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_mark_as_cross_stream(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     stack_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.mark_as_cross_stream(stack_id);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.mark_as_cross_stream(stack_id);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_move_down(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state.store.update_move(source_id, Movement::Down);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state.store.update_move(source_id, Movement::Down);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_lock(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state
-        .store
-        .update_stack_lock_status(source_id, StackLockStatus::Locked);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .update_stack_lock_status(source_id, StackLockStatus::Locked);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_unlock(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state
-        .store
-        .update_stack_lock_status(source_id, StackLockStatus::Unlocked);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .update_stack_lock_status(source_id, StackLockStatus::Unlocked);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_sort_manual(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state
-        .store
-        .update_stack_sort_order(source_id, StackSortOrder::Manual);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .update_stack_sort_order(source_id, StackSortOrder::Manual);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }
 
 #[tauri::command]
+#[tracing::instrument(skip(app, state))]
 pub fn store_stack_sort_auto(
     app: tauri::AppHandle,
     state: tauri::State<SharedState>,
     source_id: scru128::Scru128Id,
 ) {
-    let mut state = state.lock().unwrap();
-    let packet = state
-        .store
-        .update_stack_sort_order(source_id, StackSortOrder::Auto);
-    state.merge(&packet);
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .update_stack_sort_order(source_id, StackSortOrder::Auto);
+        state.merge(&packet);
+    });
     app.emit_all("refresh-items", true).unwrap();
 }

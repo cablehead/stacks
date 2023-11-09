@@ -31,7 +31,6 @@ export function itemGetContent(item: Item): string {
   const ret = item.ephemeral
     ? EphemeralCAS.getSignal(item).value
     : CAS.getSignal(item.hash).value;
-  // console.log("itemGetContent", item, b64ToUtf8(ret));
   return ret;
 }
 
@@ -73,7 +72,6 @@ export class Stack {
   nav: Signal<Nav>;
 
   constructor(nav: Nav) {
-    console.log("CONSTRUCT");
     this.filter = createFilter();
     this.nav = signal(nav);
 
@@ -84,14 +82,11 @@ export class Stack {
   }
 
   async initListener() {
-    console.log("CREATE D1");
     const d1 = await listen("refresh-items", () => {
-      // console.log('listen("refresh-items');
       this.refresh();
     });
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
-        console.log("DISPOSE");
         if (d1) d1();
       });
     }
@@ -204,7 +199,6 @@ export const EphemeralCAS = (() => {
   function getSignal(item: Item): Signal<string> {
     let ret = signalCache.get(item.id);
     if (!ret) {
-      console.log("EphemeralCAS: new signal");
       ret = new Signal("");
       signalCache.set(item.id, ret);
     }
@@ -237,7 +231,6 @@ export const CAS = (() => {
     if (cachedSignal !== undefined) {
       return cachedSignal;
     }
-    // console.log("CAS", hash);
     const ret: Signal<string> = signal("");
     (async () => {
       ret.value = await invoke("store_get_content", { hash: hash });

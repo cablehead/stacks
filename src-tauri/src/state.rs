@@ -1,8 +1,10 @@
 use std::sync::mpsc::Sender;
-use std::sync::{Arc, Mutex};
+use std::sync::Arc;
 
 use chrono::prelude::*;
 use scru128::Scru128Id;
+
+use tracing_mutex_span::TracingMutexSpan;
 
 pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
 pub use crate::ui::UI;
@@ -63,12 +65,6 @@ impl State {
                     .unwrap()
                     .as_millis() as u64;
                 let last_touched = item.last_touched.timestamp();
-                println!(
-                    "HERE: {:?} {:?} {:?}",
-                    now,
-                    last_touched,
-                    now - last_touched
-                );
                 if now - last_touched < 3_600_000 {
                     return id;
                 }
@@ -87,14 +83,13 @@ impl State {
     }
 
     pub fn merge(&mut self, packet: &Packet) {
-        println!("merge: {:?}", &packet.hash);
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
         let _ = self.packet_sender.send(self.view.clone());
     }
 }
 
-pub type SharedState = Arc<Mutex<State>>;
+pub type SharedState = Arc<TracingMutexSpan<State>>;
 
 #[cfg(test)]
 mod tests {
@@ -103,13 +98,8 @@ mod tests {
     fn test_state_get_curr_stack() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
-
         let mut state = State::new(path);
-
-        let curr_stack = state.get_curr_stack();
-        println!("OH Hai: {:?}", curr_stack);
-
-        let curr_stack = state.get_curr_stack();
-        println!("OH Hai: {:?}", curr_stack);
+        let _ = state.get_curr_stack();
+        let _ = state.get_curr_stack();
     }
 }
