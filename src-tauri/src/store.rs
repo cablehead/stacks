@@ -196,6 +196,7 @@ impl Index {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     fn write(&mut self, hash: &ssri::Integrity, content: &[u8]) {
         let content = String::from_utf8_lossy(content);
         let mut doc = tantivy::Document::new();
@@ -332,6 +333,7 @@ impl Store {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {
         match self.cas_read(hash) {
             Some(content) => Some(content),
@@ -348,6 +350,7 @@ impl Store {
         }
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
         if let Some(_) = self.content_meta_cache.get(&hash) {
@@ -820,6 +823,7 @@ mod tests {
     }
 }
 
+#[tracing::instrument(skip_all)]
 pub fn count_tiktokens(content: &str) -> usize {
     let bpe = tiktoken_rs::cl100k_base().unwrap();
     let tokens = bpe.encode_with_special_tokens(content);
