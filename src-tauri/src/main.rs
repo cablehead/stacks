@@ -170,7 +170,7 @@ async fn main() {
             let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
-            publish::publish_previews(state.clone(), packet_receiver);
+            publish::spawn(state.clone(), packet_receiver);
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

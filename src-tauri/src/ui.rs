@@ -10,7 +10,7 @@ pub use crate::store::{MimeType, Packet, Store};
 use crate::util;
 use crate::view;
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
 pub struct Item {
     pub id: Scru128Id,
     pub stack_id: Option<Scru128Id>,
