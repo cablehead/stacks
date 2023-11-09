@@ -3,7 +3,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { Icon } from "../ui/icons";
 import { borderRight, previewItem } from "../ui/app.css";
 
-import { Item, Layer, Stack } from "../types";
+import { Item, Layer, PreviewCAS, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
@@ -171,15 +171,14 @@ export function Nav({ stack }: { stack: Stack }) {
                       scrollBehavior: "smooth",
                     }}
                   >
-                    {nav.sub.previews.map((content, idx) => {
-                      let item = nav.sub?.items[idx];
+                    {nav.sub.items.map((item) => {
                       return (
                         <Preview
                           onMouseDown={() => {
                             if (!item) return;
                             stack.select(item.id);
                           }}
-                          content={content}
+                          content={PreviewCAS.getSignal(item).value}
                           active={item?.id == nav.sub?.selected.id}
                         />
                       );

@@ -6,7 +6,7 @@ use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
-use crate::ui::{with_meta, Item as UIItem, Nav, UI};
+use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
 #[derive(Debug, serde::Serialize)]
@@ -168,12 +168,10 @@ pub async fn store_pipe_to_gpt(
 */
 
 fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
-    hash.hashes
-        .first()
-        .map_or_else(
-            || "No hash present".to_owned(),
-            |h| h.digest.chars().take(len).collect()
-        )
+    hash.hashes.first().map_or_else(
+        || "No hash present".to_owned(),
+        |h| h.digest.chars().take(len).collect(),
+    )
 }
 
 #[tauri::command]
@@ -187,6 +185,16 @@ pub fn store_get_content(
             .store
             .get_content(&hash)
             .map(|vec| general_purpose::STANDARD.encode(vec))
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state, item), fields(%hash = truncate_hash(&item.hash, 8), content_type = item.content_type.as_str()))]
+pub fn store_get_preview(state: tauri::State<SharedState>, item: UIItem) -> Option<String> {
+    state.with_lock(|state| {
+        let content = state.store.get_content(&item.hash);
+        let preview = generate_preview(&state.ui.theme_mode, &item, &content);
+        Some(preview)
     })
 }
 

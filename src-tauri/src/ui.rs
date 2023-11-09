@@ -10,7 +10,7 @@ pub use crate::store::{MimeType, Packet, Store};
 use crate::util;
 use crate::view;
 
-#[derive(serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub struct Item {
     pub id: Scru128Id,
     pub stack_id: Option<Scru128Id>,
@@ -32,7 +32,6 @@ pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
     pub is_focus: bool,
-    pub previews: Vec<String>,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -166,19 +165,11 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
-                    previews: Vec::new(),
                 }),
                 sub: Some(Layer {
                     items: items.clone(),
                     selected,
                     is_focus: true,
-                    previews: items
-                        .iter()
-                        .map(|item| {
-                            let content = store.get_content(&item.hash);
-                            generate_preview(&self.theme_mode, &item, &content)
-                        })
-                        .collect(),
                 }),
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
@@ -203,13 +194,6 @@ impl UI {
                     items: items.clone(),
                     selected,
                     is_focus: false,
-                    previews: items
-                        .iter()
-                        .map(|item| {
-                            let content = store.get_content(&item.hash);
-                            generate_preview(&self.theme_mode, &item, &content)
-                        })
-                        .collect(),
                 })
             } else {
                 None
@@ -226,7 +210,6 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, &focused.item),
                     is_focus: true,
-                    previews: Vec::new(),
                 }),
                 sub,
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),

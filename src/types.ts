@@ -38,7 +38,6 @@ export interface Layer {
   items: Item[];
   selected: Item;
   is_focus: boolean;
-  previews: string[];
 }
 
 export interface Nav {
@@ -215,6 +214,29 @@ export const EphemeralCAS = (() => {
       }
     })();
 
+    return ret;
+  }
+
+  return {
+    getSignal,
+  };
+})();
+
+export const PreviewCAS = (() => {
+  const signalCache: Map<SSRI, Signal<string>> = new Map();
+
+  function getSignal(item: Item): Signal<string> {
+    const cachedSignal = signalCache.get(item.hash);
+    if (cachedSignal !== undefined) {
+      return cachedSignal;
+    }
+    const ret: Signal<string> = signal("");
+    (async () => {
+      ret.value = await invoke("store_get_preview", {
+        item: item,
+      });
+    })();
+    signalCache.set(item.hash, ret);
     return ret;
   }
 
