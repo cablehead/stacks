@@ -223,26 +223,33 @@ export const EphemeralCAS = (() => {
 })();
 
 export const PreviewCAS = (() => {
-  const signalCache: Map<SSRI, Signal<string>> = new Map();
+  const signalCache: Map<
+    SSRI,
+    { contentType: string; previewSignal: Signal<string> }
+  > = new Map();
 
   function getSignal(item: Item): Signal<string> {
-    const cachedSignal = signalCache.get(item.hash);
-    if (cachedSignal !== undefined) {
-      return cachedSignal;
+    const cacheEntry = signalCache.get(item.hash);
+
+    if (cacheEntry && cacheEntry.contentType === item.content_type) {
+      return cacheEntry.previewSignal;
     }
-    const ret: Signal<string> = signal("");
+
+    // If the hash is not found or the content type has changed, create and cache a new signal.
+    const newPreviewSignal: Signal<string> = signal("");
+    signalCache.set(item.hash, {
+      contentType: item.content_type,
+      previewSignal: newPreviewSignal,
+    });
+
     (async () => {
-      ret.value = await invoke("store_get_preview", {
-        item: item,
-      });
+      newPreviewSignal.value = await invoke("store_get_preview", { item });
     })();
-    signalCache.set(item.hash, ret);
-    return ret;
+
+    return newPreviewSignal;
   }
 
-  return {
-    getSignal,
-  };
+  return { getSignal };
 })();
 
 export const CAS = (() => {
