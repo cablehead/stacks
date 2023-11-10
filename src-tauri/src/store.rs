@@ -79,7 +79,6 @@ impl InProgressStream {
         // Update hash
         self.content_meta.hash = ssri::Integrity::from(&self.content);
 
-        // Update tiktokens
         let text_content = String::from_utf8_lossy(&self.content).into_owned();
         // self.content_meta.tiktokens = count_tiktokens(&text_content);
 
@@ -91,7 +90,32 @@ impl InProgressStream {
         };
 
         self.packet.hash = Some(self.content_meta.hash.clone());
+        // This will emit the updated item for frontends to update their caches
+        // app_handle.emit_all("refresh-items", true).unwrap();
     }
+
+    pub fn end_stream(&mut self, store: &mut Store) -> Packet {
+        let hash = store.cas_write(&self.content, self.content_meta.mime_type.clone());
+        self.packet.hash = Some(hash);
+        self.packet.ephemeral = false;
+        self.packet.clone()
+    }
+
+    /*
+    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
+        let stream = InProgressStream::new(stack_id, content);
+        let packet = stream.packet.clone();
+        self.in_progress_streams.insert(stream.packet.id, stream);
+        packet
+    }
+
+    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
+        let stream = self.in_progress_streams.get_mut(&id).unwrap();
+        stream.append(content);
+        stream.packet.clone()
+    }
+
+    */
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
@@ -244,7 +268,6 @@ pub struct Store {
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
-    in_progress_streams: HashMap<Scru128Id, InProgressStream>,
 }
 
 impl Store {
@@ -263,7 +286,6 @@ impl Store {
             meta,
             cache_path,
             index: Index::new(path.join("index")),
-            in_progress_streams: HashMap::new(),
         };
         store.content_meta_cache = store.scan_content_meta();
         store
@@ -318,36 +340,12 @@ impl Store {
     }
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        match self.content_meta_cache.get(hash) {
-            Some(meta) => Some(meta.clone()),
-            None => {
-                for stream in self.in_progress_streams.values() {
-                    if let Some(stream_hash) = &stream.packet.hash {
-                        if stream_hash == hash {
-                            return Some(stream.content_meta.clone());
-                        }
-                    }
-                }
-                None
-            }
-        }
+        self.content_meta_cache.get(hash).cloned()
     }
 
     #[tracing::instrument(skip_all)]
     pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {
-        match self.cas_read(hash) {
-            Some(content) => Some(content),
-            None => {
-                for stream in self.in_progress_streams.values() {
-                    if let Some(stream_hash) = &stream.packet.hash {
-                        if stream_hash == hash {
-                            return Some(stream.content.clone());
-                        }
-                    }
-                }
-                None
-            }
-        }
+        self.cas_read(hash)
     }
 
     #[tracing::instrument(skip_all)]
@@ -656,28 +654,6 @@ impl Store {
             let str = std::str::from_utf8(bytes.as_ref()).unwrap();
             serde_json::from_str(str).unwrap()
         })
-    }
-
-    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
-        let stream = InProgressStream::new(stack_id, content);
-        let packet = stream.packet.clone();
-        self.in_progress_streams.insert(stream.packet.id, stream);
-        packet
-    }
-
-    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
-        let stream = self.in_progress_streams.get_mut(&id).unwrap();
-        stream.append(content);
-        stream.packet.clone()
-    }
-
-    pub fn end_stream(&mut self, id: Scru128Id) -> Packet {
-        let mut stream = self.in_progress_streams.remove(&id).unwrap();
-        let hash = self.cas_write(&stream.content, stream.content_meta.mime_type);
-        stream.packet.hash = Some(hash);
-        stream.packet.ephemeral = false;
-        self.insert_packet(&stream.packet);
-        stream.packet
     }
 }
 
