@@ -1,4 +1,4 @@
-import { signal } from "@preact/signals";
+import { Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { itemGetContent, Stack } from "../types";
+import { Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -58,7 +58,15 @@ export default {
 
     const item = stack.selected();
 
-    const content = (item && itemGetContent(item)) || "";
+    const content: Signal<string> = signal("");
+
+    if (item) {
+      (async () => {
+        content.value = await invoke("store_get_raw_content", {
+          hash: item.hash,
+        });
+      })();
+    }
 
     return (
       <div
@@ -111,7 +119,7 @@ export default {
             }
           }}
         >
-          {b64ToUtf8(content)}
+          {b64ToUtf8(content.value)}
         </textarea>
       </div>
     );

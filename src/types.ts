@@ -6,53 +6,93 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
 
-import { utf8ToB64 } from "./utils";
-
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
 const SSRIBrand = Symbol("SSRI");
 export type SSRI = string & { readonly brand: typeof SSRIBrand };
 
-export interface Item {
-  id: Scru128Id;
-  stack_id?: Scru128Id;
-  last_touched: Scru128Id;
-  touched: Scru128Id[];
-  hash: SSRI;
+export interface Content {
   mime_type: string;
   content_type: string;
   terse: string;
   tiktokens: number;
+  words: number;
+  chars: number;
+  preview: string;
+}
+
+export function getContent(item: Item): Signal<Content | null> {
+  const stack = new Error().stack;
+  console.log("getContent", item.id, stack);
+  if (item.ephemeral) {
+    return ContentCache.byId(item.id);
+  }
+  return ContentCache.byHash(item.hash);
+}
+
+export const ContentCache = (() => {
+  const hashCache: Map<SSRI, Signal<Content | null>> = new Map();
+  const idCache: Map<Scru128Id, Signal<Content | null>> = new Map();
+
+  function byHash(hash: SSRI): Signal<Content | null> {
+    let ret = hashCache.get(hash);
+    if (!ret) {
+      ret = new Signal(null);
+      hashCache.set(hash, ret);
+      (async () => {
+        ret.value = await invoke("store_get_content", {
+          hash: hash,
+        });
+      })();
+    }
+    return ret;
+  }
+
+  function byId(id: Scru128Id): Signal<Content | null> {
+    let ret = idCache.get(id);
+    if (!ret) {
+      ret = new Signal(null);
+      idCache.set(id, ret);
+    }
+    return ret;
+  }
+
+  async function initListener() {
+    const d1 = await listen(
+      "streaming",
+      (event: { payload: [Scru128Id, Content] }) => {
+        const [id, content] = event.payload;
+        console.log("st", id, content);
+        const cache = byId(id);
+        cache.value = content;
+      },
+    );
+
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        if (d1) d1();
+      });
+    }
+  }
+  initListener();
+
+  return {
+    byId,
+    byHash,
+  };
+})();
+
+export interface Item {
+  id: Scru128Id;
+  stack_id?: Scru128Id;
+  name: string;
+  last_touched: Scru128Id;
+  touched: Scru128Id[];
+  hash: SSRI;
   ephemeral: boolean;
   locked: boolean;
   ordered: boolean;
   cross_stream: boolean;
-}
-
-export function itemGetContent(item: Item): string {
-  const ret = item.ephemeral
-    ? utf8ToB64(EphemeralCAS.getSignal(item.id).value)
-    : CAS.getSignal(item.hash).value;
-
-  if (item.ephemeral) {
-      const stack = new Error().stack;
-    console.log("itemGetContent", item.id, ret, stack);
-  }
-
-  return ret;
-}
-
-export function itemGetPreview(item: Item): Signal<string> {
-  const ret = item.ephemeral
-    ? EphemeralCAS.getSignal(item.id)
-    : PreviewCAS.getSignal(item);
-
-  if (item.ephemeral) {
-      const stack = new Error().stack;
-    console.log("itemGetPreview", item.id, ret, stack);
-  }
-
-  return ret;
 }
 
 export interface Layer {
@@ -212,91 +252,3 @@ export interface Action {
   canApply?: (stack: Stack) => boolean;
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
-
-export const EphemeralCAS = (() => {
-  const signalCache: Map<Scru128Id, Signal<string>> = new Map();
-
-  function getSignal(id: Scru128Id): Signal<string> {
-    let ret = signalCache.get(id);
-    if (!ret) {
-      ret = new Signal("");
-      signalCache.set(id, ret);
-    }
-
-    return ret;
-  }
-
-  async function initListener() {
-    const d1 = await listen(
-      "streaming",
-      (event: { payload: [Scru128Id, string] }) => {
-        const [id, content] = event.payload;
-        console.log("st", id, content);
-        const cache = getSignal(id);
-        cache.value = content;
-      },
-    );
-
-    if (import.meta.hot) {
-      import.meta.hot.dispose(() => {
-        if (d1) d1();
-      });
-    }
-  }
-  initListener();
-
-  return {
-    getSignal,
-  };
-})();
-
-export const PreviewCAS = (() => {
-  const signalCache: Map<
-    SSRI,
-    { contentType: string; previewSignal: Signal<string> }
-  > = new Map();
-
-  function getSignal(item: Item): Signal<string> {
-    const cacheEntry = signalCache.get(item.hash);
-
-    if (cacheEntry && cacheEntry.contentType === item.content_type) {
-      return cacheEntry.previewSignal;
-    }
-
-    // If the hash is not found or the content type has changed, create and cache a new signal.
-    const newPreviewSignal: Signal<string> = signal("");
-    signalCache.set(item.hash, {
-      contentType: item.content_type,
-      previewSignal: newPreviewSignal,
-    });
-
-    (async () => {
-      newPreviewSignal.value = await invoke("store_get_preview", { item });
-    })();
-
-    return newPreviewSignal;
-  }
-
-  return { getSignal };
-})();
-
-export const CAS = (() => {
-  const signalCache: Map<SSRI, Signal<string>> = new Map();
-
-  function getSignal(hash: SSRI): Signal<string> {
-    const cachedSignal = signalCache.get(hash);
-    if (cachedSignal !== undefined) {
-      return cachedSignal;
-    }
-    const ret: Signal<string> = signal("");
-    (async () => {
-      ret.value = await invoke("store_get_content", { hash: hash });
-    })();
-    signalCache.set(hash, ret);
-    return ret;
-  }
-
-  return {
-    getSignal,
-  };
-})();

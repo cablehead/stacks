@@ -4,11 +4,12 @@ use tracing::{error, info};
 
 use crate::state::SharedState;
 use crate::ui;
-use crate::view::View;
+use crate::store;
+use crate::view;
 
 // tracks previously published state
 struct PreviousPublish {
-    items: Vec<ui::Item>,
+    items: Vec<(view::Item, store::ContentMeta)>,
     cache: HashMap<String, String>,
 }
 
@@ -55,7 +56,7 @@ fn truncate_scru128(id: &scru128::Scru128Id, len: usize) -> String {
 */
 
 #[tracing::instrument(skip_all)]
-fn generate(state: &SharedState, item: &ui::Item) -> String {
+fn generate(state: &SharedState, item: &view::Item, content_meta: &store::ContentMeta) -> String {
     let (content, theme_mode) = state.with_lock(|state| {
         (
             state.store.get_content(&item.hash),
@@ -65,14 +66,14 @@ fn generate(state: &SharedState, item: &ui::Item) -> String {
     ui::generate_preview(
         &theme_mode,
         &content,
-        &item.mime_type,
-        &item.content_type,
+        &content_meta.mime_type,
+        &content_meta.content_type,
         item.ephemeral,
     )
 }
 
 #[tracing::instrument(skip_all)]
-fn process(state: &SharedState, view: &View, previous: &mut PreviousPublish) {
+fn process(state: &SharedState, view: &view::View, previous: &mut PreviousPublish) {
     let (token, items) = state.with_lock(|state| {
         let settings = state.store.settings_get();
         let token = settings
@@ -93,7 +94,13 @@ fn process(state: &SharedState, view: &View, previous: &mut PreviousPublish) {
         let items = if let Some(id) = id {
             view.children(view.items.get(&id).unwrap())
                 .iter()
-                .map(|id| ui::with_meta(&state.store, view.items.get(id).unwrap()))
+                .map(|id| {
+                    let item = view.items.get(id).unwrap();
+                    (
+                        item.clone(),
+                        state.store.get_content_meta(&item.hash).unwrap(),
+                    )
+                })
                 .collect::<Vec<_>>()
         } else {
             Vec::new()
@@ -113,12 +120,12 @@ fn process(state: &SharedState, view: &View, previous: &mut PreviousPublish) {
 
     let previews: Vec<String> = items
         .iter()
-        .map(|item| {
-            let cache_key = format!("{}{}", item.hash, item.content_type);
+        .map(|(item, meta)| {
+            let cache_key = format!("{}{}", item.hash, meta.content_type);
             previous
                 .cache
                 .entry(cache_key.clone())
-                .or_insert_with(|| generate(&state, &item))
+                .or_insert_with(|| generate(&state, &item, &meta))
                 .clone()
         })
         .collect();
@@ -135,7 +142,7 @@ fn process(state: &SharedState, view: &View, previous: &mut PreviousPublish) {
     }
 }
 
-pub fn spawn(state: SharedState, packet_receiver: Receiver<View>) {
+pub fn spawn(state: SharedState, packet_receiver: Receiver<view::View>) {
     std::thread::spawn(move || {
         let mut previous = PreviousPublish::new();
         for view in packet_receiver {

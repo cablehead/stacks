@@ -2,17 +2,11 @@ import { JSXInternal } from "preact/src/jsx";
 
 import { Scru128Id } from "scru128";
 
-import { Icon } from "../ui/icons";
+// import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item, itemGetContent, Stack } from "../types";
-import { b64ToUtf8, truncateUrl } from "../utils";
-
-function getTextMeta(input: string): { words: number; chars: number } {
-  const words = input.trim().split(/\s+/).length;
-  const chars = [...input].length;
-  return { words, chars };
-}
+import { Item, getContent, Stack, Content } from "../types";
+// import { b64ToUtf8, truncateUrl } from "../utils";
 
 interface MetaValue {
   name: string;
@@ -20,15 +14,17 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
+function getMeta(item: Item, content: Content): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
 
   let meta: MetaValue[] = [
-    { name: item.stack_id ? item.content_type : "Stack", value: item.id },
+    { name: item.stack_id ? content.content_type : "Stack", value: item.id },
   ];
 
+  /*
+  Todo:
   if (!item.stack_id) {
     meta.push({
       name: "Tiktokens",
@@ -42,14 +38,14 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
       ),
     });
   }
+  */
 
-  if (item.stack_id && item.mime_type == "text/plain") {
-    const textMeta = getTextMeta(b64ToUtf8(content));
+  if (item.stack_id && content.mime_type == "text/plain") {
 
     const info = [
-      { s: "word", n: textMeta.words },
-      { s: "char", n: textMeta.chars },
-      { s: "token", n: item.tiktokens },
+      { s: "word", n: content.words },
+      { s: "char", n: content.chars },
+      { s: "token", n: content.tiktokens },
     ]
       .filter((item) => item.n)
       .map((item) => `${item.n} ${item.s[0]}`);
@@ -64,7 +60,9 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
     });
   }
 
-  if (item.content_type == "Link") {
+  /*
+  Todo:
+  if (content.content_type == "Link") {
     const url = b64ToUtf8(content);
     meta.push({
       name: "Url",
@@ -86,6 +84,7 @@ function getMeta(stack: Stack, item: Item, content: string): MetaValue[] {
       ),
     });
   }
+  */
 
   if (item.touched.length === 1) {
     return [
@@ -141,7 +140,7 @@ function MetaInfoRow(meta: MetaValue) {
 export function MetaPanel({ stack }: { stack: Stack }) {
   const item = stack.selected();
   if (!item) return <></>;
-  const content = itemGetContent(item);
+  const content = getContent(item).value;
   if (!content) return <></>;
 
   return (
@@ -161,7 +160,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         zIndex: 10,
       }}
     >
-      {getMeta(stack, item, content).map((info) => <MetaInfoRow {...info} />)}
+      {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
     </div>
   );
 }

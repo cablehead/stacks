@@ -1,7 +1,5 @@
 use tauri::Manager;
 
-use base64::{engine::general_purpose, Engine as _};
-
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
@@ -174,33 +172,40 @@ fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
     )
 }
 
-#[tauri::command]
-#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
-pub fn store_get_content(
-    state: tauri::State<SharedState>,
-    hash: ssri::Integrity,
-) -> Option<String> {
-    state.with_lock(|state| {
-        state
-            .store
-            .get_content(&hash)
-            .map(|vec| general_purpose::STANDARD.encode(vec))
-    })
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+pub struct Content {
+    pub mime_type: MimeType,
+    pub content_type: String,
+    pub terse: String,
+    pub tiktokens: usize,
+    pub words: usize,
+    pub chars: usize,
+    pub preview: String,
 }
 
 #[tauri::command]
-#[tracing::instrument(skip(state, item), fields(%hash = truncate_hash(&item.hash, 8), content_type = item.content_type.as_str()))]
-pub fn store_get_preview(state: tauri::State<SharedState>, item: UIItem) -> Option<String> {
+#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
+pub fn store_get_content(state: tauri::State<SharedState>, hash: ssri::Integrity) -> Content {
     state.with_lock(|state| {
-        let content = state.store.get_content(&item.hash);
-        let preview = generate_preview(
-            &state.ui.theme_mode,
-            &content,
-            &item.mime_type,
-            &item.content_type,
-            item.ephemeral,
-        );
-        Some(preview)
+        let content = state.store.get_content(&hash);
+        let meta = state.store.get_content_meta(&hash).unwrap();
+            let preview = generate_preview(
+                &state.ui.theme_mode,
+                &content,
+                &meta.mime_type,
+                &meta.content_type,
+                false, // TODO
+            );
+
+        Content {
+            mime_type: meta.mime_type,
+            content_type: meta.content_type,
+            terse: meta.terse,
+            tiktokens: meta.tiktokens,
+            words: 0,
+            chars: 0,
+            preview,
+        }
     })
 }
 

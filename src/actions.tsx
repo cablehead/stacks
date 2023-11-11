@@ -1,8 +1,8 @@
 import { invoke } from "@tauri-apps/api/tauri";
-import { open } from "@tauri-apps/api/shell";
+// import { open } from "@tauri-apps/api/shell";
 // import { hide } from "tauri-plugin-spotlight-api";
 
-import { b64ToUtf8 } from "./utils";
+// import { b64ToUtf8 } from "./utils";
 
 import {
   addToStackMode,
@@ -13,7 +13,7 @@ import {
 } from "./modals";
 
 import { Icon } from "./ui/icons";
-import { Action, itemGetContent, Stack } from "./types";
+import { Action, getContent, Stack } from "./types";
 
 export const actions: Action[] = [
   {
@@ -42,7 +42,7 @@ export const actions: Action[] = [
     canApply: (stack: Stack) => {
       const item = stack.selected();
       if (!item) return false;
-      return item.mime_type == "text/plain";
+      return getContent(item).value?.mime_type == "text/plain";
     },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
@@ -78,18 +78,24 @@ export const actions: Action[] = [
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
+        console.log("TODO: OPEN", stack);
+        /*
       const item = stack.selected();
       if (!item?.hash) return false;
-      const content = itemGetContent(item);
+      const content = getContent(item);
+      if (!content) return false;
+
+
       if (typeof (content) == "undefined") return false;
       const url = b64ToUtf8(content);
       console.log("OPEN", url);
       open(url);
+      */
     },
     canApply: (stack: Stack) => {
       const item = stack.selected();
       if (!item?.hash) return false;
-      return item.content_type == "Link";
+      return getContent(item).value?.content_type == "Link";
     },
   },
   {
