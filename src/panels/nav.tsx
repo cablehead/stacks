@@ -3,7 +3,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { Icon } from "../ui/icons";
 import { borderRight, previewItem } from "../ui/app.css";
 
-import { Item, Layer, PreviewCAS, Stack } from "../types";
+import { Item, Layer, itemGetPreview, Stack } from "../types";
 
 const TerseRow = (
   { stack, item, isSelected, isFocused, showIcons }: {
@@ -178,7 +178,7 @@ export function Nav({ stack }: { stack: Stack }) {
                             if (!item) return;
                             stack.select(item.id);
                           }}
-                          content={PreviewCAS.getSignal(item).value}
+                          content={itemGetPreview(item).value}
                           active={item?.id == nav.sub?.selected.id}
                         />
                       );

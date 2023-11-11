@@ -6,6 +6,8 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
 import { hide } from "tauri-plugin-spotlight-api";
 
+import { utf8ToB64 } from "./utils";
+
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
 const SSRIBrand = Symbol("SSRI");
@@ -29,8 +31,27 @@ export interface Item {
 
 export function itemGetContent(item: Item): string {
   const ret = item.ephemeral
-    ? EphemeralCAS.getSignal(item).value
+    ? utf8ToB64(EphemeralCAS.getSignal(item.id).value)
     : CAS.getSignal(item.hash).value;
+
+  if (item.ephemeral) {
+      const stack = new Error().stack;
+    console.log("itemGetContent", item.id, ret, stack);
+  }
+
+  return ret;
+}
+
+export function itemGetPreview(item: Item): Signal<string> {
+  const ret = item.ephemeral
+    ? EphemeralCAS.getSignal(item.id)
+    : PreviewCAS.getSignal(item);
+
+  if (item.ephemeral) {
+      const stack = new Error().stack;
+    console.log("itemGetPreview", item.id, ret, stack);
+  }
+
   return ret;
 }
 
@@ -195,27 +216,34 @@ export interface Action {
 export const EphemeralCAS = (() => {
   const signalCache: Map<Scru128Id, Signal<string>> = new Map();
 
-  function getSignal(item: Item): Signal<string> {
-    let ret = signalCache.get(item.id);
+  function getSignal(id: Scru128Id): Signal<string> {
+    let ret = signalCache.get(id);
     if (!ret) {
       ret = new Signal("");
-      signalCache.set(item.id, ret);
+      signalCache.set(id, ret);
     }
-
-    (async () => {
-      const content = await invoke<string>("store_get_content", {
-        hash: item.hash,
-      });
-      // TODO: content can be null: my guess is because the content hash has
-      // already been replaced in the backend cache: we should fetch by
-      // item.id, not hash
-      if (content) {
-        ret.value = content;
-      }
-    })();
 
     return ret;
   }
+
+  async function initListener() {
+    const d1 = await listen(
+      "streaming",
+      (event: { payload: [Scru128Id, string] }) => {
+        const [id, content] = event.payload;
+        console.log("st", id, content);
+        const cache = getSignal(id);
+        cache.value = content;
+      },
+    );
+
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        if (d1) d1();
+      });
+    }
+  }
+  initListener();
 
   return {
     getSignal,

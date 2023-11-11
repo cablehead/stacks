@@ -72,6 +72,13 @@ async fn post(
         match chunk {
             Ok(chunk) => {
                 streamer.append(&chunk);
+                let content = match String::from_utf8(streamer.content.clone()) {
+                    Ok(str) => str,
+                    Err(e) => e.to_string(), // Converts the error to a string representation
+                };
+                app_handle
+                    .emit_all("streaming", (streamer.packet.id, content))
+                    .unwrap();
             }
             Err(e) => {
                 tracing::error!("Error reading bytes from HTTP POST: {}", e);

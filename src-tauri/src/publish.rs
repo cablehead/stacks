@@ -62,7 +62,13 @@ fn generate(state: &SharedState, item: &ui::Item) -> String {
             state.ui.theme_mode.clone(),
         )
     });
-    ui::generate_preview(&theme_mode, &item, &content)
+    ui::generate_preview(
+        &theme_mode,
+        &content,
+        &item.mime_type,
+        &item.content_type,
+        item.ephemeral,
+    )
 }
 
 #[tracing::instrument(skip_all)]

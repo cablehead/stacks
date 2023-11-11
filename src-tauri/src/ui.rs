@@ -269,16 +269,21 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
 use maud::html;
 
 #[tracing::instrument(
-    skip_all,
+    skip(content)
     fields(
-        content_type = %item.content_type,
         size = match content {
             Some(c) => c.len(),
             None => 0,
         },
     )
 )]
-pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
+pub fn generate_preview(
+    theme_mode: &str,
+    content: &Option<Vec<u8>>,
+    mime_type: &MimeType,
+    content_type: &String,
+    ephemeral: bool,
+) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),
         ("JSON", "json"),
@@ -300,26 +305,26 @@ pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>
     match content {
         None => "loading...".to_string(),
         Some(data) => {
-            if item.mime_type == MimeType::ImagePng {
+            if *mime_type == MimeType::ImagePng {
                 let img_data = format!("data:image/png;base64,{}", util::b64encode(data));
                 let img = html! {
                     img src=(img_data) style="opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain";
                 };
                 img.into_string()
-            } else if item.content_type == "Markdown" {
+            } else if content_type == "Markdown" {
                 let md_html = markdown_to_html(theme_mode, data);
                 let md_html = maud::PreEscaped(md_html);
                 let div = html! {
-                    div.("scroll-me")[item.ephemeral] .preview.markdown {
+                    div.("scroll-me")[ephemeral] .preview.markdown {
                         (md_html)
                     }
                 };
                 div.into_string()
-            } else if let Some(ext) = file_extensions.get(item.content_type.as_str()) {
+            } else if let Some(ext) = file_extensions.get(content_type.as_str()) {
                 let html = code_to_html(theme_mode, data, ext);
                 let html = maud::PreEscaped(html);
                 let div = html! {
-                    div.("scroll-me")[item.ephemeral] .preview.rust {
+                    div.("scroll-me")[ephemeral] .preview.rust {
                         (html)
                     }
                 };
@@ -327,7 +332,7 @@ pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>
             } else {
                 let data = String::from_utf8(data.clone()).unwrap();
                 let pre = html! {
-                    pre.("scroll-me")[item.ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
+                    pre.("scroll-me")[ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
                         (data)
                     }
                 };

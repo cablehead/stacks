@@ -193,7 +193,13 @@ pub fn store_get_content(
 pub fn store_get_preview(state: tauri::State<SharedState>, item: UIItem) -> Option<String> {
     state.with_lock(|state| {
         let content = state.store.get_content(&item.hash);
-        let preview = generate_preview(&state.ui.theme_mode, &item, &content);
+        let preview = generate_preview(
+            &state.ui.theme_mode,
+            &content,
+            &item.mime_type,
+            &item.content_type,
+            item.ephemeral,
+        );
         Some(preview)
     })
 }
