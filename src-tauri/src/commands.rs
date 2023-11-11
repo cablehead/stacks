@@ -189,21 +189,33 @@ pub fn store_get_content(state: tauri::State<SharedState>, hash: ssri::Integrity
     state.with_lock(|state| {
         let content = state.store.get_content(&hash);
         let meta = state.store.get_content_meta(&hash).unwrap();
-            let preview = generate_preview(
-                &state.ui.theme_mode,
-                &content,
-                &meta.mime_type,
-                &meta.content_type,
-                false, // TODO
-            );
+
+        let (words, chars) = match (&meta.mime_type, &content) {
+            (MimeType::TextPlain, Some(bytes)) => {
+                let str_slice = std::str::from_utf8(bytes).expect("Invalid UTF-8");
+                (
+                    str_slice.split_whitespace().count(),
+                    str_slice.chars().count(),
+                )
+            }
+            _ => (0, 0),
+        };
+
+        let preview = generate_preview(
+            &state.ui.theme_mode,
+            &content,
+            &meta.mime_type,
+            &meta.content_type,
+            false, // TODO
+        );
 
         Content {
             mime_type: meta.mime_type,
             content_type: meta.content_type,
             terse: meta.terse,
             tiktokens: meta.tiktokens,
-            words: 0,
-            chars: 0,
+            words,
+            chars,
             preview,
         }
     })
