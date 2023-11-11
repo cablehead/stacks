@@ -206,7 +206,7 @@ pub fn store_get_content(state: tauri::State<SharedState>, hash: ssri::Integrity
             &content,
             &meta.mime_type,
             &meta.content_type,
-            false, // TODO
+            false,
         );
 
         Content {
