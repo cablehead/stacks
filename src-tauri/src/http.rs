@@ -8,7 +8,8 @@ use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 use tracing::error;
 
 use crate::state::SharedState;
-use crate::store::InProgressStream;
+use crate::store::{InProgressStream, MimeType};
+use crate::ui::generate_preview;
 
 async fn handle(
     req: Request<Body>,
@@ -72,10 +73,13 @@ async fn post(
         match chunk {
             Ok(chunk) => {
                 streamer.append(&chunk);
-                let content = match String::from_utf8(streamer.content.clone()) {
-                    Ok(str) => str,
-                    Err(e) => e.to_string(), // Converts the error to a string representation
-                };
+                let content = generate_preview(
+                    "dark",
+                    &Some(streamer.content.clone()),
+                    &MimeType::TextPlain,
+                    &"Text".to_string(),
+                    true,
+                );
                 app_handle
                     .emit_all("streaming", (streamer.packet.id, content))
                     .unwrap();
