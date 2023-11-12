@@ -5,8 +5,9 @@ import { Scru128Id } from "scru128";
 import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
-import { Item, getContent, Stack, Content } from "../types";
+import { Content, getContent, Item, Stack } from "../types";
 import { truncateUrl } from "../utils";
+import { attemptActionByName } from "../actions";
 
 interface MetaValue {
   name: string;
@@ -14,7 +15,7 @@ interface MetaValue {
   timestamp?: number;
 }
 
-function getMeta(item: Item, content: Content): MetaValue[] {
+function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
   const toTimestamp = (id: string) => {
     return Scru128Id.fromString(id).timestamp;
   };
@@ -41,7 +42,6 @@ function getMeta(item: Item, content: Content): MetaValue[] {
   */
 
   if (item.stack_id && content.mime_type == "text/plain") {
-
     const info = [
       { s: "word", n: content.words },
       { s: "char", n: content.chars },
@@ -65,7 +65,12 @@ function getMeta(item: Item, content: Content): MetaValue[] {
     meta.push({
       name: "Url",
       value: (
-        <a href={url} target="_blank">
+        <a
+          onClick={(e) => {
+            e.preventDefault();
+            attemptActionByName("Open", stack);
+          }}
+        >
           <span>{truncateUrl(url, 54)}</span>
           <span
             style={{
@@ -157,7 +162,7 @@ export function MetaPanel({ stack }: { stack: Stack }) {
         zIndex: 10,
       }}
     >
-      {getMeta(item, content).map((info) => <MetaInfoRow {...info} />)}
+      {getMeta(stack, item, content).map((info) => <MetaInfoRow {...info} />)}
     </div>
   );
 }

@@ -134,3 +134,14 @@ export const attemptAction = (event: KeyboardEvent, stack: Stack): boolean => {
   }
   return false;
 };
+
+export const attemptActionByName = (name: string, stack: Stack): boolean => {
+  for (const action of actions) {
+    if (!action.trigger) continue;
+    if (action.name != name) continue;
+    if (action.canApply && !action.canApply(stack)) continue;
+    action.trigger(stack);
+    return true;
+  }
+  return false;
+};
