@@ -1,8 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
-// import { open } from "@tauri-apps/api/shell";
-// import { hide } from "tauri-plugin-spotlight-api";
+import { open } from "@tauri-apps/api/shell";
 
-// import { b64ToUtf8 } from "./utils";
+import { b64ToUtf8 } from "./utils";
 
 import {
   addToStackMode,
@@ -55,42 +54,25 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
-  /*
-  {
-    name: "Pipe stack to GPT",
-    keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      event.altKey && event.metaKey && event.shiftKey &&
-      event.code == "Backslash",
-    trigger: (stack: Stack) => {
-      const item = stack.selected_stack();
-      if (item) {
-        invoke("store_pipe_to_gpt", { sourceId: item.id })
-          .catch((err) => console.error("Error caught:", err));
-      }
-    },
-    canApply: (stack: Stack) => !!stack.selected_item(),
-  },
-  */
   {
     name: "Open",
     keys: [<Icon name="IconCommandKey" />, "O"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
     trigger: (stack: Stack) => {
-        console.log("TODO: OPEN", stack);
-        /*
       const item = stack.selected();
       if (!item?.hash) return false;
-      const content = getContent(item);
-      if (!content) return false;
 
+      (async () => {
+        const content = await invoke<string>("store_get_raw_content", {
+          hash: item.hash,
+        });
+        const url = b64ToUtf8(content);
+        console.log("OPEN", url);
+        open(url);
+      })();
 
-      if (typeof (content) == "undefined") return false;
-      const url = b64ToUtf8(content);
-      console.log("OPEN", url);
-      open(url);
-      */
+      return true;
     },
     canApply: (stack: Stack) => {
       const item = stack.selected();

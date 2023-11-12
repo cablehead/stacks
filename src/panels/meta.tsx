@@ -2,11 +2,11 @@ import { JSXInternal } from "preact/src/jsx";
 
 import { Scru128Id } from "scru128";
 
-// import { Icon } from "../ui/icons";
+import { Icon } from "../ui/icons";
 import { overlay } from "../ui/app.css";
 
 import { Item, getContent, Stack, Content } from "../types";
-// import { b64ToUtf8, truncateUrl } from "../utils";
+import { truncateUrl } from "../utils";
 
 interface MetaValue {
   name: string;
@@ -60,10 +60,8 @@ function getMeta(item: Item, content: Content): MetaValue[] {
     });
   }
 
-  /*
-  Todo:
   if (content.content_type == "Link") {
-    const url = b64ToUtf8(content);
+    const url = content.terse;
     meta.push({
       name: "Url",
       value: (
@@ -84,7 +82,6 @@ function getMeta(item: Item, content: Content): MetaValue[] {
       ),
     });
   }
-  */
 
   if (item.touched.length === 1) {
     return [
