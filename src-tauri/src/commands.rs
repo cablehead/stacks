@@ -172,6 +172,22 @@ fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
     )
 }
 
+use base64::{engine::general_purpose, Engine as _};
+
+#[tauri::command]
+#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
+pub fn store_get_raw_content(
+    state: tauri::State<SharedState>,
+    hash: ssri::Integrity,
+) -> Option<String> {
+    state.with_lock(|state| {
+        state
+            .store
+            .get_content(&hash)
+            .map(|vec| general_purpose::STANDARD.encode(vec))
+    })
+}
+
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
 pub struct Content {
     pub mime_type: MimeType,

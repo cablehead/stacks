@@ -1,4 +1,4 @@
-import { Signal, signal } from "@preact/signals";
+import { Signal, useSignal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -58,7 +58,7 @@ export default {
 
     const item = stack.selected();
 
-    const content: Signal<string> = signal("");
+    const content: Signal<string> = useSignal("");
 
     if (item) {
       (async () => {
