@@ -135,7 +135,7 @@ export default {
   name: (stack: Stack) => {
     const selected = stack.nav.value.root?.selected;
     if (!selected) return <span></span>;
-    const terse = selected ? selected.terse : "";
+    const name = selected ? selected.name : "";
     return (
       <div
         style={{
@@ -151,7 +151,7 @@ export default {
         <VertDiv />
         <Broadcast stack={stack} />
         <div>
-          {terse}
+          {name}
         </div>
       </div>
     );

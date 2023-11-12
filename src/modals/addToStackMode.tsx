@@ -20,7 +20,7 @@ const state = (() => {
     availOptions.value
       .filter((item) =>
         currFilter.value == "" ||
-        item.terse.toLowerCase().includes(
+        item.name.toLowerCase().includes(
           currFilter.value.toLowerCase(),
         )
       )
@@ -250,7 +250,7 @@ export default {
                   }}
                 >
                   <div>
-                    {item.terse}
+                    {item.name}
                   </div>
                 </div>
               );

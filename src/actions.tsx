@@ -1,6 +1,5 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
-// import { hide } from "tauri-plugin-spotlight-api";
 
 import { b64ToUtf8 } from "./utils";
 
@@ -13,7 +12,7 @@ import {
 } from "./modals";
 
 import { Icon } from "./ui/icons";
-import { Action, itemGetContent, Stack } from "./types";
+import { Action, getContent, Stack } from "./types";
 
 export const actions: Action[] = [
   {
@@ -42,7 +41,7 @@ export const actions: Action[] = [
     canApply: (stack: Stack) => {
       const item = stack.selected();
       if (!item) return false;
-      return item.mime_type == "text/plain";
+      return getContent(item).value?.mime_type == "text/plain";
     },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
@@ -55,23 +54,6 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, pipeMode),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
-  /*
-  {
-    name: "Pipe stack to GPT",
-    keys: ["OPTION", <Icon name="IconCommandKey" />, "|"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      event.altKey && event.metaKey && event.shiftKey &&
-      event.code == "Backslash",
-    trigger: (stack: Stack) => {
-      const item = stack.selected_stack();
-      if (item) {
-        invoke("store_pipe_to_gpt", { sourceId: item.id })
-          .catch((err) => console.error("Error caught:", err));
-      }
-    },
-    canApply: (stack: Stack) => !!stack.selected_item(),
-  },
-  */
   {
     name: "Open",
     keys: [<Icon name="IconCommandKey" />, "O"],
@@ -80,16 +62,22 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => {
       const item = stack.selected();
       if (!item?.hash) return false;
-      const content = itemGetContent(item);
-      if (typeof (content) == "undefined") return false;
-      const url = b64ToUtf8(content);
-      console.log("OPEN", url);
-      open(url);
+
+      (async () => {
+        const content = await invoke<string>("store_get_raw_content", {
+          hash: item.hash,
+        });
+        const url = b64ToUtf8(content);
+        console.log("OPEN", url);
+        open(url);
+      })();
+
+      return true;
     },
     canApply: (stack: Stack) => {
       const item = stack.selected();
       if (!item?.hash) return false;
-      return item.content_type == "Link";
+      return getContent(item).value?.content_type == "Link";
     },
   },
   {
@@ -143,6 +131,17 @@ export const attemptAction = (event: KeyboardEvent, stack: Stack): boolean => {
       action.trigger(stack);
       return true;
     }
+  }
+  return false;
+};
+
+export const attemptActionByName = (name: string, stack: Stack): boolean => {
+  for (const action of actions) {
+    if (!action.trigger) continue;
+    if (action.name != name) continue;
+    if (action.canApply && !action.canApply(stack)) continue;
+    action.trigger(stack);
+    return true;
   }
   return false;
 };

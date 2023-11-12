@@ -5,7 +5,7 @@ use ssri::Integrity;
 
 use crate::store::{Movement, Packet, PacketType, StackLockStatus, StackSortOrder};
 
-#[derive(serde::Serialize, Debug, Clone)]
+#[derive(serde::Serialize, Debug, Clone, PartialEq)]
 pub struct Item {
     pub id: Scru128Id,
     pub last_touched: Scru128Id,

@@ -69,17 +69,40 @@ async fn post(
 
     let mut bytes_stream = req.into_body();
 
+    #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+    pub struct Content {
+        pub mime_type: MimeType,
+        pub content_type: String,
+        pub terse: String,
+        pub tiktokens: usize,
+        pub words: usize,
+        pub chars: usize,
+        pub preview: String,
+    }
+
     while let Some(chunk) = bytes_stream.next().await {
         match chunk {
             Ok(chunk) => {
                 streamer.append(&chunk);
-                let content = generate_preview(
+                let preview = generate_preview(
                     "dark",
                     &Some(streamer.content.clone()),
                     &MimeType::TextPlain,
                     &"Text".to_string(),
                     true,
                 );
+
+                let content = String::from_utf8_lossy(&streamer.content);
+                let content = Content {
+                    mime_type: MimeType::TextPlain,
+                    content_type: "Text".to_string(),
+                    terse: content.chars().take(100).collect(),
+                    tiktokens: 0,
+                    words: content.split_whitespace().count(),
+                    chars: content.chars().count(),
+                    preview,
+                };
+
                 app_handle
                     .emit_all("streaming", (streamer.packet.id, content))
                     .unwrap();
