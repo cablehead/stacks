@@ -113,7 +113,6 @@ async fn post(
         }
     }
 
-    // TODO: frontend should clear cache on end
     state.with_lock(|state| {
         let packet = streamer.end_stream(&mut state.store);
         state.merge(&packet);

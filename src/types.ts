@@ -22,11 +22,10 @@ export interface Content {
 }
 
 export function getContent(item: Item): Signal<Content | null> {
-  const stack = new Error().stack;
-  console.log("getContent", item.id, stack);
   if (item.ephemeral) {
     return ContentCache.byId(item.id);
   }
+  ContentCache.clearId(item.id);
   return ContentCache.byHash(item.hash);
 }
 
@@ -57,6 +56,10 @@ export const ContentCache = (() => {
     return ret;
   }
 
+  function clearId(id: Scru128Id) {
+      idCache.delete(id);
+  }
+
   async function initListener() {
     const d1 = await listen(
       "streaming",
@@ -77,8 +80,9 @@ export const ContentCache = (() => {
   initListener();
 
   return {
-    byId,
     byHash,
+    byId,
+    clearId,
   };
 })();
 

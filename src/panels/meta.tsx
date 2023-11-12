@@ -25,7 +25,7 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
   ];
 
   /*
-  Todo:
+  Todo: restore aggregate tiktoken count for entire stack
   if (!item.stack_id) {
     meta.push({
       name: "Tiktokens",
