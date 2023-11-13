@@ -100,22 +100,6 @@ impl InProgressStream {
         self.packet.ephemeral = false;
         self.packet.clone()
     }
-
-    /*
-    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
-        let stream = InProgressStream::new(stack_id, content);
-        let packet = stream.packet.clone();
-        self.in_progress_streams.insert(stream.packet.id, stream);
-        packet
-    }
-
-    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
-        let stream = self.in_progress_streams.get_mut(&id).unwrap();
-        stream.append(content);
-        stream.packet.clone()
-    }
-
-    */
 }
 
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
