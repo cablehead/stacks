@@ -467,7 +467,7 @@ pub fn store_set_content_type(
 ) {
     state.with_lock(|state| {
         let packet = state.store.update_content_type(
-            hash,
+            hash.clone(),
             if content_type == "Plain Text" {
                 "Text".to_string()
             } else {
@@ -476,7 +476,9 @@ pub fn store_set_content_type(
         );
         state.merge(&packet);
     });
-    app.emit_all("refresh-items", true).unwrap();
+
+    let content = store_get_content(state, hash.clone());
+    app.emit_all("content", (hash, content)).unwrap();
 }
 
 #[tauri::command]

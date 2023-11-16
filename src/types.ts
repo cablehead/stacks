@@ -65,8 +65,18 @@ export const ContentCache = (() => {
       "streaming",
       (event: { payload: [Scru128Id, Content] }) => {
         const [id, content] = event.payload;
-        console.log("st", id, content);
+        console.log("streaming", id, content);
         const cache = byId(id);
+        cache.value = content;
+      },
+    );
+
+    const d2 = await listen(
+      "content",
+      (event: { payload: [SSRI, Content] }) => {
+        const [hash, content] = event.payload;
+        console.log("content", hash, content);
+        const cache = byHash(hash);
         cache.value = content;
       },
     );
@@ -74,6 +84,7 @@ export const ContentCache = (() => {
     if (import.meta.hot) {
       import.meta.hot.dispose(() => {
         if (d1) d1();
+        if (d2) d2();
       });
     }
   }
