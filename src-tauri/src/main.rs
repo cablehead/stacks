@@ -25,6 +25,9 @@ mod view;
 mod http;
 
 #[cfg(test)]
+mod store_tests;
+
+#[cfg(test)]
 mod ui_tests;
 
 #[cfg(test)]
