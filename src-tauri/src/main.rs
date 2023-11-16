@@ -25,6 +25,9 @@ mod view;
 mod http;
 
 #[cfg(test)]
+mod store_tests;
+
+#[cfg(test)]
 mod ui_tests;
 
 #[cfg(test)]
@@ -34,7 +37,7 @@ use state::{SharedState, State};
 
 #[tokio::main]
 async fn main() {
-    let (tx, mut rx) = tokio::sync::broadcast::channel(16);
+    let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
 
     tokio::spawn(async move {
         let mut stdout = std::io::stdout();
@@ -95,6 +98,7 @@ async fn main() {
         .invoke_handler(tauri::generate_handler![
             // commands::store_win_move,
             commands::store_get_content,
+            commands::store_get_raw_content,
             commands::store_get_root,
             commands::store_nav_refresh,
             commands::store_nav_reset,
@@ -169,7 +173,7 @@ async fn main() {
             let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
-            publish::publish_previews(state.clone(), packet_receiver);
+            publish::spawn(state.clone(), packet_receiver);
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

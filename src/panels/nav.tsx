@@ -3,15 +3,15 @@ import { useEffect, useRef } from "preact/hooks";
 import { Icon } from "../ui/icons";
 import { borderRight, previewItem } from "../ui/app.css";
 
-import { Item, Layer, Stack } from "../types";
+import { Content, getContent, Item, Layer, Stack } from "../types";
 
 const TerseRow = (
-  { stack, item, isSelected, isFocused, showIcons }: {
+  { stack, item, isSelected, isFocused, content }: {
     stack: Stack;
     item: Item;
     isSelected: boolean;
     isFocused: boolean;
-    showIcons: boolean;
+    content: Content | null;
   },
 ) => {
   const theRef = useRef<HTMLDivElement>(null);
@@ -43,7 +43,7 @@ const TerseRow = (
           cursor: pointer;
           "
     >
-      {showIcons &&
+      {content &&
         (
           <div
             style={{
@@ -53,7 +53,7 @@ const TerseRow = (
               overflow: "hidden",
             }}
           >
-            <RowIcon item={item} />
+            <RowIcon item={item} content={content} />
           </div>
         )}
 
@@ -65,7 +65,7 @@ const TerseRow = (
           textOverflow: "ellipsis",
         }}
       >
-        {item.terse}
+        {content?.terse || item.name}
       </div>
     </div>
   );
@@ -75,7 +75,7 @@ const renderItems = (
   stack: Stack,
   key: string,
   layer: Layer,
-  showIcons: boolean,
+  isRoot: boolean,
 ) => {
   if (layer.items.length == 0) return <i>no items</i>;
   return (
@@ -90,16 +90,22 @@ const renderItems = (
       }}
     >
       {layer.items
-        .map((item) => (
-          <TerseRow
-            stack={stack}
-            item={item}
-            key={item.id}
-            isSelected={item.id == layer.selected.id}
-            isFocused={layer.is_focus}
-            showIcons={showIcons}
-          />
-        ))}
+        .map((item) => {
+          let content = null;
+          if (isRoot) {
+            content = getContent(item).value;
+          }
+          return (
+            <TerseRow
+              stack={stack}
+              item={item}
+              key={item.id}
+              isSelected={item.id == layer.selected.id}
+              isFocused={layer.is_focus}
+              content={content}
+            />
+          );
+        })}
     </div>
   );
 };
@@ -171,15 +177,14 @@ export function Nav({ stack }: { stack: Stack }) {
                       scrollBehavior: "smooth",
                     }}
                   >
-                    {nav.sub.previews.map((content, idx) => {
-                      let item = nav.sub?.items[idx];
+                    {nav.sub.items.map((item) => {
                       return (
                         <Preview
                           onMouseDown={() => {
                             if (!item) return;
                             stack.select(item.id);
                           }}
-                          content={content}
+                          content={getContent(item).value?.preview || ""}
                           active={item?.id == nav.sub?.selected.id}
                         />
                       );
@@ -195,10 +200,14 @@ export function Nav({ stack }: { stack: Stack }) {
   );
 }
 
-const RowIcon = ({ item }: { item: Item }) => {
+const RowIcon = (
+  { item, content }: { item: Item; content: Content | null },
+) => {
   if (!item.stack_id) return <Icon name="IconStack" />;
 
-  switch (item.content_type) {
+  if (!content) return <Icon name="IconClipboard" />;
+
+  switch (content.content_type) {
     case "Image":
       return <Icon name="IconImage" />;
 

@@ -8,6 +8,8 @@ use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 use tracing::error;
 
 use crate::state::SharedState;
+use crate::store::{InProgressStream, MimeType};
+use crate::ui::generate_preview;
 
 async fn handle(
     req: Request<Body>,
@@ -30,15 +32,11 @@ async fn handle(
 }
 
 async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body>, Error> {
-    let item = state.with_lock(|state| {
-        state.view.items.get(&id).cloned()
-    });
+    let item = state.with_lock(|state| state.view.items.get(&id).cloned());
 
     match item {
         Some(item) => {
-            let cache_path = state.with_lock(|state| {
-                state.store.cache_path.clone()
-            });
+            let cache_path = state.with_lock(|state| state.store.cache_path.clone());
             let reader = cacache::Reader::open_hash(cache_path, item.hash)
                 .await
                 .unwrap();
@@ -55,46 +53,78 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body
     }
 }
 
-
 async fn post(
     req: Request<Body>,
     state: SharedState,
     app_handle: tauri::AppHandle,
 ) -> Result<Response<Body>, Error> {
-    let id = state.with_lock(|state| {
+    let mut streamer = state.with_lock(|state| {
         let stack = state.get_curr_stack();
         state.ui.select(None); // focus first
-        let packet = state.store.start_stream(Some(stack), "".as_bytes());
-        packet.id.clone()
+        let streamer = InProgressStream::new(Some(stack), "".as_bytes());
+        state.merge(&streamer.packet);
+        app_handle.emit_all("refresh-items", true).unwrap();
+        streamer
     });
 
     let mut bytes_stream = req.into_body();
 
-    while let Some(chunk_result) = bytes_stream.next().await {
-        if let Ok(chunk) = chunk_result {
-            let data = chunk.to_vec();
-            state.with_lock(|state| {
-                let packet = state.store.update_stream(id, &data);
-                state.merge(&packet);
-            });
-            app_handle.emit_all("refresh-items", true).unwrap();
-        } else {
-            // TODO: handle error
+    #[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+    pub struct Content {
+        pub mime_type: MimeType,
+        pub content_type: String,
+        pub terse: String,
+        pub tiktokens: usize,
+        pub words: usize,
+        pub chars: usize,
+        pub preview: String,
+    }
+
+    while let Some(chunk) = bytes_stream.next().await {
+        match chunk {
+            Ok(chunk) => {
+                streamer.append(&chunk);
+                let preview = generate_preview(
+                    "dark",
+                    &Some(streamer.content.clone()),
+                    &MimeType::TextPlain,
+                    &"Text".to_string(),
+                    true,
+                );
+
+                let content = String::from_utf8_lossy(&streamer.content);
+                let content = Content {
+                    mime_type: MimeType::TextPlain,
+                    content_type: "Text".to_string(),
+                    terse: content.chars().take(100).collect(),
+                    tiktokens: 0,
+                    words: content.split_whitespace().count(),
+                    chars: content.chars().count(),
+                    preview,
+                };
+
+                app_handle
+                    .emit_all("streaming", (streamer.packet.id, content))
+                    .unwrap();
+            }
+            Err(e) => {
+                tracing::error!("Error reading bytes from HTTP POST: {}", e);
+            }
         }
     }
 
     state.with_lock(|state| {
-        let packet = state.store.end_stream(id);
+        let packet = streamer.end_stream(&mut state.store);
         state.merge(&packet);
+        state.store.insert_packet(&packet);
     });
     app_handle.emit_all("refresh-items", true).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)
-        .body(Body::from(id.to_string()))
+        .body(Body::from(streamer.packet.id.to_string()))
         .unwrap())
 }
-
 
 pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
     tauri::async_runtime::spawn(async move {

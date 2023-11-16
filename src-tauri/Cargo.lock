@@ -4218,7 +4218,7 @@ checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
 
 [[package]]
 name = "stacks"
-version = "0.12.2"
+version = "0.13.1"
 dependencies = [
  "async-openai",
  "base64 0.21.2",
@@ -5143,7 +5143,7 @@ dependencies = [
 [[package]]
 name = "tracing-stacks"
 version = "0.1.0"
-source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#52eb0b63786260071641bc70c1d6669ebc19b4fd"
+source = "git+https://github.com/cablehead/tracing-stacks.git?branch=main#7c12d30d4e44f8d012a845cb95d3a2ffb1d535b9"
 dependencies = [
  "chrono",
  "console",

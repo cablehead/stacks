@@ -11,34 +11,109 @@ export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
 const SSRIBrand = Symbol("SSRI");
 export type SSRI = string & { readonly brand: typeof SSRIBrand };
 
-export interface Item {
-  id: Scru128Id;
-  stack_id?: Scru128Id;
-  last_touched: Scru128Id;
-  touched: Scru128Id[];
-  hash: SSRI;
+export interface Content {
   mime_type: string;
   content_type: string;
   terse: string;
   tiktokens: number;
+  words: number;
+  chars: number;
+  preview: string;
+}
+
+export function getContent(item: Item): Signal<Content | null> {
+  if (item.ephemeral) {
+    return ContentCache.byId(item.id);
+  }
+  ContentCache.clearId(item.id);
+  return ContentCache.byHash(item.hash);
+}
+
+export const ContentCache = (() => {
+  const hashCache: Map<SSRI, Signal<Content | null>> = new Map();
+  const idCache: Map<Scru128Id, Signal<Content | null>> = new Map();
+
+  function byHash(hash: SSRI): Signal<Content | null> {
+    let ret = hashCache.get(hash);
+    if (!ret) {
+      ret = new Signal(null);
+      hashCache.set(hash, ret);
+      (async () => {
+        ret.value = await invoke("store_get_content", {
+          hash: hash,
+        });
+      })();
+    }
+    return ret;
+  }
+
+  function byId(id: Scru128Id): Signal<Content | null> {
+    let ret = idCache.get(id);
+    if (!ret) {
+      ret = new Signal(null);
+      idCache.set(id, ret);
+    }
+    return ret;
+  }
+
+  function clearId(id: Scru128Id) {
+      idCache.delete(id);
+  }
+
+  async function initListener() {
+    const d1 = await listen(
+      "streaming",
+      (event: { payload: [Scru128Id, Content] }) => {
+        const [id, content] = event.payload;
+        console.log("streaming", id, content);
+        const cache = byId(id);
+        cache.value = content;
+      },
+    );
+
+    const d2 = await listen(
+      "content",
+      (event: { payload: [SSRI, Content] }) => {
+        const [hash, content] = event.payload;
+        console.log("content", hash, content);
+        const cache = byHash(hash);
+        cache.value = content;
+      },
+    );
+
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        if (d1) d1();
+        if (d2) d2();
+      });
+    }
+  }
+  initListener();
+
+  return {
+    byHash,
+    byId,
+    clearId,
+  };
+})();
+
+export interface Item {
+  id: Scru128Id;
+  stack_id?: Scru128Id;
+  name: string;
+  last_touched: Scru128Id;
+  touched: Scru128Id[];
+  hash: SSRI;
   ephemeral: boolean;
   locked: boolean;
   ordered: boolean;
   cross_stream: boolean;
 }
 
-export function itemGetContent(item: Item): string {
-  const ret = item.ephemeral
-    ? EphemeralCAS.getSignal(item).value
-    : CAS.getSignal(item.hash).value;
-  return ret;
-}
-
 export interface Layer {
   items: Item[];
   selected: Item;
   is_focus: boolean;
-  previews: string[];
 }
 
 export interface Nav {
@@ -192,54 +267,3 @@ export interface Action {
   canApply?: (stack: Stack) => boolean;
   matchKeyEvent?: (event: KeyboardEvent) => boolean;
 }
-
-export const EphemeralCAS = (() => {
-  const signalCache: Map<Scru128Id, Signal<string>> = new Map();
-
-  function getSignal(item: Item): Signal<string> {
-    let ret = signalCache.get(item.id);
-    if (!ret) {
-      ret = new Signal("");
-      signalCache.set(item.id, ret);
-    }
-
-    (async () => {
-      const content = await invoke<string>("store_get_content", {
-        hash: item.hash,
-      });
-      // TODO: content can be null: my guess is because the content hash has
-      // already been replaced in the backend cache: we should fetch by
-      // item.id, not hash
-      if (content) {
-        ret.value = content;
-      }
-    })();
-
-    return ret;
-  }
-
-  return {
-    getSignal,
-  };
-})();
-
-export const CAS = (() => {
-  const signalCache: Map<SSRI, Signal<string>> = new Map();
-
-  function getSignal(hash: SSRI): Signal<string> {
-    const cachedSignal = signalCache.get(hash);
-    if (cachedSignal !== undefined) {
-      return cachedSignal;
-    }
-    const ret: Signal<string> = signal("");
-    (async () => {
-      ret.value = await invoke("store_get_content", { hash: hash });
-    })();
-    signalCache.set(hash, ret);
-    return ret;
-  }
-
-  return {
-    getSignal,
-  };
-})();

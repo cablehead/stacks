@@ -10,17 +10,14 @@ pub use crate::store::{MimeType, Packet, Store};
 use crate::util;
 use crate::view;
 
-#[derive(serde::Serialize, Debug, Clone)]
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
 pub struct Item {
     pub id: Scru128Id,
     pub stack_id: Option<Scru128Id>,
+    pub name: String,
     pub last_touched: Scru128Id,
     pub touched: Vec<Scru128Id>,
     pub hash: Integrity,
-    pub mime_type: MimeType,
-    pub content_type: String,
-    pub terse: String,
-    pub tiktokens: usize,
     pub ephemeral: bool,
     pub ordered: bool,
     pub locked: bool,
@@ -32,7 +29,6 @@ pub struct Layer {
     pub items: Vec<Item>,
     pub selected: Item,
     pub is_focus: bool,
-    pub previews: Vec<String>,
 }
 
 #[derive(serde::Serialize, Debug, Clone)]
@@ -166,19 +162,11 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, self.view.items.get(&stack_id).unwrap()),
                     is_focus: false,
-                    previews: Vec::new(),
                 }),
                 sub: Some(Layer {
                     items: items.clone(),
                     selected,
                     is_focus: true,
-                    previews: items
-                        .iter()
-                        .map(|item| {
-                            let content = store.get_content(&item.hash);
-                            generate_preview(&self.theme_mode, &item, &content)
-                        })
-                        .collect(),
                 }),
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
             }
@@ -203,13 +191,6 @@ impl UI {
                     items: items.clone(),
                     selected,
                     is_focus: false,
-                    previews: items
-                        .iter()
-                        .map(|item| {
-                            let content = store.get_content(&item.hash);
-                            generate_preview(&self.theme_mode, &item, &content)
-                        })
-                        .collect(),
                 })
             } else {
                 None
@@ -226,7 +207,6 @@ impl UI {
                         .collect(),
                     selected: with_meta(store, &focused.item),
                     is_focus: true,
-                    previews: Vec::new(),
                 }),
                 sub,
                 undo: self.view.undo.as_ref().map(|item| with_meta(store, item)),
@@ -240,13 +220,10 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
     Item {
         id: item.id,
         stack_id: item.stack_id,
+        name: content_meta.terse.clone(),
         last_touched: item.last_touched,
         touched: item.touched.clone(),
         hash: item.hash.clone(),
-        mime_type: content_meta.mime_type.clone(),
-        content_type: content_meta.content_type.clone(),
-        terse: content_meta.terse.clone(),
-        tiktokens: content_meta.tiktokens,
         ephemeral: item.ephemeral,
         ordered: item.ordered,
         locked: item.locked,
@@ -286,16 +263,21 @@ pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
 use maud::html;
 
 #[tracing::instrument(
-    skip_all,
+    skip(content)
     fields(
-        content_type = %item.content_type,
         size = match content {
             Some(c) => c.len(),
             None => 0,
         },
     )
 )]
-pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>) -> String {
+pub fn generate_preview(
+    theme_mode: &str,
+    content: &Option<Vec<u8>>,
+    mime_type: &MimeType,
+    content_type: &String,
+    ephemeral: bool,
+) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("Rust", "rs"),
         ("JSON", "json"),
@@ -317,26 +299,26 @@ pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>
     match content {
         None => "loading...".to_string(),
         Some(data) => {
-            if item.mime_type == MimeType::ImagePng {
+            if *mime_type == MimeType::ImagePng {
                 let img_data = format!("data:image/png;base64,{}", util::b64encode(data));
                 let img = html! {
                     img src=(img_data) style="opacity: 0.95; border-radius: 0.5rem; max-height: 100%; height: auto; width: auto; object-fit: contain";
                 };
                 img.into_string()
-            } else if item.content_type == "Markdown" {
+            } else if content_type == "Markdown" {
                 let md_html = markdown_to_html(theme_mode, data);
                 let md_html = maud::PreEscaped(md_html);
                 let div = html! {
-                    div.("scroll-me")[item.ephemeral] .preview.markdown {
+                    div.("scroll-me")[ephemeral] .preview.markdown {
                         (md_html)
                     }
                 };
                 div.into_string()
-            } else if let Some(ext) = file_extensions.get(item.content_type.as_str()) {
+            } else if let Some(ext) = file_extensions.get(content_type.as_str()) {
                 let html = code_to_html(theme_mode, data, ext);
                 let html = maud::PreEscaped(html);
                 let div = html! {
-                    div.("scroll-me")[item.ephemeral] .preview.rust {
+                    div.("scroll-me")[ephemeral] .preview.rust {
                         (html)
                     }
                 };
@@ -344,7 +326,7 @@ pub fn generate_preview(theme_mode: &str, item: &Item, content: &Option<Vec<u8>>
             } else {
                 let data = String::from_utf8(data.clone()).unwrap();
                 let pre = html! {
-                    pre.("scroll-me")[item.ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
+                    pre.("scroll-me")[ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
                         (data)
                     }
                 };

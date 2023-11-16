@@ -1,6 +1,6 @@
 [package]
 name = "stacks"
-version = "0.12.2"
+version = "0.13.1"
 description = "Stacks"
 authors = ["you"]
 license = ""
@@ -13,7 +13,7 @@ edition = "2021"
 tauri-build = { version = "1.2", features = [] }
 
 [dependencies]
-tauri = { version = "1.4", features = ["clipboard-write-text", "global-shortcut", "macos-private-api", "process-command-api", "shell-open", "system-tray", "updater", "window-hide"] }
+tauri = { version = "1.4", features = [ "global-shortcut", "macos-private-api", "process-command-api", "shell-open", "system-tray", "updater", "window-hide"] }
 tauri-plugin-spotlight = { path = "../vendored/tauri-plugin-spotlight" }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"

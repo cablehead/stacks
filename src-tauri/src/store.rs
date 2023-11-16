@@ -79,7 +79,6 @@ impl InProgressStream {
         // Update hash
         self.content_meta.hash = ssri::Integrity::from(&self.content);
 
-        // Update tiktokens
         let text_content = String::from_utf8_lossy(&self.content).into_owned();
         // self.content_meta.tiktokens = count_tiktokens(&text_content);
 
@@ -91,6 +90,15 @@ impl InProgressStream {
         };
 
         self.packet.hash = Some(self.content_meta.hash.clone());
+        // This will emit the updated item for frontends to update their caches
+        // app_handle.emit_all("refresh-items", true).unwrap();
+    }
+
+    pub fn end_stream(&mut self, store: &mut Store) -> Packet {
+        let hash = store.cas_write(&self.content, self.content_meta.mime_type.clone());
+        self.packet.hash = Some(hash);
+        self.packet.ephemeral = false;
+        self.packet.clone()
     }
 }
 
@@ -244,7 +252,6 @@ pub struct Store {
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
-    in_progress_streams: HashMap<Scru128Id, InProgressStream>,
 }
 
 impl Store {
@@ -263,7 +270,6 @@ impl Store {
             meta,
             cache_path,
             index: Index::new(path.join("index")),
-            in_progress_streams: HashMap::new(),
         };
         store.content_meta_cache = store.scan_content_meta();
         store
@@ -318,36 +324,12 @@ impl Store {
     }
 
     pub fn get_content_meta(&self, hash: &ssri::Integrity) -> Option<ContentMeta> {
-        match self.content_meta_cache.get(hash) {
-            Some(meta) => Some(meta.clone()),
-            None => {
-                for stream in self.in_progress_streams.values() {
-                    if let Some(stream_hash) = &stream.packet.hash {
-                        if stream_hash == hash {
-                            return Some(stream.content_meta.clone());
-                        }
-                    }
-                }
-                None
-            }
-        }
+        self.content_meta_cache.get(hash).cloned()
     }
 
     #[tracing::instrument(skip_all)]
     pub fn get_content(&self, hash: &ssri::Integrity) -> Option<Vec<u8>> {
-        match self.cas_read(hash) {
-            Some(content) => Some(content),
-            None => {
-                for stream in self.in_progress_streams.values() {
-                    if let Some(stream_hash) = &stream.packet.hash {
-                        if stream_hash == hash {
-                            return Some(stream.content.clone());
-                        }
-                    }
-                }
-                None
-            }
-        }
+        self.cas_read(hash)
     }
 
     #[tracing::instrument(skip_all)]
@@ -398,7 +380,7 @@ impl Store {
         hash
     }
 
-    fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
+    pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
     }
 
@@ -657,170 +639,11 @@ impl Store {
             serde_json::from_str(str).unwrap()
         })
     }
-
-    pub fn start_stream(&mut self, stack_id: Option<Scru128Id>, content: &[u8]) -> Packet {
-        let stream = InProgressStream::new(stack_id, content);
-        let packet = stream.packet.clone();
-        self.in_progress_streams.insert(stream.packet.id, stream);
-        packet
-    }
-
-    pub fn update_stream(&mut self, id: Scru128Id, content: &[u8]) -> Packet {
-        let stream = self.in_progress_streams.get_mut(&id).unwrap();
-        stream.append(content);
-        stream.packet.clone()
-    }
-
-    pub fn end_stream(&mut self, id: Scru128Id) -> Packet {
-        let mut stream = self.in_progress_streams.remove(&id).unwrap();
-        let hash = self.cas_write(&stream.content, stream.content_meta.mime_type);
-        stream.packet.hash = Some(hash);
-        stream.packet.ephemeral = false;
-        self.insert_packet(&stream.packet);
-        stream.packet
-    }
 }
 
-fn is_valid_https_url(url: &[u8]) -> bool {
+pub fn is_valid_https_url(url: &[u8]) -> bool {
     let re = regex::bytes::Regex::new(r"^https://[^\s/$.?#].[^\s]*$").unwrap();
     re.is_match(url)
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use tempfile::tempdir;
-
-    #[test]
-    fn test_add() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut store = Store::new(path);
-
-        let content = b"Hello, world!";
-        let packet = store.add_stack(content, StackLockStatus::Unlocked);
-
-        let stored_packet = store.scan().next().unwrap();
-        assert_eq!(packet, stored_packet);
-
-        match packet.packet_type {
-            PacketType::Add => {
-                let stored_content = store.cas_read(&packet.hash.unwrap()).unwrap();
-                assert_eq!(content.to_vec(), stored_content);
-            }
-            _ => panic!("Expected AddPacket"),
-        }
-    }
-
-    #[test]
-    fn test_update() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut store = Store::new(path);
-
-        let content = b"Hello, world!";
-        let packet = store.add_stack(content, StackLockStatus::Unlocked);
-
-        let updated_content = b"Hello, updated world!";
-        let update_packet = store.update(
-            packet.id.clone(),
-            Some(updated_content),
-            MimeType::TextPlain,
-            None,
-        );
-
-        let stored_update_packet = store.scan().last().unwrap();
-        assert_eq!(update_packet, stored_update_packet);
-
-        match stored_update_packet {
-            Packet {
-                packet_type: PacketType::Update,
-                hash: Some(hash),
-                ..
-            } => {
-                let stored_content = store.cas_read(&hash).unwrap();
-                assert_eq!(updated_content.to_vec(), stored_content);
-            }
-            _ => panic!("Expected UpdatePacket"),
-        }
-    }
-
-    #[test]
-    fn test_fork() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut store = Store::new(path);
-
-        let content = b"Hello, world!";
-        let packet = store.add_stack(content, StackLockStatus::Unlocked);
-
-        let forked_content = b"Hello, forked world!";
-        let forked_packet = store.fork(
-            packet.id.clone(),
-            Some(forked_content),
-            MimeType::TextPlain,
-            None,
-        );
-
-        let stored_fork_packet = store.scan().last().unwrap();
-        assert_eq!(forked_packet, stored_fork_packet);
-
-        match forked_packet {
-            Packet {
-                packet_type: PacketType::Fork,
-                hash,
-                ..
-            } => {
-                let stored_content = store.cas_read(&hash.unwrap()).unwrap();
-                assert_eq!(forked_content.to_vec(), stored_content);
-            }
-            _ => panic!("Expected ForkPacket"),
-        }
-    }
-
-    #[test]
-    fn test_delete() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-        let mut store = Store::new(path);
-        let content = b"Hello, world!";
-        let packet = store.add_stack(content, StackLockStatus::Unlocked);
-        let delete_packet = store.delete(packet.id.clone());
-        let stored_delete_packet = store.scan().last().unwrap();
-        assert_eq!(delete_packet, stored_delete_packet);
-    }
-
-    #[test]
-    fn test_query() {
-        let dir = tempdir().unwrap();
-        let path = dir.path().to_str().unwrap();
-
-        let mut store = Store::new(path);
-
-        let content1 = b"Hello, world!";
-        let content2 = b"Hello, fuzzy world!";
-        let content3 = b"Hello, there!";
-
-        store.add_stack(content1, StackLockStatus::Unlocked);
-        store.add_stack(content2, StackLockStatus::Unlocked);
-        store.add_stack(content3, StackLockStatus::Unlocked);
-
-        let results = store.index.query("fzzy");
-        let results: Vec<_> = results
-            .into_iter()
-            .map(|hash| store.cas_read(&hash).unwrap())
-            .collect();
-        assert_eq!(results, vec![b"Hello, fuzzy world!".to_vec()]);
-    }
-
-    #[test]
-    fn test_is_valid_https_url() {
-        assert!(is_valid_https_url(b"https://www.example.com"));
-        assert!(!is_valid_https_url(b"Good afternoon"));
-    }
 }
 
 #[tracing::instrument(skip_all)]

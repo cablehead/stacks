@@ -1,12 +1,10 @@
 use tauri::Manager;
 
-use base64::{engine::general_purpose, Engine as _};
-
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
 use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
-use crate::ui::{with_meta, Item as UIItem, Nav, UI};
+use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
 #[derive(Debug, serde::Serialize)]
@@ -168,17 +166,17 @@ pub async fn store_pipe_to_gpt(
 */
 
 fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
-    hash.hashes
-        .first()
-        .map_or_else(
-            || "No hash present".to_owned(),
-            |h| h.digest.chars().take(len).collect()
-        )
+    hash.hashes.first().map_or_else(
+        || "No hash present".to_owned(),
+        |h| h.digest.chars().take(len).collect(),
+    )
 }
+
+use base64::{engine::general_purpose, Engine as _};
 
 #[tauri::command]
 #[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
-pub fn store_get_content(
+pub fn store_get_raw_content(
     state: tauri::State<SharedState>,
     hash: ssri::Integrity,
 ) -> Option<String> {
@@ -187,6 +185,55 @@ pub fn store_get_content(
             .store
             .get_content(&hash)
             .map(|vec| general_purpose::STANDARD.encode(vec))
+    })
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone, PartialEq)]
+pub struct Content {
+    pub mime_type: MimeType,
+    pub content_type: String,
+    pub terse: String,
+    pub tiktokens: usize,
+    pub words: usize,
+    pub chars: usize,
+    pub preview: String,
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state), fields(%hash = truncate_hash(&hash, 8)))]
+pub fn store_get_content(state: tauri::State<SharedState>, hash: ssri::Integrity) -> Content {
+    state.with_lock(|state| {
+        let content = state.store.get_content(&hash);
+        let meta = state.store.get_content_meta(&hash).unwrap();
+
+        let (words, chars) = match (&meta.mime_type, &content) {
+            (MimeType::TextPlain, Some(bytes)) => {
+                let str_slice = std::str::from_utf8(bytes).expect("Invalid UTF-8");
+                (
+                    str_slice.split_whitespace().count(),
+                    str_slice.chars().count(),
+                )
+            }
+            _ => (0, 0),
+        };
+
+        let preview = generate_preview(
+            &state.ui.theme_mode,
+            &content,
+            &meta.mime_type,
+            &meta.content_type,
+            false,
+        );
+
+        Content {
+            mime_type: meta.mime_type,
+            content_type: meta.content_type,
+            terse: meta.terse,
+            tiktokens: meta.tiktokens,
+            words,
+            chars,
+            preview,
+        }
     })
 }
 
@@ -420,7 +467,7 @@ pub fn store_set_content_type(
 ) {
     state.with_lock(|state| {
         let packet = state.store.update_content_type(
-            hash,
+            hash.clone(),
             if content_type == "Plain Text" {
                 "Text".to_string()
             } else {
@@ -429,7 +476,9 @@ pub fn store_set_content_type(
         );
         state.merge(&packet);
     });
-    app.emit_all("refresh-items", true).unwrap();
+
+    let content = store_get_content(state, hash.clone());
+    app.emit_all("content", (hash, content)).unwrap();
 }
 
 #[tauri::command]
