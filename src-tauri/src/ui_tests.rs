@@ -24,10 +24,10 @@ fn assert_nav_as_expected<'a>(
 
     let root_actual = nav.root.as_ref().map(|root| {
         (
-            root.selected.terse.clone(),
+            root.selected.name.clone(),
             root.items
                 .iter()
-                .map(|item| item.terse.clone())
+                .map(|item| item.name.clone())
                 .collect::<Vec<_>>(),
             root.is_focus,
         )
@@ -35,10 +35,10 @@ fn assert_nav_as_expected<'a>(
 
     let sub_actual = nav.sub.as_ref().map(|sub| {
         (
-            sub.selected.terse.clone(),
+            sub.selected.name.clone(),
             sub.items
                 .iter()
-                .map(|item| item.terse.clone())
+                .map(|item| item.name.clone())
                 .collect::<Vec<_>>(),
             sub.is_focus,
         )
@@ -74,7 +74,8 @@ fn test_ui_render() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
 
-    let mut state = State::new(path);
+    let (sender, _receiver) = std::sync::mpsc::channel();
+    let mut state = State::new(path, sender);
 
     let stack_ids: Vec<_> = (1..=3)
         .map(|i| {

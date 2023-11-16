@@ -98,7 +98,8 @@ mod tests {
     fn test_state_get_curr_stack() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
-        let mut state = State::new(path);
+        let (sender, _receiver) = std::sync::mpsc::channel();
+        let mut state = State::new(path, sender);
         let _ = state.get_curr_stack();
         let _ = state.get_curr_stack();
     }

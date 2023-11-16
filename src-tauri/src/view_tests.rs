@@ -151,7 +151,8 @@ fn test_no_duplicate_entry_on_same_hash() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
 
-    let mut state = State::new(path);
+    let (sender, _receiver) = std::sync::mpsc::channel();
+    let mut state = State::new(path, sender);
 
     let stack_id = state
         .store
@@ -171,96 +172,4 @@ fn test_no_duplicate_entry_on_same_hash() {
     let item = state.view.items.get(&id1).unwrap();
     assert_eq!(item.touched, vec![id1, id2]);
     assert_eq!(item.last_touched, id2);
-}
-
-#[test]
-fn test_stream() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().to_str().unwrap();
-
-    let mut store = Store::new(path);
-    let mut view = View::new();
-
-    let stack_id = store.add_stack(b"Stack 1", StackLockStatus::Unlocked).id;
-    store.scan().for_each(|p| view.merge(&p));
-
-    // Start the stream with the content "oh, "
-    let packet = store.start_stream(Some(stack_id), b"oh, ");
-    view.merge(&packet);
-    assert_view_as_expected!(&store, &view, vec![("Stack 1", vec!["oh, "])]);
-
-    // Add "hai " to the stream
-    let packet = store.update_stream(packet.id, b"hai ");
-    view.merge(&packet);
-    assert_view_as_expected!(&store, &view, vec![("Stack 1", vec!["oh, hai "])]);
-
-    // Add "123" to the stream
-    let packet = store.update_stream(packet.id, b"123");
-    view.merge(&packet);
-    assert_view_as_expected!(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
-
-    // check that get_content_meta finds the ephemeral copy
-    let meta = store.get_content_meta(&packet.hash.unwrap());
-    assert_eq!(meta.unwrap().terse, "oh, hai 123");
-
-    // Complete the stream
-    let packet = store.end_stream(packet.id);
-    view.merge(&packet);
-    assert_view_as_expected!(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
-
-    // Check that the item is no longer ephemeral
-    let item = view.items.get(&packet.id).unwrap();
-    assert!(!item.ephemeral);
-
-    // Simulate a full restart
-    let mut view = View::new();
-    store.scan().for_each(|p| view.merge(&p));
-    assert_view_as_expected!(&store, &view, vec![("Stack 1", vec!["oh, hai 123"])]);
-    let item = view.items.get(&packet.id).unwrap();
-    assert!(!item.ephemeral);
-    let meta = store.get_content_meta(&packet.hash.unwrap());
-    assert_eq!(meta.unwrap().terse, "oh, hai 123");
-}
-
-#[test]
-fn test_no_duplicate_entry_on_same_hash_on_stream_end() {
-    let dir = tempfile::tempdir().unwrap();
-    let path = dir.path().to_str().unwrap();
-
-    let mut state = State::new(path);
-
-    let stack_id = state
-        .store
-        .add_stack(b"Stack 1", StackLockStatus::Unlocked)
-        .id;
-    let id1 = state.store.add(b"Item 1", MimeType::TextPlain, stack_id).id;
-    state.store.scan().for_each(|p| state.merge(&p));
-
-    // Start a stream with the same content
-    let packet = state.store.start_stream(Some(stack_id), b"Item");
-    state.merge(&packet);
-    assert_view_as_expected!(
-        &state.store,
-        &state.view,
-        vec![("Stack 1", vec!["Item", "Item 1"])]
-    );
-
-    // Update the stream with the same content
-    let packet = state.store.update_stream(packet.id, b" 1");
-    state.merge(&packet);
-    assert_view_as_expected!(
-        &state.store,
-        &state.view,
-        vec![("Stack 1", vec!["Item 1", "Item 1"])]
-    );
-
-    // End the stream
-    let packet = state.store.end_stream(packet.id);
-    state.merge(&packet);
-    // Check that the stack item only has one child
-    assert_view_as_expected!(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
-    // Check that the item has been updated correctly
-    let item = state.view.items.get(&id1).unwrap();
-    assert_eq!(item.touched, vec![id1, packet.id]);
-    assert_eq!(item.last_touched, packet.id);
 }
