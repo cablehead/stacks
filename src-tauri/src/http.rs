@@ -10,6 +10,7 @@ use tracing::error;
 use crate::state::SharedState;
 use crate::store::{InProgressStream, MimeType};
 use crate::ui::generate_preview;
+use crate::view;
 
 async fn handle(
     req: Request<Body>,
@@ -39,6 +40,48 @@ async fn handle(
     }
 }
 
+#[tracing::instrument(skip_all)]
+async fn get_stack(
+    state: SharedState,
+    item: view::Item,
+    accept: &str,
+) -> Result<Response<Body>, Error> {
+    let items: Vec<_> = state.with_lock(|state| {
+        state
+            .view
+            .children(&item)
+            .iter()
+            .map(|id| {
+                let item = state.view.items.get(id).unwrap();
+                (
+                    item.clone(),
+                    state.store.get_content_meta(&item.hash).unwrap(),
+                    state.store.get_content(&item.hash).unwrap(),
+                )
+            })
+            .collect()
+    });
+    let accept = accept.to_string();
+    let (mut tx, rx) = hyper::Body::channel();
+    tokio::spawn(async move {
+        for (_item, meta, mut content) in items {
+            if accept == "text/html" {
+                content = generate_preview(
+                    "light",
+                    &Some(content),
+                    &meta.mime_type,
+                    &meta.content_type,
+                    false,
+                )
+                .into_bytes();
+            }
+            tx.send_data(content.into()).await.unwrap();
+            tx.send_data("\n".into()).await.unwrap();
+        }
+    });
+    Ok(Response::builder().status(StatusCode::OK).body(rx).unwrap())
+}
+
 #[tracing::instrument(skip(state))]
 async fn get(
     state: SharedState,
@@ -50,29 +93,7 @@ async fn get(
     match item {
         Some(item) => {
             if item.stack_id.is_none() {
-                let items: Vec<_> = state.with_lock(|state| {
-                    state
-                        .view
-                        .children(&item)
-                        .iter()
-                        .map(|id| {
-                            let item = state.view.items.get(id).unwrap();
-                            (
-                                item.clone(),
-                                state.store.get_content_meta(&item.hash).unwrap(),
-                                state.store.get_content(&item.hash).unwrap(),
-                            )
-                        })
-                        .collect()
-                });
-                let (mut tx, rx) = hyper::Body::channel();
-                tokio::spawn(async move {
-                    for (_item, _meta, content) in items {
-                        tx.send_data(content.into()).await.unwrap();
-                        tx.send_data("\n".into()).await.unwrap();
-                    }
-                });
-                return Ok(Response::builder().status(StatusCode::OK).body(rx).unwrap());
+                return get_stack(state, item, accept).await;
             }
 
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
