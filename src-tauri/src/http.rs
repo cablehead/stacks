@@ -22,7 +22,15 @@ async fn handle(
         .and_then(|id| scru128::Scru128Id::from_str(id).ok());
 
     match (req.method(), id) {
-        (&Method::GET, Some(id)) => get(id, state).await,
+        (&Method::GET, Some(id)) => {
+            let accept_header = req
+                .headers()
+                .get(hyper::header::ACCEPT)
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("text/plain");
+
+            get(state, id, accept_header).await
+        }
         (&Method::POST, None) if path == "/" => post(req, state.clone(), app_handle.clone()).await,
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
@@ -31,11 +39,42 @@ async fn handle(
     }
 }
 
-async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body>, Error> {
+#[tracing::instrument(skip(state))]
+async fn get(
+    state: SharedState,
+    id: scru128::Scru128Id,
+    accept: &str,
+) -> Result<Response<Body>, Error> {
     let item = state.with_lock(|state| state.view.items.get(&id).cloned());
 
     match item {
         Some(item) => {
+            if item.stack_id.is_none() {
+                let items: Vec<_> = state.with_lock(|state| {
+                    state
+                        .view
+                        .children(&item)
+                        .iter()
+                        .map(|id| {
+                            let item = state.view.items.get(id).unwrap();
+                            (
+                                item.clone(),
+                                state.store.get_content_meta(&item.hash).unwrap(),
+                                state.store.get_content(&item.hash).unwrap(),
+                            )
+                        })
+                        .collect()
+                });
+                let (mut tx, rx) = hyper::Body::channel();
+                tokio::spawn(async move {
+                    for (_item, _meta, content) in items {
+                        tx.send_data(content.into()).await.unwrap();
+                        tx.send_data("\n".into()).await.unwrap();
+                    }
+                });
+                return Ok(Response::builder().status(StatusCode::OK).body(rx).unwrap());
+            }
+
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
             let reader = cacache::Reader::open_hash(cache_path, item.hash)
                 .await
