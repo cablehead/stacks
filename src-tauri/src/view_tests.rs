@@ -151,8 +151,7 @@ fn test_no_duplicate_entry_on_same_hash() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
 
-    let (sender, _receiver) = std::sync::mpsc::channel();
-    let mut state = State::new(path, sender);
+    let mut state = State::new(path);
 
     let stack_id = state
         .store

@@ -1,10 +1,9 @@
 use std::collections::HashMap;
-use std::sync::mpsc::Receiver;
 use tracing::{error, info};
 
 use crate::state::SharedState;
-use crate::ui;
 use crate::store;
+use crate::ui;
 use crate::view;
 
 // tracks previously published state
@@ -142,7 +141,7 @@ fn process(state: &SharedState, view: &view::View, previous: &mut PreviousPublis
     }
 }
 
-pub fn spawn(state: SharedState, packet_receiver: Receiver<view::View>) {
+pub fn spawn(state: SharedState, packet_receiver: bus::BusReader<view::View>) {
     std::thread::spawn(move || {
         let mut previous = PreviousPublish::new();
         for view in packet_receiver {

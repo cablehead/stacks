@@ -166,14 +166,13 @@ async fn main() {
             };
             info!(db_path, "let's go");
 
-            let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
-
-            let state = State::new(&db_path, packet_sender);
+            let mut state = State::new(&db_path);
+            let packet_recver = state.subscribe();
             let mutex = tracing_mutex_span::TracingMutexSpan::new("SharedState", state);
             let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
-            publish::spawn(state.clone(), packet_receiver);
+            publish::spawn(state.clone(), packet_recver);
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

@@ -74,8 +74,7 @@ fn test_ui_render() {
     let dir = tempfile::tempdir().unwrap();
     let path = dir.path().to_str().unwrap();
 
-    let (sender, _receiver) = std::sync::mpsc::channel();
-    let mut state = State::new(path, sender);
+    let mut state = State::new(path);
 
     let stack_ids: Vec<_> = (1..=3)
         .map(|i| {

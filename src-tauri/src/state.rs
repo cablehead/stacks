@@ -1,4 +1,3 @@
-use std::sync::mpsc::Sender;
 use std::sync::Arc;
 
 use chrono::prelude::*;
@@ -19,25 +18,29 @@ pub struct State {
     // about the item in the store. To avoid the clipboard poller from duplicating this
     // information, we use skip_change_num to ignore the change id associated with the item.
     pub skip_change_num: Option<i64>,
-    pub packet_sender: Sender<View>,
+    pub tx: bus::Bus<View>,
 }
 
 impl State {
-    pub fn new(db_path: &str, packet_sender: Sender<View>) -> Self {
+    pub fn new(db_path: &str) -> Self {
         let store = Store::new(db_path);
         let mut view = View::new();
         store.scan().for_each(|p| view.merge(&p));
 
         let ui = UI::new(&view);
-        let state = Self {
+        let mut state = Self {
             view,
             store,
             ui,
             skip_change_num: None,
-            packet_sender,
+            tx: bus::Bus::new(10),
         };
-        let _ = state.packet_sender.send(state.view.clone());
+        let _ = state.tx.broadcast(state.view.clone());
         state
+    }
+
+    pub fn subscribe(&mut self) -> bus::BusReader<View> {
+        self.tx.add_rx()
     }
 
     pub fn nav_set_filter(&mut self, filter: &str, content_type: &str) {
@@ -85,7 +88,7 @@ impl State {
     pub fn merge(&mut self, packet: &Packet) {
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
-        let _ = self.packet_sender.send(self.view.clone());
+        let _ = self.tx.broadcast(self.view.clone());
     }
 }
 
@@ -98,8 +101,7 @@ mod tests {
     fn test_state_get_curr_stack() {
         let dir = tempfile::tempdir().unwrap();
         let path = dir.path().to_str().unwrap();
-        let (sender, _receiver) = std::sync::mpsc::channel();
-        let mut state = State::new(path, sender);
+        let mut state = State::new(path);
         let _ = state.get_curr_stack();
         let _ = state.get_curr_stack();
     }

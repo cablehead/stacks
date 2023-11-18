@@ -44,6 +44,7 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
 tracing-stacks = { git = "https://github.com/cablehead/tracing-stacks.git", branch = "main" }
 tracing-mutex-span = { git = "https://github.com/cablehead/tracing-mutex-span.git", branch = "main" }
+bus = "2.4.1"
 
 
 [dev-dependencies]
