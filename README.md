@@ -8,8 +8,8 @@ A terrific clipboard manager
 
 `.DMG` installers that have been notarized by Apple.
 
-[![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_x86_64.dmg)
-[![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_aarch64.dmg)
+[![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.13.1/Stacks_0.13.1_x86_64.dmg)
+[![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.13.1/Stacks_0.13.1_aarch64.dmg)
 
 ## Usage
 

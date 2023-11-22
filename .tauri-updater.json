@@ -1,16 +1,16 @@
 {
-  "version": "0.12.2",
-  "notes": "\nBug Fix:\n\n- Implemented a workaround for intermittent Tauri hang when querying window.is_visible.\n\nThis fix is expected to resolve known beach balling issues.\n\n",
-  "pub_date": "2023-10-14T16:09:43-04:00",
+  "version": "0.13.1",
+  "notes": "\nI know, it's been a while, but a new release is here!\n\nThis release includes:\n\n- A handy new feature, and\n- Significantly enhanced performance, especially in navigating through large stacks\n\nFull details here:\n\nhttps://stacks.cross.stream/releases/v0.13.1\n",
+  "pub_date": "2023-11-22T16:45:38-05:00",
   "platforms": {
     
     "darwin-x86_64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEs1MXdRTi9OVUc5OUEydEVaamdvaFA1VHdUSllHZlROVXh1R3d0V0dOM05uTHRHTVNTckwyUmNCdVdxeWVIS3FZMWltZ01Iak1PQ2luK0VRNGJCdHdJPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MzE0MTY0CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKVGwwVVZuaWQrNlgyVkFDUTZMVGJISDIvdVNCYmxleWF5R2dkR2xTYmRKbjNLRjZ4bXcvVlBRMEFrVU1VZjB0YitkVlAvMmFWcDN6R1U1ZjEwL1MyQ3c9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_x86_64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEorODhDN3U0VDZsUDMrVVZlaVdQbVFmVlJ4dlJENjY5YXFNd3c2K0E5YjJQTEpkeThSMDNOLzd5aVVqL1dMV0NjcWVNd21wMU9LMHpZUHF2VThEdFFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzAwNjg5Mjk2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKZXJaVm5UeTVTUU0yYWVwc1JQc3U1dXRpN3RwdjZVam1ncktrSjZXcS9WNWhyZGNGVGpJOTRmMStpU0dMYnB1Nit4NGlnR0lBVnNCTnBhb044OEI1Q1E9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.13.1/Stacks_0.13.1_x86_64.app.tar.gz"
     },
     "darwin-aarch64": {
-      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEFOREl2SEMwUUVOcjZrUllUaE5rN2l3WkxCWlNaOHdibHkrWVZGQlJzTkd3MGt5SWRUWExaRmZQak93WGN6Ukk4Mm9STkQ3UEhZL2NDM2lnTUdlWUFVPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNjk3MzE0MDExCWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKRVliN3VFZTlqRVE3alBleWU2SHU1aU90aFpXWEU1RjY1WXhIUVAwSWFlQVcrQnV3RU0vNDExQnNZa3ZsdllESWV4bkI2dW5raSthWHBiMXNjVFhpREE9PQo=",
-      "url": "https://github.com/cablehead/stacks/releases/download/v0.12.2/Stacks_0.12.2_aarch64.app.tar.gz"
+      "signature": "dW50cnVzdGVkIGNvbW1lbnQ6IHNpZ25hdHVyZSBmcm9tIHRhdXJpIHNlY3JldCBrZXkKUlVTTm5wRE5ISjZKcEpmWEF2SEM0Y1BReDZJVmlRczcyT01jRGFzbVRTTDkxa3lla20ya0o4Q3E1RmhHM25PaVA3Rmd6Q3huZ0QvMzBYdFRyYmNQbFQyZmlmTFVnTXpBcndNPQp0cnVzdGVkIGNvbW1lbnQ6IHRpbWVzdGFtcDoxNzAwNjg5MTI2CWZpbGU6U3RhY2tzLmFwcC50YXIuZ3oKVjRnVUJKOGxPbUZ6ZTdEVUVvQ3FOUldoUXJDZ3daWnc4QVBtWTR0SmhYSGY2Ni9FU2ZHbVZmSWFzRi9ZTFhjUC95NkJqcjhGLzRhQTY2c0JhU084QkE9PQo=",
+      "url": "https://github.com/cablehead/stacks/releases/download/v0.13.1/Stacks_0.13.1_aarch64.app.tar.gz"
     }
   }
 }
