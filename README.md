@@ -17,9 +17,9 @@ A terrific clipboard manager
 - To launch Stacks: <code>&#8963; + Space</code>
 
 ### Navigation
-- Move Down/Up: &#8963; + n / &#8963; + p or arrow keys
-- Move Left/Right: &#8963; + h / &#8963; + l or arrow keys
+- Move Down/Up: <code>&#8963; + n</code> / <code>&#8963; + p</code> or arrow keys
+- Move Left/Right: <code>&#8963; + h</code> / <code>&#8963; + l</code> or arrow keys
 
 ### Item Manipulation
-- Move an item Down/Up: &#8984; + Down / &#8984; + Up
-- Bring current stack to the top: &#8984; + t
+- Move an item Down/Up: <code>&#8984; + Dow</code>n / <code>&#8984; + Up</code>
+- Bring current stack to the top: <code>&#8984; + t</code>
