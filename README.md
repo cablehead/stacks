@@ -21,5 +21,5 @@ A terrific clipboard manager
 - Move Left/Right: <code>&#8963; + h</code> / <code>&#8963; + l</code> or arrow keys
 
 ### Item Manipulation
-- Move an item Down/Up: <code>&#8984; + Dow</code>n / <code>&#8984; + Up</code>
+- Move an item Down/Up: <code>&#8984; + Down</code> / <code>&#8984; + Up</code>
 - Bring current stack to the top: <code>&#8984; + t</code>
