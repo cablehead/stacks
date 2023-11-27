@@ -14,7 +14,7 @@ A terrific clipboard manager
 ## Usage
 
 ### Launch
-- To launch Stacks: `&#8963; + Space`
+- To launch Stacks: <code>&#8963; + Space</code>
 
 ### Navigation
 - Move Down/Up: &#8963; + n / &#8963; + p or arrow keys
