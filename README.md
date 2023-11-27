@@ -14,12 +14,12 @@ A terrific clipboard manager
 ## Usage
 
 ### Launch
-- To launch Stacks: &#8963;-Space
+- To launch Stacks: &#8963; + Space
 
 ### Navigation
-- Move Down/Up: &#8963;-n / &#8963;-p or arrow keys
-- Move Left/Right: &#8963;-h / &#8963;-l or arrow keys
+- Move Down/Up: &#8963; + n / &#8963; + p or arrow keys
+- Move Left/Right: &#8963; + h / &#8963; + l or arrow keys
 
 ### Item Manipulation
-- Move an item Down/Up: &#8984;-Down / &#8984;-Up
-- Bring current stack to the top: &#8984;-t
+- Move an item Down/Up: &#8984; + Down / &#8984; + Up
+- Bring current stack to the top: &#8984; + t
