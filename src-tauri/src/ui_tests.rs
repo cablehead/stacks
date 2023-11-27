@@ -240,6 +240,31 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: right, twice: there was a bug where this would bump the ui back to the top most
+    // item. assert when right most, hitting right doesn't do anything
+    state.ui.select_right();
+    state.ui.select_right();
+    assert_nav_as_expected!(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
+            Some((
+                "S2::Item 3",
+                vec![
+                    "S2::Item 3",
+                    "S2::Item 2",
+                    "S2::Item 1",
+                    "https://stack-2.com"
+                ],
+                true,
+            )),
+        ),
+    );
+
+    // user press: left
+    // back to stack level navigation
+    state.ui.select_left();
+
     // user set: filter
     state.nav_set_filter("item 1", "");
     assert_nav_as_expected!(

@@ -115,8 +115,13 @@ impl UI {
     }
 
     pub fn select_right(&mut self) {
-        let target = self.view.get_best_focus(&self.focused).and_then(|focused| {
-            self.last_selected
+        if let Some(focused) = self.view.get_best_focus(&self.focused) {
+            if self.view.children(&focused.item).is_empty() {
+                return;
+            }
+
+            let target = self
+                .last_selected
                 .get(&focused.item.id)
                 .cloned()
                 .or_else(|| {
@@ -124,9 +129,10 @@ impl UI {
                         .children(&focused.item)
                         .first()
                         .and_then(|id| self.view.get_focus_for_id(id))
-                })
-        });
-        self.select(target);
+                });
+
+            self.select(target);
+        }
     }
 
     #[tracing::instrument(skip(self, store))]
