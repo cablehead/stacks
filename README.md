@@ -16,7 +16,7 @@ A terrific clipboard manager
 <table>
   <tr>
     <td>To launch Stacks</td>
-    <td><code>&#8963;+Space</code></td>
+    <td><code>&#8963; + Space</code></td>
   </tr>
   <tr>
     <th colspan="2" align="left">Navigation</th>
@@ -26,7 +26,7 @@ A terrific clipboard manager
     <td>
     <code>&#8595;</code>
     or
-    <code>&#8963;+n</code>
+    <code>&#8963; + n</code>
     </td>
   </tr>
   <tr>
@@ -34,7 +34,7 @@ A terrific clipboard manager
     <td>
     <code>&#8593;</code>
     or
-    <code>&#8963;+p</code>
+    <code>&#8963; + p</code>
     </td>
   </tr>
 
@@ -43,7 +43,7 @@ A terrific clipboard manager
     <td>
         <code>&#8592;</code>
         or
-        <code>&#8963;+h</code>
+        <code>&#8963; + h</code>
         </td>
   </tr>
 
@@ -52,7 +52,7 @@ A terrific clipboard manager
     <td>
     <code>&#8594;</code>
     or
-    <code>&#8963;+l</code>
+    <code>&#8963; + l</code>
     </td>
   </tr>
 
@@ -62,16 +62,16 @@ A terrific clipboard manager
 
   <tr>
     <td>Move an item down</td>
-    <td><code>&#8984;+&#8595;</code></code></td>
+    <td><code>&#8984; + &#8595;</code></code></td>
   </tr>
 
   <tr>
     <td>Move an item up</td>
-    <td><code>&#8984;+down</code> / <code>&#8984;+up</code></td>
+    <td><code>&#8984; + &#8593;</code></td>
   </tr>
 
   <tr>
     <td>Bring current item and stack to the top</td>
-    <td><code>&#8984;+t</code></td>
+    <td><code>&#8984; + t</code></td>
   </tr>
 </table>
