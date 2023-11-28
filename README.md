@@ -24,12 +24,18 @@ A terrific clipboard manager
   <tr>
     <td>Move down</td>
     <td>
-    <code>&#8963;+p</code> or <code>&#8595;</code>
+    <code>&#8595;</code>
+    or
+    <code>&#8963;+n</code>
     </td>
   </tr>
   <tr>
     <td>Move up</td>
-    <td><code>&#8963;+n</code> / <code>&#8963;+p</code> or <code>&#8595;</code> / <code>&#8593;</code></td>
+    <td>
+    <code>&#8593;</code>
+    or
+    <code>&#8963;+p</code>
+    </td>
   </tr>
   <tr>
     <td>Move left / right</td>
