@@ -48,8 +48,12 @@ A terrific clipboard manager
   </tr>
 
   <tr>
-    <td>Move left / right</td>
-    <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or <code>&#8592;</code> / <code>&#8594;</code></td>
+    <td>Move right</td>
+    <td>
+    <code>&#8594;</code>
+    or
+    <code>&#8963;+l</code>
+    </td>
   </tr>
 
   <tr>
