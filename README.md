@@ -15,29 +15,35 @@ A terrific clipboard manager
 
 <table>
   <tr>
-    <td>To launch Stacks:</td>
+    <td>To launch Stacks</td>
     <td><code>&#8963;+Space</code></td>
   </tr>
   <tr>
     <th colspan="2" align="left">Navigation</th>
   </tr>
   <tr>
-    <td>Move down / up:</td>
+    <td>Move down</td>
+    <td>
+    <code>&#8963;+p</code> or <code>&#8595;</code>
+    </td>
+  </tr>
+  <tr>
+    <td>Move up</td>
     <td><code>&#8963;+n</code> / <code>&#8963;+p</code> or <code>&#8595;</code> / <code>&#8593;</code></td>
   </tr>
   <tr>
-    <td>Move left / right:</td>
+    <td>Move left / right</td>
     <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or <code>&#8592;</code> / <code>&#8594;</code></td>
   </tr>
   <tr>
     <th colspan="2" align="left">Item Manipulation</th>
   </tr>
   <tr>
-    <td>Move an item down/up:</td>
+    <td>Move an item down/up</td>
     <td><code>&#8984;+down</code> / <code>&#8984;+up</code></td>
   </tr>
   <tr>
-    <td>Bring current stack to the top:</td>
+    <td>Bring current stack to the top</td>
     <td><code>&#8984;+t</code></td>
   </tr>
 </table>
