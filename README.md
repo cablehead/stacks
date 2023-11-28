@@ -37,10 +37,21 @@ A terrific clipboard manager
     <code>&#8963;+p</code>
     </td>
   </tr>
+
+  <tr>
+    <td>Move left</td>
+    <td>
+        <code>&#8592;</code>
+        or
+        <code>&#8963;+h</code>
+        </td>
+  </tr>
+
   <tr>
     <td>Move left / right</td>
     <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or <code>&#8592;</code> / <code>&#8594;</code></td>
   </tr>
+
   <tr>
     <th colspan="2" align="left">Item Manipulation</th>
   </tr>
