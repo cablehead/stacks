@@ -15,28 +15,28 @@ A terrific clipboard manager
 
 <table>
   <tr>
-    <th colspan="2">## Usage</th>
+    <th colspan="2" style="text-align:left;">## Usage</th>
   </tr>
   <tr>
-    <th colspan="2">### Launch</th>
+    <th colspan="2" style="text-align:left;">Launch</th>
   </tr>
   <tr>
     <td>To launch Stacks:</td>
     <td><code>&#8963;+Space</code></td>
   </tr>
   <tr>
-    <th colspan="2">### Navigation</th>
+    <th colspan="2" style="text-align:left;">Navigation</th>
   </tr>
   <tr>
     <td>Move down / up:</td>
-    <td><code>&#8963;+n</code> / <code>&#8963;+p</code> or arrow keys</td>
+    <td><code>&#8963;+n</code> / <code>&#8963;+p</code> or <code>&#8595;</code> / <code>&#8593;</code></td>
   </tr>
   <tr>
     <td>Move left / right:</td>
-    <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or arrow keys</td>
+    <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or <code>&#8592;</code> / <code>&#8594;</code></td>
   </tr>
   <tr>
-    <th colspan="2">### Item Manipulation</th>
+    <th colspan="2" style="text-align:left;">Item Manipulation</th>
   </tr>
   <tr>
     <td>Move an item down/up:</td>
