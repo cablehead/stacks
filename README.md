@@ -59,12 +59,19 @@ A terrific clipboard manager
   <tr>
     <th colspan="2" align="left">Item Manipulation</th>
   </tr>
+
   <tr>
-    <td>Move an item down/up</td>
+    <td>Move an item down</td>
+    <td><code>&#8984;+&#8595;</code></code></td>
+  </tr>
+
+  <tr>
+    <td>Move an item up</td>
     <td><code>&#8984;+down</code> / <code>&#8984;+up</code></td>
   </tr>
+
   <tr>
-    <td>Bring current stack to the top</td>
+    <td>Bring current item and stack to the top</td>
     <td><code>&#8984;+t</code></td>
   </tr>
 </table>
