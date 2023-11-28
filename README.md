@@ -13,16 +13,11 @@ A terrific clipboard manager
 
 ## Usage
 
-### Launch
-
 <table>
-  <tr width="100%">
-    <td width="50%">To launch Stacks:</td>
-    <td width="50%"><code>&#8963;+Space</code></td>
+  <tr>
+    <td>To launch Stacks:</td>
+    <td><code>&#8963;+Space</code></td>
   </tr>
-</table>
-
-<table>
   <tr>
     <th colspan="2" align="left">Navigation</th>
   </tr>
