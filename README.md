@@ -13,13 +13,17 @@ A terrific clipboard manager
 
 ## Usage
 
-### Launch
-- To launch Stacks: <code>&#8963;+Space</code>
+|                             |               |
+|-----------------------------|:-------------:|
+| **Launch**                  |               |
+| To launch Stacks            | `⌘+Space`     |
+|                             |               |
+| **Navigation**              |               |
+| Move down / up              | `⌘+n` / `⌘+p` or arrow keys |
+| Move left / right           | `⌘+h` / `⌘+l` or arrow keys |
+|                             |               |
+| **Item Manipulation**       |               |
+| Move an item down/up        | `⌘+down` / `⌘+up` |
+| Bring current stack to the top | `⌘+t`      |
 
-### Navigation
-- Move down / up: <code>&#8963;+n</code> / <code>&#8963;+p</code> or arrow keys
-- Move left / right: <code>&#8963;+h</code> / <code>&#8963;+l</code> or arrow keys
 
-### Item Manipulation
-- Move an item down/up: <code>&#8984;+down</code> / <code>&#8984;+up</code>
-- Bring current stack to the top: <code>&#8984;+t</code>
