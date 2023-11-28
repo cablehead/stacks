@@ -97,6 +97,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case event.metaKey && event.key === "0":
+      event.preventDefault();
+      stack.reset();
+      return;
+
     case event.metaKey &&
       ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
       event.preventDefault();
