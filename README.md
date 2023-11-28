@@ -16,7 +16,7 @@ A terrific clipboard manager
 ### Launch
 
 <table>
-  <tr>
+  <tr width="100%">
     <td width="50%">To launch Stacks:</td>
     <td width="50%"><code>&#8963;+Space</code></td>
   </tr>
