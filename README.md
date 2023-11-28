@@ -13,17 +13,37 @@ A terrific clipboard manager
 
 ## Usage
 
-|                             |               |
-|-----------------------------|:-------------:|
-| **Launch**                  |               |
-| To launch Stacks            | `⌘+Space`     |
-|                             |               |
-| **Navigation**              |               |
-| Move down / up              | `⌘+n` / `⌘+p` or arrow keys |
-| Move left / right           | `⌘+h` / `⌘+l` or arrow keys |
-|                             |               |
-| **Item Manipulation**       |               |
-| Move an item down/up        | `⌘+down` / `⌘+up` |
-| Bring current stack to the top | `⌘+t`      |
-
-
+<table>
+  <tr>
+    <th colspan="2">## Usage</th>
+  </tr>
+  <tr>
+    <th colspan="2">### Launch</th>
+  </tr>
+  <tr>
+    <td>To launch Stacks:</td>
+    <td><code>&#8963;+Space</code></td>
+  </tr>
+  <tr>
+    <th colspan="2">### Navigation</th>
+  </tr>
+  <tr>
+    <td>Move down / up:</td>
+    <td><code>&#8963;+n</code> / <code>&#8963;+p</code> or arrow keys</td>
+  </tr>
+  <tr>
+    <td>Move left / right:</td>
+    <td><code>&#8963;+h</code> / <code>&#8963;+l</code> or arrow keys</td>
+  </tr>
+  <tr>
+    <th colspan="2">### Item Manipulation</th>
+  </tr>
+  <tr>
+    <td>Move an item down/up:</td>
+    <td><code>&#8984;+down</code> / <code>&#8984;+up</code></td>
+  </tr>
+  <tr>
+    <td>Bring current stack to the top:</td>
+    <td><code>&#8984;+t</code></td>
+  </tr>
+</table>
