@@ -96,7 +96,7 @@ async fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            // commands::store_win_move,
+            commands::store_win_move,
             commands::store_get_content,
             commands::store_get_raw_content,
             commands::store_get_root,
