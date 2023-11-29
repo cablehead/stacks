@@ -14,85 +14,17 @@ A terrific clipboard manager
 ## Usage
 
 <table>
-  <tr>
-    <td>To launch Stacks</td>
-    <td><code>&#8963; + Space</code></td>
-  </tr>
-  <tr>
-    <th colspan="2" align="left">Navigation</th>
-  </tr>
-  <tr>
-    <td>Move down</td>
-    <td>
-    <code>&#8595;</code>
-    or
-    <code>&#8963; + n</code>
-    </td>
-  </tr>
-  <tr>
-    <td>Move up</td>
-    <td>
-    <code>&#8593;</code>
-    or
-    <code>&#8963; + p</code>
-    </td>
-  </tr>
-
-  <tr>
-    <td>Move left</td>
-    <td>
-        <code>&#8592;</code>
-        or
-        <code>&#8963; + h</code>
-        </td>
-  </tr>
-
-  <tr>
-    <td>Move right</td>
-    <td>
-    <code>&#8594;</code>
-    or
-    <code>&#8963; + l</code>
-    </td>
-  </tr>
-
-  <tr>
-    <td>Move a stack down</td>
-    <td>
-    <code>&#x2325; + &#8595;</code>
-    </td>
-  </tr>
-
-  <tr>
-    <td>Move a stack up</td>
-    <td>
-    <code>&#x2325; + &#8593;</code>
-    </td>
-  </tr>
-
-  <tr>
-    <td>Reset nav (clears filter and jumps to the top)</td>
-    <td>
-     <code>&#8984; + 0</code>
-    </td>
-  </tr>
-
-  <tr>
-    <th colspan="2" align="left">Item Manipulation</th>
-  </tr>
-
-  <tr>
-    <td>Move an item down</td>
-    <td><code>&#8984; + &#8595;</code></code></td>
-  </tr>
-
-  <tr>
-    <td>Move an item up</td>
-    <td><code>&#8984; + &#8593;</code></td>
-  </tr>
-
-  <tr>
-    <td>Bring current item and stack to the top</td>
-    <td><code>&#8984; + t</code></td>
-  </tr>
+  <tr><td>To launch Stacks</td><td><code>&#8963; + Space</code></td></tr>
+  <tr><th colspan="2" align="left">Navigation</th></tr>
+  <tr><td>Move down</td><td><code>&#8595;</code>or<code>&#8963; + n</code></td></tr>
+  <tr><td>Move up</td><td><code>&#8593;</code>or<code>&#8963; + p</code></td></tr>
+  <tr><td>Move left</td><td><code>&#8592;</code>or<code>&#8963; + h</code></td></tr>
+  <tr><td>Move right</td><td><code>&#8594;</code>or<code>&#8963; + l</code></td></tr>
+  <tr><td>Move a stack down</td><td><code>&#x2325; + &#8595;</code></td></tr>
+  <tr><td>Move a stack up</td><td><code>&#x2325; + &#8593;</code></td></tr>
+  <tr><td>Reset nav (clears filter and jumps to the top)</td><td><code>&#8984; + 0</code></td></tr>
+  <tr><th colspan="2" align="left">Item Manipulation</th></tr
+  <tr><td>Move an item down</td><td><code>&#8984; + &#8595;</code></code></td></tr
+  <tr><td>Move an item up</td><td><code>&#8984; + &#8593;</code></td></tr
+  <tr><td>Bring current item and stack to the top</td><td><code>&#8984; + t</code></td></tr>
 </table>
