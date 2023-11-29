@@ -59,7 +59,14 @@ A terrific clipboard manager
   <tr>
     <td>Move a stack down</td>
     <td>
-    <code>&#x2318; + &#8594;</code>
+    <code>&#x2325; + &#8595;</code>
+    </td>
+  </tr>
+
+  <tr>
+    <td>Move a stack up</td>
+    <td>
+    <code>&#x2325; + &#8593;</code>
     </td>
   </tr>
 
