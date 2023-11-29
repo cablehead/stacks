@@ -73,12 +73,13 @@ export default {
         className={overlay}
         style={{
           position: "absolute",
-          overflow: "auto",
+          overflow: "hidden",
           fontSize: "0.9rem",
           bottom: "2ch",
           right: "2ch",
           left: "2ch",
           top: "2ch",
+          padding: "2ch",
           borderRadius: "0.5rem",
           zIndex: 1000,
         }}
@@ -89,7 +90,7 @@ export default {
           style={{
             width: "100%",
             height: "100%",
-            margin: "2ch",
+            resize: "none",
             outline: "none",
             border: "none",
           }}
