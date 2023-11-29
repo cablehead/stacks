@@ -13,10 +13,11 @@ A terrific clipboard manager
 
 ## Usage
 
-<table border="0">
+<table>
   <tr><td>To launch Stacks</td><td><code>&#8963; + Space</code></td></tr>
   <tr><th colspan="2" align="left">Navigation</th></tr>
   <tr><td>Move down</td><td><code>&#8595;</code>or<code>&#8963; + n</code></td></tr>
+  <tr></tr>
   <tr><td>Move up</td><td><code>&#8593;</code>or<code>&#8963; + p</code></td></tr>
   <tr><td>Move left</td><td><code>&#8592;</code>or<code>&#8963; + h</code></td></tr>
   <tr><td>Move right</td><td><code>&#8594;</code>or<code>&#8963; + l</code></td></tr>
