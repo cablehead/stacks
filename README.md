@@ -57,6 +57,13 @@ A terrific clipboard manager
   </tr>
 
   <tr>
+    <td>Move a stack down</td>
+    <td>
+    <code>&#x2318; + &#8594;</code>
+    </td>
+  </tr>
+
+  <tr>
     <td>Reset nav (clears filter and jumps to the top)</td>
     <td>
      <code>&#8984; + 0</code>
