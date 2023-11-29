@@ -104,6 +104,36 @@ impl UI {
         self.select(self.view.get_best_focus_next(&focused));
     }
 
+    pub fn select_down_stack(&mut self) {
+        let focused = self.focused.clone().or(self.view.first());
+        if let Some(focused) = focused {
+            if focused.item.stack_id.is_none() {
+                self.select(self.view.get_best_focus_next(&Some(focused)));
+                return;
+            }
+            let stack_id = focused.item.stack_id.unwrap();
+            let stack = self.view.get_focus_for_id(&stack_id);
+            let next_stack = self.view.get_best_focus_next(&stack);
+            self.select(next_stack);
+            self.select_right();
+        }
+    }
+
+    pub fn select_up_stack(&mut self) {
+        let focused = self.focused.clone().or(self.view.first());
+        if let Some(focused) = focused {
+            if focused.item.stack_id.is_none() {
+                self.select(self.view.get_best_focus_prev(&Some(focused)));
+                return;
+            }
+            let stack_id = focused.item.stack_id.unwrap();
+            let stack = self.view.get_focus_for_id(&stack_id);
+            let next_stack = self.view.get_best_focus_prev(&stack);
+            self.select(next_stack);
+            self.select_right();
+        }
+    }
+
     pub fn select_left(&mut self) {
         let focused = { self.view.get_best_focus(&self.focused) };
         let target = focused

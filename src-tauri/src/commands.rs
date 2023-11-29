@@ -315,6 +315,24 @@ pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
 
 #[tauri::command]
 #[tracing::instrument(skip(state))]
+pub fn store_nav_select_down_stack(state: tauri::State<SharedState>) -> Nav {
+    state.with_lock(|state| {
+        state.ui.select_down_stack();
+        state.ui.render(&state.store)
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
+pub fn store_nav_select_up_stack(state: tauri::State<SharedState>) -> Nav {
+    state.with_lock(|state| {
+        state.ui.select_up_stack();
+        state.ui.render(&state.store)
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
     state.with_lock(|state| {
         state.ui.select_left();
@@ -417,8 +435,7 @@ pub fn store_win_move(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
     // use tauri_plugin_positioner::{Position, WindowExt};
     // let _ = win.move_window(Position::TopRight);
-    win.set_size(tauri::PhysicalSize::new(1920, 1080))
-        .unwrap();
+    win.set_size(tauri::PhysicalSize::new(1920, 1080)).unwrap();
 }
 
 #[tauri::command]

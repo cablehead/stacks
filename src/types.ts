@@ -239,6 +239,14 @@ export class Stack {
     this.nav.value = await invoke<Nav>("store_nav_select_down", {});
   }
 
+  async selectDownStack() {
+    this.nav.value = await invoke<Nav>("store_nav_select_down_stack", {});
+  }
+
+  async selectUpStack() {
+    this.nav.value = await invoke<Nav>("store_nav_select_up_stack", {});
+  }
+
   async selectRight() {
     this.nav.value = await invoke<Nav>("store_nav_select_right", {});
   }

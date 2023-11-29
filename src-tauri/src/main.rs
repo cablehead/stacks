@@ -106,6 +106,8 @@ async fn main() {
             commands::store_nav_select,
             commands::store_nav_select_up,
             commands::store_nav_select_down,
+            commands::store_nav_select_up_stack,
+            commands::store_nav_select_down_stack,
             commands::store_nav_select_left,
             commands::store_nav_select_right,
             commands::store_copy_to_clipboard,
