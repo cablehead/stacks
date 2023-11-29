@@ -1,4 +1,4 @@
-import { Signal, useSignal, signal } from "@preact/signals";
+import { Signal, signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -65,6 +65,9 @@ export default {
         content.value = await invoke("store_get_raw_content", {
           hash: item.hash,
         });
+        if (inputRef.current != null) {
+          inputRef.current.select();
+        }
       })();
     }
 
