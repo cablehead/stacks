@@ -13,7 +13,7 @@ A terrific clipboard manager
 
 ## Usage
 
-<table>
+<table frame="box">
   <tr><td>To launch Stacks</td><td><code>&#8963; + Space</code></td></tr>
   <tr><th colspan="2" align="left">Navigation</th></tr>
   <tr><td>Move down</td><td><code>&#8595;</code>or<code>&#8963; + n</code></td></tr>
