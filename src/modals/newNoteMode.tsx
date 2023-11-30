@@ -15,6 +15,12 @@ const state = (() => {
     accept_meta: (stack: Stack, modes: Modes) => {
       const selected = stack.selected();
       if (!selected) return;
+
+      if (!curr.value) {
+        modes.deactivate();
+        return;
+      }
+
       const args = {
         stackId: selected.stack_id || selected.id,
         content: curr.value,
@@ -75,9 +81,6 @@ export default {
             margin: "2ch",
             outline: "none",
             border: "none",
-          }}
-          onBlur={() => {
-            modes.deactivate();
           }}
           placeholder="Enter note..."
           onInput={(event) => {
