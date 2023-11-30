@@ -272,9 +272,25 @@ use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
 pub fn markdown_to_html(theme_mode: &str, input: &Vec<u8>) -> String {
     let adapter = SyntectAdapter::new(&format!("base16-ocean.{}", theme_mode));
-    let options = ComrakOptions::default();
-    let mut plugins = ComrakPlugins::default();
 
+    let mut options = ComrakOptions::default();
+    options.extension.tasklist = true;
+    options.extension.strikethrough = true;
+    options.extension.table = true;
+    options.extension.autolink = true;
+    options.extension.tasklist = true;
+    options.extension.superscript = true;
+    options.extension.header_ids = Some("xs-".into());
+    options.extension.footnotes = true;
+    options.extension.description_lists = true;
+    // options.extension.front_matter_delimiter: Option<String>,
+    options.extension.shortcodes = true;
+
+    options.extension.tagfilter = true;
+    // TODO: think about adding a dedicated Markdown (unsafe) content type
+    options.render.unsafe_ = true;
+
+    let mut plugins = ComrakPlugins::default();
     plugins.render.codefence_syntax_highlighter = Some(&adapter);
 
     let input_str = String::from_utf8(input.clone()).unwrap();
