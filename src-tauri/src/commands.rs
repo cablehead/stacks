@@ -436,7 +436,8 @@ pub fn store_win_move(app: tauri::AppHandle) {
     // use tauri_plugin_positioner::{Position, WindowExt};
     // let _ = win.move_window(Position::TopRight);
     win.set_size(tauri::PhysicalSize::new(1954, 978)).unwrap();
-    win.set_position(tauri::PhysicalPosition::new(722, 678)).unwrap();
+    win.set_position(tauri::PhysicalPosition::new(722, 678))
+        .unwrap();
 }
 
 #[tauri::command]
@@ -448,6 +449,17 @@ pub fn store_edit_note(
     content: String,
 ) {
     state.with_lock(|state| {
+        let meta = state
+            .view
+            .items
+            .get(&source_id)
+            .and_then(|source| state.store.get_content_meta(&source.hash));
+        if meta.is_none() {
+            tracing::warn!("source or meta not found");
+            return;
+        }
+        let meta = meta.unwrap();
+
         let packet = state.store.update(
             source_id,
             Some(content.as_bytes()),
@@ -455,6 +467,13 @@ pub fn store_edit_note(
             None,
         );
         state.merge(&packet);
+
+        if let Some(hash) = packet.hash {
+            if meta.content_type != "Text" {
+                let packet = state.store.update_content_type(hash, meta.content_type);
+                state.merge(&packet);
+            }
+        }
 
         state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     });
