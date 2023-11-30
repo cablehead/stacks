@@ -55,7 +55,6 @@ export default {
     useEffect(() => {
       if (inputRef.current != null) {
         inputRef.current.focus();
-        inputRef.current.select();
       }
     }, []);
 
@@ -71,7 +70,9 @@ export default {
           hash: item.hash,
         });
         if (inputRef.current != null) {
-          inputRef.current.select();
+          inputRef.current.selectionStart =
+            inputRef.current.selectionEnd =
+              inputRef.current.value.length;
         }
       })();
     }
@@ -84,7 +85,7 @@ export default {
           backgroundColor: "transparent",
           zIndex: 1000,
           position: "absolute",
-          padding: "1ch",
+          padding: "2ch",
         }}
       >
         <div
@@ -93,8 +94,8 @@ export default {
             fontSize: "0.9rem",
             padding: "2ch",
             borderRadius: "0.5rem",
-            width: "calc(100% - 2ch)",
-            height: "calc(100% - 2ch)",
+            width: "calc(100% - 4ch)",
+            height: "calc(100% - 4ch)",
           }}
         >
           {meta &&
