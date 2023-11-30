@@ -59,53 +59,55 @@ export default {
 
     return (
       <div
-        className={overlay}
         style={{
-          position: "absolute",
-          overflow: "auto",
-          fontSize: "0.9rem",
-          bottom: "2ch",
-          right: "2ch",
-          left: "2ch",
-          top: "2ch",
-          borderRadius: "0.5rem",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "transparent",
           zIndex: 1000,
+          position: "absolute",
+          padding: "1ch",
         }}
       >
-        <textarea
-          ref={inputRef}
-          spellcheck={false}
+        <div
+          className={overlay}
           style={{
-            width: "100%",
-            height: "100%",
-            margin: "2ch",
-            outline: "none",
-            border: "none",
-          }}
-          placeholder="Enter note..."
-          onInput={(event) => {
-            state.curr.value = (event.target as HTMLTextAreaElement).value;
-          }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            switch (true) {
-              case event.key === "Escape":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "e":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "Enter":
-                state.accept_meta(stack, modes);
-                break;
-            }
+            fontSize: "0.9rem",
+            padding: "2ch",
+            borderRadius: "0.5rem",
+            width: "calc(100% - 2ch)",
+            height: "calc(100% - 2ch)",
           }}
         >
-        </textarea>
+          <textarea
+            ref={inputRef}
+            spellcheck={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              resize: "none",
+              outline: "none",
+              border: "none",
+            }}
+            placeholder="Enter note..."
+            onInput={(event) => {
+              state.curr.value = (event.target as HTMLTextAreaElement).value;
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              switch (true) {
+                case event.key === "Escape":
+                  event.preventDefault();
+                  modes.deactivate();
+                  break;
+
+                case event.metaKey && event.key === "Enter":
+                  state.accept_meta(stack, modes);
+                  break;
+              }
+            }}
+          >
+          </textarea>
+        </div>
       </div>
     );
   },
