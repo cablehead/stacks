@@ -1,5 +1,5 @@
 import { assertEquals } from "https://deno.land/std@0.106.0/testing/asserts.ts";
-import { b64ToUtf8, truncateUrl, utf8ToB64 } from "./utils.ts";
+import { b64ToUtf8, truncateUrl, utf8ToB64, matchKeyEvent } from "./utils.ts";
 
 Deno.test("should b64ToUtf8", () => {
   const encoded = utf8ToB64("Hai");

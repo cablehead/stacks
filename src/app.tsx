@@ -5,6 +5,7 @@ import {
   editorMode,
   mainMode,
   modes,
+  newNoteMode,
   settingsMode,
 } from "./modals";
 
@@ -189,8 +190,8 @@ export function App() {
       {stack
         ? (
           <>
-            {!modes.isActive(editorMode) &&
-              <Filter stack={stack}  />}
+            {!modes.isActive(editorMode) && !modes.isActive(newNoteMode) &&
+              <Filter stack={stack} />}
             <div style="
             display: flex;
             flex-direction: column;

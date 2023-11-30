@@ -35,4 +35,6 @@ A terrific clipboard manager
   <tr><td>Move an item up</td><td><code>&#8984; + &#8593;</code></td></tr>
   <tr></tr>
   <tr><td>Bring current item and stack to the top</td><td><code>&#8984; + t</code></td></tr>
+  <tr><th colspan="2" align="left">Global shortcuts</th></tr>
+  <tr><td>New note</td><td><code>&#8984; + SHIFT + n</code></td></tr>
 </table>

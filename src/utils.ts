@@ -69,3 +69,24 @@ export function dn(): string {
   );
   return formattedDate;
 }
+
+interface MatchKeyOptions {
+  shift?: boolean;
+  ctrl?: boolean;
+  alt?: boolean;
+  meta?: boolean;
+  key: string;
+}
+
+export function matchKeyEvent(
+  event: KeyboardEvent,
+  options: MatchKeyOptions,
+): boolean {
+  return (
+    event.key === options.key &&
+    event.shiftKey === !!options.shift &&
+    event.ctrlKey === !!options.ctrl &&
+    event.altKey === !!options.alt &&
+    event.metaKey === !!options.meta
+  );
+}
