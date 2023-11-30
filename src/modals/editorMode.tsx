@@ -4,8 +4,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay } from "../ui/app.css";
-import { Icon, RenderKeys } from "../ui/icons";
-import { VertDiv } from "../ui/components";
+import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { getContent, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
@@ -50,6 +49,17 @@ export default {
       keys: ["ESC"],
       onMouseDown: () => modes.deactivate(),
     },
+    /*
+    {
+      name: "Set type",
+      keys: [
+        "SHIFT",
+        <Icon name="IconCommandKey" />,
+        "U",
+      ],
+      onMouseDown: () => 3, // modes.deactivate(),
+    },
+    */
   ],
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
@@ -86,7 +96,7 @@ export default {
           backgroundColor: "transparent",
           zIndex: 1000,
           position: "absolute",
-          padding: "2ch",
+          padding: "1ch",
         }}
       >
         <div
@@ -95,8 +105,8 @@ export default {
             fontSize: "0.9rem",
             padding: "2ch",
             borderRadius: "0.5rem",
-            width: "calc(100% - 4ch)",
-            height: "calc(100% - 4ch)",
+            width: "calc(100% - 2ch)",
+            height: "calc(100% - 2ch)",
           }}
         >
           <textarea
@@ -129,50 +139,6 @@ export default {
           >
             {b64ToUtf8(content.value)}
           </textarea>
-          {meta &&
-            (
-              <div
-                style={{
-                  display: "flex",
-                  justifyContent: "flex-end",
-                }}
-              >
-                <div
-                  className={overlay}
-                  style={{
-                    borderRadius: "0.5rem",
-                    padding: "0.25ch 0.5ch",
-                  }}
-                >
-                  <div
-                    style={{
-                      display: "flex",
-                      fontSize: "0.9rem",
-                      alignItems: "center",
-                      gap: "1ch",
-                    }}
-                  >
-                    <div style={{
-                        padding: "0ch 1ch",
-                    }}>
-                      {meta.content_type}
-                    </div>
-                    <VertDiv />
-                    <div
-                      class="hoverable"
-                      style={{
-                        display: "flex",
-                      }}
-                    >
-                      Content type&nbsp;
-                      <RenderKeys
-                        keys={[<Icon name="IconCommandKey" />, "U"]}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-            )}
         </div>
       </div>
     );
