@@ -6,7 +6,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { getContent, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
@@ -60,6 +60,8 @@ export default {
 
     const content: Signal<string> = useSignal("");
 
+    const meta = item && getContent(item).value;
+
     if (item) {
       (async () => {
         content.value = await invoke("store_get_raw_content", {
@@ -78,15 +80,22 @@ export default {
           position: "absolute",
           overflow: "hidden",
           fontSize: "0.9rem",
-          bottom: "2ch",
-          right: "2ch",
-          left: "2ch",
-          top: "2ch",
+          bottom: "1ch",
+          right: "1ch",
+          left: "1ch",
+          top: "1ch",
           padding: "2ch",
           borderRadius: "0.5rem",
           zIndex: 1000,
         }}
       >
+        {meta &&
+          (
+            <div>
+              {meta.content_type}
+            </div>
+          )}
+
         <textarea
           ref={inputRef}
           spellcheck={false}

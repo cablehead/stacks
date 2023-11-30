@@ -2,6 +2,7 @@ import { useEffect } from "preact/hooks";
 
 import {
   actionsMode,
+  editorMode,
   mainMode,
   modes,
   settingsMode,
@@ -188,7 +189,8 @@ export function App() {
       {stack
         ? (
           <>
-            <Filter stack={stack} />
+            {!modes.isActive(editorMode) &&
+              <Filter stack={stack}  />}
             <div style="
             display: flex;
             flex-direction: column;
