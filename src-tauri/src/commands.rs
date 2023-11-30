@@ -435,7 +435,8 @@ pub fn store_win_move(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
     // use tauri_plugin_positioner::{Position, WindowExt};
     // let _ = win.move_window(Position::TopRight);
-    win.set_size(tauri::PhysicalSize::new(1920, 1080)).unwrap();
+    win.set_size(tauri::PhysicalSize::new(1954, 978)).unwrap();
+    win.set_position(tauri::PhysicalPosition::new(722, 678)).unwrap();
 }
 
 #[tauri::command]
