@@ -17,7 +17,10 @@ const state = (() => {
       const item = stack.selected();
       if (!item) return;
 
-      if (!curr.value) return;
+      if (!curr.value) {
+        modes.deactivate();
+        return;
+      }
 
       const args = {
         sourceId: item.id,
@@ -75,65 +78,63 @@ export default {
 
     return (
       <div
-        className={overlay}
         style={{
-          position: "absolute",
-          overflow: "hidden",
-          fontSize: "0.9rem",
-          bottom: "1ch",
-          right: "1ch",
-          left: "1ch",
-          top: "1ch",
-          padding: "2ch",
-          borderRadius: "0.5rem",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "transparent",
           zIndex: 1000,
+          position: "absolute",
+          padding: "1ch",
         }}
       >
-        {meta &&
-          (
-            <div>
-              {meta.content_type}
-            </div>
-          )}
-
-        <textarea
-          ref={inputRef}
-          spellcheck={false}
+        <div
+          className={overlay}
           style={{
-            width: "100%",
-            height: "100%",
-            resize: "none",
-            outline: "none",
-            border: "none",
-          }}
-          onBlur={() => {
-            modes.deactivate();
-          }}
-          placeholder="..."
-          onInput={(event) => {
-            state.curr.value = (event.target as HTMLTextAreaElement).value;
-          }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            switch (true) {
-              case event.key === "Escape":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "e":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "Enter":
-                state.accept_meta(stack, modes);
-                break;
-            }
+            fontSize: "0.9rem",
+            padding: "2ch",
+            borderRadius: "0.5rem",
+            width: "calc(100% - 2ch)",
+            height: "calc(100% - 2ch)",
           }}
         >
-          {b64ToUtf8(content.value)}
-        </textarea>
+          {meta &&
+            (
+              <div>
+                {meta.content_type}
+              </div>
+            )}
+
+          <textarea
+            ref={inputRef}
+            spellcheck={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              resize: "none",
+              outline: "none",
+              border: "none",
+            }}
+            placeholder="..."
+            onInput={(event) => {
+              state.curr.value = (event.target as HTMLTextAreaElement).value;
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              switch (true) {
+                case event.key === "Escape":
+                  event.preventDefault();
+                  modes.deactivate();
+                  break;
+
+                case event.metaKey && event.key === "Enter":
+                  state.accept_meta(stack, modes);
+                  break;
+              }
+            }}
+          >
+            {b64ToUtf8(content.value)}
+          </textarea>
+        </div>
       </div>
     );
   },
