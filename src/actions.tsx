@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
-import { b64ToUtf8 } from "./utils";
+import { b64ToUtf8, matchKeyEvent } from "./utils";
 
 import {
   addToStackMode,
@@ -18,6 +18,9 @@ export const actions: Action[] = [
   {
     name: "Set content type",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconShiftKey" />, "U"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, shift: true, key: "u" }),
     trigger: (stack: Stack) => {
       modes.activate(stack, setContentTypeAction);
     },

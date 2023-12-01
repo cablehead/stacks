@@ -85,7 +85,7 @@ export const modes = {
         modes.toggle(stack, newMode);
         return true;
 
-      case (event.metaKey && event.key === "u"):
+      case matchKeyEvent(event, { meta: true, key: "u" }):
         event.preventDefault();
         modes.toggle(stack, filterContentTypeMode);
         return true;
