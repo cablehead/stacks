@@ -412,6 +412,7 @@ const IconShiftKey: FunctionComponent = () => (
     xmlns="http://www.w3.org/2000/svg"
     width="1em"
     height="1em"
+    stroke-width="1.5"
     fill="currentColor"
     class="bi bi-shift"
     viewBox="0 0 16 16"
