@@ -1,18 +1,25 @@
+import { JSXInternal } from "preact/src/jsx";
+
 import { useEffect, useRef } from "preact/hooks";
 import { computed, signal } from "@preact/signals";
 
 import { overlay } from "../ui/app.css";
-import { Icon } from "../ui/icons";
+import { RenderKeys, Icon } from "../ui/icons";
 
 import { Modes } from "./types";
 import { Stack } from "../types";
 
+export interface Action {
+  name: string;
+  keys?: (string | JSXInternal.Element)[];
+}
+
 type Options = {
   name: () => string;
-  options: string[];
+  options: Action[];
   rightOffset: () => number;
   accept: (stack: Stack, modes: Modes, chosen: string) => void;
-  activate: (stack: Stack, state: any) => void,
+  activate: (stack: Stack, state: any) => void;
 };
 
 export function createModal(opt: Options) {
@@ -29,7 +36,7 @@ export function createModal(opt: Options) {
       selected,
       normalizedSelected,
       accept: (stack: Stack, modes: Modes) => {
-        opt.accept(stack, modes, options[normalizedSelected.value]);
+        opt.accept(stack, modes, options[normalizedSelected.value].name);
       },
     };
   })();
@@ -53,7 +60,7 @@ export function createModal(opt: Options) {
     ],
 
     activate: (stack: Stack) => {
-        opt.activate(stack, state);
+      opt.activate(stack, state);
     },
 
     Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
@@ -71,7 +78,7 @@ export function createModal(opt: Options) {
           className={overlay}
           style={{
             position: "absolute",
-            width: "20ch",
+            width: "22ch",
             overflow: "hidden",
             top: "0",
             fontSize: "0.9rem",
@@ -121,12 +128,16 @@ export function createModal(opt: Options) {
             />
           </div>
           {options
-            .map((option, index) => (
+            .map((action, index) => (
               <div
                 style="
-            border-radius: 6px;
-            cursor: pointer;
-            padding: 0.5ch 0.75ch;
+                display: flex;
+                width: 100%;
+                overflow: hidden;
+                padding: 0.5ch 0.75ch;
+                justify-content: space-between;
+                border-radius: 6px;
+                cursor: pointer;
             "
                 className={"terserow" + (
                   normalizedSelected.value == index ? " hover" : ""
@@ -136,7 +147,12 @@ export function createModal(opt: Options) {
                   state.accept(stack, modes);
                 }}
               >
-                {option}
+                <div>
+                  {action.name}
+                </div>
+                <div>
+                  {action.keys ? <RenderKeys keys={action.keys} /> : ""}
+                </div>
               </div>
             ))}
         </div>

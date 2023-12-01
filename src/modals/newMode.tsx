@@ -1,5 +1,6 @@
 import { Modes } from "./types";
 import { Stack } from "../types";
+import { Icon } from "../ui/icons";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -13,7 +14,17 @@ export default createModal(
   {
     name: () => "New ...",
 
-    options: ["Note", "Stack"],
+    options: [
+      {
+        name: "Note",
+        keys: [
+          <Icon name="IconCommandKey" />,
+          <Icon name="IconShiftKey" />,
+          "N",
+        ],
+      },
+      { name: "Stack" },
+    ],
 
     rightOffset: (() => {
       const element = document.getElementById("trigger-new");

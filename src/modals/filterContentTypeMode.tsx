@@ -7,7 +7,12 @@ export default createModal(
   {
     name: () => "Filter by content type",
 
-    options: ["All", "Links", "Images", "Markdown"],
+    options: [
+      { name: "All" },
+      { name: "Links" },
+      { name: "Images" },
+      { name: "Markdown" },
+    ],
 
     rightOffset: (() => {
       const element = document.getElementById("filter-content-type");
