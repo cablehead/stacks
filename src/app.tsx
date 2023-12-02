@@ -2,8 +2,10 @@ import { useEffect } from "preact/hooks";
 
 import {
   actionsMode,
+  editorMode,
   mainMode,
   modes,
+  newNoteMode,
   settingsMode,
 } from "./modals";
 
@@ -97,6 +99,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
       return;
     }
 
+    case event.metaKey && event.key === "0":
+      event.preventDefault();
+      stack.reset();
+      return;
+
     case event.metaKey &&
       ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
       event.preventDefault();
@@ -109,16 +116,28 @@ async function globalKeyHandler(event: KeyboardEvent) {
       stack.moveUp();
       return;
 
-    case !event.metaKey &&
+    case !event.metaKey && !event.altKey &&
       ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
       event.preventDefault();
       stack.selectDown();
       return;
 
-    case !event.metaKey &&
+    case !event.metaKey && !event.altKey &&
       (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
       event.preventDefault();
       stack.selectUp();
+      return;
+
+    case !event.metaKey && event.altKey &&
+      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+      event.preventDefault();
+      stack.selectDownStack();
+      return;
+
+    case !event.metaKey && event.altKey &&
+      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+      event.preventDefault();
+      stack.selectUpStack();
       return;
 
     case (event.metaKey && (event.key === "Meta" || event.key === "c")):
@@ -171,7 +190,8 @@ export function App() {
       {stack
         ? (
           <>
-            <Filter stack={stack} />
+            {!modes.isActive(editorMode) && !modes.isActive(newNoteMode) &&
+              <Filter stack={stack} />}
             <div style="
             display: flex;
             flex-direction: column;

@@ -315,6 +315,24 @@ pub fn store_nav_select_down(state: tauri::State<SharedState>) -> Nav {
 
 #[tauri::command]
 #[tracing::instrument(skip(state))]
+pub fn store_nav_select_down_stack(state: tauri::State<SharedState>) -> Nav {
+    state.with_lock(|state| {
+        state.ui.select_down_stack();
+        state.ui.render(&state.store)
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
+pub fn store_nav_select_up_stack(state: tauri::State<SharedState>) -> Nav {
+    state.with_lock(|state| {
+        state.ui.select_up_stack();
+        state.ui.render(&state.store)
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
 pub fn store_nav_select_left(state: tauri::State<SharedState>) -> Nav {
     state.with_lock(|state| {
         state.ui.select_left();
@@ -411,15 +429,16 @@ pub fn store_new_note(
     app.emit_all("refresh-items", true).unwrap();
 }
 
-/*
 #[tauri::command]
 #[tracing::instrument(skip(app))]
 pub fn store_win_move(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
-    use tauri_plugin_positioner::{Position, WindowExt};
-    let _ = win.move_window(Position::TopRight);
+    // use tauri_plugin_positioner::{Position, WindowExt};
+    // let _ = win.move_window(Position::TopRight);
+    win.set_size(tauri::PhysicalSize::new(1954, 978)).unwrap();
+    win.set_position(tauri::PhysicalPosition::new(722, 678))
+        .unwrap();
 }
-*/
 
 #[tauri::command]
 #[tracing::instrument(skip(app, state))]
@@ -430,6 +449,17 @@ pub fn store_edit_note(
     content: String,
 ) {
     state.with_lock(|state| {
+        let meta = state
+            .view
+            .items
+            .get(&source_id)
+            .and_then(|source| state.store.get_content_meta(&source.hash));
+        if meta.is_none() {
+            tracing::warn!("source or meta not found");
+            return;
+        }
+        let meta = meta.unwrap();
+
         let packet = state.store.update(
             source_id,
             Some(content.as_bytes()),
@@ -437,6 +467,13 @@ pub fn store_edit_note(
             None,
         );
         state.merge(&packet);
+
+        if let Some(hash) = packet.hash {
+            if meta.content_type != "Text" {
+                let packet = state.store.update_content_type(hash, meta.content_type);
+                state.merge(&packet);
+            }
+        }
 
         state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     });

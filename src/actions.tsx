@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
-import { b64ToUtf8 } from "./utils";
+import { b64ToUtf8, matchKeyEvent } from "./utils";
 
 import {
   addToStackMode,
@@ -18,13 +18,16 @@ export const actions: Action[] = [
   {
     name: "Set content type",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconShiftKey" />, "U"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, shift: true, key: "u" }),
     trigger: (stack: Stack) => {
       modes.activate(stack, setContentTypeAction);
     },
   },
 
   {
-    name: "Copy item to stack",
+    name: "Copy clip to stack",
     keys: ["TAB"],
     matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
     canApply: (stack: Stack) => stack.selected()?.stack_id != null,
@@ -46,7 +49,7 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
   {
-    name: "Pipe item to ...",
+    name: "Pipe clip to ...",
     keys: [<Icon name="IconCommandKey" />, "P"],
     matchKeyEvent: (event: KeyboardEvent) =>
       !event.ctrlKey && !event.altKey && event.metaKey &&
@@ -81,7 +84,7 @@ export const actions: Action[] = [
     },
   },
   {
-    name: "Delete item",
+    name: "Delete clip",
     keys: [<Icon name="IconCommandKey" />, "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Backspace",

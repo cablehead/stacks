@@ -17,6 +17,7 @@ import { default as setContentTypeAction } from "./setContentTypeAction";
 import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
+import { matchKeyEvent } from "../utils";
 
 export {
   actionsMode,
@@ -74,12 +75,17 @@ export const modes = {
         modes.toggle(stack, actionsMode);
         return true;
 
-      case (event.metaKey && event.key === "n"):
+      case (matchKeyEvent(event, { meta: true, shift: true, key: "n" })):
+        event.preventDefault();
+        modes.toggle(stack, newNoteMode);
+        return true;
+
+      case (matchKeyEvent(event, { meta: true, key: "n" })):
         event.preventDefault();
         modes.toggle(stack, newMode);
         return true;
 
-      case (event.metaKey && event.key === "u"):
+      case matchKeyEvent(event, { meta: true, key: "u" }):
         event.preventDefault();
         modes.toggle(stack, filterContentTypeMode);
         return true;

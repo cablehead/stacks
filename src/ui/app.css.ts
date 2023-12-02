@@ -90,6 +90,10 @@ globalStyle("input", {
   outline: "none",
 });
 
+globalStyle(".markdown input", {
+  width: "auto", // Revert back to default width
+});
+
 globalStyle("a", {
   color: vars.textColor,
   textDecoration: "underline",

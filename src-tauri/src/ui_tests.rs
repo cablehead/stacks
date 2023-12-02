@@ -123,6 +123,44 @@ fn test_ui_render() {
         ),
     );
 
+    // user press: opt + down
+    state.ui.select_down_stack();
+    assert_nav_as_expected!(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
+            Some((
+                "S2::Item 3",
+                vec![
+                    "S2::Item 3",
+                    "S2::Item 2",
+                    "S2::Item 1",
+                    "https://stack-2.com"
+                ],
+                true,
+            )),
+        ),
+    );
+
+    // user press: opt + up
+    state.ui.select_up_stack();
+    assert_nav_as_expected!(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 3", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
+            Some((
+                "S3::Item 3",
+                vec![
+                    "S3::Item 3",
+                    "S3::Item 2",
+                    "S3::Item 1",
+                    "https://stack-3.com"
+                ],
+                true,
+            )),
+        ),
+    );
+
     // user press: down
     state.ui.select_down();
     assert_nav_as_expected!(
@@ -239,6 +277,31 @@ fn test_ui_render() {
             )),
         ),
     );
+
+    // user press: right, twice: there was a bug where this would bump the ui back to the top most
+    // item. assert when right most, hitting right doesn't do anything
+    state.ui.select_right();
+    state.ui.select_right();
+    assert_nav_as_expected!(
+        &state.ui.render(&state.store),
+        (
+            Some(("Stack 2", vec!["Stack 3", "Stack 2", "Stack 1"], false)),
+            Some((
+                "S2::Item 3",
+                vec![
+                    "S2::Item 3",
+                    "S2::Item 2",
+                    "S2::Item 1",
+                    "https://stack-2.com"
+                ],
+                true,
+            )),
+        ),
+    );
+
+    // user press: left
+    // back to stack level navigation
+    state.ui.select_left();
 
     // user set: filter
     state.nav_set_filter("item 1", "");

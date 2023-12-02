@@ -1,4 +1,4 @@
-import { Signal, useSignal, signal } from "@preact/signals";
+import { Signal, signal, useSignal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
@@ -17,7 +17,10 @@ const state = (() => {
       const item = stack.selected();
       if (!item) return;
 
-      if (!curr.value) return;
+      if (!curr.value) {
+        modes.deactivate();
+        return;
+      }
 
       const args = {
         sourceId: item.id,
@@ -46,18 +49,27 @@ export default {
       keys: ["ESC"],
       onMouseDown: () => modes.deactivate(),
     },
+    /*
+    {
+      name: "Set type",
+      keys: [
+        "SHIFT",
+        <Icon name="IconCommandKey" />,
+        "U",
+      ],
+      onMouseDown: () => 3, // modes.deactivate(),
+    },
+    */
   ],
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
       if (inputRef.current != null) {
         inputRef.current.focus();
-        inputRef.current.select();
       }
     }, []);
 
     const item = stack.selected();
-
     const content: Signal<string> = useSignal("");
 
     if (item) {
@@ -65,62 +77,66 @@ export default {
         content.value = await invoke("store_get_raw_content", {
           hash: item.hash,
         });
+        if (inputRef.current != null) {
+          inputRef.current.selectionStart =
+            inputRef.current.selectionEnd =
+              inputRef.current.value.length;
+        }
       })();
     }
 
     return (
       <div
-        className={overlay}
         style={{
-          position: "absolute",
-          overflow: "auto",
-          fontSize: "0.9rem",
-          bottom: "2ch",
-          right: "2ch",
-          left: "2ch",
-          top: "2ch",
-          borderRadius: "0.5rem",
+          width: "100%",
+          height: "100%",
+          backgroundColor: "transparent",
           zIndex: 1000,
+          position: "absolute",
+          padding: "1ch",
         }}
       >
-        <textarea
-          ref={inputRef}
-          spellcheck={false}
+        <div
+          className={overlay}
           style={{
-            width: "100%",
-            height: "100%",
-            margin: "2ch",
-            outline: "none",
-            border: "none",
-          }}
-          onBlur={() => {
-            modes.deactivate();
-          }}
-          placeholder="..."
-          onInput={(event) => {
-            state.curr.value = (event.target as HTMLTextAreaElement).value;
-          }}
-          onKeyDown={(event) => {
-            event.stopPropagation();
-            switch (true) {
-              case event.key === "Escape":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "e":
-                event.preventDefault();
-                modes.deactivate();
-                break;
-
-              case event.metaKey && event.key === "Enter":
-                state.accept_meta(stack, modes);
-                break;
-            }
+            fontSize: "0.9rem",
+            padding: "2ch",
+            borderRadius: "0.5rem",
+            width: "calc(100% - 2ch)",
+            height: "calc(100% - 2ch)",
           }}
         >
-          {b64ToUtf8(content.value)}
-        </textarea>
+          <textarea
+            ref={inputRef}
+            spellcheck={false}
+            style={{
+              width: "100%",
+              height: "100%",
+              resize: "none",
+              outline: "none",
+              border: "none",
+            }}
+            placeholder="..."
+            onInput={(event) => {
+              state.curr.value = (event.target as HTMLTextAreaElement).value;
+            }}
+            onKeyDown={(event) => {
+              event.stopPropagation();
+              switch (true) {
+                case event.key === "Escape":
+                  event.preventDefault();
+                  modes.deactivate();
+                  break;
+
+                case event.metaKey && event.key === "Enter":
+                  state.accept_meta(stack, modes);
+                  break;
+              }
+            }}
+          >
+            {b64ToUtf8(content.value)}
+          </textarea>
+        </div>
       </div>
     );
   },

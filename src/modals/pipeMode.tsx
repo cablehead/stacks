@@ -71,7 +71,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Pipe item to ...",
+  name: () => "Pipe clip to ...",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];
@@ -150,7 +150,7 @@ export default {
               type="text"
               ref={inputRef}
               onBlur={() => modes.deactivate()}
-              placeholder="Pipe item to ..."
+              placeholder="Pipe clip to ..."
               onInput={() => {
                 if (inputRef.current == null) return;
                 state.currFilter.value = inputRef.current.value;

@@ -96,7 +96,7 @@ async fn main() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            // commands::store_win_move,
+            commands::store_win_move,
             commands::store_get_content,
             commands::store_get_raw_content,
             commands::store_get_root,
@@ -106,6 +106,8 @@ async fn main() {
             commands::store_nav_select,
             commands::store_nav_select_up,
             commands::store_nav_select_down,
+            commands::store_nav_select_up_stack,
+            commands::store_nav_select_down_stack,
             commands::store_nav_select_left,
             commands::store_nav_select_right,
             commands::store_copy_to_clipboard,

@@ -104,6 +104,36 @@ impl UI {
         self.select(self.view.get_best_focus_next(&focused));
     }
 
+    pub fn select_down_stack(&mut self) {
+        let focused = self.focused.clone().or(self.view.first());
+        if let Some(focused) = focused {
+            if focused.item.stack_id.is_none() {
+                self.select(self.view.get_best_focus_next(&Some(focused)));
+                return;
+            }
+            let stack_id = focused.item.stack_id.unwrap();
+            let stack = self.view.get_focus_for_id(&stack_id);
+            let next_stack = self.view.get_best_focus_next(&stack);
+            self.select(next_stack);
+            self.select_right();
+        }
+    }
+
+    pub fn select_up_stack(&mut self) {
+        let focused = self.focused.clone().or(self.view.first());
+        if let Some(focused) = focused {
+            if focused.item.stack_id.is_none() {
+                self.select(self.view.get_best_focus_prev(&Some(focused)));
+                return;
+            }
+            let stack_id = focused.item.stack_id.unwrap();
+            let stack = self.view.get_focus_for_id(&stack_id);
+            let next_stack = self.view.get_best_focus_prev(&stack);
+            self.select(next_stack);
+            self.select_right();
+        }
+    }
+
     pub fn select_left(&mut self) {
         let focused = { self.view.get_best_focus(&self.focused) };
         let target = focused
@@ -115,8 +145,13 @@ impl UI {
     }
 
     pub fn select_right(&mut self) {
-        let target = self.view.get_best_focus(&self.focused).and_then(|focused| {
-            self.last_selected
+        if let Some(focused) = self.view.get_best_focus(&self.focused) {
+            if self.view.children(&focused.item).is_empty() {
+                return;
+            }
+
+            let target = self
+                .last_selected
                 .get(&focused.item.id)
                 .cloned()
                 .or_else(|| {
@@ -124,9 +159,10 @@ impl UI {
                         .children(&focused.item)
                         .first()
                         .and_then(|id| self.view.get_focus_for_id(id))
-                })
-        });
-        self.select(target);
+                });
+
+            self.select(target);
+        }
     }
 
     #[tracing::instrument(skip(self, store))]
@@ -236,9 +272,25 @@ use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
 pub fn markdown_to_html(theme_mode: &str, input: &Vec<u8>) -> String {
     let adapter = SyntectAdapter::new(&format!("base16-ocean.{}", theme_mode));
-    let options = ComrakOptions::default();
-    let mut plugins = ComrakPlugins::default();
 
+    let mut options = ComrakOptions::default();
+    options.extension.tasklist = true;
+    options.extension.strikethrough = true;
+    options.extension.table = true;
+    options.extension.autolink = true;
+    options.extension.tasklist = true;
+    options.extension.superscript = true;
+    options.extension.header_ids = Some("xs-".into());
+    options.extension.footnotes = true;
+    options.extension.description_lists = true;
+    // options.extension.front_matter_delimiter: Option<String>,
+    options.extension.shortcodes = true;
+
+    options.extension.tagfilter = true;
+    // TODO: think about adding a dedicated Markdown (unsafe) content type
+    options.render.unsafe_ = true;
+
+    let mut plugins = ComrakPlugins::default();
     plugins.render.codefence_syntax_highlighter = Some(&adapter);
 
     let input_str = String::from_utf8(input.clone()).unwrap();

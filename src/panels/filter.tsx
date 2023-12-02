@@ -1,7 +1,8 @@
 import { useEffect, useRef } from "preact/hooks";
 
-import { borderBottom, borderRight } from "../ui/app.css";
+import { borderBottom } from "../ui/app.css";
 import { Icon, RenderKeys } from "../ui/icons";
+import { VertDiv } from "../ui/components";
 
 import { Stack } from "../types";
 import { filterContentTypeMode, modes, newMode } from "../modals";
@@ -67,7 +68,7 @@ export function Filter({ stack }: { stack: Stack }) {
         }}
       >
         {stack.filter.content_type.value == "All"
-          ? "Content type"
+          ? "Filter by type"
           : stack.filter.content_type.value}&nbsp;
         <RenderKeys keys={[<Icon name="IconCommandKey" />, "U"]} />
       </div>
@@ -108,13 +109,3 @@ export function Filter({ stack }: { stack: Stack }) {
     </div>
   );
 }
-
-const VertDiv = () => (
-  <div
-    className={borderRight}
-    style={{
-      width: "1px",
-      height: "1.5em",
-    }}
-  />
-);
