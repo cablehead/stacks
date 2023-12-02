@@ -16,7 +16,7 @@ export default createModal(
 
     options: [
       {
-        name: "Note",
+        name: "Clip",
         keys: [
           <Icon name="IconCommandKey" />,
           <Icon name="IconShiftKey" />,
@@ -37,7 +37,7 @@ export default createModal(
     }),
 
     accept: (stack: Stack, modes: Modes, chosen: string) => {
-      if (chosen == "Note") {
+      if (chosen == "Clip") {
         modes.activate(stack, newNoteMode);
         return;
       }

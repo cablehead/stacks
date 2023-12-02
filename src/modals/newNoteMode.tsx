@@ -33,7 +33,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "New note",
+  name: () => "New clip",
   hotKeys: (stack: Stack, modes: Modes) => [
     {
       name: "Capture",
@@ -88,7 +88,7 @@ export default {
               outline: "none",
               border: "none",
             }}
-            placeholder="Enter note..."
+            placeholder="Enter clip..."
             onInput={(event) => {
               state.curr.value = (event.target as HTMLTextAreaElement).value;
             }}
