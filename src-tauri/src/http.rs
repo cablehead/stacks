@@ -32,7 +32,13 @@ async fn handle(
 }
 
 async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body>, Error> {
-    let item = state.with_lock(|state| state.view.items.get(&id).cloned());
+    let (item, meta) = state.with_lock(|state| {
+        let item = state.view.items.get(&id).cloned();
+        let meta = item
+            .as_ref()
+            .and_then(|i| state.store.get_content_meta(&i.hash));
+        (item, meta)
+    });
 
     match item {
         Some(item) => {
@@ -41,8 +47,18 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body
                 .await
                 .unwrap();
             let stream = Body::wrap_stream(tokio_util::io::ReaderStream::new(reader));
+
+            let content_type = match meta {
+                Some(meta) => match meta.mime_type {
+                    MimeType::TextPlain => "text/plain",
+                    MimeType::ImagePng => "image/png",
+                },
+                None => "application/octet-stream",
+            };
+
             Ok(Response::builder()
                 .status(StatusCode::OK)
+                .header("Content-Type", content_type)
                 .body(stream)
                 .unwrap())
         }
