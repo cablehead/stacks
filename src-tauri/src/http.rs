@@ -10,6 +10,7 @@ use tracing::error;
 use crate::state::SharedState;
 use crate::store::{InProgressStream, MimeType};
 use crate::ui::generate_preview;
+use crate::view;
 
 async fn handle(
     req: Request<Body>,
@@ -22,7 +23,15 @@ async fn handle(
         .and_then(|id| scru128::Scru128Id::from_str(id).ok());
 
     match (req.method(), id) {
-        (&Method::GET, Some(id)) => get(id, state).await,
+        (&Method::GET, Some(id)) => {
+            let accept_header = req
+                .headers()
+                .get(hyper::header::ACCEPT)
+                .and_then(|v| v.to_str().ok())
+                .unwrap_or("text/plain");
+
+            get(state, id, accept_header).await
+        }
         (&Method::POST, None) if path == "/" => post(req, state.clone(), app_handle.clone()).await,
         _ => Ok(Response::builder()
             .status(StatusCode::NOT_FOUND)
@@ -31,11 +40,62 @@ async fn handle(
     }
 }
 
-async fn get(id: scru128::Scru128Id, state: SharedState) -> Result<Response<Body>, Error> {
+#[tracing::instrument(skip_all)]
+async fn get_stack(
+    state: SharedState,
+    item: view::Item,
+    accept: &str,
+) -> Result<Response<Body>, Error> {
+    let items: Vec<_> = state.with_lock(|state| {
+        state
+            .view
+            .children(&item)
+            .iter()
+            .map(|id| {
+                let item = state.view.items.get(id).unwrap();
+                (
+                    item.clone(),
+                    state.store.get_content_meta(&item.hash).unwrap(),
+                    state.store.get_content(&item.hash).unwrap(),
+                )
+            })
+            .collect()
+    });
+    let accept = accept.to_string();
+    let (mut tx, rx) = hyper::Body::channel();
+    tokio::spawn(async move {
+        for (_item, meta, mut content) in items {
+            if accept == "text/html" {
+                content = generate_preview(
+                    "light",
+                    &Some(content),
+                    &meta.mime_type,
+                    &meta.content_type,
+                    false,
+                )
+                .into_bytes();
+            }
+            tx.send_data(content.into()).await.unwrap();
+            tx.send_data("\n".into()).await.unwrap();
+        }
+    });
+    Ok(Response::builder().status(StatusCode::OK).body(rx).unwrap())
+}
+
+#[tracing::instrument(skip(state))]
+async fn get(
+    state: SharedState,
+    id: scru128::Scru128Id,
+    accept: &str,
+) -> Result<Response<Body>, Error> {
     let item = state.with_lock(|state| state.view.items.get(&id).cloned());
 
     match item {
         Some(item) => {
+            if item.stack_id.is_none() {
+                return get_stack(state, item, accept).await;
+            }
+
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
             let reader = cacache::Reader::open_hash(cache_path, item.hash)
                 .await
