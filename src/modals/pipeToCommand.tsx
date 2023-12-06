@@ -31,7 +31,6 @@ const state = (() => {
     accept_meta: async (stack: Stack, _: Modes) => {
       const selected = stack.selected_item();
       if (!selected) return;
-      console.log("FOO", curr.value);
       const args = {
         sourceId: selected.id,
         command: curr.value,
@@ -45,7 +44,7 @@ const state = (() => {
 
 export default {
   name: () =>
-    `Pipe item to command${
+    `Pipe clip to shell${
       state.res.value.code != 0 ? ` :: exit code: ${state.res.value.code}` : ""
     }`,
   hotKeys: (stack: Stack, modes: Modes) => [
@@ -115,7 +114,7 @@ export default {
                 outline: "none",
                 border: "none",
               }}
-              placeholder="Enter command..."
+              placeholder="Shell command ..."
               onInput={(event) => {
                 state.curr.value = (event.target as HTMLTextAreaElement).value;
               }}
