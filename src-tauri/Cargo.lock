@@ -2192,6 +2192,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "infer"
+version = "0.15.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cb33622da908807a06f9513c19b3c1ad50fab3e4137d82a78107d502075aa199"
+dependencies = [
+ "cfb",
+]
+
+[[package]]
 name = "instant"
 version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4259,6 +4268,7 @@ dependencies = [
  "futures",
  "hyper",
  "indoc",
+ "infer 0.15.0",
  "maud",
  "objc",
  "regex",
@@ -4825,7 +4835,7 @@ dependencies = [
  "glob",
  "heck 0.4.1",
  "html5ever",
- "infer",
+ "infer 0.12.0",
  "json-patch 1.0.0",
  "kuchiki",
  "memchr",

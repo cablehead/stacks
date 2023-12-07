@@ -4,6 +4,7 @@ import { useEffect, useRef } from "preact/hooks";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay, vars } from "../ui/app.css";
+import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
@@ -12,6 +13,7 @@ interface CommandOutput {
   out: string;
   err: string;
   code: number;
+  mime_type?: string;
 }
 
 const state = (() => {
@@ -155,7 +157,13 @@ export default {
                 borderColor: vars.borderColor,
               }}
             >
-              {state.res.value.out}
+              {state.res.value.mime_type?.startsWith("image/")
+                ? (
+                  <img
+                    src={`data:${state.res.value.mime_type};base64,${state.res.value.out}`}
+                  />
+                )
+                : b64ToUtf8(state.res.value.out)}
             </div>
             {state.res.value.err != "" &&
               (

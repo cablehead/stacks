@@ -12,6 +12,7 @@ pub struct CommandOutput {
     pub out: String,
     pub err: String,
     pub code: i32,
+    pub mime_type: Option<String>,
 }
 
 #[tauri::command]
@@ -58,11 +59,17 @@ pub async fn store_pipe_to_command(
     });
 
     let output = cmd.wait_with_output().await.unwrap();
+
+    let m = infer::Infer::new().get(&output.stdout);
+    eprintln!("M: {:?}", m);
+
     let output = CommandOutput {
-        out: String::from_utf8_lossy(&output.stdout).into_owned(),
+        out: general_purpose::STANDARD.encode(output.stdout),
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
+        mime_type: m.map(|m| m.mime_type().to_string()),
     };
+
     Ok(output)
 }
 
