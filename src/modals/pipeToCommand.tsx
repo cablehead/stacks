@@ -111,15 +111,20 @@ export default {
                 height: "6lh",
                 minHeight: "6lh",
                 overflow: "auto",
+                display: "flex",
+                gap: "1ch",
               }}
             >
+              <div>$</div>
               <textarea
                 ref={inputRef}
                 spellcheck={false}
                 style={{
                   width: "100%",
-                  margin: "2ch",
                   outline: "none",
+                  resize: "none",
+                  boxSizing: "border-box",
+                  padding: 0,
                   border: "none",
                 }}
                 placeholder="Shell command ..."
@@ -150,7 +155,7 @@ export default {
                 overflow: "auto",
                 width: "100%",
                 flex: "1",
-                padding: "1ch 3ch",
+                padding: "1ch 2ch",
                 boxShadow: `0 -2px 3px ${vars.shadowColor}`,
                 backgroundColor: vars.backgroundColor,
                 color: vars.textColor,
@@ -173,7 +178,7 @@ export default {
                     width: "100%",
                     flex: "1",
                     overflow: "auto",
-                    padding: "1ch 3ch",
+                    padding: "1ch 2ch",
                     boxShadow: `0 -2px 3px ${vars.shadowColor}`,
                     backgroundColor: vars.backgroundColor,
                     color: vars.textColor,
