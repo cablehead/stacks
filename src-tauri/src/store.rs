@@ -29,7 +29,8 @@ pub struct InProgressStream {
 }
 
 impl InProgressStream {
-    pub fn new(stack_id: Option<Scru128Id>, content: &[u8]) -> Self {
+    pub fn new(stack_id: Scru128Id) -> Self {
+        let content = "".as_bytes();
         let hash = ssri::Integrity::from(&content);
         let text_content = String::from_utf8_lossy(content).into_owned();
         let tiktokens = count_tiktokens(&text_content);
@@ -61,7 +62,7 @@ impl InProgressStream {
                 packet_type: PacketType::Add,
                 source_id: None,
                 hash: Some(hash.clone()),
-                stack_id,
+                stack_id: Some(stack_id),
                 ephemeral: true,
                 content_type: None,
                 movement: None,
