@@ -24,10 +24,10 @@ pub async fn store_pipe_to_command(
     source_id: scru128::Scru128Id,
     command: String,
 ) -> Result<(), ()> {
-    let (cache_path, hash) = state.with_lock(|state| {
+    let (cache_path, hash, stack_id) = state.with_lock(|state| {
         let cache_path = state.store.cache_path.clone();
         let item = state.view.items.get(&source_id).unwrap();
-        (cache_path, item.hash.clone())
+        (cache_path, item.hash.clone(), item.stack_id)
     });
 
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
@@ -65,15 +65,33 @@ pub async fn store_pipe_to_command(
     let m = infer::Infer::new().get(&output.stdout);
     eprintln!("M: {:?}", m);
 
+    let out = (!output.stdout.is_empty()).then(|| {
+        state.with_lock(|state| {
+            let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+
+            let packet = state
+                .store
+                .add(&output.stdout, MimeType::TextPlain, stack_id);
+
+            state.merge(&packet);
+            app.emit_all("refresh-items", true).unwrap();
+            packet.id
+        })
+    });
+
     app.emit_all(
         "pipe-to-shell",
         ExecStatus {
             exec_id,
-            out: None,
+            out,
             err: None,
             code: output.status.code().unwrap_or(-1),
         },
-    ).unwrap();
+    )
+    .unwrap();
+
+    eprintln!("OUTPUT: {:?}", output.stdout);
+    eprintln!("STDOUT Length: {}", output.stdout.len());
 
     /*
     let output = CommandOutput {
