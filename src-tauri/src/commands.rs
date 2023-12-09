@@ -72,12 +72,18 @@ pub async fn store_pipe_to_command(
     let m = infer::Infer::new().get(&output.stdout);
     eprintln!("M: {:?}", m);
 
+    let mime_type = match m.map(|m| m.mime_type()) {
+        None => MimeType::TextPlain,
+        Some("image/png") => MimeType::ImagePng,
+        _ => todo!(),
+    };
+
     let out = (!output.stdout.is_empty()).then(|| {
         state.with_lock(|state| {
             let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
             let packet = state
                 .store
-                .add(&output.stdout, MimeType::TextPlain, stack_id);
+                .add(&output.stdout, mime_type, stack_id);
             state.merge(&packet);
             Cacheable {
                 id: packet.id,
