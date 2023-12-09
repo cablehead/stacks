@@ -72,8 +72,8 @@ pub async fn store_pipe_to_command(
     let m = infer::Infer::new().get(&output.stdout);
     eprintln!("M: {:?}", m);
 
-    let out = if !output.stdout.is_empty() {
-        let item = state.with_lock(|state| {
+    let out = (!output.stdout.is_empty()).then(|| {
+        state.with_lock(|state| {
             let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
             let packet = state
                 .store
@@ -84,20 +84,30 @@ pub async fn store_pipe_to_command(
                 hash: packet.hash,
                 ephemeral: false,
             }
-        });
-        Some(item)
-    } else {
-        None
-    };
+        })
+    });
 
-    eprintln!("OUTPUT: {:?}", out);
+    let err = (!output.stderr.is_empty()).then(|| {
+        state.with_lock(|state| {
+            let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+            let packet = state
+                .store
+                .add(&output.stderr, MimeType::TextPlain, stack_id);
+            state.merge(&packet);
+            Cacheable {
+                id: packet.id,
+                hash: packet.hash,
+                ephemeral: false,
+            }
+        })
+    });
 
     app.emit_all(
         "pipe-to-shell",
         ExecStatus {
             exec_id,
             out,
-            err: None,
+            err,
             code: output.status.code().unwrap_or(-1),
         },
     )
