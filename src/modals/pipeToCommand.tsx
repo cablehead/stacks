@@ -7,11 +7,11 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay, vars } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { getContent, Item, Stack } from "../types";
+import { getContent, Cacheable, Item, Stack } from "../types";
 
 interface ExecStatus {
   exec_id: number;
-  out?: Item;
+  out?: Cacheable;
   err?: Item;
   code?: number;
 }
@@ -27,8 +27,8 @@ const state = (() => {
       "pipe-to-shell",
       (event: { payload: ExecStatus }) => {
         if (event.payload.exec_id === exec_id) {
+          console.log("pipe-to-shell", exec_id, status.value, event.payload);
           status.value = event.payload;
-          console.log("pipe-to-shell", exec_id, status.value);
         }
       },
     );
@@ -75,7 +75,7 @@ export default {
       onMouseDown: () => state.accept_meta(stack, modes),
     },
     {
-      name: "Discard",
+      name: "Back",
       keys: ["ESC"],
       onMouseDown: () => modes.deactivate(),
     },
@@ -185,7 +185,7 @@ export default {
                 borderColor: vars.borderColor,
               }}
               dangerouslySetInnerHTML={{
-                __html: state.status.value?.out !== undefined &&
+                __html: state.status.value?.out &&
                     getContent(state.status.value.out).value?.preview ||
                   (state.status.value?.code !== undefined &&
                       "<i>no output</i>" ||

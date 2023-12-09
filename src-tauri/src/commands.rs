@@ -10,9 +10,16 @@ use crate::view::View;
 #[derive(Debug, Clone, serde::Serialize)]
 struct ExecStatus {
     exec_id: u32,
-    out: Option<Scru128Id>,
+    out: Option<Cacheable>,
     err: Option<Scru128Id>,
     code: i32,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct Cacheable {
+    id: Scru128Id,
+    hash: Option<ssri::Integrity>,
+    ephemeral: bool,
 }
 
 #[tauri::command]
@@ -65,19 +72,25 @@ pub async fn store_pipe_to_command(
     let m = infer::Infer::new().get(&output.stdout);
     eprintln!("M: {:?}", m);
 
-    let out = (!output.stdout.is_empty()).then(|| {
-        state.with_lock(|state| {
+    let out = if !output.stdout.is_empty() {
+        let item = state.with_lock(|state| {
             let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
-
             let packet = state
                 .store
                 .add(&output.stdout, MimeType::TextPlain, stack_id);
-
             state.merge(&packet);
-            app.emit_all("refresh-items", true).unwrap();
-            packet.id
-        })
-    });
+            Cacheable {
+                id: packet.id,
+                hash: packet.hash,
+                ephemeral: false,
+            }
+        });
+        Some(item)
+    } else {
+        None
+    };
+
+    eprintln!("OUTPUT: {:?}", out);
 
     app.emit_all(
         "pipe-to-shell",
@@ -89,9 +102,6 @@ pub async fn store_pipe_to_command(
         },
     )
     .unwrap();
-
-    eprintln!("OUTPUT: {:?}", output.stdout);
-    eprintln!("STDOUT Length: {}", output.stdout.len());
 
     /*
     let output = CommandOutput {

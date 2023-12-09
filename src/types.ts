@@ -21,7 +21,13 @@ export interface Content {
   preview: string;
 }
 
-export function getContent(item: Item): Signal<Content | null> {
+export interface Cacheable {
+  id: Scru128Id;
+  hash: SSRI;
+  ephemeral: boolean;
+}
+
+export function getContent(item: Cacheable): Signal<Content | null> {
   if (item.ephemeral) {
     return ContentCache.byId(item.id);
   }
