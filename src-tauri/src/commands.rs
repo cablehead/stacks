@@ -11,7 +11,7 @@ use crate::view::View;
 struct ExecStatus {
     exec_id: u32,
     out: Option<Cacheable>,
-    err: Option<Scru128Id>,
+    err: Option<Cacheable>,
     code: i32,
 }
 

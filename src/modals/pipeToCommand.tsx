@@ -7,12 +7,12 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay, vars } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { getContent, Cacheable, Item, Stack } from "../types";
+import { Cacheable, getContent, Stack } from "../types";
 
 interface ExecStatus {
   exec_id: number;
   out?: Cacheable;
-  err?: Item;
+  err?: Cacheable;
   code?: number;
 }
 
@@ -193,9 +193,12 @@ export default {
               }}
             >
             </div>
-            {
-              /*state.res.value.err != "" &&
-              (
+
+            {(() => {
+              const preview = state.status.value?.err &&
+                getContent(state.status.value.err).value?.preview;
+
+              return preview && (
                 <div
                   style={{
                     whiteSpace: "pre",
@@ -208,11 +211,12 @@ export default {
                     color: vars.textColor,
                     borderColor: vars.borderColor,
                   }}
+                  dangerouslySetInnerHTML={{ __html: preview }}
                 >
-                  {state.res.value.err}
                 </div>
-              )*/
-            }
+              );
+            })()}
+
           </div>
         </div>
       </div>
