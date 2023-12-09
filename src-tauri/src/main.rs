@@ -137,7 +137,7 @@ async fn main() {
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
                     label: String::from("main"),
-                    shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
+                    shortcut: (if std::env::var("STACK_ALT_LEADER").is_ok() {
                         "Option+Space"
                     } else {
                         "Control+Space"

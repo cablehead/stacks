@@ -1,45 +1,68 @@
-import { Signal, signal } from "@preact/signals";
+import { computed, Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
+import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { overlay, vars } from "../ui/app.css";
-import { b64ToUtf8 } from "../utils";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { getContent, Item, Scru128Id, Stack } from "../types";
 
-interface CommandOutput {
-  out: string;
-  err: string;
-  code: number;
-  mime_type?: string;
+interface ExecStatus {
+  exec_id: number;
+  out?: Scru128Id;
+  err?: Scru128Id;
+  code?: number;
 }
 
 const state = (() => {
   const curr = signal("");
 
-  const res: Signal<CommandOutput> = signal(
-    {
-      out: "",
-      err: "",
-      code: 0,
-    },
-  );
+  const exec_id = signal(0);
+
+  const status: Signal<ExecStatus | undefined> = signal(undefined);
+  const out: Signal<Item | undefined> = signal(undefined);
+
+  const code = computed((): number | undefined => {
+    const res = status.value?.exec_id === exec_id.value
+      ? status.value.code
+      : undefined;
+    console.log("COMPUTERED", res);
+    return res;
+  });
+
+  (async () => {
+    const d1 = await listen(
+      "pipe-to-shell",
+      (event: { payload: ExecStatus }) => {
+        status.value = event.payload;
+        console.log("pipe-to-shell", exec_id.value, status.value);
+      },
+    );
+    if (import.meta.hot) {
+      import.meta.hot.dispose(() => {
+        if (d1) d1();
+      });
+    }
+  })();
 
   return {
     curr,
-    res,
+    exec_id,
+    out,
+    code,
     accept_meta: async (stack: Stack, _: Modes) => {
       const selected = stack.selected_item();
       if (!selected) return;
+      exec_id.value += 1;
       const args = {
+        execId: exec_id.value,
         sourceId: selected.id,
         command: curr.value,
       };
-      const res: CommandOutput = await invoke("store_pipe_to_command", args);
-      state.res.value = res;
-      console.log("RES", res);
+      out.value = undefined;
+      invoke("store_pipe_to_command", args);
     },
   };
 })();
@@ -47,7 +70,7 @@ const state = (() => {
 export default {
   name: () =>
     `Pipe clip to shell${
-      state.res.value.code != 0 ? ` :: exit code: ${state.res.value.code}` : ""
+      state.code.value !== undefined ? ` :: exit code: ${state.code.value}` : ""
     }`,
   hotKeys: (stack: Stack, modes: Modes) => [
     {
@@ -65,6 +88,11 @@ export default {
     },
   ],
 
+  activate: (stack: Stack) => {
+    state.exec_id.value += 1;
+    state.out.value = stack.selected();
+  },
+
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
@@ -73,7 +101,7 @@ export default {
         inputRef.current.value = "cat";
         inputRef.current.select();
         state.curr.value = "cat";
-        state.accept_meta(stack, modes);
+        // state.accept_meta(stack, modes);
       }
     }, []);
 
@@ -161,16 +189,16 @@ export default {
                 color: vars.textColor,
                 borderColor: vars.borderColor,
               }}
+              dangerouslySetInnerHTML={{
+                __html: state.out.value !== undefined &&
+                    getContent(state.out.value).value?.preview ||
+                  (state.code.value !== undefined && "<i>no output</i>" ||
+                    "<i>...</i>"),
+              }}
             >
-              {state.res.value.mime_type?.startsWith("image/")
-                ? (
-                  <img
-                    src={`data:${state.res.value.mime_type};base64,${state.res.value.out}`}
-                  />
-                )
-                : b64ToUtf8(state.res.value.out)}
             </div>
-            {state.res.value.err != "" &&
+            {
+              /*state.res.value.err != "" &&
               (
                 <div
                   style={{
@@ -187,7 +215,8 @@ export default {
                 >
                   {state.res.value.err}
                 </div>
-              )}
+              )*/
+            }
           </div>
         </div>
       </div>

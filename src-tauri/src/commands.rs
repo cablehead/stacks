@@ -7,21 +7,23 @@ use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder
 use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
-#[derive(Debug, serde::Serialize)]
-pub struct CommandOutput {
-    pub out: String,
-    pub err: String,
-    pub code: i32,
-    pub mime_type: Option<String>,
+#[derive(Debug, Clone, serde::Serialize)]
+struct ExecStatus {
+    exec_id: u32,
+    out: Option<Scru128Id>,
+    err: Option<Scru128Id>,
+    code: i32,
 }
 
 #[tauri::command]
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state, app))]
 pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
+    exec_id: u32,
     source_id: scru128::Scru128Id,
     command: String,
-) -> Result<CommandOutput, ()> {
+) -> Result<(), ()> {
     let (cache_path, hash) = state.with_lock(|state| {
         let cache_path = state.store.cache_path.clone();
         let item = state.view.items.get(&source_id).unwrap();
@@ -63,14 +65,26 @@ pub async fn store_pipe_to_command(
     let m = infer::Infer::new().get(&output.stdout);
     eprintln!("M: {:?}", m);
 
+    app.emit_all(
+        "pipe-to-shell",
+        ExecStatus {
+            exec_id,
+            out: None,
+            err: None,
+            code: output.status.code().unwrap_or(-1),
+        },
+    ).unwrap();
+
+    /*
     let output = CommandOutput {
         out: general_purpose::STANDARD.encode(output.stdout),
         err: String::from_utf8_lossy(&output.stderr).into_owned(),
         code: output.status.code().unwrap_or(-1),
         mime_type: m.map(|m| m.mime_type().to_string()),
     };
+    */
 
-    Ok(output)
+    Ok(())
 }
 
 /*
