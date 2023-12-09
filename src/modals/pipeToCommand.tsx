@@ -1,4 +1,4 @@
-import { computed, Signal, signal } from "@preact/signals";
+import { Signal, signal } from "@preact/signals";
 import { useEffect, useRef } from "preact/hooks";
 
 import { listen } from "@tauri-apps/api/event";
@@ -7,37 +7,29 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay, vars } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { getContent, Item, Scru128Id, Stack } from "../types";
+import { getContent, Item, Stack } from "../types";
 
 interface ExecStatus {
   exec_id: number;
-  out?: Scru128Id;
-  err?: Scru128Id;
+  out?: Item;
+  err?: Item;
   code?: number;
 }
 
 const state = (() => {
   const curr = signal("");
 
-  const exec_id = signal(0);
-
+  let exec_id = 0;
   const status: Signal<ExecStatus | undefined> = signal(undefined);
-  const out: Signal<Item | undefined> = signal(undefined);
-
-  const code = computed((): number | undefined => {
-    const res = status.value?.exec_id === exec_id.value
-      ? status.value.code
-      : undefined;
-    console.log("COMPUTERED", res);
-    return res;
-  });
 
   (async () => {
     const d1 = await listen(
       "pipe-to-shell",
       (event: { payload: ExecStatus }) => {
-        status.value = event.payload;
-        console.log("pipe-to-shell", exec_id.value, status.value);
+        if (event.payload.exec_id === exec_id) {
+          status.value = event.payload;
+          console.log("pipe-to-shell", exec_id, status.value);
+        }
       },
     );
     if (import.meta.hot) {
@@ -48,20 +40,19 @@ const state = (() => {
   })();
 
   return {
+    status,
     curr,
-    exec_id,
-    out,
-    code,
     accept_meta: async (stack: Stack, _: Modes) => {
       const selected = stack.selected_item();
       if (!selected) return;
-      exec_id.value += 1;
+      exec_id += 1;
+      status.value = undefined;
       const args = {
-        execId: exec_id.value,
+        execId: exec_id,
         sourceId: selected.id,
         command: curr.value,
       };
-      out.value = undefined;
+      status.value = undefined;
       invoke("store_pipe_to_command", args);
     },
   };
@@ -70,7 +61,9 @@ const state = (() => {
 export default {
   name: () =>
     `Pipe clip to shell${
-      state.code.value !== undefined ? ` :: exit code: ${state.code.value}` : ""
+      state.status.value?.code !== undefined
+        ? ` :: exit code: ${state.status.value.code}`
+        : ""
     }`,
   hotKeys: (stack: Stack, modes: Modes) => [
     {
@@ -89,8 +82,11 @@ export default {
   ],
 
   activate: (stack: Stack) => {
-    state.exec_id.value += 1;
-    state.out.value = stack.selected();
+    state.status.value = {
+      exec_id: 0,
+      out: stack.selected(),
+      code: 0,
+    };
   },
 
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
@@ -101,7 +97,6 @@ export default {
         inputRef.current.value = "cat";
         inputRef.current.select();
         state.curr.value = "cat";
-        // state.accept_meta(stack, modes);
       }
     }, []);
 
@@ -190,9 +185,10 @@ export default {
                 borderColor: vars.borderColor,
               }}
               dangerouslySetInnerHTML={{
-                __html: state.out.value !== undefined &&
-                    getContent(state.out.value).value?.preview ||
-                  (state.code.value !== undefined && "<i>no output</i>" ||
+                __html: state.status.value?.out !== undefined &&
+                    getContent(state.status.value.out).value?.preview ||
+                  (state.status.value?.code !== undefined &&
+                      "<i>no output</i>" ||
                     "<i>...</i>"),
               }}
             >
