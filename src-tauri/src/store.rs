@@ -29,16 +29,9 @@ pub struct InProgressStream {
 }
 
 impl InProgressStream {
+    #[tracing::instrument(name = "InProgressStream::new")]
     pub fn new(stack_id: Scru128Id, mime_type: MimeType) -> Self {
-        let content = "".as_bytes();
-        let hash = ssri::Integrity::from(&content);
-        let text_content = String::from_utf8_lossy(content).into_owned();
-        let tiktokens = count_tiktokens(&text_content);
-        let terse = if text_content.len() > 100 {
-            text_content.chars().take(100).collect()
-        } else {
-            text_content
-        };
+        let hash = ssri::Integrity::from("");
 
         let content_type = match mime_type {
             MimeType::TextPlain => "Text".to_string(),
@@ -49,13 +42,13 @@ impl InProgressStream {
             hash: hash.clone(),
             mime_type,
             content_type,
-            terse,
-            tiktokens,
+            terse: "".to_string(),
+            tiktokens: 0,
         };
 
         InProgressStream {
             content_meta,
-            content: content.to_vec(),
+            content: Vec::new(),
             packet: Packet {
                 id: scru128::new(),
                 packet_type: PacketType::Add,
@@ -80,7 +73,6 @@ impl InProgressStream {
         self.content_meta.hash = ssri::Integrity::from(&self.content);
 
         let text_content = String::from_utf8_lossy(&self.content).into_owned();
-        // self.content_meta.tiktokens = count_tiktokens(&text_content);
 
         // Update terse
         self.content_meta.terse = if text_content.len() > 100 {
