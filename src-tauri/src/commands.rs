@@ -84,6 +84,11 @@ pub async fn store_pipe_to_command(
             let mut buffer = [0u8; 4096];
             let size = stdout.read(&mut buffer).await.unwrap();
 
+            // stdout is empty
+            if size == 0 {
+                return;
+            }
+
             let m = infer::Infer::new().get(&buffer[..size]);
             let mime_type = match m.map(|m| m.mime_type()) {
                 None => MimeType::TextPlain,
@@ -94,7 +99,7 @@ pub async fn store_pipe_to_command(
             let mut streamer = state.with_lock(|state| {
                 let stack = state.get_curr_stack();
                 state.ui.select(None);
-                let mut streamer = InProgressStream::new(stack);
+                let mut streamer = InProgressStream::new(stack, mime_type);
                 state.merge(&streamer.packet);
                 app.emit_all("refresh-items", true).unwrap();
                 streamer.append(&buffer[..size]);
@@ -126,14 +131,14 @@ pub async fn store_pipe_to_command(
                         let preview = generate_preview(
                             "dark",
                             &Some(streamer.content.clone()),
-                            &MimeType::TextPlain,
-                            &"Text".to_string(),
+                            &streamer.content_meta.mime_type,
+                            &streamer.content_meta.content_type,
                             true,
                         );
                         let content = String::from_utf8_lossy(&streamer.content);
                         let content = Content {
-                            mime_type: MimeType::TextPlain,
-                            content_type: "Text".to_string(),
+                            mime_type: streamer.content_meta.mime_type.clone(),
+                            content_type: streamer.content_meta.content_type.clone(),
                             terse: content.chars().take(100).collect(),
                             tiktokens: 0,
                             words: content.split_whitespace().count(),

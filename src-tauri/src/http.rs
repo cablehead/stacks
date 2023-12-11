@@ -77,7 +77,7 @@ async fn post(
     let mut streamer = state.with_lock(|state| {
         let stack = state.get_curr_stack();
         state.ui.select(None); // focus first
-        let streamer = InProgressStream::new(stack);
+        let streamer = InProgressStream::new(stack, MimeType::TextPlain);
         state.merge(&streamer.packet);
         app_handle.emit_all("refresh-items", true).unwrap();
         streamer

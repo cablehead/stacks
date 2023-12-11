@@ -29,7 +29,7 @@ pub struct InProgressStream {
 }
 
 impl InProgressStream {
-    pub fn new(stack_id: Scru128Id) -> Self {
+    pub fn new(stack_id: Scru128Id, mime_type: MimeType) -> Self {
         let content = "".as_bytes();
         let hash = ssri::Integrity::from(&content);
         let text_content = String::from_utf8_lossy(content).into_owned();
@@ -40,15 +40,14 @@ impl InProgressStream {
             text_content
         };
 
-        let content_type = if is_valid_https_url(content) {
-            "Link".to_string()
-        } else {
-            "Text".to_string()
+        let content_type = match mime_type {
+            MimeType::TextPlain => "Text".to_string(),
+            MimeType::ImagePng => "Image".to_string(),
         };
 
         let content_meta = ContentMeta {
             hash: hash.clone(),
-            mime_type: MimeType::TextPlain,
+            mime_type,
             content_type,
             terse,
             tiktokens,
