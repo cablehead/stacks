@@ -15,6 +15,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 mod clipboard;
 mod commands;
 mod publish;
+mod content_bus;
 mod state;
 mod store;
 mod ui;
@@ -176,6 +177,7 @@ async fn main() {
             app.manage(state.clone());
 
             publish::spawn(state.clone(), packet_receiver);
+            content_bus::spawn_tiktokens(app.handle(), state.clone());
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

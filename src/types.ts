@@ -82,7 +82,12 @@ export const ContentCache = (() => {
       (event: { payload: SSRI }) => {
         const hash = event.payload;
         console.log("content", hash);
-        // TODO
+        let ret = hashCache.get(hash);
+        if (ret) {
+          (async () => {
+            ret.value = await invoke("store_get_content", { hash: hash });
+          })();
+        }
       },
     );
 

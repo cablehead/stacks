@@ -699,9 +699,7 @@ pub fn store_set_content_type(
         );
         state.merge(&packet);
     });
-
-    let content = store_get_content(state, hash.clone());
-    app.emit_all("content", (hash, content)).unwrap();
+    app.emit_all("content", hash).unwrap();
 }
 
 #[tauri::command]

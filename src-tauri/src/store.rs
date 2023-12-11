@@ -239,6 +239,7 @@ pub struct Store {
     packets: sled::Tree,
     content_meta: sled::Tree,
     content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
+    pub content_bus_tx: tokio::sync::broadcast::Sender<ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
@@ -253,10 +254,13 @@ impl Store {
         let meta = db.open_tree("meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
+        let (content_bus_tx, _rx) = tokio::sync::broadcast::channel(20);
+
         let mut store = Store {
             packets,
             content_meta,
             content_meta_cache: HashMap::new(),
+            content_bus_tx,
             meta,
             cache_path,
             index: Index::new(path.join("index")),
@@ -293,6 +297,12 @@ impl Store {
         for (key, value) in self.content_meta.iter().flatten() {
             if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
                 if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+                    if meta.mime_type == MimeType::TextPlain
+                        && meta.tiktokens == 0
+                        && meta.terse.len() > 0
+                    {
+                        tracing::warn!("TODO: backfill tiktokens for content that falls through the cracks: {:?}", &meta);
+                    }
                     content_meta_cache.insert(hash, meta);
                 }
             }
@@ -329,10 +339,9 @@ impl Store {
             return hash;
         }
 
-        let (content_type, terse, tiktokens) = match mime_type {
+        let (content_type, terse) = match mime_type {
             MimeType::TextPlain => {
                 let text_content = String::from_utf8_lossy(content).into_owned();
-                let tiktokens = count_tiktokens(&text_content);
                 let terse = if text_content.len() > 100 {
                     text_content.chars().take(100).collect()
                 } else {
@@ -344,9 +353,9 @@ impl Store {
                 } else {
                     "Text".to_string()
                 };
-                (content_type, terse, tiktokens)
+                (content_type, terse)
             }
-            MimeType::ImagePng => ("Image".to_string(), "Image".to_string(), 0),
+            MimeType::ImagePng => ("Image".to_string(), "Image".to_string()),
         };
 
         let meta = ContentMeta {
@@ -354,24 +363,40 @@ impl Store {
             mime_type: mime_type.clone(),
             content_type,
             terse,
-            tiktokens,
+            tiktokens: 0,
         };
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
         self.content_meta.insert(bytes, encoded).unwrap();
 
-        self.content_meta_cache.insert(hash.clone(), meta);
+        self.content_meta_cache.insert(hash.clone(), meta.clone());
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),
             MimeType::ImagePng => (),
         }
 
+        let _ = self.content_bus_tx.send(meta);
+
         hash
     }
 
     pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
+    }
+
+    pub fn update_tiktokens(&mut self, hash: ssri::Integrity, tiktokens: usize) {
+        if let Some(meta) = self.content_meta_cache.get(&hash) {
+            let mut meta = meta.clone();
+            meta.tiktokens = tiktokens;
+
+            let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
+            let hash_bytes = bincode::serialize(&hash).unwrap();
+            self.content_meta
+                .insert(hash_bytes, encoded.clone())
+                .unwrap();
+            self.content_meta_cache.insert(hash, meta.clone());
+        }
     }
 
     pub fn insert_packet(&mut self, packet: &Packet) {
