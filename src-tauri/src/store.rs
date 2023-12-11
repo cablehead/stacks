@@ -90,8 +90,6 @@ impl InProgressStream {
         };
 
         self.packet.hash = Some(self.content_meta.hash.clone());
-        // This will emit the updated item for frontends to update their caches
-        // app_handle.emit_all("refresh-items", true).unwrap();
     }
 
     pub fn end_stream(&mut self, store: &mut Store) -> Packet {
