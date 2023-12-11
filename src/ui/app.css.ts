@@ -90,6 +90,17 @@ globalStyle("input", {
   outline: "none",
 });
 
+globalStyle(".markdown", {
+  padding: "0 2ch",
+  verticalAlign: 'middle',
+});
+
+globalStyle("code", {
+  backgroundColor: vars.backgroundColorHover,
+  borderRadius: "2px",
+  padding: "0 0.5ch",
+});
+
 globalStyle(".markdown input", {
   width: "auto", // Revert back to default width
 });
