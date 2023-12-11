@@ -1,18 +1,25 @@
+use tokio::io::AsyncReadExt;
+
 use tauri::Manager;
 
 use scru128::Scru128Id;
 
 use crate::state::SharedState;
-use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
+use crate::store::{
+    InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
+};
 use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
 #[derive(Debug, Clone, serde::Serialize)]
 struct ExecStatus {
     exec_id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
     out: Option<Cacheable>,
+    #[serde(skip_serializing_if = "Option::is_none")]
     err: Option<Cacheable>,
-    code: i32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    code: Option<i32>,
 }
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -67,23 +74,80 @@ pub async fn store_pipe_to_command(
         tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
     });
 
-    let output = cmd.wait_with_output().await.unwrap();
+    let mut stdout = cmd.stdout.take().unwrap();
+    let mut buffer = [0u8; 4096];
+    let size = stdout.read(&mut buffer).await.unwrap();
 
-    let m = infer::Infer::new().get(&output.stdout);
-    eprintln!("M: {:?}", m);
-
+    let m = infer::Infer::new().get(&buffer[..size]);
     let mime_type = match m.map(|m| m.mime_type()) {
         None => MimeType::TextPlain,
         Some("image/png") => MimeType::ImagePng,
         _ => todo!(),
     };
 
+    let mut streamer = state.with_lock(|state| {
+        let stack = state.get_curr_stack();
+        state.ui.select(None);
+        let mut streamer = InProgressStream::new(stack);
+        streamer.append(&buffer[..size]);
+        state.merge(&streamer.packet);
+        app.emit_all("refresh-items", true).unwrap();
+        streamer
+    });
+
+    loop {
+        match stdout.read(&mut buffer).await {
+            Ok(size) => {
+                if size == 0 {
+                    break; // End of stream
+                }
+                streamer.append(&buffer[..size]);
+                let preview = generate_preview(
+                    "dark",
+                    &Some(streamer.content.clone()),
+                    &MimeType::TextPlain,
+                    &"Text".to_string(),
+                    true,
+                );
+                let content = String::from_utf8_lossy(&streamer.content);
+                let content = Content {
+                    mime_type: MimeType::TextPlain,
+                    content_type: "Text".to_string(),
+                    terse: content.chars().take(100).collect(),
+                    tiktokens: 0,
+                    words: content.split_whitespace().count(),
+                    chars: content.chars().count(),
+                    preview,
+                };
+
+                app.emit_all("streaming", (streamer.packet.id, content))
+                    .unwrap();
+            }
+            Err(e) => {
+                tracing::error!("Error reading bytes from command stdout: {}", e);
+                break;
+            }
+        }
+    }
+
+    let out = state.with_lock(|state| {
+        let packet = streamer.end_stream(&mut state.store);
+        state.merge(&packet);
+        state.store.insert_packet(&packet);
+        Cacheable {
+            id: packet.id,
+            hash: packet.hash,
+            ephemeral: false,
+        }
+    });
+    app.emit_all("refresh-items", true).unwrap();
+
+    /*
+    // do this for the image case
     let out = (!output.stdout.is_empty()).then(|| {
         state.with_lock(|state| {
             let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
-            let packet = state
-                .store
-                .add(&output.stdout, mime_type, stack_id);
+            let packet = state.store.add(&output.stdout, mime_type, stack_id);
             state.merge(&packet);
             Cacheable {
                 id: packet.id,
@@ -92,13 +156,17 @@ pub async fn store_pipe_to_command(
             }
         })
     });
+    */
 
-    let err = (!output.stderr.is_empty()).then(|| {
+    let mut stderr = cmd.stderr.take().unwrap();
+    let mut buff = Vec::new();
+    stderr.read_to_end(&mut buff).await.unwrap();
+    let stderr = buff;
+
+    let err = (!stderr.is_empty()).then(|| {
         state.with_lock(|state| {
             let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
-            let packet = state
-                .store
-                .add(&output.stderr, MimeType::TextPlain, stack_id);
+            let packet = state.store.add(&stderr, MimeType::TextPlain, stack_id);
             state.merge(&packet);
             Cacheable {
                 id: packet.id,
@@ -108,13 +176,14 @@ pub async fn store_pipe_to_command(
         })
     });
 
+    let status = cmd.wait().await.unwrap();
     app.emit_all(
         "pipe-to-shell",
         ExecStatus {
             exec_id,
-            out,
+            out: Some(out),
             err,
-            code: output.status.code().unwrap_or(-1),
+            code: status.code(),
         },
     )
     .unwrap();

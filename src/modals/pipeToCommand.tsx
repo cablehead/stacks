@@ -28,7 +28,7 @@ const state = (() => {
       (event: { payload: ExecStatus }) => {
         if (event.payload.exec_id === exec_id) {
           console.log("pipe-to-shell", exec_id, status.value, event.payload);
-          status.value = event.payload;
+          status.value = { ...status.value, ...event.payload };
         }
       },
     );
@@ -216,7 +216,6 @@ export default {
                 </div>
               );
             })()}
-
           </div>
         </div>
       </div>
