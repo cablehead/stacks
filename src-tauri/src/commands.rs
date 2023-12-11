@@ -75,96 +75,104 @@ pub async fn store_pipe_to_command(
     });
 
     let mut stdout = cmd.stdout.take().unwrap();
-    let mut buffer = [0u8; 4096];
-    let size = stdout.read(&mut buffer).await.unwrap();
 
-    let m = infer::Infer::new().get(&buffer[..size]);
-    let mime_type = match m.map(|m| m.mime_type()) {
-        None => MimeType::TextPlain,
-        Some("image/png") => MimeType::ImagePng,
-        _ => todo!(),
-    };
+    let read_stdout = {
+        let state = state.inner().clone();
+        let app = app.clone();
 
-    let mut streamer = state.with_lock(|state| {
-        let stack = state.get_curr_stack();
-        state.ui.select(None);
-        let mut streamer = InProgressStream::new(stack);
-        state.merge(&streamer.packet);
-        app.emit_all("refresh-items", true).unwrap();
-        streamer.append(&buffer[..size]);
-        streamer
-    });
+        tokio::spawn(async move {
+            let mut buffer = [0u8; 4096];
+            let size = stdout.read(&mut buffer).await.unwrap();
 
-    app.emit_all(
-        "pipe-to-shell",
-        ExecStatus {
-            exec_id,
-            out: Some(Cacheable {
-                id: streamer.packet.id,
-                hash: None,
-                ephemeral: true,
-            }),
-            err: None,
-            code: None,
-        },
-    )
-    .unwrap();
+            let m = infer::Infer::new().get(&buffer[..size]);
+            let mime_type = match m.map(|m| m.mime_type()) {
+                None => MimeType::TextPlain,
+                Some("image/png") => MimeType::ImagePng,
+                _ => todo!(),
+            };
 
-    loop {
-        match stdout.read(&mut buffer).await {
-            Ok(size) => {
-                if size == 0 {
-                    break; // End of stream
-                }
+            let mut streamer = state.with_lock(|state| {
+                let stack = state.get_curr_stack();
+                state.ui.select(None);
+                let mut streamer = InProgressStream::new(stack);
+                state.merge(&streamer.packet);
+                app.emit_all("refresh-items", true).unwrap();
                 streamer.append(&buffer[..size]);
-                let preview = generate_preview(
-                    "dark",
-                    &Some(streamer.content.clone()),
-                    &MimeType::TextPlain,
-                    &"Text".to_string(),
-                    true,
-                );
-                let content = String::from_utf8_lossy(&streamer.content);
-                let content = Content {
-                    mime_type: MimeType::TextPlain,
-                    content_type: "Text".to_string(),
-                    terse: content.chars().take(100).collect(),
-                    tiktokens: 0,
-                    words: content.split_whitespace().count(),
-                    chars: content.chars().count(),
-                    preview,
-                };
+                streamer
+            });
 
-                app.emit_all("streaming", (streamer.packet.id, content))
-                    .unwrap();
-            }
-            Err(e) => {
-                tracing::error!("Error reading bytes from command stdout: {}", e);
-                break;
-            }
-        }
-    }
+            app.emit_all(
+                "pipe-to-shell",
+                ExecStatus {
+                    exec_id,
+                    out: Some(Cacheable {
+                        id: streamer.packet.id,
+                        hash: None,
+                        ephemeral: true,
+                    }),
+                    err: None,
+                    code: None,
+                },
+            )
+            .unwrap();
 
-    state.with_lock(|state| {
-        let packet = streamer.end_stream(&mut state.store);
-        state.merge(&packet);
-        state.store.insert_packet(&packet);
-        app.emit_all(
-            "pipe-to-shell",
-            ExecStatus {
-                exec_id,
-                out: Some(Cacheable {
-                    id: packet.id,
-                    hash: packet.hash,
-                    ephemeral: false,
-                }),
-                err: None,
-                code: None,
-            },
-        )
-        .unwrap();
-    });
-    app.emit_all("refresh-items", true).unwrap();
+            loop {
+                match stdout.read(&mut buffer).await {
+                    Ok(size) => {
+                        if size == 0 {
+                            break; // End of stream
+                        }
+                        streamer.append(&buffer[..size]);
+                        let preview = generate_preview(
+                            "dark",
+                            &Some(streamer.content.clone()),
+                            &MimeType::TextPlain,
+                            &"Text".to_string(),
+                            true,
+                        );
+                        let content = String::from_utf8_lossy(&streamer.content);
+                        let content = Content {
+                            mime_type: MimeType::TextPlain,
+                            content_type: "Text".to_string(),
+                            terse: content.chars().take(100).collect(),
+                            tiktokens: 0,
+                            words: content.split_whitespace().count(),
+                            chars: content.chars().count(),
+                            preview,
+                        };
+
+                        app.emit_all("streaming", (streamer.packet.id, content))
+                            .unwrap();
+                    }
+                    Err(e) => {
+                        tracing::error!("Error reading bytes from command stdout: {}", e);
+                        break;
+                    }
+                }
+            }
+
+            state.with_lock(|state| {
+                let packet = streamer.end_stream(&mut state.store);
+                state.merge(&packet);
+                state.store.insert_packet(&packet);
+                app.emit_all(
+                    "pipe-to-shell",
+                    ExecStatus {
+                        exec_id,
+                        out: Some(Cacheable {
+                            id: packet.id,
+                            hash: packet.hash,
+                            ephemeral: false,
+                        }),
+                        err: None,
+                        code: None,
+                    },
+                )
+                .unwrap();
+            });
+            app.emit_all("refresh-items", true).unwrap();
+        })
+    };
 
     /*
     // do this for the image case
@@ -209,6 +217,8 @@ pub async fn store_pipe_to_command(
     }
 
     let status = cmd.wait().await.unwrap();
+
+    let _ = read_stdout.await.expect("Task failed");
     app.emit_all(
         "pipe-to-shell",
         ExecStatus {
