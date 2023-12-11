@@ -131,7 +131,7 @@ pub async fn store_pipe_to_command(
                         }
                         streamer.append(&buffer[..size]);
 
-                        if streamer.content_meta.mime_type == MimeType::TextPlain {
+                        if mime_type == MimeType::TextPlain {
                             let preview = generate_preview(
                                 "dark",
                                 &Some(streamer.content.clone()),
