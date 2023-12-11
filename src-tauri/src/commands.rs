@@ -99,9 +99,11 @@ pub async fn store_pipe_to_command(
             let mut streamer = state.with_lock(|state| {
                 let stack = state.get_curr_stack();
                 state.ui.select(None);
-                let mut streamer = InProgressStream::new(stack, mime_type);
-                state.merge(&streamer.packet);
-                app.emit_all("refresh-items", true).unwrap();
+                let mut streamer = InProgressStream::new(stack, mime_type.clone());
+                if mime_type == MimeType::TextPlain {
+                    state.merge(&streamer.packet);
+                    app.emit_all("refresh-items", true).unwrap();
+                }
                 streamer.append(&buffer[..size]);
                 streamer
             });
@@ -128,26 +130,29 @@ pub async fn store_pipe_to_command(
                             break; // End of stream
                         }
                         streamer.append(&buffer[..size]);
-                        let preview = generate_preview(
-                            "dark",
-                            &Some(streamer.content.clone()),
-                            &streamer.content_meta.mime_type,
-                            &streamer.content_meta.content_type,
-                            true,
-                        );
-                        let content = String::from_utf8_lossy(&streamer.content);
-                        let content = Content {
-                            mime_type: streamer.content_meta.mime_type.clone(),
-                            content_type: streamer.content_meta.content_type.clone(),
-                            terse: content.chars().take(100).collect(),
-                            tiktokens: 0,
-                            words: content.split_whitespace().count(),
-                            chars: content.chars().count(),
-                            preview,
-                        };
 
-                        app.emit_all("streaming", (streamer.packet.id, content))
-                            .unwrap();
+                        if streamer.content_meta.mime_type == MimeType::TextPlain {
+                            let preview = generate_preview(
+                                "dark",
+                                &Some(streamer.content.clone()),
+                                &streamer.content_meta.mime_type,
+                                &streamer.content_meta.content_type,
+                                true,
+                            );
+                            let content = String::from_utf8_lossy(&streamer.content);
+                            let content = Content {
+                                mime_type: streamer.content_meta.mime_type.clone(),
+                                content_type: streamer.content_meta.content_type.clone(),
+                                terse: content.chars().take(100).collect(),
+                                tiktokens: 0,
+                                words: content.split_whitespace().count(),
+                                chars: content.chars().count(),
+                                preview,
+                            };
+
+                            app.emit_all("streaming", (streamer.packet.id, content))
+                                .unwrap();
+                        }
                     }
                     Err(e) => {
                         tracing::error!("Error reading bytes from command stdout: {}", e);
