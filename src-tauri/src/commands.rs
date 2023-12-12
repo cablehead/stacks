@@ -98,7 +98,6 @@ pub async fn store_pipe_to_command(
 
             let mut streamer = state.with_lock(|state| {
                 let stack = state.get_curr_stack();
-                state.ui.select(None);
                 let mut streamer = InProgressStream::new(stack, mime_type.clone());
                 if mime_type == MimeType::TextPlain {
                     state.merge(&streamer.packet);
@@ -240,116 +239,8 @@ pub async fn store_pipe_to_command(
     )
     .unwrap();
 
-    /*
-    let output = CommandOutput {
-        out: general_purpose::STANDARD.encode(output.stdout),
-        err: String::from_utf8_lossy(&output.stderr).into_owned(),
-        code: output.status.code().unwrap_or(-1),
-        mime_type: m.map(|m| m.mime_type().to_string()),
-    };
-    */
-
     Ok(())
 }
-
-/*
-#[tauri::command]
-#[tracing::instrument(skip(app, state))]
-pub async fn store_pipe_to_gpt(
-    state: tauri::State<'_, SharedState>,
-    app: tauri::AppHandle,
-    source_id: scru128::Scru128Id,
-) -> Result<(), ()> {
-    let (settings, content, packet) = {
-        let mut state = state.lock().unwrap();
-
-        let settings = state.store.settings_get().ok_or(())?.clone();
-        let item = state.view.items.get(&source_id).ok_or(())?;
-
-        let content = if let Some(_) = item.stack_id {
-            vec![state.store.get_content(&item.hash).unwrap()]
-        } else {
-            return Ok(());
-        };
-
-        let stack_id = item.stack_id.unwrap_or(item.id);
-        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
-        state.ui.select(None); // focus first
-
-        (settings, content, packet)
-    };
-
-    #[derive(Clone, serde::Serialize)]
-    struct Payload {
-        id: Scru128Id,
-        tiktokens: usize,
-        content: String,
-    }
-
-    use async_openai::{
-        config::OpenAIConfig,
-        types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
-        Client,
-    };
-    use futures::StreamExt;
-
-    let config = OpenAIConfig::new().with_api_key(settings.openai_access_token);
-
-    let client = Client::with_config(config);
-
-    let messages: Vec<_> = content
-        .into_iter()
-        .map(|c| {
-            ChatCompletionRequestMessageArgs::default()
-                .content(String::from_utf8(c).unwrap())
-                .role(Role::User)
-                .build()
-                .unwrap()
-        })
-        .collect();
-
-    let request = CreateChatCompletionRequestArgs::default()
-        .model(&settings.openai_selected_model)
-        .max_tokens(512u16)
-        .messages(messages)
-        .build()
-        .unwrap();
-
-    let mut stream = client.chat().create_stream(request).await.unwrap();
-
-    let mut packet = packet;
-
-    while let Some(result) = stream.next().await {
-        match result {
-            Ok(response) => {
-                let aggregate = response
-                    .choices
-                    .iter()
-                    .filter_map(|chat_choice| chat_choice.delta.content.as_ref())
-                    .flat_map(|content| content.as_bytes().iter().cloned())
-                    .collect::<Vec<u8>>();
-
-                {
-                    let mut state = state.lock().unwrap();
-                    packet = state.store.update_stream(packet.id, &aggregate);
-                    state.merge(&packet);
-                    app.emit_all("refresh-items", true).unwrap();
-                }
-            }
-            Err(err) => {
-                error!("GPT error: {:#?}", err);
-            }
-        }
-    }
-
-    let mut state = state.lock().unwrap();
-    packet = state.store.end_stream(packet.id);
-    state.merge(&packet);
-    app.emit_all("refresh-items", true).unwrap();
-
-    Ok(())
-}
-*/
 
 fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
     hash.hashes.first().map_or_else(
