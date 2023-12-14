@@ -81,8 +81,6 @@ pub async fn store_pipe_to_command(
         tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
     });
 
-    eprintln!("command: {:?}", &command);
-
     let mut stdout = cmd.stdout.take().unwrap();
 
     let read_stdout = {
@@ -107,12 +105,6 @@ pub async fn store_pipe_to_command(
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 _ => todo!(),
             };
-
-            eprintln!("cooked_command: {:?}", &cooked_command);
-            eprintln!(
-                "content_type_2: {:?} content_type: {:?}",
-                &content_type_2, &content_type
-            );
 
             let mut streamer = state.with_lock(|state| {
                 let stack = state.get_curr_stack();
