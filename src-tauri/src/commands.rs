@@ -172,8 +172,21 @@ pub async fn store_pipe_to_command(
 
             state.with_lock(|state| {
                 let packet = streamer.end_stream(&mut state.store);
-                state.merge(&packet);
                 state.store.insert_packet(&packet);
+                state.merge(&packet);
+
+                // TODO: rework this as common a pipeline
+                if mime_type == MimeType::TextPlain {
+                    if let Some(content_type) = content_type {
+                        let hash = packet.hash.clone().unwrap();
+                        let packet = state
+                            .store
+                            .update_content_type(hash.clone(), content_type);
+                        state.merge(&packet);
+                        app.emit_all("content", &hash).unwrap();
+                    }
+                }
+
                 app.emit_all(
                     "pipe-to-shell",
                     ExecStatus {

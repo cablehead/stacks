@@ -36,7 +36,7 @@ impl InProgressStream {
         let content_meta = ContentMeta {
             hash: hash.clone(),
             mime_type,
-            content_type,
+            content_type: content_type.clone(),
             terse: "".to_string(),
             tiktokens: 0,
         };
@@ -51,7 +51,7 @@ impl InProgressStream {
                 hash: Some(hash.clone()),
                 stack_id: Some(stack_id),
                 ephemeral: true,
-                content_type: None,
+                content_type: Some(content_type),
                 movement: None,
                 lock_status: None,
                 sort_order: None,
@@ -320,7 +320,7 @@ impl Store {
         }
 
         self.scan().for_each(|p| {
-            if p.packet_type == PacketType::Update {
+            if p.packet_type == PacketType::Update || p.packet_type == PacketType::Add {
                 if let Some(hash) = p.hash.clone() {
                     if let Some(content_type) = p.content_type.clone() {
                         if let Some(meta) = content_meta_cache.get_mut(&hash) {
@@ -351,7 +351,8 @@ impl Store {
         content_type: String,
     ) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
-        if let Some(_) = self.content_meta_cache.get(&hash) {
+        if let Some(meta) = self.content_meta_cache.get_mut(&hash) {
+            meta.content_type = content_type;
             return hash;
         }
 
@@ -421,7 +422,7 @@ impl Store {
 
     pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
         let (mime_type, content_type) = infer_mime_type(content, mime_type);
-        let hash = self.cas_write(content, mime_type, content_type);
+        let hash = self.cas_write(content, mime_type, content_type.clone());
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Add,
