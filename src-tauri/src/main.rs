@@ -15,6 +15,7 @@ use tracing_subscriber::util::SubscriberInitExt;
 mod clipboard;
 mod commands;
 mod publish;
+mod content_type;
 mod content_bus;
 mod state;
 mod store;

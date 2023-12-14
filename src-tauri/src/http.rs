@@ -8,7 +8,7 @@ use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
 use tracing::error;
 
 use crate::state::SharedState;
-use crate::store::{InProgressStream, MimeType};
+use crate::store::{infer_mime_type, InProgressStream, MimeType};
 use crate::ui::generate_preview;
 
 async fn handle(
@@ -77,7 +77,8 @@ async fn post(
     let mut streamer = state.with_lock(|state| {
         let stack = state.get_curr_stack();
         state.ui.select(None); // focus first
-        let streamer = InProgressStream::new(stack, MimeType::TextPlain);
+        let (mime_type, content_type) = infer_mime_type("".as_bytes(), MimeType::TextPlain);
+        let streamer = InProgressStream::new(stack, mime_type, content_type);
         state.merge(&streamer.packet);
         app_handle.emit_all("refresh-items", true).unwrap();
         streamer

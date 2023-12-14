@@ -30,13 +30,8 @@ pub struct InProgressStream {
 
 impl InProgressStream {
     #[tracing::instrument(name = "InProgressStream::new")]
-    pub fn new(stack_id: Scru128Id, mime_type: MimeType) -> Self {
+    pub fn new(stack_id: Scru128Id, mime_type: MimeType, content_type: String) -> Self {
         let hash = ssri::Integrity::from("");
-
-        let content_type = match mime_type {
-            MimeType::TextPlain => "Text".to_string(),
-            MimeType::ImagePng => "Image".to_string(),
-        };
 
         let content_meta = ContentMeta {
             hash: hash.clone(),
@@ -85,7 +80,11 @@ impl InProgressStream {
     }
 
     pub fn end_stream(&mut self, store: &mut Store) -> Packet {
-        let hash = store.cas_write(&self.content, self.content_meta.mime_type.clone());
+        let hash = store.cas_write(
+            &self.content,
+            self.content_meta.mime_type.clone(),
+            self.content_meta.content_type.clone(),
+        );
         self.packet.hash = Some(hash);
         self.packet.ephemeral = false;
         self.packet.clone()
@@ -239,6 +238,7 @@ pub struct Store {
     packets: sled::Tree,
     content_meta: sled::Tree,
     content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
+    syntaxes: HashSet<String>,
     pub content_bus_tx: tokio::sync::broadcast::Sender<ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
@@ -260,6 +260,14 @@ impl Store {
             packets,
             content_meta,
             content_meta_cache: HashMap::new(),
+            // TODO: oh my
+            syntaxes: syntect::parsing::SyntaxSet::load_defaults_nonewlines()
+                .syntaxes()
+                .iter()
+                .map(|syntax| syntax.name.to_lowercase())
+                .filter(|name| name != "markdown")
+                .collect(),
+
             content_bus_tx,
             meta,
             cache_path,
@@ -279,10 +287,13 @@ impl Store {
                 let terse = meta.terse.to_lowercase();
                 let content_type_meta = meta.content_type.to_lowercase();
 
+                // TODO: oh my
                 if (filter.is_empty() || terse.contains(&filter))
                     && (content_type.is_empty()
                         || content_type == "all"
-                        || content_type_meta == content_type)
+                        || content_type_meta == content_type
+                        || (content_type == "source code"
+                            && self.syntaxes.contains(&content_type_meta)))
                 {
                     Some(hash.clone())
                 } else {
@@ -333,29 +344,27 @@ impl Store {
     }
 
     #[tracing::instrument(skip_all)]
-    pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
+    pub fn cas_write(
+        &mut self,
+        content: &[u8],
+        mime_type: MimeType,
+        content_type: String,
+    ) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
         if let Some(_) = self.content_meta_cache.get(&hash) {
             return hash;
         }
 
-        let (content_type, terse) = match mime_type {
+        let terse = match mime_type {
             MimeType::TextPlain => {
                 let text_content = String::from_utf8_lossy(content).into_owned();
-                let terse = if text_content.len() > 100 {
+                if text_content.len() > 100 {
                     text_content.chars().take(100).collect()
                 } else {
                     text_content
-                };
-
-                let content_type = if is_valid_https_url(content) {
-                    "Link".to_string()
-                } else {
-                    "Text".to_string()
-                };
-                (content_type, terse)
+                }
             }
-            MimeType::ImagePng => ("Image".to_string(), "Image".to_string()),
+            MimeType::ImagePng => "Image".to_string(),
         };
 
         let meta = ContentMeta {
@@ -411,7 +420,8 @@ impl Store {
     }
 
     pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
-        let hash = self.cas_write(content, mime_type);
+        let (mime_type, content_type) = infer_mime_type(content, mime_type);
+        let hash = self.cas_write(content, mime_type, content_type);
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Add,
@@ -430,7 +440,7 @@ impl Store {
     }
 
     pub fn add_stack(&mut self, name: &[u8], lock_status: StackLockStatus) -> Packet {
-        let hash = self.cas_write(name, MimeType::TextPlain);
+        let hash = self.cas_write(name, MimeType::TextPlain, "Text".to_string());
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Add,
@@ -455,7 +465,10 @@ impl Store {
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
     ) -> Packet {
-        let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
+        let hash = content.map(|c| {
+            let (mime_type, content_type) = infer_mime_type(c, mime_type);
+            self.cas_write(c, mime_type, content_type)
+        });
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -599,7 +612,10 @@ impl Store {
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
     ) -> Packet {
-        let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
+        let hash = content.map(|c| {
+            let (mime_type, content_type) = infer_mime_type(c, mime_type);
+            self.cas_write(c, mime_type, content_type)
+        });
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Fork,
@@ -666,4 +682,20 @@ pub fn count_tiktokens(content: &str) -> usize {
     let bpe = tiktoken_rs::cl100k_base().unwrap();
     let tokens = bpe.encode_with_special_tokens(content);
     tokens.len()
+}
+
+#[tracing::instrument(skip_all)]
+pub fn infer_mime_type(content: &[u8], mime_type: MimeType) -> (MimeType, String) {
+    let content_type = match mime_type {
+        MimeType::TextPlain => {
+            if is_valid_https_url(content) {
+                "Link".to_string()
+            } else {
+                "Text".to_string()
+            }
+        }
+        MimeType::ImagePng => "Image".to_string(),
+    };
+
+    (mime_type, content_type)
 }

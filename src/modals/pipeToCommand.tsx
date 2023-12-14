@@ -174,7 +174,6 @@ export default {
 
             <div
               style={{
-                whiteSpace: "pre",
                 overflow: "auto",
                 width: "100%",
                 flex: "1",

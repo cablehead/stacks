@@ -4,6 +4,7 @@ use tauri::Manager;
 
 use scru128::Scru128Id;
 
+use crate::content_type::process_command;
 use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
@@ -44,6 +45,8 @@ pub async fn store_pipe_to_command(
         (cache_path, item.hash.clone(), item.stack_id)
     });
 
+    let (cooked_command, content_type) = process_command(&command);
+
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
         Ok(val) => val,
@@ -57,7 +60,11 @@ pub async fn store_pipe_to_command(
     };
 
     let rc_path = home_dir.join(rc_file);
-    let rc_command = format!("source {}\n{}", rc_path.to_str().unwrap_or(""), command);
+    let rc_command = format!(
+        "source {}\n{}",
+        rc_path.to_str().unwrap_or(""),
+        cooked_command
+    );
 
     let mut cmd = tokio::process::Command::new(shell)
         .arg("-c")
@@ -73,6 +80,8 @@ pub async fn store_pipe_to_command(
     tokio::spawn(async move {
         tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
     });
+
+    eprintln!("command: {:?}", &command);
 
     let mut stdout = cmd.stdout.take().unwrap();
 
@@ -90,15 +99,24 @@ pub async fn store_pipe_to_command(
             }
 
             let m = infer::Infer::new().get(&buffer[..size]);
-            let mime_type = match m.map(|m| m.mime_type()) {
-                None => MimeType::TextPlain,
-                Some("image/png") => MimeType::ImagePng,
+            let (mime_type, content_type_2) = match m.map(|m| m.mime_type()) {
+                None => (
+                    MimeType::TextPlain,
+                    content_type.clone().unwrap_or("Text".to_string()),
+                ),
+                Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 _ => todo!(),
             };
 
+            eprintln!("cooked_command: {:?}", &cooked_command);
+            eprintln!(
+                "content_type_2: {:?} content_type: {:?}",
+                &content_type_2, &content_type
+            );
+
             let mut streamer = state.with_lock(|state| {
                 let stack = state.get_curr_stack();
-                let mut streamer = InProgressStream::new(stack, mime_type.clone());
+                let mut streamer = InProgressStream::new(stack, mime_type.clone(), content_type_2);
                 if mime_type == MimeType::TextPlain {
                     state.merge(&streamer.packet);
                     app.emit_all("refresh-items", true).unwrap();
@@ -183,22 +201,6 @@ pub async fn store_pipe_to_command(
         })
     };
 
-    /*
-    // do this for the image case
-    let out = (!output.stdout.is_empty()).then(|| {
-        state.with_lock(|state| {
-            let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
-            let packet = state.store.add(&output.stdout, mime_type, stack_id);
-            state.merge(&packet);
-            Cacheable {
-                id: packet.id,
-                hash: packet.hash,
-                ephemeral: false,
-            }
-        })
-    });
-    */
-
     let mut stderr = cmd.stderr.take().unwrap();
     let mut buff = Vec::new();
     stderr.read_to_end(&mut buff).await.unwrap();
@@ -239,6 +241,19 @@ pub async fn store_pipe_to_command(
     )
     .unwrap();
 
+    state.with_lock(|state| {
+        let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+        let packet = state
+            .store
+            .add(command.as_bytes(), MimeType::TextPlain, stack_id);
+        state.merge(&packet);
+        let packet = state
+            .store
+            .update_content_type(packet.hash.unwrap(), "Shell".to_string());
+        state.merge(&packet);
+    });
+
+    app.emit_all("refresh-items", true).unwrap();
     Ok(())
 }
 
@@ -356,6 +371,7 @@ pub fn store_nav_set_filter(
             "Links" => "Link",
             "Images" => "Image",
             "Markdown" => "Markdown",
+            "Source Code" => "Source Code",
             _ => "All",
         };
         state.nav_set_filter(&filter, content_type);
