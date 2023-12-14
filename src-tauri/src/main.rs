@@ -15,6 +15,8 @@ use tracing_subscriber::util::SubscriberInitExt;
 mod clipboard;
 mod commands;
 mod publish;
+mod content_type;
+mod content_bus;
 mod state;
 mod store;
 mod ui;
@@ -137,7 +139,7 @@ async fn main() {
             tauri_plugin_spotlight::PluginConfig {
                 windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
                     label: String::from("main"),
-                    shortcut: (if std::env::var("STACK_DEVTOOLS").is_ok() {
+                    shortcut: (if std::env::var("STACK_ALT_LEADER").is_ok() {
                         "Option+Space"
                     } else {
                         "Control+Space"
@@ -176,6 +178,7 @@ async fn main() {
             app.manage(state.clone());
 
             publish::spawn(state.clone(), packet_receiver);
+            content_bus::spawn_tiktokens(app.handle(), state.clone());
 
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]

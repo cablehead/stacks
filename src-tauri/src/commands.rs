@@ -1,31 +1,51 @@
+use tokio::io::AsyncReadExt;
+
 use tauri::Manager;
 
 use scru128::Scru128Id;
 
+use crate::content_type::process_command;
 use crate::state::SharedState;
-use crate::store::{MimeType, Movement, Settings, StackLockStatus, StackSortOrder};
+use crate::store::{
+    InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
+};
 use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
-#[derive(Debug, serde::Serialize)]
-pub struct CommandOutput {
-    pub out: String,
-    pub err: String,
-    pub code: i32,
+#[derive(Debug, Clone, serde::Serialize)]
+struct ExecStatus {
+    exec_id: u32,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    out: Option<Cacheable>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    err: Option<Cacheable>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    code: Option<i32>,
+}
+
+#[derive(Debug, Clone, serde::Serialize)]
+struct Cacheable {
+    id: Scru128Id,
+    hash: Option<ssri::Integrity>,
+    ephemeral: bool,
 }
 
 #[tauri::command]
-#[tracing::instrument(skip(state))]
+#[tracing::instrument(skip(state, app))]
 pub async fn store_pipe_to_command(
     state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
+    exec_id: u32,
     source_id: scru128::Scru128Id,
     command: String,
-) -> Result<CommandOutput, ()> {
-    let (cache_path, hash) = state.with_lock(|state| {
+) -> Result<(), ()> {
+    let (cache_path, hash, stack_id) = state.with_lock(|state| {
         let cache_path = state.store.cache_path.clone();
         let item = state.view.items.get(&source_id).unwrap();
-        (cache_path, item.hash.clone())
+        (cache_path, item.hash.clone(), item.stack_id)
     });
+
+    let (cooked_command, content_type) = process_command(&command);
 
     let home_dir = dirs::home_dir().expect("Could not fetch home directory");
     let shell = match std::env::var("SHELL") {
@@ -40,7 +60,11 @@ pub async fn store_pipe_to_command(
     };
 
     let rc_path = home_dir.join(rc_file);
-    let rc_command = format!("source {}\n{}", rc_path.to_str().unwrap_or(""), command);
+    let rc_command = format!(
+        "source {}\n{}",
+        rc_path.to_str().unwrap_or(""),
+        cooked_command
+    );
 
     let mut cmd = tokio::process::Command::new(shell)
         .arg("-c")
@@ -57,113 +81,186 @@ pub async fn store_pipe_to_command(
         tokio::io::copy(&mut reader, &mut stdin).await.unwrap();
     });
 
-    let output = cmd.wait_with_output().await.unwrap();
-    let output = CommandOutput {
-        out: String::from_utf8_lossy(&output.stdout).into_owned(),
-        err: String::from_utf8_lossy(&output.stderr).into_owned(),
-        code: output.status.code().unwrap_or(-1),
-    };
-    Ok(output)
-}
+    let mut stdout = cmd.stdout.take().unwrap();
 
-/*
-#[tauri::command]
-#[tracing::instrument(skip(app, state))]
-pub async fn store_pipe_to_gpt(
-    state: tauri::State<'_, SharedState>,
-    app: tauri::AppHandle,
-    source_id: scru128::Scru128Id,
-) -> Result<(), ()> {
-    let (settings, content, packet) = {
-        let mut state = state.lock().unwrap();
+    let read_stdout = {
+        let state = state.inner().clone();
+        let app = app.clone();
 
-        let settings = state.store.settings_get().ok_or(())?.clone();
-        let item = state.view.items.get(&source_id).ok_or(())?;
+        tokio::spawn(async move {
+            let mut buffer = [0u8; 4096];
+            let size = stdout.read(&mut buffer).await.unwrap();
 
-        let content = if let Some(_) = item.stack_id {
-            vec![state.store.get_content(&item.hash).unwrap()]
-        } else {
-            return Ok(());
-        };
+            // stdout is empty
+            if size == 0 {
+                return;
+            }
 
-        let stack_id = item.stack_id.unwrap_or(item.id);
-        let packet = state.store.start_stream(Some(stack_id), "".as_bytes());
-        state.ui.select(None); // focus first
+            let m = infer::Infer::new().get(&buffer[..size]);
+            let (mime_type, content_type_2) = match m.map(|m| m.mime_type()) {
+                None => (
+                    MimeType::TextPlain,
+                    content_type.clone().unwrap_or("Text".to_string()),
+                ),
+                Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
+                _ => todo!(),
+            };
 
-        (settings, content, packet)
-    };
-
-    #[derive(Clone, serde::Serialize)]
-    struct Payload {
-        id: Scru128Id,
-        tiktokens: usize,
-        content: String,
-    }
-
-    use async_openai::{
-        config::OpenAIConfig,
-        types::{ChatCompletionRequestMessageArgs, CreateChatCompletionRequestArgs, Role},
-        Client,
-    };
-    use futures::StreamExt;
-
-    let config = OpenAIConfig::new().with_api_key(settings.openai_access_token);
-
-    let client = Client::with_config(config);
-
-    let messages: Vec<_> = content
-        .into_iter()
-        .map(|c| {
-            ChatCompletionRequestMessageArgs::default()
-                .content(String::from_utf8(c).unwrap())
-                .role(Role::User)
-                .build()
-                .unwrap()
-        })
-        .collect();
-
-    let request = CreateChatCompletionRequestArgs::default()
-        .model(&settings.openai_selected_model)
-        .max_tokens(512u16)
-        .messages(messages)
-        .build()
-        .unwrap();
-
-    let mut stream = client.chat().create_stream(request).await.unwrap();
-
-    let mut packet = packet;
-
-    while let Some(result) = stream.next().await {
-        match result {
-            Ok(response) => {
-                let aggregate = response
-                    .choices
-                    .iter()
-                    .filter_map(|chat_choice| chat_choice.delta.content.as_ref())
-                    .flat_map(|content| content.as_bytes().iter().cloned())
-                    .collect::<Vec<u8>>();
-
-                {
-                    let mut state = state.lock().unwrap();
-                    packet = state.store.update_stream(packet.id, &aggregate);
-                    state.merge(&packet);
+            let mut streamer = state.with_lock(|state| {
+                let stack = state.get_curr_stack();
+                let mut streamer = InProgressStream::new(stack, mime_type.clone(), content_type_2);
+                if mime_type == MimeType::TextPlain {
+                    state.merge(&streamer.packet);
                     app.emit_all("refresh-items", true).unwrap();
                 }
+                streamer.append(&buffer[..size]);
+                streamer
+            });
+
+            app.emit_all(
+                "pipe-to-shell",
+                ExecStatus {
+                    exec_id,
+                    out: Some(Cacheable {
+                        id: streamer.packet.id,
+                        hash: None,
+                        ephemeral: true,
+                    }),
+                    err: None,
+                    code: None,
+                },
+            )
+            .unwrap();
+
+            loop {
+                match stdout.read(&mut buffer).await {
+                    Ok(size) => {
+                        if size == 0 {
+                            break; // End of stream
+                        }
+                        streamer.append(&buffer[..size]);
+
+                        if mime_type == MimeType::TextPlain {
+                            let preview = generate_preview(
+                                "dark",
+                                &Some(streamer.content.clone()),
+                                &streamer.content_meta.mime_type,
+                                &streamer.content_meta.content_type,
+                                true,
+                            );
+                            let content = String::from_utf8_lossy(&streamer.content);
+                            let content = Content {
+                                mime_type: streamer.content_meta.mime_type.clone(),
+                                content_type: streamer.content_meta.content_type.clone(),
+                                terse: content.chars().take(100).collect(),
+                                tiktokens: 0,
+                                words: content.split_whitespace().count(),
+                                chars: content.chars().count(),
+                                preview,
+                            };
+
+                            app.emit_all("streaming", (streamer.packet.id, content))
+                                .unwrap();
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Error reading bytes from command stdout: {}", e);
+                        break;
+                    }
+                }
             }
-            Err(err) => {
-                error!("GPT error: {:#?}", err);
-            }
-        }
+
+            state.with_lock(|state| {
+                let packet = streamer.end_stream(&mut state.store);
+                state.store.insert_packet(&packet);
+                state.merge(&packet);
+
+                // TODO: rework this as common a pipeline
+                if mime_type == MimeType::TextPlain {
+                    if let Some(content_type) = content_type {
+                        let hash = packet.hash.clone().unwrap();
+                        let packet = state
+                            .store
+                            .update_content_type(hash.clone(), content_type);
+                        state.merge(&packet);
+                        app.emit_all("content", &hash).unwrap();
+                    }
+                }
+
+                app.emit_all(
+                    "pipe-to-shell",
+                    ExecStatus {
+                        exec_id,
+                        out: Some(Cacheable {
+                            id: packet.id,
+                            hash: packet.hash,
+                            ephemeral: false,
+                        }),
+                        err: None,
+                        code: None,
+                    },
+                )
+                .unwrap();
+            });
+            app.emit_all("refresh-items", true).unwrap();
+        })
+    };
+
+    let mut stderr = cmd.stderr.take().unwrap();
+    let mut buff = Vec::new();
+    stderr.read_to_end(&mut buff).await.unwrap();
+    let stderr = buff;
+    if !stderr.is_empty() {
+        state.with_lock(|state| {
+            let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+            let packet = state.store.add(&stderr, MimeType::TextPlain, stack_id);
+            state.merge(&packet);
+            app.emit_all(
+                "pipe-to-shell",
+                ExecStatus {
+                    exec_id,
+                    out: None,
+                    err: Some(Cacheable {
+                        id: packet.id,
+                        hash: packet.hash,
+                        ephemeral: false,
+                    }),
+                    code: None,
+                },
+            )
+            .unwrap();
+        })
     }
 
-    let mut state = state.lock().unwrap();
-    packet = state.store.end_stream(packet.id);
-    state.merge(&packet);
-    app.emit_all("refresh-items", true).unwrap();
+    let status = cmd.wait().await.unwrap();
 
+    let _ = read_stdout.await.expect("Task failed");
+    app.emit_all(
+        "pipe-to-shell",
+        ExecStatus {
+            exec_id,
+            out: None,
+            err: None,
+            code: status.code(),
+        },
+    )
+    .unwrap();
+
+    state.with_lock(|state| {
+        let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
+        let packet = state
+            .store
+            .add(command.as_bytes(), MimeType::TextPlain, stack_id);
+        state.merge(&packet);
+        let packet = state
+            .store
+            .update_content_type(packet.hash.unwrap(), "Shell".to_string());
+        state.merge(&packet);
+    });
+
+    app.emit_all("refresh-items", true).unwrap();
     Ok(())
 }
-*/
 
 fn truncate_hash(hash: &ssri::Integrity, len: usize) -> String {
     hash.hashes.first().map_or_else(
@@ -279,6 +376,7 @@ pub fn store_nav_set_filter(
             "Links" => "Link",
             "Images" => "Image",
             "Markdown" => "Markdown",
+            "Source Code" => "Source Code",
             _ => "All",
         };
         state.nav_set_filter(&filter, content_type);
@@ -513,9 +611,7 @@ pub fn store_set_content_type(
         );
         state.merge(&packet);
     });
-
-    let content = store_get_content(state, hash.clone());
-    app.emit_all("content", (hash, content)).unwrap();
+    app.emit_all("content", hash).unwrap();
 }
 
 #[tauri::command]

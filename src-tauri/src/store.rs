@@ -29,41 +29,29 @@ pub struct InProgressStream {
 }
 
 impl InProgressStream {
-    pub fn new(stack_id: Option<Scru128Id>, content: &[u8]) -> Self {
-        let hash = ssri::Integrity::from(&content);
-        let text_content = String::from_utf8_lossy(content).into_owned();
-        let tiktokens = count_tiktokens(&text_content);
-        let terse = if text_content.len() > 100 {
-            text_content.chars().take(100).collect()
-        } else {
-            text_content
-        };
-
-        let content_type = if is_valid_https_url(content) {
-            "Link".to_string()
-        } else {
-            "Text".to_string()
-        };
+    #[tracing::instrument(name = "InProgressStream::new")]
+    pub fn new(stack_id: Scru128Id, mime_type: MimeType, content_type: String) -> Self {
+        let hash = ssri::Integrity::from("");
 
         let content_meta = ContentMeta {
             hash: hash.clone(),
-            mime_type: MimeType::TextPlain,
-            content_type,
-            terse,
-            tiktokens,
+            mime_type,
+            content_type: content_type.clone(),
+            terse: "".to_string(),
+            tiktokens: 0,
         };
 
         InProgressStream {
             content_meta,
-            content: content.to_vec(),
+            content: Vec::new(),
             packet: Packet {
                 id: scru128::new(),
                 packet_type: PacketType::Add,
                 source_id: None,
                 hash: Some(hash.clone()),
-                stack_id,
+                stack_id: Some(stack_id),
                 ephemeral: true,
-                content_type: None,
+                content_type: Some(content_type),
                 movement: None,
                 lock_status: None,
                 sort_order: None,
@@ -80,7 +68,6 @@ impl InProgressStream {
         self.content_meta.hash = ssri::Integrity::from(&self.content);
 
         let text_content = String::from_utf8_lossy(&self.content).into_owned();
-        // self.content_meta.tiktokens = count_tiktokens(&text_content);
 
         // Update terse
         self.content_meta.terse = if text_content.len() > 100 {
@@ -90,12 +77,14 @@ impl InProgressStream {
         };
 
         self.packet.hash = Some(self.content_meta.hash.clone());
-        // This will emit the updated item for frontends to update their caches
-        // app_handle.emit_all("refresh-items", true).unwrap();
     }
 
     pub fn end_stream(&mut self, store: &mut Store) -> Packet {
-        let hash = store.cas_write(&self.content, self.content_meta.mime_type.clone());
+        let hash = store.cas_write(
+            &self.content,
+            self.content_meta.mime_type.clone(),
+            self.content_meta.content_type.clone(),
+        );
         self.packet.hash = Some(hash);
         self.packet.ephemeral = false;
         self.packet.clone()
@@ -249,6 +238,8 @@ pub struct Store {
     packets: sled::Tree,
     content_meta: sled::Tree,
     content_meta_cache: HashMap<ssri::Integrity, ContentMeta>,
+    syntaxes: HashSet<String>,
+    pub content_bus_tx: tokio::sync::broadcast::Sender<ContentMeta>,
     pub meta: sled::Tree,
     pub cache_path: String,
     pub index: Index,
@@ -263,10 +254,21 @@ impl Store {
         let meta = db.open_tree("meta").unwrap();
         let cache_path = path.join("cas").into_os_string().into_string().unwrap();
 
+        let (content_bus_tx, _rx) = tokio::sync::broadcast::channel(20);
+
         let mut store = Store {
             packets,
             content_meta,
             content_meta_cache: HashMap::new(),
+            // TODO: oh my
+            syntaxes: syntect::parsing::SyntaxSet::load_defaults_nonewlines()
+                .syntaxes()
+                .iter()
+                .map(|syntax| syntax.name.to_lowercase())
+                .filter(|name| name != "markdown")
+                .collect(),
+
+            content_bus_tx,
             meta,
             cache_path,
             index: Index::new(path.join("index")),
@@ -285,10 +287,13 @@ impl Store {
                 let terse = meta.terse.to_lowercase();
                 let content_type_meta = meta.content_type.to_lowercase();
 
+                // TODO: oh my
                 if (filter.is_empty() || terse.contains(&filter))
                     && (content_type.is_empty()
                         || content_type == "all"
-                        || content_type_meta == content_type)
+                        || content_type_meta == content_type
+                        || (content_type == "source code"
+                            && self.syntaxes.contains(&content_type_meta)))
                 {
                     Some(hash.clone())
                 } else {
@@ -303,13 +308,19 @@ impl Store {
         for (key, value) in self.content_meta.iter().flatten() {
             if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
                 if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+                    if meta.mime_type == MimeType::TextPlain
+                        && meta.tiktokens == 0
+                        && meta.terse.len() > 0
+                    {
+                        tracing::warn!("TODO: backfill tiktokens for content that falls through the cracks: {:?}", &meta);
+                    }
                     content_meta_cache.insert(hash, meta);
                 }
             }
         }
 
         self.scan().for_each(|p| {
-            if p.packet_type == PacketType::Update {
+            if p.packet_type == PacketType::Update || p.packet_type == PacketType::Add {
                 if let Some(hash) = p.hash.clone() {
                     if let Some(content_type) = p.content_type.clone() {
                         if let Some(meta) = content_meta_cache.get_mut(&hash) {
@@ -333,30 +344,28 @@ impl Store {
     }
 
     #[tracing::instrument(skip_all)]
-    pub fn cas_write(&mut self, content: &[u8], mime_type: MimeType) -> Integrity {
+    pub fn cas_write(
+        &mut self,
+        content: &[u8],
+        mime_type: MimeType,
+        content_type: String,
+    ) -> Integrity {
         let hash = cacache::write_hash_sync(&self.cache_path, content).unwrap();
-        if let Some(_) = self.content_meta_cache.get(&hash) {
+        if let Some(meta) = self.content_meta_cache.get_mut(&hash) {
+            meta.content_type = content_type;
             return hash;
         }
 
-        let (content_type, terse, tiktokens) = match mime_type {
+        let terse = match mime_type {
             MimeType::TextPlain => {
                 let text_content = String::from_utf8_lossy(content).into_owned();
-                let tiktokens = count_tiktokens(&text_content);
-                let terse = if text_content.len() > 100 {
+                if text_content.len() > 100 {
                     text_content.chars().take(100).collect()
                 } else {
                     text_content
-                };
-
-                let content_type = if is_valid_https_url(content) {
-                    "Link".to_string()
-                } else {
-                    "Text".to_string()
-                };
-                (content_type, terse, tiktokens)
+                }
             }
-            MimeType::ImagePng => ("Image".to_string(), "Image".to_string(), 0),
+            MimeType::ImagePng => "Image".to_string(),
         };
 
         let meta = ContentMeta {
@@ -364,24 +373,40 @@ impl Store {
             mime_type: mime_type.clone(),
             content_type,
             terse,
-            tiktokens,
+            tiktokens: 0,
         };
         let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
         let bytes = bincode::serialize(&hash).unwrap();
         self.content_meta.insert(bytes, encoded).unwrap();
 
-        self.content_meta_cache.insert(hash.clone(), meta);
+        self.content_meta_cache.insert(hash.clone(), meta.clone());
 
         match mime_type {
             MimeType::TextPlain => self.index.write(&hash, content),
             MimeType::ImagePng => (),
         }
 
+        let _ = self.content_bus_tx.send(meta);
+
         hash
     }
 
     pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
+    }
+
+    pub fn update_tiktokens(&mut self, hash: ssri::Integrity, tiktokens: usize) {
+        if let Some(meta) = self.content_meta_cache.get(&hash) {
+            let mut meta = meta.clone();
+            meta.tiktokens = tiktokens;
+
+            let encoded: Vec<u8> = bincode::serialize(&meta).unwrap();
+            let hash_bytes = bincode::serialize(&hash).unwrap();
+            self.content_meta
+                .insert(hash_bytes, encoded.clone())
+                .unwrap();
+            self.content_meta_cache.insert(hash, meta.clone());
+        }
     }
 
     pub fn insert_packet(&mut self, packet: &Packet) {
@@ -396,7 +421,8 @@ impl Store {
     }
 
     pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
-        let hash = self.cas_write(content, mime_type);
+        let (mime_type, content_type) = infer_mime_type(content, mime_type);
+        let hash = self.cas_write(content, mime_type, content_type.clone());
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Add,
@@ -415,7 +441,7 @@ impl Store {
     }
 
     pub fn add_stack(&mut self, name: &[u8], lock_status: StackLockStatus) -> Packet {
-        let hash = self.cas_write(name, MimeType::TextPlain);
+        let hash = self.cas_write(name, MimeType::TextPlain, "Text".to_string());
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Add,
@@ -440,7 +466,10 @@ impl Store {
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
     ) -> Packet {
-        let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
+        let hash = content.map(|c| {
+            let (mime_type, content_type) = infer_mime_type(c, mime_type);
+            self.cas_write(c, mime_type, content_type)
+        });
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -584,7 +613,10 @@ impl Store {
         mime_type: MimeType,
         stack_id: Option<Scru128Id>,
     ) -> Packet {
-        let hash = content.map(|c| self.cas_write(c, mime_type.clone()));
+        let hash = content.map(|c| {
+            let (mime_type, content_type) = infer_mime_type(c, mime_type);
+            self.cas_write(c, mime_type, content_type)
+        });
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Fork,
@@ -651,4 +683,20 @@ pub fn count_tiktokens(content: &str) -> usize {
     let bpe = tiktoken_rs::cl100k_base().unwrap();
     let tokens = bpe.encode_with_special_tokens(content);
     tokens.len()
+}
+
+#[tracing::instrument(skip_all)]
+pub fn infer_mime_type(content: &[u8], mime_type: MimeType) -> (MimeType, String) {
+    let content_type = match mime_type {
+        MimeType::TextPlain => {
+            if is_valid_https_url(content) {
+                "Link".to_string()
+            } else {
+                "Text".to_string()
+            }
+        }
+        MimeType::ImagePng => "Image".to_string(),
+    };
+
+    (mime_type, content_type)
 }

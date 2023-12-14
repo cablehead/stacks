@@ -12,6 +12,7 @@ export default createModal(
       { name: "Links" },
       { name: "Images" },
       { name: "Markdown" },
+      { name: "Source Code" },
     ],
 
     rightOffset: (() => {

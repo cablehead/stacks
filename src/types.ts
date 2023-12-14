@@ -21,7 +21,13 @@ export interface Content {
   preview: string;
 }
 
-export function getContent(item: Item): Signal<Content | null> {
+export interface Cacheable {
+  id: Scru128Id;
+  hash: SSRI;
+  ephemeral: boolean;
+}
+
+export function getContent(item: Cacheable): Signal<Content | null> {
   if (item.ephemeral) {
     return ContentCache.byId(item.id);
   }
@@ -57,7 +63,7 @@ export const ContentCache = (() => {
   }
 
   function clearId(id: Scru128Id) {
-      idCache.delete(id);
+    idCache.delete(id);
   }
 
   async function initListener() {
@@ -73,11 +79,15 @@ export const ContentCache = (() => {
 
     const d2 = await listen(
       "content",
-      (event: { payload: [SSRI, Content] }) => {
-        const [hash, content] = event.payload;
-        console.log("content", hash, content);
-        const cache = byHash(hash);
-        cache.value = content;
+      (event: { payload: SSRI }) => {
+        const hash = event.payload;
+        console.log("content", hash);
+        let ret = hashCache.get(hash);
+        if (ret) {
+          (async () => {
+            ret.value = await invoke("store_get_content", { hash: hash });
+          })();
+        }
       },
     );
 

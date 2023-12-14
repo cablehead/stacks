@@ -220,14 +220,34 @@ const RowIcon = (
     case "Markdown":
       return <Icon name="IconDocument" />;
 
-    case "Rust":
-    case "JSON":
-    case "Python":
-    case "JavaScript":
-    case "HTML":
-    case "Shell":
+    // TODO: oh my
+    case "C":
+    case "C++":
+    case "CSS":
+    case "Diff":
+    case "Erlang":
     case "Go":
+    case "Graphviz":
+    case "HTML":
+    case "Haskell":
+    case "Java":
+    case "JSON":
+    case "JavaScript":
+    case "Lisp":
+    case "Lua":
+    case "Makefile":
+    case "MATLAB":
+    case "OCaml":
+    case "Objective-C":
+    case "PHP":
+    case "Perl":
+    case "Python":
+    case "R":
+    case "Regular Expression":
+    case "reStructuredText":
     case "Ruby":
+    case "Rust":
+    case "Shell":
     case "SQL":
     case "XML":
     case "YAML":

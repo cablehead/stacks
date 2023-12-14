@@ -1,6 +1,6 @@
 [package]
 name = "stacks"
-version = "0.14.1"
+version = "0.15.0"
 description = "Stacks"
 authors = ["you"]
 license = ""
@@ -44,6 +44,8 @@ tracing = "0.1.40"
 tracing-subscriber = { version = "0.3.17", features = ["json", "env-filter"] }
 tracing-stacks = { git = "https://github.com/cablehead/tracing-stacks.git", branch = "main" }
 tracing-mutex-span = { git = "https://github.com/cablehead/tracing-mutex-span.git", branch = "main" }
+infer = "0.15.0"
+lazy_static = "1.4.0"
 
 
 [dev-dependencies]
