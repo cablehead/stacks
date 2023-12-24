@@ -31,6 +31,23 @@ const stack = new Stack({});
 async function globalKeyHandler(event: KeyboardEvent) {
   if (!stack) return;
 
+  function adjustFontSize(delta: number) {
+    const currentFontSize =
+      window.getComputedStyle(document.documentElement).fontSize;
+    const newFontSize = parseFloat(currentFontSize) + delta + "px";
+    document.documentElement.style.fontSize = newFontSize;
+  }
+
+  switch (true) {
+    case event.metaKey && event.shiftKey && event.key === "=":
+      adjustFontSize(1);
+      return;
+
+    case event.metaKey && event.key === "-":
+      adjustFontSize(-1);
+      return;
+  }
+
   if (modes.attemptAction(event, stack)) return;
 
   if (attemptAction(event, stack)) return;
@@ -192,8 +209,8 @@ export function App() {
         ? (
           <>
             {!modes.isActive(editorMode) &&
-            !modes.isActive(newNoteMode) &&
-            !modes.isActive(pipeToCommand) &&
+              !modes.isActive(newNoteMode) &&
+              !modes.isActive(pipeToCommand) &&
               <Filter stack={stack} />}
             <div style="
             display: flex;

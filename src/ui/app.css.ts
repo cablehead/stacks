@@ -58,7 +58,6 @@ globalStyle("html, body", {
   backgroundColor: "transparent",
   padding: "10px",
   letterSpacing: "-0.02ch",
-  fontSize: "14px",
   height: "100%",
   overflow: "hidden",
 });
