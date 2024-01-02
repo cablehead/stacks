@@ -145,7 +145,8 @@ async fn main() {
                         "Control+Space"
                     })
                     .to_string(),
-                    macos_window_level: Some(20), // Default 24
+                    // 7 allows https://www.ixeau.com/keystroke-pro/ to layer over Stacks
+                    macos_window_level: Some(7),
                 }]),
                 global_close_shortcut: None,
             },
