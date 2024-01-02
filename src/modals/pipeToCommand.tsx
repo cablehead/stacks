@@ -114,7 +114,6 @@ export default {
         <div
           className={overlay}
           style={{
-            fontSize: "0.9rem",
             padding: "2ch",
             borderRadius: "0.5rem",
             width: "calc(100% - 2ch)",
