@@ -397,7 +397,7 @@ pub fn generate_preview(
                 let data = String::from_utf8(data.clone()).unwrap();
                 let pre = html! {
                     pre.("scroll-me")[ephemeral] style="margin: 0; white-space: pre-wrap; overflow-x: hidden" {
-                        (data)
+                        (data.chars().take(2048).collect::<String>())
                     }
                 };
                 pre.into_string()
