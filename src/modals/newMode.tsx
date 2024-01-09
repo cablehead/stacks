@@ -15,6 +15,7 @@ export default createModal(
     name: () => "New ...",
 
     options: [
+      { name: "Stack" },
       {
         name: "Clip",
         keys: [
@@ -23,7 +24,6 @@ export default createModal(
           "N",
         ],
       },
-      { name: "Stack" },
     ],
 
     rightOffset: (() => {
