@@ -128,6 +128,7 @@ async fn main() {
             commands::store_settings_get,
             commands::store_set_theme_mode,
             commands::store_pipe_to_command,
+            commands::store_pipe_stack_to_shell,
             commands::store_set_content_type,
             // commands::store_pipe_to_gpt,
             commands::store_add_to_stack,

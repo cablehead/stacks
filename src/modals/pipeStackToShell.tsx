@@ -51,7 +51,6 @@ const state = (() => {
         stackId: stack_id.value,
         command: curr.value,
       };
-      status.value = undefined;
       invoke("store_pipe_stack_to_shell", args);
     },
   };

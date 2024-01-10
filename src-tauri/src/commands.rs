@@ -1,4 +1,5 @@
 use tokio::io::AsyncReadExt;
+use tokio::io::AsyncWriteExt;
 
 use tauri::Manager;
 
@@ -28,6 +29,256 @@ struct Cacheable {
     id: Scru128Id,
     hash: Option<ssri::Integrity>,
     ephemeral: bool,
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state, app))]
+pub async fn store_pipe_stack_to_shell(
+    state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
+    exec_id: u32,
+    stack_id: scru128::Scru128Id,
+    command: String,
+) -> Result<(), ()> {
+    let item_hashes = state.with_lock(|state| {
+        state
+            .view
+            .items
+            .iter()
+            .filter_map(|(_, item)| {
+                if item.stack_id == Some(stack_id) {
+                    Some(item.hash.clone())
+                } else {
+                    None
+                }
+            })
+            .collect::<Vec<_>>()
+    });
+
+    let mut json_list = Vec::new();
+    for hash in item_hashes {
+        if let Some(content) = state.with_lock(|state| state.store.get_content(&hash)) {
+            let content_str = match state.with_lock(|state| state.store.get_content_meta(&hash)) {
+                Some(meta) => match meta.mime_type {
+                    MimeType::TextPlain => String::from_utf8_lossy(&content).to_string(),
+                    MimeType::ImagePng => "Image".to_string(),
+                },
+                None => continue,
+            };
+            json_list.push(content_str);
+        }
+    }
+
+    let (cooked_command, content_type) = process_command(&command);
+
+    let home_dir = dirs::home_dir().expect("Could not fetch home directory");
+    let shell = match std::env::var("SHELL") {
+        Ok(val) => val,
+        Err(_) => String::from("/bin/sh"), // default to sh if no SHELL variable is set
+    };
+
+    let rc_file = match shell.as_str() {
+        "/bin/bash" => ".bashrc",
+        "/bin/zsh" => ".zshrc",
+        _ => "", // if the shell is neither bash nor zsh, don't source an rc file
+    };
+
+    let rc_path = home_dir.join(rc_file);
+    let rc_command = format!(
+        "source {}\n{}",
+        rc_path.to_str().unwrap_or(""),
+        cooked_command
+    );
+
+    let mut cmd = tokio::process::Command::new(shell)
+        .arg("-c")
+        .arg(rc_command)
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .stderr(std::process::Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
+    let json_string = serde_json::to_string(&json_list).unwrap();
+    let json_bytes = json_string.into_bytes();
+    stdin.write_all(&json_bytes).await.unwrap();
+
+    let mut stdout = cmd.stdout.take().unwrap();
+    let read_stdout = {
+        let state = state.inner().clone();
+        let app = app.clone();
+
+        tokio::spawn(async move {
+            let mut buffer = [0u8; 4096];
+            let size = stdout.read(&mut buffer).await.unwrap();
+
+            // stdout is empty
+            if size == 0 {
+                return;
+            }
+
+            let m = infer::Infer::new().get(&buffer[..size]);
+            let (mime_type, content_type_2) = match m.map(|m| m.mime_type()) {
+                None => (
+                    MimeType::TextPlain,
+                    content_type.clone().unwrap_or("Text".to_string()),
+                ),
+                Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
+                _ => todo!(),
+            };
+
+            let mut streamer = state.with_lock(|state| {
+                let stack = state.get_curr_stack();
+                let mut streamer = InProgressStream::new(stack, mime_type.clone(), content_type_2);
+                if mime_type == MimeType::TextPlain {
+                    state.merge(&streamer.packet);
+                    app.emit_all("refresh-items", true).unwrap();
+                }
+                streamer.append(&buffer[..size]);
+                streamer
+            });
+
+            app.emit_all(
+                "pipe-stack-to-shell",
+                ExecStatus {
+                    exec_id,
+                    out: Some(Cacheable {
+                        id: streamer.packet.id,
+                        hash: None,
+                        ephemeral: true,
+                    }),
+                    err: None,
+                    code: None,
+                },
+            )
+            .unwrap();
+
+            loop {
+                match stdout.read(&mut buffer).await {
+                    Ok(size) => {
+                        if size == 0 {
+                            break; // End of stream
+                        }
+                        streamer.append(&buffer[..size]);
+
+                        if mime_type == MimeType::TextPlain {
+                            let preview = generate_preview(
+                                "dark",
+                                &Some(streamer.content.clone()),
+                                &streamer.content_meta.mime_type,
+                                &streamer.content_meta.content_type,
+                                true,
+                            );
+                            let content = String::from_utf8_lossy(&streamer.content);
+                            let content = Content {
+                                mime_type: streamer.content_meta.mime_type.clone(),
+                                content_type: streamer.content_meta.content_type.clone(),
+                                terse: content.chars().take(100).collect(),
+                                tiktokens: 0,
+                                words: content.split_whitespace().count(),
+                                chars: content.chars().count(),
+                                preview,
+                            };
+
+                            app.emit_all("streaming", (streamer.packet.id, content))
+                                .unwrap();
+                        }
+                    }
+                    Err(e) => {
+                        tracing::error!("Error reading bytes from command stdout: {}", e);
+                        break;
+                    }
+                }
+            }
+
+            state.with_lock(|state| {
+                let packet = streamer.end_stream(&mut state.store);
+                state.store.insert_packet(&packet);
+                state.merge(&packet);
+
+                // TODO: rework this as common a pipeline
+                if mime_type == MimeType::TextPlain {
+                    if let Some(content_type) = content_type {
+                        let hash = packet.hash.clone().unwrap();
+                        let packet = state.store.update_content_type(hash.clone(), content_type);
+                        state.merge(&packet);
+                        app.emit_all("content", &hash).unwrap();
+                    }
+                }
+
+                app.emit_all(
+                    "pipe-to-shell",
+                    ExecStatus {
+                        exec_id,
+                        out: Some(Cacheable {
+                            id: packet.id,
+                            hash: packet.hash,
+                            ephemeral: false,
+                        }),
+                        err: None,
+                        code: None,
+                    },
+                )
+                .unwrap();
+            });
+            app.emit_all("refresh-items", true).unwrap();
+        })
+    };
+
+    let mut stderr = cmd.stderr.take().unwrap();
+    let mut buff = Vec::new();
+    stderr.read_to_end(&mut buff).await.unwrap();
+    let stderr = buff;
+    if !stderr.is_empty() {
+        state.with_lock(|state| {
+            let packet = state.store.add(&stderr, MimeType::TextPlain, stack_id);
+            state.merge(&packet);
+            app.emit_all(
+                "pipe-to-shell",
+                ExecStatus {
+                    exec_id,
+                    out: None,
+                    err: Some(Cacheable {
+                        id: packet.id,
+                        hash: packet.hash,
+                        ephemeral: false,
+                    }),
+                    code: None,
+                },
+            )
+            .unwrap();
+        })
+    }
+
+    let status = cmd.wait().await.unwrap();
+
+    let _ = read_stdout.await.expect("Task failed");
+    app.emit_all(
+        "pipe-to-shell",
+        ExecStatus {
+            exec_id,
+            out: None,
+            err: None,
+            code: status.code(),
+        },
+    )
+    .unwrap();
+
+    state.with_lock(|state| {
+        let packet = state
+            .store
+            .add(command.as_bytes(), MimeType::TextPlain, stack_id);
+        state.merge(&packet);
+        let packet = state
+            .store
+            .update_content_type(packet.hash.unwrap(), "Shell".to_string());
+        state.merge(&packet);
+    });
+
+    app.emit_all("refresh-items", true).unwrap();
+
+    Ok(())
 }
 
 #[tauri::command]
@@ -179,9 +430,7 @@ pub async fn store_pipe_to_command(
                 if mime_type == MimeType::TextPlain {
                     if let Some(content_type) = content_type {
                         let hash = packet.hash.clone().unwrap();
-                        let packet = state
-                            .store
-                            .update_content_type(hash.clone(), content_type);
+                        let packet = state.store.update_content_type(hash.clone(), content_type);
                         state.merge(&packet);
                         app.emit_all("content", &hash).unwrap();
                     }
