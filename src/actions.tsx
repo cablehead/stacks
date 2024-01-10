@@ -8,6 +8,7 @@ import {
   editorMode,
   modes,
   pipeToCommand,
+  pipeStackToShell,
   setContentTypeAction,
 } from "./modals";
 
@@ -52,9 +53,16 @@ export const actions: Action[] = [
     name: "Pipe clip to shell",
     keys: [<Icon name="IconCommandKey" />, "P"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      !event.ctrlKey && !event.altKey && event.metaKey &&
-      event.key.toLowerCase() === "p",
+      matchKeyEvent(event, { meta: true, code: "KeyP" }),
     trigger: (stack: Stack) => modes.activate(stack, pipeToCommand),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+  },
+  {
+    name: "Pipe stack to shell",
+    keys: [<Icon name="IconCommandKey" />, <span>&#x2325;</span>, "P"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, alt: true, code: "KeyP" }),
+    trigger: (stack: Stack) => modes.activate(stack, pipeStackToShell),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
   {

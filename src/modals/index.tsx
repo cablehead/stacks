@@ -12,6 +12,7 @@ import { default as mainMode } from "./mainMode";
 import { default as newMode } from "./newMode";
 import { default as newNoteMode } from "./newNoteMode";
 import { default as pipeToCommand } from "./pipeToCommand";
+import { default as pipeStackToShell } from "./pipeStackToShell";
 import { default as setContentTypeAction } from "./setContentTypeAction";
 import { default as settingsMode } from "./settingsMode";
 
@@ -27,6 +28,7 @@ export {
   newMode,
   newNoteMode,
   pipeToCommand,
+  pipeStackToShell,
   setContentTypeAction,
   settingsMode,
 };
