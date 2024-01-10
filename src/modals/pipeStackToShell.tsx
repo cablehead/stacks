@@ -95,10 +95,11 @@ export default {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
       if (inputRef.current != null) {
+        const jq_join = "jq -r 'join(\"\\n\\n\")'";
         inputRef.current.focus();
-        inputRef.current.value = "cat";
+        inputRef.current.value = jq_join;
         inputRef.current.select();
-        state.curr.value = "cat";
+        state.curr.value = jq_join;
       }
     }, []);
 

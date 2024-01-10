@@ -99,12 +99,11 @@ pub async fn store_pipe_stack_to_shell(
         .spawn()
         .unwrap();
 
-    {
-        let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
-        let json_string = serde_json::to_string(&json_list).unwrap();
-        let json_bytes = json_string.into_bytes();
-        stdin.write_all(&json_bytes).await.unwrap();
-    }
+    let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
+    let json_list_string = serde_json::to_string(&json_list).unwrap();
+    tokio::spawn(async move {
+        stdin.write_all(json_list_string.as_bytes()).await.unwrap();
+    });
 
     let mut stdout = cmd.stdout.take().unwrap();
     let read_stdout = {
