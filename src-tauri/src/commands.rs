@@ -99,10 +99,12 @@ pub async fn store_pipe_stack_to_shell(
         .spawn()
         .unwrap();
 
-    let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
-    let json_string = serde_json::to_string(&json_list).unwrap();
-    let json_bytes = json_string.into_bytes();
-    stdin.write_all(&json_bytes).await.unwrap();
+    {
+        let mut stdin = cmd.stdin.take().ok_or("Failed to open stdin").unwrap();
+        let json_string = serde_json::to_string(&json_list).unwrap();
+        let json_bytes = json_string.into_bytes();
+        stdin.write_all(&json_bytes).await.unwrap();
+    }
 
     let mut stdout = cmd.stdout.take().unwrap();
     let read_stdout = {
@@ -208,7 +210,7 @@ pub async fn store_pipe_stack_to_shell(
                 }
 
                 app.emit_all(
-                    "pipe-to-shell",
+                    "pipe-stack-to-shell",
                     ExecStatus {
                         exec_id,
                         out: Some(Cacheable {
@@ -235,7 +237,7 @@ pub async fn store_pipe_stack_to_shell(
             let packet = state.store.add(&stderr, MimeType::TextPlain, stack_id);
             state.merge(&packet);
             app.emit_all(
-                "pipe-to-shell",
+                "pipe-stack-to-shell",
                 ExecStatus {
                     exec_id,
                     out: None,
@@ -255,7 +257,7 @@ pub async fn store_pipe_stack_to_shell(
 
     let _ = read_stdout.await.expect("Task failed");
     app.emit_all(
-        "pipe-to-shell",
+        "pipe-stack-to-shell",
         ExecStatus {
             exec_id,
             out: None,
