@@ -7,7 +7,7 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay, vars } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Cacheable, getContent, Stack } from "../types";
+import { Cacheable, getContent, Scru128Id, Stack } from "../types";
 
 interface ExecStatus {
   exec_id: number;
@@ -20,6 +20,7 @@ const state = (() => {
   const curr = signal("");
 
   let exec_id = 0;
+  const clip_id: Signal<Scru128Id> = signal("0" as Scru128Id);
   const status: Signal<ExecStatus | undefined> = signal(undefined);
 
   (async () => {
@@ -42,14 +43,13 @@ const state = (() => {
   return {
     status,
     curr,
-    accept_meta: async (stack: Stack, _: Modes) => {
-      const selected = stack.selected_item();
-      if (!selected) return;
+    clip_id,
+    accept_meta: async (_: Stack, __: Modes) => {
       exec_id += 1;
       status.value = undefined;
       const args = {
         execId: exec_id,
-        sourceId: selected.id,
+        sourceId: clip_id.value,
         command: curr.value,
       };
       status.value = undefined;
@@ -73,23 +73,31 @@ export default {
         <Icon name="IconReturnKey" />,
       ],
       onMouseDown: () => state.accept_meta(stack, modes),
+      matchKeyEvent: (event: KeyboardEvent) =>
+        event.metaKey && event.key === "Enter",
     },
     {
       name: "Back",
       keys: ["ESC"],
       onMouseDown: () => modes.deactivate(),
+      matchKeyEvent: (event: KeyboardEvent) => event.key === "Escape",
     },
   ],
 
   activate: (stack: Stack) => {
+    const selected = stack.selected_item();
+    if (!selected) {
+      return;
+    }
+    state.clip_id.value = selected.id;
     state.status.value = {
       exec_id: 0,
-      out: stack.selected(),
+      out: selected,
       code: 0,
     };
   },
 
-  Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
+  Modal: (_props: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
       if (inputRef.current != null) {
@@ -153,19 +161,6 @@ export default {
                 onInput={(event) => {
                   state.curr.value =
                     (event.target as HTMLTextAreaElement).value;
-                }}
-                onKeyDown={(event) => {
-                  event.stopPropagation();
-                  switch (true) {
-                    case event.key === "Escape":
-                      event.preventDefault();
-                      modes.deactivate();
-                      break;
-
-                    case event.metaKey && event.key === "Enter":
-                      state.accept_meta(stack, modes);
-                      break;
-                  }
                 }}
               >
               </textarea>
