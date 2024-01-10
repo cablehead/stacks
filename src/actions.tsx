@@ -8,6 +8,7 @@ import {
   editorMode,
   modes,
   pipeToCommand,
+  pipeStackToShell,
   setContentTypeAction,
 } from "./modals";
 
@@ -61,7 +62,7 @@ export const actions: Action[] = [
     keys: [<Icon name="IconCommandKey" />, <span>&#x2325;</span>, "P"],
     matchKeyEvent: (event: KeyboardEvent) =>
       matchKeyEvent(event, { meta: true, alt: true, code: "KeyP" }),
-    trigger: (stack: Stack) => modes.activate(stack, pipeToCommand),
+    trigger: (stack: Stack) => modes.activate(stack, pipeStackToShell),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
   {
