@@ -83,7 +83,8 @@ export function matchKeyEvent(
   options: MatchKeyOptions,
 ): boolean {
   return (
-    event.key === options.key &&
+    (!options.key || event.key === options.key) &&
+    (!options.code || event.code === options.code) &&
     event.shiftKey === !!options.shift &&
     event.ctrlKey === !!options.ctrl &&
     event.altKey === !!options.alt &&
