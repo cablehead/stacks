@@ -75,7 +75,8 @@ interface MatchKeyOptions {
   ctrl?: boolean;
   alt?: boolean;
   meta?: boolean;
-  key: string;
+  key?: string;
+  code?: string;
 }
 
 export function matchKeyEvent(
