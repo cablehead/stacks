@@ -20,15 +20,14 @@ const state = (() => {
   const curr = signal("");
 
   let exec_id = 0;
-  const clip_id: Signal<Scru128Id> = signal("0" as Scru128Id);
+  const stack_id: Signal<Scru128Id> = signal("0" as Scru128Id);
   const status: Signal<ExecStatus | undefined> = signal(undefined);
 
   (async () => {
     const d1 = await listen(
-      "pipe-to-shell",
+      "pipe-stack-to-shell",
       (event: { payload: ExecStatus }) => {
         if (event.payload.exec_id === exec_id) {
-          console.log("pipe-to-shell", exec_id, status.value, event.payload);
           status.value = { ...status.value, ...event.payload };
         }
       },
@@ -43,24 +42,24 @@ const state = (() => {
   return {
     status,
     curr,
-    clip_id,
+    stack_id,
     accept_meta: async (_: Stack, __: Modes) => {
       exec_id += 1;
       status.value = undefined;
       const args = {
         execId: exec_id,
-        sourceId: clip_id.value,
+        stackId: stack_id.value,
         command: curr.value,
       };
       status.value = undefined;
-      invoke("store_pipe_to_command", args);
+      invoke("store_pipe_stack_to_shell", args);
     },
   };
 })();
 
 export default {
   name: () =>
-    `Pipe clip to shell${
+    `Pipe stack to shell${
       state.status.value?.code !== undefined
         ? ` :: exit code: ${state.status.value.code}`
         : ""
@@ -85,16 +84,12 @@ export default {
   ],
 
   activate: (stack: Stack) => {
-    const selected = stack.selected_item();
+    const selected = stack.selected_stack();
     if (!selected) {
       return;
     }
-    state.clip_id.value = selected.id;
-    state.status.value = {
-      exec_id: 0,
-      out: selected,
-      code: 0,
-    };
+    state.stack_id.value = selected.id;
+    state.status.value = undefined;
   },
 
   Modal: (_props: { stack: Stack; modes: Modes }) => {
