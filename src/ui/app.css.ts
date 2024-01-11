@@ -91,7 +91,7 @@ globalStyle("input", {
 
 globalStyle(".markdown", {
   padding: "0 2ch",
-  verticalAlign: 'middle',
+  verticalAlign: "middle",
 });
 
 globalStyle("code", {
@@ -102,6 +102,15 @@ globalStyle("code", {
 
 globalStyle(".markdown input", {
   width: "auto", // Revert back to default width
+});
+
+globalStyle(".markdown blockquote", {
+  paddingLeft: "2ch",
+  borderLeft: ("4px solid " + vars.borderColor),
+  marginBlockStart: "0",
+  marginBlockEnd: "0",
+  marginInlineStart: "0",
+  marginInlineEnd: "0",
 });
 
 globalStyle("a", {
