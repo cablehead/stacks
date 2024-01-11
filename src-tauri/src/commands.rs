@@ -126,7 +126,8 @@ pub async fn store_pipe_stack_to_shell(
                     content_type.clone().unwrap_or("Text".to_string()),
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
-                _ => todo!(),
+                Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
+                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
             };
 
             let mut streamer = state.with_lock(|state| {
@@ -355,7 +356,8 @@ pub async fn store_pipe_to_command(
                     content_type.clone().unwrap_or("Text".to_string()),
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
-                _ => todo!(),
+                Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
+                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
             };
 
             let mut streamer = state.with_lock(|state| {
