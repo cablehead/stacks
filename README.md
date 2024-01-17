@@ -20,17 +20,17 @@ A terrific clipboard manager
   <tr></tr>
   <tr><td>Descrease font size</td><td><code>&#8984; + -</code></td></tr>
   <tr><th colspan="2" align="left">Navigation</th></tr>
-  <tr><td>Select down</td><td><code>&#8595;</code> or <code>&#8963; + n</code></td></tr>
+  <tr><td>Navigate down</td><td><code>&#8595;</code> or <code>&#8963; + n</code></td></tr>
   <tr></tr>
-  <tr><td>Select up</td><td><code>&#8593;</code> or <code>&#8963; + p</code></td></tr>
+  <tr><td>Navigate up</td><td><code>&#8593;</code> or <code>&#8963; + p</code></td></tr>
   <tr></tr>
-  <tr><td>Select left</td><td><code>&#8592;</code> or <code>&#8963; + h</code></td></tr>
+  <tr><td>Navigate left</td><td><code>&#8592;</code> or <code>&#8963; + h</code></td></tr>
   <tr></tr>
-  <tr><td>Select right</td><td><code>&#8594;</code> or <code>&#8963; + l</code></td></tr>
+  <tr><td>Navigate right</td><td><code>&#8594;</code> or <code>&#8963; + l</code></td></tr>
   <tr></tr>
-  <tr><td>Select a stack down</td><td><code>&#x2325; + &#8595;</code></td></tr>
+  <tr><td>Navigate to the stack below</td><td><code>&#x2325; + &#8595;</code></td></tr>
   <tr></tr>
-  <tr><td>Select a stack up</td><td><code>&#x2325; + &#8593;</code></td></tr>
+  <tr><td>Navigate to the stack above</td><td><code>&#x2325; + &#8593;</code></td></tr>
   <tr></tr>
   <tr><td>Reset nav (clears filter and brings focus to the top)</td><td><code>&#8984; + 0</code></td></tr>
   <tr><th colspan="2" align="left">Item Manipulation</th></tr>
