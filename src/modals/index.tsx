@@ -1,6 +1,7 @@
 import { Signal, signal } from "@preact/signals";
 
 import { hide } from "tauri-plugin-spotlight-api";
+import { invoke } from "@tauri-apps/api/tauri";
 
 import { Mode } from "./types";
 
@@ -17,7 +18,7 @@ import { default as setContentTypeAction } from "./setContentTypeAction";
 import { default as settingsMode } from "./settingsMode";
 
 import { Stack } from "../types";
-import { matchKeyEvent } from "../utils";
+import { dn, matchKeyEvent } from "../utils";
 
 export {
   actionsMode,
@@ -27,8 +28,8 @@ export {
   mainMode,
   newMode,
   newNoteMode,
-  pipeToCommand,
   pipeStackToShell,
+  pipeToCommand,
   setContentTypeAction,
   settingsMode,
 };
@@ -75,9 +76,34 @@ export const modes = {
         modes.toggle(stack, actionsMode);
         return true;
 
-      case (matchKeyEvent(event, { meta: true, shift: true, key: "n" })):
+      // https://github.com/cablehead/stacks/issues/40
+      case (matchKeyEvent(event, {
+        meta: true,
+        alt: true,
+        shift: true,
+        code: "KeyN",
+      })):
+        event.preventDefault();
+        (async () => {
+          await invoke("store_new_stack", {
+            name: dn(),
+          });
+          modes.activate(stack, newNoteMode);
+        })();
+        return true;
+
+      case (matchKeyEvent(event, { meta: true, shift: true, code: "KeyN" })):
         event.preventDefault();
         modes.toggle(stack, newNoteMode);
+        return true;
+
+      case (matchKeyEvent(event, { meta: true, alt: true, code: "KeyN" })):
+        event.preventDefault();
+        (async () => {
+          await invoke("store_new_stack", {
+            name: dn(),
+          });
+        })();
         return true;
 
       case (matchKeyEvent(event, { meta: true, key: "n" })):

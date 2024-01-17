@@ -78,7 +78,6 @@ export function createModal(opt: Options) {
           className={overlay}
           style={{
             position: "absolute",
-            width: "22ch",
             overflow: "hidden",
             top: "0",
             fontSize: "0.9rem",
@@ -135,6 +134,7 @@ export function createModal(opt: Options) {
                 width: 100%;
                 overflow: hidden;
                 padding: 0.5ch 0.75ch;
+                gap: 2ch;
                 justify-content: space-between;
                 border-radius: 6px;
                 cursor: pointer;

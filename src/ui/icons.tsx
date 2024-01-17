@@ -47,6 +47,8 @@ export const Icon: FunctionComponent<IconProps> = ({ name }) => {
       return <IconMoon />;
     case "IconCommandKey":
       return <IconCommandKey />;
+    case "IconAltKey":
+      return <span style="display:inline-block; width: 1.55ch;">&#x2325;</span>;
     case "IconShiftKey":
       return <IconShiftKey />;
     default:
