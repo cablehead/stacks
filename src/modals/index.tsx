@@ -70,11 +70,26 @@ export const modes = {
   },
 
   attemptAction(event: KeyboardEvent, stack: Stack): boolean {
-      console.log(event);
     switch (true) {
       case event.metaKey && event.key === "k":
         event.preventDefault();
         modes.toggle(stack, actionsMode);
+        return true;
+
+      // https://github.com/cablehead/stacks/issues/40
+      case (matchKeyEvent(event, {
+        meta: true,
+        alt: true,
+        shift: true,
+        code: "KeyN",
+      })):
+        event.preventDefault();
+        (async () => {
+          await invoke("store_new_stack", {
+            name: dn(),
+          });
+          modes.activate(stack, newNoteMode);
+        })();
         return true;
 
       case (matchKeyEvent(event, { meta: true, shift: true, code: "KeyN" })):
@@ -84,7 +99,6 @@ export const modes = {
 
       case (matchKeyEvent(event, { meta: true, alt: true, code: "KeyN" })):
         event.preventDefault();
-        console.log("match");
         (async () => {
           await invoke("store_new_stack", {
             name: dn(),

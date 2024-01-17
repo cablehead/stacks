@@ -16,18 +16,27 @@ export default createModal(
 
     options: [
       {
+        name: "Stack & Clip",
+        keys: [
+          <Icon name="IconShiftKey" />,
+          <Icon name="IconAltKey" />,
+          <Icon name="IconCommandKey" />,
+          "N",
+        ],
+      },
+      {
         name: "Stack",
         keys: [
-          <Icon name="IconCommandKey" />,
           <Icon name="IconAltKey" />,
+          <Icon name="IconCommandKey" />,
           "N",
         ],
       },
       {
         name: "Clip",
         keys: [
-          <Icon name="IconCommandKey" />,
           <Icon name="IconShiftKey" />,
+          <Icon name="IconCommandKey" />,
           "N",
         ],
       },
@@ -44,6 +53,8 @@ export default createModal(
     }),
 
     accept: (stack: Stack, modes: Modes, chosen: string) => {
+      // https://github.com/cablehead/stacks/issues/40
+
       if (chosen == "Clip") {
         modes.activate(stack, newNoteMode);
         return;
@@ -55,6 +66,16 @@ export default createModal(
             name: dn(),
           });
           modes.deactivate();
+        })();
+        return;
+      }
+
+      if (chosen == "Stack & Clip") {
+        (async () => {
+          await invoke("store_new_stack", {
+            name: dn(),
+          });
+          modes.activate(stack, newNoteMode);
         })();
         return;
       }
