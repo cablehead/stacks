@@ -15,7 +15,14 @@ export default createModal(
     name: () => "New ...",
 
     options: [
-      { name: "Stack" },
+      {
+        name: "Stack",
+        keys: [
+          <Icon name="IconCommandKey" />,
+          <Icon name="IconAltKey" />,
+          "N",
+        ],
+      },
       {
         name: "Clip",
         keys: [
