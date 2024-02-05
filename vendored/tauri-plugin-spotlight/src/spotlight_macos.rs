@@ -97,6 +97,44 @@ impl SpotlightManager {
         }
         Ok(())
     }
+
+    pub fn update_shortcut(
+        &self,
+        app_handle: &tauri::AppHandle<Wry>,
+        window_label: &str,
+        new_shortcut: &str,
+    ) -> Result<(), Error> {
+        let window = app_handle
+            .get_window(window_label)
+            .ok_or(Error::WindowNotFound)?;
+        let mut registered_window = self
+            .registered_window
+            .lock()
+            .map_err(|_| Error::FailedToLockMutex)?;
+        if let Some(window_config) = self.get_window_config(&window) {
+            // Unregister the old shortcut
+            let mut shortcut_manager = app_handle.global_shortcut_manager();
+            shortcut_manager
+                .unregister(&window_config.shortcut)
+                .map_err(|_| Error::FailedToUnregisterShortcut)?;
+
+            // Update the shortcut in the window configuration
+            let new_window_config = WindowConfig {
+                label: window_label.to_string(),
+                shortcut: new_shortcut.to_string(),
+                macos_window_level: window_config.macos_window_level,
+            };
+            // Replace the old window config with the new one
+            if let Some(pos) = registered_window.iter().position(|x| x == window_label) {
+                registered_window.remove(pos);
+                registered_window.push(new_window_config.label.clone());
+            }
+
+            // Register the new shortcut
+            register_shortcut_for_window(&window, &new_window_config)?;
+        }
+        Ok(())
+    }
 }
 
 fn set_previous_app(window: &Window<Wry>, value: Option<String>) -> Result<bool, Error> {

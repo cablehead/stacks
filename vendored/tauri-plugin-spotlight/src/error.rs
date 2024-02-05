@@ -2,6 +2,7 @@
 pub enum Error {
     FailedToLockMutex,
     FailedToGetExecutablePath,
+    WindowNotFound,
     FailedToRegisterShortcut,
     FailedToUnregisterShortcut,
     FailedToGetNSWindow,
