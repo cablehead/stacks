@@ -3,8 +3,14 @@ import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
-import { overlay, vars } from "../ui/app.css";
-import { Icon, RenderKeys } from "../ui/icons";
+import {
+  border,
+  enchantedForestGradient,
+  enchantedForestGradientActive,
+  overlay,
+} from "../ui/app.css";
+
+import { Icon } from "../ui/icons";
 
 import { Modes } from "./types";
 import { Stack } from "../types";
@@ -30,7 +36,7 @@ const state = (() => {
 
 export default {
   name: (_: Stack) => "Settings",
-  hotKeys: (stack: Stack, modes: Modes) => [],
+  hotKeys: (_stack: Stack, _modes: Modes) => [],
   Modal: ({}: { stack: Stack; modes: Modes }) => {
     const formRef = useRef<HTMLFormElement>(null);
 
@@ -52,12 +58,28 @@ export default {
       }
     }, []);
 
+    const saved: Record<string, boolean> = {
+      shift: false,
+      ctrl: true,
+      alt: false,
+      command: false,
+    };
+
+    const options = [
+      ["shift", "IconShiftKey"],
+      ["ctrl", "IconCtrlKey"],
+      ["alt", "IconAltKey"],
+      ["command", "IconCommandKey"],
+    ];
+
     return (
       <div
         className={overlay}
         style={{
           position: "absolute",
           overflow: "auto",
+          width: "40ch",
+          height: "8em",
           fontSize: "0.9rem",
           bottom: "0",
           right: "4ch",
@@ -73,16 +95,32 @@ export default {
             gap: "1ch",
             alignItems: "center",
             textAlign: "right",
-            marginBottom: "0.25lh",
+            marginLeft: "1ch",
           }}
         >
-          <RenderKeys
-            keys={[
-              <Icon name="IconShiftKey" />,
-              <Icon name="IconAltKey" />,
-              <Icon name="IconCommandKey" />,
-            ]}
-          />
+          {options.map(([name, icon]) => (
+            <div
+              onMouseDown={() => {
+                console.log("go");
+              }}
+              className={border + " " + (
+                saved[name]
+                  ? enchantedForestGradientActive
+                  : enchantedForestGradient
+              )}
+            >
+              <span style="
+            display: inline-block;
+            width: 1.5em;
+            height: 1.5em;
+            text-align: center;
+            border-radius: 5px;
+            ">
+                {<Icon name={icon} />}
+              </span>
+            </div>
+          ))}
+          + SPACE
         </div>
       </div>
     );
