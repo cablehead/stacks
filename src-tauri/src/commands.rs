@@ -127,7 +127,10 @@ pub async fn store_pipe_stack_to_shell(
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
-                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
+                Some(mime_type) => {
+                    eprintln!("mime_type: {:?}", mime_type);
+                    todo!()
+                }
             };
 
             let mut streamer = state.with_lock(|state| {
@@ -357,7 +360,10 @@ pub async fn store_pipe_to_command(
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
-                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
+                Some(mime_type) => {
+                    eprintln!("mime_type: {:?}", mime_type);
+                    todo!()
+                }
             };
 
             let mut streamer = state.with_lock(|state| {
@@ -1083,4 +1089,13 @@ pub fn store_stack_sort_auto(
         state.merge(&packet);
     });
     app.emit_all("refresh-items", true).unwrap();
+}
+
+use tauri_plugin_spotlight::ManagerExt;
+
+#[tauri::command]
+pub fn update_shortcut(app: tauri::AppHandle, shortcut: String) {
+    let _ = app.spotlight()
+        .update_shortcut(&app, "main", &shortcut)
+        .map_err(|err| format!("{:?}", err));
 }

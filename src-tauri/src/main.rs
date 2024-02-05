@@ -135,6 +135,7 @@ async fn main() {
             commands::store_add_to_new_stack,
             commands::store_new_stack,
             commands::store_mark_as_cross_stream,
+            commands::update_shortcut,
         ])
         .plugin(tauri_plugin_spotlight::init(Some(
             tauri_plugin_spotlight::PluginConfig {

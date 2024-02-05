@@ -102,6 +102,7 @@ export default {
             <div
               onMouseDown={() => {
                 console.log("go");
+                invoke("update_shortcut", { shortcut: "Option+Space" });
               }}
               className={border + " " + (
                 saved[name]
