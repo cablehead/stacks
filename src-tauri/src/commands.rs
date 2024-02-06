@@ -1131,7 +1131,6 @@ use tauri_plugin_spotlight::ManagerExt;
 #[tauri::command]
 #[tracing::instrument(skip(app))]
 pub fn update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
-    println!("{:?} :: {}", shortcut, shortcut.to_macos_shortcut());
     let _ = app
         .spotlight()
         .update_shortcut(&app, "main", &shortcut.to_macos_shortcut())
