@@ -61,7 +61,7 @@ export default {
           {options.map(([name, icon]) => (
             <div
               onMouseDown={() => {
-                console.log("go: ${name}");
+                console.log(`go: ${name}`);
                 invoke("update_shortcut", { shortcut: "Command+Opt+Space" });
               }}
               className={border + " " + (
