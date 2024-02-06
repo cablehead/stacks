@@ -2,8 +2,7 @@ use std::sync::Mutex;
 
 use cocoa::{
     appkit::{
-        CGFloat, NSApplicationActivateIgnoringOtherApps, NSMainMenuWindowLevel, NSWindow,
-        NSWindowCollectionBehavior,
+        CGFloat, NSApplicationActivateIgnoringOtherApps, NSWindow, NSWindowCollectionBehavior,
     },
     base::{id, nil, BOOL, NO, YES},
     foundation::{NSPoint, NSRect},
@@ -14,9 +13,7 @@ use objc::{
     sel, sel_impl,
 };
 
-use tauri::{
-    GlobalShortcutManager, Manager, PhysicalPosition, PhysicalSize, Window, WindowEvent, Wry,
-};
+use tauri::{GlobalShortcutManager, Manager, PhysicalPosition, PhysicalSize, Window, Wry};
 
 static SELF_KEY_PREFIX: &'static str = "self:";
 
@@ -46,8 +43,7 @@ pub fn show(window: &Window<Wry>) -> Result<(), Error> {
         .is_visible()
         .map_err(|_| Error::FailedToCheckWindowVisibility)?
     {
-        // position_window_at_the_center_of_the_monitor_with_cursor(&window).unwrap();
-        set_previous_app(&window, get_frontmost_app_path())?;
+        set_previous_app(get_frontmost_app_path());
         window.set_focus().map_err(|_| Error::FailedToShowWindow)?;
     }
     Ok(())
@@ -59,7 +55,7 @@ pub fn hide(window: &Window<Wry>) -> Result<(), Error> {
         .map_err(|_| Error::FailedToCheckWindowVisibility)?
     {
         window.hide().map_err(|_| Error::FailedToHideWindow)?;
-        if let Ok(Some(prev_frontmost_window_path)) = get_previous_app(&window) {
+        if let Ok(Some(prev_frontmost_window_path)) = get_previous_app() {
             if prev_frontmost_window_path.starts_with(SELF_KEY_PREFIX) {
                 if let Some(window_label) = prev_frontmost_window_path.strip_prefix(SELF_KEY_PREFIX)
                 {
