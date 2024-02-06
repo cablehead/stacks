@@ -69,7 +69,7 @@ export default {
                   [name]: !saved.peek()[name],
                 };
                 console.log(`${name}: `, saved.value);
-                invoke("update_shortcut", { shortcut: "Command+Opt+Space" });
+                invoke("update_shortcut", { shortcut: saved });
               }}
               className={border + " " + (
                 saved.value[name]

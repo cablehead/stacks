@@ -1091,11 +1091,49 @@ pub fn store_stack_sort_auto(
     app.emit_all("refresh-items", true).unwrap();
 }
 
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+pub struct Shortcut {
+    shift: bool,
+    ctrl: bool,
+    alt: bool,
+    command: bool,
+}
+
+impl Shortcut {
+    // Method to generate a macOS-compatible shortcut string
+    pub fn to_macos_shortcut(&self) -> String {
+        let mut parts = vec![];
+
+        if self.shift {
+            parts.push("Shift");
+        }
+
+        if self.ctrl {
+            parts.push("Control");
+        }
+
+        if self.alt {
+            parts.push("Option");
+        }
+
+        if self.command {
+            parts.push("Command");
+        }
+
+        parts.push("Space");
+
+        parts.join("+")
+    }
+}
+
 use tauri_plugin_spotlight::ManagerExt;
 
 #[tauri::command]
-pub fn update_shortcut(app: tauri::AppHandle, shortcut: String) {
-    let _ = app.spotlight()
-        .update_shortcut(&app, "main", &shortcut)
+#[tracing::instrument(skip(app))]
+pub fn update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
+    println!("{:?}", shortcut);
+    let _ = app
+        .spotlight()
+        .update_shortcut(&app, "main", &shortcut.to_macos_shortcut())
         .map_err(|err| format!("{:?}", err));
 }
