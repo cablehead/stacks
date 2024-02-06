@@ -24,6 +24,8 @@ mod ui;
 mod util;
 mod view;
 
+use crate::spotlight::Shortcut;
+
 #[cfg(debug_assertions)]
 mod http;
 
@@ -143,8 +145,6 @@ async fn main() {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let window = app.get_window("main").unwrap();
-            spotlight::init(&window).unwrap();
-            spotlight::register_shortcut(&window, "Control+Space").unwrap();
 
             #[cfg(debug_assertions)]
             if std::env::var("STACK_DEVTOOLS").is_ok() {
@@ -179,6 +179,20 @@ async fn main() {
             }
 
             clipboard::start(app.handle(), &state);
+
+            let shortcut = state.with_lock(|state| {
+                let settings = state.store.settings_get();
+                settings
+                    .and_then(|s| s.activation_shortcut)
+                    .unwrap_or(Shortcut {
+                        ctrl: true,
+                        shift: false,
+                        alt: false,
+                        command: false,
+                    })
+            });
+            spotlight::init(&window).unwrap();
+            spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
 
             Ok(())
         })

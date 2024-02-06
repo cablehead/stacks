@@ -1097,8 +1097,17 @@ pub fn store_stack_sort_auto(
 // Spotlight related commands
 
 #[tauri::command]
-#[tracing::instrument(skip(app))]
-pub fn spotlight_update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
+#[tracing::instrument(skip(state, app))]
+pub fn spotlight_update_shortcut(
+    state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
+    shortcut: Shortcut,
+) {
+    state.with_lock(|state| {
+        let mut settings = state.store.settings_get().unwrap_or_default();
+        settings.activation_shortcut = Some(shortcut.clone());
+        state.store.settings_save(settings);
+    });
     let window = app.get_window("main").unwrap();
     spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
 }

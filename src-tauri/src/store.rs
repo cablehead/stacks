@@ -237,6 +237,17 @@ pub struct Settings {
     pub activation_shortcut: Option<spotlight::Shortcut>,
 }
 
+impl Default for Settings {
+    fn default() -> Self {
+        Settings {
+            openai_access_token: String::new(),
+            openai_selected_model: String::new(),
+            cross_stream_access_token: None,
+            activation_shortcut: None,
+        }
+    }
+}
+
 pub struct Store {
     packets: sled::Tree,
     content_meta: sled::Tree,

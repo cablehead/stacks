@@ -14,17 +14,16 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
 
-const saved: Signal<Record<string, boolean>> = signal({
-  shift: false,
-  ctrl: true,
-  alt: false,
-  command: false,
-});
+const saved: Signal<Record<string, boolean> | null> = signal(null);
+(async () => {
+  saved.value = await invoke("spotlight_get_shortcut");
+})();
 
 export default {
   name: (_: Stack) => "Settings",
   hotKeys: (_stack: Stack, _modes: Modes) => [],
   Modal: ({}: { stack: Stack; modes: Modes }) => {
+    if (!saved.value) return;
     const options = [
       ["shift", "IconShiftKey"],
       ["ctrl", "IconCtrlKey"],
@@ -64,15 +63,14 @@ export default {
           {options.map(([name, icon]) => (
             <div
               onMouseDown={() => {
-                saved.value = {
-                  ...saved.value,
-                  [name]: !saved.peek()[name],
-                };
-                console.log(`${name}: `, saved.value);
-                invoke("spotlight_update_shortcut", { shortcut: saved });
+                let update = saved.peek() ?? {};
+                update[name] = !update[name];
+                console.log(`${name}: `, update);
+                invoke("spotlight_update_shortcut", { shortcut: update });
+                saved.value = { ...update };
               }}
               className={border + " " + (
-                saved.value[name]
+                saved.value && saved.value[name]
                   ? enchantedForestGradientActive
                   : enchantedForestGradient
               )}
