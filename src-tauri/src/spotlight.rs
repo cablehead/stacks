@@ -1,3 +1,5 @@
+#![allow(dead_code, unused_imports, unused_variables)]
+
 use std::sync::Mutex;
 
 use cocoa::{
@@ -34,7 +36,6 @@ pub enum Error {
 pub fn init(window: &Window<Wry>) -> Result<(), Error> {
     set_spotlight_window_collection_behavior(&window)?;
     set_window_level(&window, 7)?;
-
     Ok(())
 }
 

@@ -141,9 +141,13 @@ async fn main() {
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+            let window = app.get_window("main").unwrap();
+            spotlight::init(&window).unwrap();
+            spotlight::show(&window).unwrap();
+
+
             #[cfg(debug_assertions)]
             if std::env::var("STACK_DEVTOOLS").is_ok() {
-                let window = app.get_window("main").unwrap();
                 window.open_devtools();
                 use tauri_plugin_positioner::{Position, WindowExt};
                 let _ = window.move_window(Position::Center);
