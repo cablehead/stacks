@@ -37,6 +37,7 @@ pub fn init(window: &Window<Wry>) -> Result<(), Error> {
 pub fn register_shortcut(window: &Window<Wry>, shortcut: &str) -> Result<(), Error> {
     let window = window.to_owned();
     let mut shortcut_manager = window.app_handle().global_shortcut_manager();
+    shortcut_manager.unregister_all().unwrap();
     shortcut_manager
         .register(shortcut, move || {
             if window.is_visible().unwrap() {
