@@ -136,7 +136,9 @@ async fn main() {
             commands::store_add_to_new_stack,
             commands::store_new_stack,
             commands::store_mark_as_cross_stream,
-            commands::update_shortcut,
+
+            commands::spotlight_update_shortcut,
+            commands::spotlight_hide,
         ])
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);

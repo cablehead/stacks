@@ -6,6 +6,7 @@ use tauri::Manager;
 use scru128::Scru128Id;
 
 use crate::content_type::process_command;
+use crate::spotlight;
 use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
@@ -1120,13 +1121,16 @@ impl Shortcut {
     }
 }
 
-use tauri_plugin_spotlight::ManagerExt;
+#[tauri::command]
+#[tracing::instrument(skip(app))]
+pub fn spotlight_update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
+    let window = app.get_window("main").unwrap();
+    spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
+}
 
 #[tauri::command]
 #[tracing::instrument(skip(app))]
-pub fn update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
-    let _ = app
-        .spotlight()
-        .update_shortcut(&app, "main", &shortcut.to_macos_shortcut())
-        .map_err(|err| format!("{:?}", err));
+pub fn spotlight_hide(app: tauri::AppHandle) {
+    let window = app.get_window("main").unwrap();
+    spotlight::hide(&window).unwrap();
 }
