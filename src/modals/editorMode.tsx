@@ -6,16 +6,19 @@ import { invoke } from "@tauri-apps/api/tauri";
 import { overlay } from "../ui/app.css";
 import { Icon } from "../ui/icons";
 import { Modes } from "./types";
-import { Stack } from "../types";
+import { Item, Stack } from "../types";
 import { b64ToUtf8 } from "../utils";
 
 const state = (() => {
   const curr = signal("");
+
+  const focused_clip: Signal<Item | null> = signal(null);
+
   return {
     curr,
-    accept_meta: async (stack: Stack, modes: Modes) => {
-      const item = stack.selected();
-      if (!item) return;
+    focused_clip,
+    accept_meta: async (_stack: Stack, modes: Modes) => {
+      if (!focused_clip.value) return;
 
       if (!curr.value) {
         modes.deactivate();
@@ -23,7 +26,7 @@ const state = (() => {
       }
 
       const args = {
-        sourceId: item.id,
+        sourceId: focused_clip.value.id,
         content: curr.value,
       };
 
@@ -61,6 +64,15 @@ export default {
     },
     */
   ],
+
+  activate: (stack: Stack) => {
+    const selected = stack.selected_item();
+    if (!selected) {
+      return;
+    }
+    state.focused_clip.value = selected;
+  },
+
   Modal: ({ stack, modes }: { stack: Stack; modes: Modes }) => {
     const inputRef = useRef<HTMLTextAreaElement>(null);
     useEffect(() => {
@@ -69,14 +81,12 @@ export default {
       }
     }, []);
 
-    const item = stack.selected();
     const content: Signal<string> = useSignal("");
 
-    if (item) {
+    if (state.focused_clip.value) {
+      const { hash } = state.focused_clip.value;
       (async () => {
-        content.value = await invoke("store_get_raw_content", {
-          hash: item.hash,
-        });
+        content.value = await invoke("store_get_raw_content", { hash });
         if (inputRef.current != null) {
           inputRef.current.selectionStart =
             inputRef.current.selectionEnd =

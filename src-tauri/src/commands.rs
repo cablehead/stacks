@@ -779,7 +779,6 @@ pub fn store_new_note(
         state.merge(&packet);
 
         let focus = state.view.get_focus_for_id(&id);
-
         state.ui.select(focus);
 
         state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
@@ -833,6 +832,8 @@ pub fn store_edit_note(
             }
         }
 
+        let focus = state.view.get_focus_for_id(&source_id);
+        state.ui.select(focus);
         state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     });
     app.emit_all("refresh-items", true).unwrap();
