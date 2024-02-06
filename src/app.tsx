@@ -166,7 +166,6 @@ export function App() {
   let blurTime: number | null = null;
 
   const onBlurHandler = () => {
-    invoke("spotlight_hide");
     blurTime = Date.now();
   };
 

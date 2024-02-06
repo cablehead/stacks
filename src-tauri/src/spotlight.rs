@@ -12,7 +12,7 @@ use objc::{
     sel, sel_impl,
 };
 
-use tauri::{GlobalShortcutManager, Manager, Window, Wry};
+use tauri::{GlobalShortcutManager, Manager, Window, Wry, WindowEvent};
 
 static SELF_KEY_PREFIX: &'static str = "self:";
 
@@ -28,6 +28,7 @@ pub enum Error {
 }
 
 pub fn init(window: &Window<Wry>) -> Result<(), Error> {
+    handle_focus_state_change(&window);
     set_spotlight_window_collection_behavior(&window)?;
     set_window_level(&window, 7)?;
     Ok(())
@@ -153,41 +154,15 @@ fn active_another_app(bundle_url: &str) -> Result<(), Error> {
     Ok(())
 }
 
-/*
-fn register_shortcut_for_window(
-    window: &Window<Wry>,
-    window_config: &WindowConfig,
-) -> Result<(), Error> {
-    let window = window.to_owned();
-    let mut shortcut_manager = window.app_handle().global_shortcut_manager();
-    shortcut_manager
-        .register(&window_config.shortcut, move || {
-            let app_handle = window.app_handle();
-            let manager = app_handle.state::<SpotlightManager>();
-            if window.is_visible().unwrap() {
-                manager.hide(&window).unwrap();
-            } else {
-                manager.show(&window).unwrap();
-            }
-        })
-        .map_err(|_| Error::FailedToRegisterShortcut)?;
-    Ok(())
-}
-*/
 
-/*
 fn handle_focus_state_change(window: &Window<Wry>) {
     let w = window.to_owned();
     window.on_window_event(move |event| {
         if let WindowEvent::Focused(false) = event {
-            unregister_close_shortcut(&w).unwrap(); // FIXME:
             w.hide().unwrap();
-        } else {
-            register_close_shortcut(&w).unwrap(); // FIXME:
         }
     });
 }
-*/
 
 /// Set the behaviors that makes the window appear on all workspaces
 fn set_spotlight_window_collection_behavior(window: &Window<Wry>) -> Result<(), Error> {
