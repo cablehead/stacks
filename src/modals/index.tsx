@@ -95,7 +95,7 @@ export const modes = {
       case event.metaKey && event.key === ",":
         event.preventDefault();
         modes.toggle(stack, settingsMode);
-        return;
+        return true;
 
       case (matchKeyEvent(event, { meta: true, shift: true, code: "KeyN" })):
         event.preventDefault();

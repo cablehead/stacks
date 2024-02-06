@@ -138,22 +138,6 @@ async fn main() {
             commands::store_mark_as_cross_stream,
             commands::update_shortcut,
         ])
-        .plugin(tauri_plugin_spotlight::init(Some(
-            tauri_plugin_spotlight::PluginConfig {
-                windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
-                    label: String::from("main"),
-                    shortcut: (if std::env::var("STACK_ALT_LEADER").is_ok() {
-                        "Option+Space"
-                    } else {
-                        "Control+Space"
-                    })
-                    .to_string(),
-                    // 7 allows https://www.ixeau.com/keystroke-pro/ to layer over Stacks
-                    macos_window_level: Some(7),
-                }]),
-                global_close_shortcut: None,
-            },
-        )))
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 

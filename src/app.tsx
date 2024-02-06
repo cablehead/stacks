@@ -7,7 +7,6 @@ import {
   modes,
   newNoteMode,
   pipeToCommand,
-  settingsMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
