@@ -1,5 +1,4 @@
 import { Signal, signal } from "@preact/signals";
-import { useEffect, useRef } from "preact/hooks";
 
 import { invoke } from "@tauri-apps/api/tauri";
 
@@ -15,55 +14,16 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
 
-const state = (() => {
-  const form: Signal<HTMLFormElement | undefined> = signal(undefined);
-  return {
-    form,
-    accept_meta: async (_: Stack, modes: Modes) => {
-      if (!form.value) {
-        console.error("Form is not available", form.value);
-        return;
-      }
-      const formData = new FormData(form.value);
-      const settings = Object.fromEntries(formData.entries());
-      console.log("save", settings);
-      if (settings.openai_access_token === "") return;
-      await invoke("store_settings_save", { settings: settings });
-      modes.deactivate();
-    },
-  };
-})();
-
 export default {
   name: (_: Stack) => "Settings",
   hotKeys: (_stack: Stack, _modes: Modes) => [],
   Modal: ({}: { stack: Stack; modes: Modes }) => {
-    const formRef = useRef<HTMLFormElement>(null);
-
-    useEffect(() => {
-      if (formRef.current != null) {
-        (formRef.current.elements[0] as HTMLElement).focus();
-        state.form.value = formRef.current;
-        invoke<Record<string, string>>("store_settings_get", {}).then(
-          (settings: Record<string, string>) => {
-            console.log("settings", settings);
-            if (formRef.current) {
-              for (const key in settings) {
-                (formRef.current.elements.namedItem(key) as HTMLInputElement)
-                  .value = settings[key];
-              }
-            }
-          },
-        );
-      }
-    }, []);
-
-    const saved: Record<string, boolean> = {
+    const saved: Signal<Record<string, boolean>> = signal({
       shift: false,
       ctrl: true,
       alt: false,
       command: false,
-    };
+    });
 
     const options = [
       ["shift", "IconShiftKey"],
@@ -101,11 +61,11 @@ export default {
           {options.map(([name, icon]) => (
             <div
               onMouseDown={() => {
-                console.log("go");
-                invoke("update_shortcut", { shortcut: "Option+Space" });
+                console.log("go: ${name}");
+                invoke("update_shortcut", { shortcut: "Command+Opt+Space" });
               }}
               className={border + " " + (
-                saved[name]
+                saved.value[name]
                   ? enchantedForestGradientActive
                   : enchantedForestGradient
               )}
