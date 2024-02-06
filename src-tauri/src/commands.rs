@@ -7,6 +7,7 @@ use scru128::Scru128Id;
 
 use crate::content_type::process_command;
 use crate::spotlight;
+use crate::spotlight::Shortcut;
 use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
@@ -1092,40 +1093,30 @@ pub fn store_stack_sort_auto(
     app.emit_all("refresh-items", true).unwrap();
 }
 
-#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
-pub struct Shortcut {
-    shift: bool,
-    ctrl: bool,
-    alt: bool,
-    command: bool,
-}
-
-impl Shortcut {
-    // Method to generate a macOS-compatible shortcut string
-    pub fn to_macos_shortcut(&self) -> String {
-        let mut parts = vec![];
-        if self.shift {
-            parts.push("Shift");
-        }
-        if self.ctrl {
-            parts.push("Control");
-        }
-        if self.alt {
-            parts.push("Option");
-        }
-        if self.command {
-            parts.push("Command");
-        }
-        parts.push("Space");
-        parts.join("+")
-    }
-}
+//
+// Spotlight related commands
 
 #[tauri::command]
 #[tracing::instrument(skip(app))]
 pub fn spotlight_update_shortcut(app: tauri::AppHandle, shortcut: Shortcut) {
     let window = app.get_window("main").unwrap();
     spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
+pub fn spotlight_get_shortcut(state: tauri::State<'_, SharedState>) -> Shortcut {
+    state.with_lock(|state| {
+        let settings = state.store.settings_get();
+        settings
+            .and_then(|s| s.activation_shortcut)
+            .unwrap_or(Shortcut {
+                ctrl: true,
+                shift: false,
+                alt: false,
+                command: false,
+            })
+    })
 }
 
 #[tauri::command]

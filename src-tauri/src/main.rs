@@ -131,13 +131,12 @@ async fn main() {
             commands::store_pipe_to_command,
             commands::store_pipe_stack_to_shell,
             commands::store_set_content_type,
-            // commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             commands::store_new_stack,
             commands::store_mark_as_cross_stream,
-
             commands::spotlight_update_shortcut,
+            commands::spotlight_get_shortcut,
             commands::spotlight_hide,
         ])
         .setup(|app| {

@@ -4,6 +4,8 @@ use scru128::Scru128Id;
 use serde::{Deserialize, Serialize};
 use ssri::Integrity;
 
+use crate::spotlight;
+
 #[derive(PartialEq, Debug, Serialize, Deserialize, Clone)]
 pub enum MimeType {
     #[serde(rename = "text/plain")]
@@ -232,6 +234,7 @@ pub struct Settings {
     pub openai_access_token: String,
     pub openai_selected_model: String,
     pub cross_stream_access_token: Option<String>,
+    pub activation_shortcut: Option<spotlight::Shortcut>,
 }
 
 pub struct Store {

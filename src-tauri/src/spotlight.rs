@@ -12,6 +12,35 @@ use objc::{
     sel, sel_impl,
 };
 
+#[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
+pub struct Shortcut {
+    pub shift: bool,
+    pub ctrl: bool,
+    pub alt: bool,
+    pub command: bool,
+}
+
+impl Shortcut {
+    // Method to generate a macOS-compatible shortcut string
+    pub fn to_macos_shortcut(&self) -> String {
+        let mut parts = vec![];
+        if self.shift {
+            parts.push("Shift");
+        }
+        if self.ctrl {
+            parts.push("Control");
+        }
+        if self.alt {
+            parts.push("Option");
+        }
+        if self.command {
+            parts.push("Command");
+        }
+        parts.push("Space");
+        parts.join("+")
+    }
+}
+
 use tauri::{GlobalShortcutManager, Manager, Window, WindowEvent, Wry};
 
 static SELF_KEY_PREFIX: &'static str = "self:";
