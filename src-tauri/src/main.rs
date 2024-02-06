@@ -144,7 +144,7 @@ async fn main() {
             let window = app.get_window("main").unwrap();
             spotlight::init(&window).unwrap();
             spotlight::show(&window).unwrap();
-
+            spotlight::register_shortcut(&window, "Control+Space").unwrap();
 
             #[cfg(debug_assertions)]
             if std::env::var("STACK_DEVTOOLS").is_ok() {
