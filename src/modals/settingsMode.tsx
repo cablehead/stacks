@@ -14,17 +14,17 @@ import { Icon } from "../ui/icons";
 import { Modes } from "./types";
 import { Stack } from "../types";
 
+const saved: Signal<Record<string, boolean>> = signal({
+  shift: false,
+  ctrl: true,
+  alt: false,
+  command: false,
+});
+
 export default {
   name: (_: Stack) => "Settings",
   hotKeys: (_stack: Stack, _modes: Modes) => [],
   Modal: ({}: { stack: Stack; modes: Modes }) => {
-    const saved: Signal<Record<string, boolean>> = signal({
-      shift: false,
-      ctrl: true,
-      alt: false,
-      command: false,
-    });
-
     const options = [
       ["shift", "IconShiftKey"],
       ["ctrl", "IconCtrlKey"],
@@ -39,12 +39,15 @@ export default {
           position: "absolute",
           overflow: "auto",
           width: "40ch",
-          height: "8em",
+          height: "9em",
           fontSize: "0.9rem",
           bottom: "0",
           right: "4ch",
           padding: "1ch 2ch 1ch 2ch",
           borderRadius: "0.5rem 0.5rem 0 0",
+          display: "flex",
+          flexDirection: "column",
+          gap: "1ch",
           zIndex: 1000,
         }}
       >
@@ -61,7 +64,11 @@ export default {
           {options.map(([name, icon]) => (
             <div
               onMouseDown={() => {
-                console.log(`go: ${name}`);
+                saved.value = {
+                  ...saved.value,
+                  [name]: !saved.peek()[name],
+                };
+                console.log(`${name}: `, saved.value);
                 invoke("update_shortcut", { shortcut: "Command+Opt+Space" });
               }}
               className={border + " " + (
