@@ -3,11 +3,8 @@
 use std::sync::Mutex;
 
 use cocoa::{
-    appkit::{
-        CGFloat, NSApplicationActivateIgnoringOtherApps, NSWindow, NSWindowCollectionBehavior,
-    },
-    base::{id, nil, BOOL, NO, YES},
-    foundation::{NSPoint, NSRect},
+    appkit::{NSApplicationActivateIgnoringOtherApps, NSWindow, NSWindowCollectionBehavior},
+    base::id,
 };
 use objc::{
     class, msg_send,
