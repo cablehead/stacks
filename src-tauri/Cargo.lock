@@ -4284,7 +4284,6 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-positioner",
- "tauri-plugin-spotlight",
  "tempfile",
  "tiktoken-rs",
  "tokio",
@@ -4769,17 +4768,6 @@ dependencies = [
  "serde",
  "serde_json",
  "serde_repr",
- "tauri",
-]
-
-[[package]]
-name = "tauri-plugin-spotlight"
-version = "0.1.2"
-dependencies = [
- "cocoa 0.24.1",
- "objc",
- "serde",
- "serde_json",
  "tauri",
 ]
 
