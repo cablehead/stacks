@@ -7,7 +7,6 @@ import {
   modes,
   newNoteMode,
   pipeToCommand,
-  settingsMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -89,20 +88,10 @@ async function globalKeyHandler(event: KeyboardEvent) {
       stack.touch();
       return;
 
-    case event.metaKey && event.key === ",":
-      event.preventDefault();
-      modes.toggle(stack, settingsMode);
-      return;
-
     case event.metaKey && event.key === "l":
       event.preventDefault();
       console.log("store_win_move");
       invoke("store_win_move", {});
-      return;
-
-    case event.metaKey && event.key === ",":
-      event.preventDefault();
-      modes.toggle(stack, settingsMode);
       return;
 
     case (event.ctrlKey && event.key === "h") || event.key === "ArrowLeft": {

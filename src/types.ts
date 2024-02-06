@@ -4,7 +4,6 @@ import { effect, Signal, signal } from "@preact/signals";
 
 import { invoke } from "@tauri-apps/api/tauri";
 import { listen } from "@tauri-apps/api/event";
-import { hide } from "tauri-plugin-spotlight-api";
 
 const Scru128IdBrand = Symbol("Scru128Id");
 export type Scru128Id = string & { readonly brand: typeof Scru128IdBrand };
@@ -227,7 +226,7 @@ export class Stack {
     await invoke("store_copy_to_clipboard", {
       sourceId: item.id,
     });
-    hide();
+    await invoke("spotlight_hide");
   }
 
   async select(id: string) {

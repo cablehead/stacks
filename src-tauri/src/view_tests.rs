@@ -1,6 +1,6 @@
 pub use crate::state::State;
-pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
-pub use crate::view::{Item, View};
+pub use crate::store::{MimeType, StackLockStatus, Store};
+pub use crate::view::View;
 
 macro_rules! assert_view_as_expected {
     ($store:expr, $view:expr, $expected:expr $(,)?) => {

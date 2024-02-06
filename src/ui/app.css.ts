@@ -230,6 +230,7 @@ export const enchantedForestGradient = composeStyles(
   style({
     transition: "0.2s",
     ":hover": {
+      borderColor: vars.backgroundColorTransparent,
       backgroundImage: vars.backgroundColorBroadcast,
       boxShadow: "0 0 2px " + vars.textColor,
       backgroundSize: "200% auto",
@@ -241,6 +242,7 @@ export const enchantedForestGradientActive = composeStyles(
   button,
   style({
     backgroundImage: vars.backgroundColorBroadcastActive,
+    borderColor: vars.backgroundColorTransparent,
     backgroundSize: "200% auto",
     transition: "0.2s",
     boxShadow: "0 0 1px " + vars.textColor,

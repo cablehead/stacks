@@ -5,7 +5,7 @@ use ssri::Integrity;
 
 use tracing::info;
 
-pub use crate::store::{MimeType, Packet, Store};
+pub use crate::store::{MimeType, Store};
 
 use crate::util;
 use crate::view;

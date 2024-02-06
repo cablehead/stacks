@@ -1,6 +1,5 @@
 import { Signal, signal } from "@preact/signals";
 
-import { hide } from "tauri-plugin-spotlight-api";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { Mode } from "./types";
@@ -56,7 +55,7 @@ export const modes = {
 
   deactivate() {
     if (this.active.value == mainMode) {
-      hide();
+      invoke("spotlight_hide");
       return;
     }
     this.active.value = mainMode;
@@ -90,6 +89,11 @@ export const modes = {
           });
           modes.activate(stack, newNoteMode);
         })();
+        return true;
+
+      case event.metaKey && event.key === ",":
+        event.preventDefault();
+        modes.toggle(stack, settingsMode);
         return true;
 
       case (matchKeyEvent(event, { meta: true, shift: true, code: "KeyN" })):

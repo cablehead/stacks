@@ -49,6 +49,8 @@ export const Icon: FunctionComponent<IconProps> = ({ name }) => {
       return <IconCommandKey />;
     case "IconAltKey":
       return <span style="display:inline-block; width: 1.55ch;">&#x2325;</span>;
+    case "IconCtrlKey":
+      return <span style="display:inline-block; width: 1.55ch;">&#x2303;</span>;
     case "IconShiftKey":
       return <IconShiftKey />;
     default:

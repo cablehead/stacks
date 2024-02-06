@@ -14,14 +14,17 @@ use tracing_subscriber::util::SubscriberInitExt;
 
 mod clipboard;
 mod commands;
-mod publish;
-mod content_type;
 mod content_bus;
+mod content_type;
+mod publish;
+mod spotlight;
 mod state;
 mod store;
 mod ui;
 mod util;
 mod view;
+
+use crate::spotlight::Shortcut;
 
 #[cfg(debug_assertions)]
 mod http;
@@ -130,34 +133,21 @@ async fn main() {
             commands::store_pipe_to_command,
             commands::store_pipe_stack_to_shell,
             commands::store_set_content_type,
-            // commands::store_pipe_to_gpt,
             commands::store_add_to_stack,
             commands::store_add_to_new_stack,
             commands::store_new_stack,
             commands::store_mark_as_cross_stream,
+            commands::spotlight_update_shortcut,
+            commands::spotlight_get_shortcut,
+            commands::spotlight_hide,
         ])
-        .plugin(tauri_plugin_spotlight::init(Some(
-            tauri_plugin_spotlight::PluginConfig {
-                windows: Some(vec![tauri_plugin_spotlight::WindowConfig {
-                    label: String::from("main"),
-                    shortcut: (if std::env::var("STACK_ALT_LEADER").is_ok() {
-                        "Option+Space"
-                    } else {
-                        "Control+Space"
-                    })
-                    .to_string(),
-                    // 7 allows https://www.ixeau.com/keystroke-pro/ to layer over Stacks
-                    macos_window_level: Some(7),
-                }]),
-                global_close_shortcut: None,
-            },
-        )))
         .setup(|app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
+            let window = app.get_window("main").unwrap();
+
             #[cfg(debug_assertions)]
             if std::env::var("STACK_DEVTOOLS").is_ok() {
-                let window = app.get_window("main").unwrap();
                 window.open_devtools();
                 use tauri_plugin_positioner::{Position, WindowExt};
                 let _ = window.move_window(Position::Center);
@@ -189,6 +179,20 @@ async fn main() {
             }
 
             clipboard::start(app.handle(), &state);
+
+            let shortcut = state.with_lock(|state| {
+                let settings = state.store.settings_get();
+                settings
+                    .and_then(|s| s.activation_shortcut)
+                    .unwrap_or(Shortcut {
+                        ctrl: true,
+                        shift: false,
+                        alt: false,
+                        command: false,
+                    })
+            });
+            spotlight::init(&window).unwrap();
+            spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
 
             Ok(())
         })

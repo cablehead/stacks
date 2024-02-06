@@ -6,9 +6,9 @@ use scru128::Scru128Id;
 
 use tracing_mutex_span::TracingMutexSpan;
 
-pub use crate::store::{MimeType, Packet, StackLockStatus, Store};
+pub use crate::store::{Packet, StackLockStatus, Store};
 pub use crate::ui::UI;
-pub use crate::view::{Item, View};
+pub use crate::view::View;
 
 pub struct State {
     pub view: View,

@@ -6,6 +6,8 @@ use tauri::Manager;
 use scru128::Scru128Id;
 
 use crate::content_type::process_command;
+use crate::spotlight;
+use crate::spotlight::Shortcut;
 use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
@@ -127,7 +129,10 @@ pub async fn store_pipe_stack_to_shell(
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
-                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
+                Some(mime_type) => {
+                    eprintln!("mime_type: {:?}", mime_type);
+                    todo!()
+                }
             };
 
             let mut streamer = state.with_lock(|state| {
@@ -357,7 +362,10 @@ pub async fn store_pipe_to_command(
                 ),
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
-                Some(mime_type) => { eprintln!("mime_type: {:?}", mime_type); todo!() }
+                Some(mime_type) => {
+                    eprintln!("mime_type: {:?}", mime_type);
+                    todo!()
+                }
             };
 
             let mut streamer = state.with_lock(|state| {
@@ -1083,4 +1091,46 @@ pub fn store_stack_sort_auto(
         state.merge(&packet);
     });
     app.emit_all("refresh-items", true).unwrap();
+}
+
+//
+// Spotlight related commands
+
+#[tauri::command]
+#[tracing::instrument(skip(state, app))]
+pub fn spotlight_update_shortcut(
+    state: tauri::State<'_, SharedState>,
+    app: tauri::AppHandle,
+    shortcut: Shortcut,
+) {
+    state.with_lock(|state| {
+        let mut settings = state.store.settings_get().unwrap_or_default();
+        settings.activation_shortcut = Some(shortcut.clone());
+        state.store.settings_save(settings);
+    });
+    let window = app.get_window("main").unwrap();
+    spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(state))]
+pub fn spotlight_get_shortcut(state: tauri::State<'_, SharedState>) -> Shortcut {
+    state.with_lock(|state| {
+        let settings = state.store.settings_get();
+        settings
+            .and_then(|s| s.activation_shortcut)
+            .unwrap_or(Shortcut {
+                ctrl: true,
+                shift: false,
+                alt: false,
+                command: false,
+            })
+    })
+}
+
+#[tauri::command]
+#[tracing::instrument(skip(app))]
+pub fn spotlight_hide(app: tauri::AppHandle) {
+    let window = app.get_window("main").unwrap();
+    spotlight::hide(&window).unwrap();
 }
