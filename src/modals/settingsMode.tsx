@@ -21,7 +21,13 @@ const saved: Signal<Record<string, boolean> | null> = signal(null);
 
 export default {
   name: (_: Stack) => "Settings",
-  hotKeys: (_stack: Stack, _modes: Modes) => [],
+  hotKeys: (_stack: Stack, modes: Modes) => [
+    {
+      name: "Back",
+      keys: ["ESC"],
+      onMouseDown: () => modes.deactivate(),
+    },
+  ],
   Modal: ({}: { stack: Stack; modes: Modes }) => {
     if (!saved.value) return;
     const options = [
