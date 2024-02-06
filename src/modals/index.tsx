@@ -92,6 +92,11 @@ export const modes = {
         })();
         return true;
 
+      case event.metaKey && event.key === ",":
+        event.preventDefault();
+        modes.toggle(stack, settingsMode);
+        return;
+
       case (matchKeyEvent(event, { meta: true, shift: true, code: "KeyN" })):
         event.preventDefault();
         modes.toggle(stack, newNoteMode);
