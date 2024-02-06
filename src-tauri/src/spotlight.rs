@@ -1,5 +1,7 @@
 #![allow(dead_code, unused_imports, unused_variables)]
 
+// based on: https://github.com/zzzze/tauri-plugin-spotlight 🙏
+
 use std::sync::Mutex;
 
 use cocoa::{
