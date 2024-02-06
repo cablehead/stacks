@@ -12,7 +12,7 @@ use objc::{
     sel, sel_impl,
 };
 
-use tauri::{GlobalShortcutManager, Manager, Window, Wry, WindowEvent};
+use tauri::{GlobalShortcutManager, Manager, Window, WindowEvent, Wry};
 
 static SELF_KEY_PREFIX: &'static str = "self:";
 
@@ -153,7 +153,6 @@ fn active_another_app(bundle_url: &str) -> Result<(), Error> {
     }
     Ok(())
 }
-
 
 fn handle_focus_state_change(window: &Window<Wry>) {
     let w = window.to_owned();
