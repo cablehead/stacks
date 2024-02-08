@@ -18,7 +18,7 @@ A terrific clipboard manager
   <tr><th colspan="2" align="left">Accessibility</th></tr>
   <tr><td>Increase font size</td><td><code>&#8984; + +</code></td></tr>
   <tr></tr>
-  <tr><td>Descrease font size</td><td><code>&#8984; + -</code></td></tr>
+  <tr><td>Decrease font size</td><td><code>&#8984; + -</code></td></tr>
   <tr><th colspan="2" align="left">Navigation</th></tr>
   <tr><td>Navigate down</td><td><code>&#8595;</code> or <code>&#8963; + n</code></td></tr>
   <tr></tr>
