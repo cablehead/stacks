@@ -8,8 +8,16 @@ A terrific clipboard manager
 
 `.DMG` installers that have been notarized by Apple.
 
-[![MacOS (Intel)](docs/assets/MacOS-Intel.svg)](https://github.com/cablehead/stacks/releases/download/v0.14.1/Stacks_0.14.1_x86_64.dmg)
-[![MacOS (Apple Silicon)](docs/assets/MacOS-Apple.Silicon.svg)](https://github.com/cablehead/stacks/releases/download/v0.14.1/Stacks_0.14.1_aarch64.dmg)
+Latest release (in preview) -- `0.15.5`:
+
+[![MacOS (Universal)](./docs/assets/MacOS-Universal.svg)](https://stacks.cross.stream/releases/Stacks_0.15.5_universal.dmg)
+
+## Community
+
+- We have a [Discord channel](https://discord.gg/fDEcqjKHpv) where we chat
+  about clipboard managers, flashcards, neo-browsers, Tauri, Rust, wasm, tools
+  of thought, and generally fun geekery, and
+- We're using [Github Discussions](https://github.com/cablehead/stacks/discussions) as a forum.
 
 ## Usage
 
@@ -42,3 +50,12 @@ A terrific clipboard manager
   <tr><th colspan="2" align="left">Global shortcuts</th></tr>
   <tr><td>New note</td><td><code>&#8984; &#x21E7; + n</code></td></tr>
 </table>
+
+## Development
+
+```bash
+git clone https://github.com/cablehead/stacks.git
+cd stacks
+npm install
+npm run tauri dev
+```
