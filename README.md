@@ -59,3 +59,21 @@ cd stacks
 npm install
 npm run tauri dev
 ```
+
+## Built with:
+
+[Rust](https://www.rust-lang.org),
+[Tauri](https://tauri.app),
+[sled](https://github.com/spacejam/sled),
+[cacache](https://github.com/zkat/cacache-rs),
+[Tantivy](https://github.com/quickwit-oss/tantivy),
+[Tokio](https://tokio.rs),
+[hyper](https://hyper.rs),
+[Comrak](https://crates.io/crates/comrak),
+[syntect](https://github.com/trishume/syntect),
+[TypeScript](https://www.typescriptlang.org),
+[Preact](https://preactjs.com),
+[scru128](https://github.com/scru128/rust),
+[tracing](https://docs.rs/tracing/latest/tracing/),
+
+🙏💚
