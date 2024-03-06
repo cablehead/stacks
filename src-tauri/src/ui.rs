@@ -99,8 +99,9 @@ impl UI {
         self.select(self.view.get_best_focus_prev(&self.focused));
     }
 
+    #[tracing::instrument(skip_all)]
     pub fn select_down(&mut self) {
-        let focused = self.focused.clone().or(self.view.first());
+        let focused = self.focused.clone().or_else(|| self.view.first());
         self.select(self.view.get_best_focus_next(&focused));
     }
 
