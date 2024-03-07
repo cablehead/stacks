@@ -165,8 +165,8 @@ fn empty() -> BoxBody<Bytes, BoxError> {
         .boxed()
 }
 
-pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
-    let socket_path = std::path::Path::new("/tmp/myapp.sock");
+pub fn start(app_handle: tauri::AppHandle, state: SharedState, db_path: &str) {
+    let socket_path = std::path::Path::new(db_path).join("sock");
     let _ = std::fs::remove_file(&socket_path);
     let listener = UnixListener::bind(socket_path).unwrap();
 

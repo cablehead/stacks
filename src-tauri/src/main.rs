@@ -175,7 +175,7 @@ async fn main() {
             // start HTTP api if in debug mode
             #[cfg(debug_assertions)]
             {
-                http::start(app.handle().clone(), state.clone());
+                http::start(app.handle().clone(), state.clone(), &db_path);
             }
 
             clipboard::start(app.handle(), &state);
