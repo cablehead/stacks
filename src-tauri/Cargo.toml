@@ -35,7 +35,9 @@ chrono = "0.4.31"
 async-openai = "0.14.0"
 futures = "0.3.28"
 tauri-plugin-positioner = "1.0.4"
-hyper = { version = "0.14.27", features = ["full"] }
+hyper = { version = "1.2", features = ["full"] }
+http-body-util = "0.1"
+hyper-util = { version = "0.1", features = ["full"] }
 comrak = { version = "0.18.0", features = ["syntect", "shortcodes"] }
 maud = "0.25.0"
 syntect = "5.1.0"

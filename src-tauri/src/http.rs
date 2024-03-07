@@ -1,16 +1,22 @@
-use futures::StreamExt;
-use std::str::FromStr;
-use tauri::Manager;
+use std::convert::Infallible;
+use std::error::Error;
 
-use hyper::service::{make_service_fn, service_fn};
-use hyper::{Body, Error, Method, Request, Response, Server, StatusCode};
+use tokio::net::UnixListener;
 
-use tracing::error;
+use hyper::service::service_fn;
+use hyper::{Request, Response};
+use hyper::body::Bytes;
+use http_body_util::Full;
+use hyper::server::conn::http1;
+use hyper_util::rt::TokioIo;
+
+// use tracing::error;
 
 use crate::state::SharedState;
-use crate::store::{infer_mime_type, InProgressStream, MimeType};
-use crate::ui::generate_preview;
+// use crate::store::{infer_mime_type, InProgressStream, MimeType};
+// use crate::ui::generate_preview;
 
+/*
 async fn handle(
     req: Request<Body>,
     state: SharedState,
@@ -142,25 +148,48 @@ async fn post(
         .body(Body::from(streamer.packet.id.to_string()))
         .unwrap())
 }
+*/
+
+async fn handle(
+    _state: SharedState,
+    _app_handle: tauri::AppHandle,
+    _req: Request<hyper::body::Incoming>) -> Result<Response<Full<Bytes>>, Infallible> {
+    Ok(Response::new(Full::new(Bytes::from("Hello, World!"))))
+}
 
 pub fn start(app_handle: tauri::AppHandle, state: SharedState) {
+    let socket_path = std::path::Path::new("/tmp/myapp.sock");
+    let _ = std::fs::remove_file(&socket_path);
+    let listener = UnixListener::bind(socket_path).unwrap();
+
     tauri::async_runtime::spawn(async move {
-        let addr = ([127, 0, 0, 1], 9146).into();
+        loop {
+            let (stream, _) = listener.accept().await.unwrap();
+            let io = TokioIo::new(stream);
 
-        let make_svc = make_service_fn(move |_conn| {
-            let state = state.clone();
-            let app_handle = app_handle.clone();
-            async move {
-                Ok::<_, hyper::Error>(service_fn(move |req: Request<Body>| {
-                    handle(req, state.clone(), app_handle.clone())
-                }))
-            }
-        });
+            let state_cloned = state.clone();
+            let app_handle_clonded = app_handle.clone();
 
-        let server = Server::bind(&addr).serve(make_svc);
-
-        if let Err(e) = server.await {
-            error!("server error: {}", e);
+            tauri::async_runtime::spawn(async move {
+                if let Err(err) = http1::Builder::new()
+                    .serve_connection(io, service_fn(move |req| handle(state_cloned.clone(), app_handle_clonded.clone(), req)))
+                    .await
+                {
+                    // Match against the error kind to selectively ignore `NotConnected` errors
+                    if let Some(std::io::ErrorKind::NotConnected) =
+                        err.source().and_then(|source| {
+                            source
+                                .downcast_ref::<std::io::Error>()
+                                .map(|io_err| io_err.kind())
+                        })
+                    {
+                        // Silently ignore the NotConnected error
+                    } else {
+                        // Handle or log other errors
+                        println!("Error serving connection: {:?}", err);
+                    }
+                }
+            });
         }
     });
 }
