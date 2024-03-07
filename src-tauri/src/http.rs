@@ -5,8 +5,8 @@ use futures_util::TryStreamExt;
 
 use tokio::net::UnixListener;
 
+use http_body_util::Empty;
 use http_body_util::{combinators::BoxBody, BodyExt, StreamBody};
-use http_body_util::{Empty, Full};
 use hyper::body::Bytes;
 use hyper::body::Frame;
 use hyper::server::conn::http1;
@@ -176,12 +176,6 @@ async fn handle(
     }
 }
 
-fn response_404() -> HTTPResult {
-    let mut not_found = Response::new(empty());
-    *not_found.status_mut() = StatusCode::NOT_FOUND;
-    Ok(not_found)
-}
-
 async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
     let (item, meta) = state.with_lock(|state| {
         let item = state.view.items.get(&id).cloned();
@@ -212,7 +206,6 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
                 None => "application/octet-stream",
             };
 
-
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", content_type)
@@ -222,16 +215,14 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
     }
 }
 
-// https://hyper.rs/guides/1/server/echo/
-// We create some utility functions to make Empty and Full bodies
-// fit our broadened Response body type.
+fn response_404() -> HTTPResult {
+    Ok(Response::builder()
+        .status(StatusCode::NOT_FOUND)
+        .body(empty())?)
+}
+
 fn empty() -> BoxBody<Bytes, BoxError> {
     Empty::<Bytes>::new()
-        .map_err(|never| match never {})
-        .boxed()
-}
-fn full<T: Into<Bytes>>(chunk: T) -> BoxBody<Bytes, BoxError> {
-    Full::new(chunk.into())
         .map_err(|never| match never {})
         .boxed()
 }
