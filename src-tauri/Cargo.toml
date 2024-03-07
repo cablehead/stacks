@@ -47,6 +47,7 @@ tracing-stacks = { git = "https://github.com/cablehead/tracing-stacks.git", bran
 tracing-mutex-span = { git = "https://github.com/cablehead/tracing-mutex-span.git", branch = "main" }
 infer = "0.15.0"
 lazy_static = "1.4.0"
+futures-util = "0.3.30"
 
 
 [dev-dependencies]
