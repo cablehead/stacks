@@ -62,6 +62,19 @@ async fn main() {
     let config = context.config();
     let version = &config.package.version.clone().unwrap();
 
+    let system_app_data_dir = tauri::api::path::data_dir()
+        .unwrap()
+        .join(&config.tauri.bundle.identifier);
+
+    let db_path = match std::env::var("STACK_DB_PATH") {
+        Ok(path) => path,
+        Err(_) => {
+            let data_dir = system_app_data_dir;
+            data_dir.join("store-v3.0").to_str().unwrap().to_string()
+        }
+    };
+    info!(db_path, "let's go");
+
     let menu = SystemTrayMenu::new()
         .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
         .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
@@ -141,7 +154,7 @@ async fn main() {
             commands::spotlight_get_shortcut,
             commands::spotlight_hide,
         ])
-        .setup(|app| {
+        .setup(move |app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             let window = app.get_window("main").unwrap();
@@ -152,15 +165,6 @@ async fn main() {
                 use tauri_plugin_positioner::{Position, WindowExt};
                 let _ = window.move_window(Position::Center);
             }
-
-            let db_path = match std::env::var("STACK_DB_PATH") {
-                Ok(path) => path,
-                Err(_) => {
-                    let data_dir = app.path_resolver().app_data_dir().unwrap();
-                    data_dir.join("store-v3.0").to_str().unwrap().to_string()
-                }
-            };
-            info!(db_path, "let's go");
 
             let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
 
