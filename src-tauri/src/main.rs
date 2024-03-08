@@ -17,6 +17,7 @@ mod clipboard;
 mod commands;
 mod content_bus;
 mod content_type;
+mod http;
 mod publish;
 mod spotlight;
 mod state;
@@ -26,9 +27,6 @@ mod util;
 mod view;
 
 use crate::spotlight::Shortcut;
-
-#[cfg(debug_assertions)]
-mod http;
 
 #[cfg(test)]
 mod store_tests;
