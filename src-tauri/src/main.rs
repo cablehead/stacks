@@ -42,11 +42,10 @@ use state::{SharedState, State};
 #[tokio::main]
 async fn main() {
     let context = tauri::generate_context!();
-    let config = context.config();
 
     let system_app_data_dir = tauri::api::path::data_dir()
         .unwrap()
-        .join(&config.tauri.bundle.identifier);
+        .join(&context.config().tauri.bundle.identifier);
 
     let db_path = match std::env::var("STACK_DB_PATH") {
         Ok(path) => path,
@@ -58,14 +57,15 @@ async fn main() {
     info!(db_path, "let's go");
 
     if command_name() == "stacks" {
-
-
     } else {
+        serve(context, db_path).await;
+    }
+}
 
-    // here, if my name is stacks, run clap
-    // other wise fire up tauri
-
+async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String) {
     init_tracing();
+
+    let config = context.config();
     let version = &config.package.version.clone().unwrap();
 
     tauri::Builder::default()
@@ -179,7 +179,6 @@ async fn main() {
         .run(context)
         .expect("error while running tauri application");
 }
-}
 
 fn init_tracing() {
     let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
@@ -214,12 +213,15 @@ fn system_tray(version: &str) -> SystemTray {
 }
 
 fn command_name() -> String {
-    std::env::args().nth(0).map(|arg| {
-        std::path::Path::new(&arg)
-            .file_name()
-            .unwrap_or_default()
-            .to_str()
-            .unwrap_or("")
-            .to_string()
-    }).unwrap()
+    std::env::args()
+        .nth(0)
+        .map(|arg| {
+            std::path::Path::new(&arg)
+                .file_name()
+                .unwrap_or_default()
+                .to_str()
+                .unwrap_or("")
+                .to_string()
+        })
+        .unwrap()
 }
