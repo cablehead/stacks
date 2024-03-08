@@ -74,8 +74,15 @@ struct Args {
 }
 
 fn cli(db_path: &str) {
+    use std::os::unix::net::UnixStream;
+    use std::path::Path;
+
     let args = Args::parse();
-    eprintln!("{:?}  {:?}", &db_path, &args);
+
+    let socket_path = Path::new(db_path).join("sock");
+    let stream = UnixStream::connect(socket_path).expect("Failed to connect to server");
+
+    eprintln!("{:?} {:?} {:?}", db_path, args, stream);
 }
 
 async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String) {
