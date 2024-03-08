@@ -57,9 +57,32 @@ async fn main() {
     info!(db_path, "let's go");
 
     if command_name() == "stacks" {
+        cli(&db_path);
     } else {
         serve(context, db_path).await;
     }
+}
+
+use clap::Parser;
+use std::path::PathBuf;
+
+#[derive(Parser, Debug, Clone)]
+#[clap(author, version, about, long_about = None)]
+struct Args {
+    /// Path to the store
+    #[clap(value_parser)]
+    path: Option<PathBuf>, // Make path optional
+}
+
+// Define the cli function to parse arguments and potentially override db_path
+fn cli(db_path: &str) {
+    let args = Args::parse();
+
+    // Override db_path if a path is provided in the command line arguments
+    match args.path {
+        Some(path) => path.to_str().unwrap_or(db_path).to_string(),
+        None => db_path.to_string(),
+    };
 }
 
 async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String) {
