@@ -1,8 +1,8 @@
 [package]
 name = "stacks"
-version = "0.15.5"
+version = "0.15.6"
 description = "Stacks"
-authors = ["you"]
+authors = ["Andy Gayton <andy@thecablelounge.com>"]
 license = ""
 repository = ""
 edition = "2021"
