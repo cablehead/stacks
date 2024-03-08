@@ -57,6 +57,14 @@ async fn main() {
     };
     info!(db_path, "let's go");
 
+    if command_name() == "stacks" {
+
+
+    } else {
+
+    // here, if my name is stacks, run clap
+    // other wise fire up tauri
+
     init_tracing();
     let version = &config.package.version.clone().unwrap();
 
@@ -171,6 +179,7 @@ async fn main() {
         .run(context)
         .expect("error while running tauri application");
 }
+}
 
 fn init_tracing() {
     let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
@@ -202,4 +211,15 @@ fn system_tray(version: &str) -> SystemTray {
         .add_native_item(tauri::SystemTrayMenuItem::Separator)
         .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
     tauri::SystemTray::new().with_menu(menu)
+}
+
+fn command_name() -> String {
+    std::env::args().nth(0).map(|arg| {
+        std::path::Path::new(&arg)
+            .file_name()
+            .unwrap_or_default()
+            .to_str()
+            .unwrap_or("")
+            .to_string()
+    }).unwrap()
 }
