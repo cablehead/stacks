@@ -59,7 +59,7 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
             let stream = tokio_util::io::ReaderStream::new(reader);
             let stream = stream
                 .map_ok(Frame::data)
-                .map_err(|e| Box::new(e) as BoxError); // Convert to BoxError
+                .map_err(|e| Box::new(e) as BoxError);
             let body = BodyExt::boxed(StreamBody::new(stream));
 
             let content_type = match meta {
