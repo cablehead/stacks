@@ -6,6 +6,7 @@ use std::sync::Arc;
 
 use tauri::CustomMenuItem;
 use tauri::Manager;
+use tauri::SystemTray;
 use tauri::SystemTrayMenu;
 
 use tracing::info;
@@ -59,19 +60,7 @@ async fn main() {
     info!(db_path, "let's go");
 
     init_tracing();
-
     let version = &config.package.version.clone().unwrap();
-    let menu = SystemTrayMenu::new()
-        .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
-        .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
-        .add_native_item(tauri::SystemTrayMenuItem::Separator)
-        .add_item(CustomMenuItem::new(
-            "check-updates".to_string(),
-            "Check for Updates...",
-        ))
-        .add_native_item(tauri::SystemTrayMenuItem::Separator)
-        .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
-    let system_tray = tauri::SystemTray::new().with_menu(menu);
 
     tauri::Builder::default()
         .on_window_event(|event| {
@@ -85,7 +74,7 @@ async fn main() {
                 }
             });
         })
-        .system_tray(system_tray)
+        .system_tray(system_tray(version))
         .on_system_tray_event(|app, event| {
             if let tauri::SystemTrayEvent::MenuItemClick { id, .. } = event {
                 match id.as_str() {
@@ -201,4 +190,18 @@ fn init_tracing() {
         ))
         .with(tracing_stacks::RootSpanLayer::new(tx, None))
         .init();
+}
+
+fn system_tray(version: &str) -> SystemTray {
+    let menu = SystemTrayMenu::new()
+        .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
+        .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new(
+            "check-updates".to_string(),
+            "Check for Updates...",
+        ))
+        .add_native_item(tauri::SystemTrayMenuItem::Separator)
+        .add_item(CustomMenuItem::new("quit".to_string(), "Quit"));
+    tauri::SystemTray::new().with_menu(menu)
 }
