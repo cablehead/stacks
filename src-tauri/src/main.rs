@@ -42,25 +42,8 @@ use state::{SharedState, State};
 
 #[tokio::main]
 async fn main() {
-    let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
-
-    tokio::spawn(async move {
-        let mut stdout = std::io::stdout();
-        while let Ok(entry) = rx.recv().await {
-            tracing_stacks::fmt::write_entry(&mut stdout, &entry).unwrap();
-        }
-    });
-
-    tracing_subscriber::Registry::default()
-        .with(tracing_subscriber::EnvFilter::new(
-            "trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=info,hyper=info",
-        ))
-        .with(tracing_stacks::RootSpanLayer::new(tx, None))
-        .init();
-
     let context = tauri::generate_context!();
     let config = context.config();
-    let version = &config.package.version.clone().unwrap();
 
     let system_app_data_dir = tauri::api::path::data_dir()
         .unwrap()
@@ -75,6 +58,9 @@ async fn main() {
     };
     info!(db_path, "let's go");
 
+    init_tracing();
+
+    let version = &config.package.version.clone().unwrap();
     let menu = SystemTrayMenu::new()
         .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
         .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
@@ -197,4 +183,22 @@ async fn main() {
         })
         .run(context)
         .expect("error while running tauri application");
+}
+
+fn init_tracing() {
+    let (tx, mut rx) = tokio::sync::broadcast::channel(1000);
+
+    tokio::spawn(async move {
+        let mut stdout = std::io::stdout();
+        while let Ok(entry) = rx.recv().await {
+            tracing_stacks::fmt::write_entry(&mut stdout, &entry).unwrap();
+        }
+    });
+
+    tracing_subscriber::Registry::default()
+        .with(tracing_subscriber::EnvFilter::new(
+            "trace,sled=info,tao=debug,attohttpc=info,tantivy=warn,want=debug,reqwest=info,hyper=info",
+        ))
+        .with(tracing_stacks::RootSpanLayer::new(tx, None))
+        .init();
 }
