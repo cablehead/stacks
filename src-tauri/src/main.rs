@@ -172,12 +172,7 @@ async fn main() {
             publish::spawn(state.clone(), packet_receiver);
             content_bus::spawn_tiktokens(app.handle(), state.clone());
 
-            // start HTTP api if in debug mode
-            #[cfg(debug_assertions)]
-            {
-                http::start(app.handle().clone(), state.clone(), &db_path);
-            }
-
+            http::start(app.handle().clone(), state.clone(), &db_path);
             clipboard::start(app.handle(), &state);
 
             let shortcut = state.with_lock(|state| {
