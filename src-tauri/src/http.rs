@@ -23,6 +23,7 @@ use crate::ui::generate_preview;
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 type HTTPResult = Result<Response<BoxBody<Bytes, BoxError>>, BoxError>;
 
+#[tracing::instrument(skip(state, app_handle))]
 async fn handle(
     state: SharedState,
     app_handle: tauri::AppHandle,

@@ -57,7 +57,7 @@ async fn main() {
     info!(db_path, "let's go");
 
     if command_name() == "stacks" {
-        cli(&db_path);
+        cli(&db_path).await;
     } else {
         serve(context, db_path).await;
     }
@@ -73,16 +73,45 @@ struct Args {
     id: Option<String>,
 }
 
-fn cli(db_path: &str) {
-    use std::os::unix::net::UnixStream;
+async fn cli(db_path: &str) {
+    // use std::os::unix::net::UnixStream;
     use std::path::Path;
+
+    use hyper_util::rt::TokioIo;
 
     let args = Args::parse();
 
     let socket_path = Path::new(db_path).join("sock");
-    let stream = UnixStream::connect(socket_path).expect("Failed to connect to server");
+    let stream = tokio::net::UnixStream::connect(socket_path)
+        .await
+        .expect("Failed to connect to server");
+    let io = TokioIo::new(stream);
 
-    eprintln!("{:?} {:?} {:?}", db_path, args, stream);
+    use bytes::Bytes;
+    use http_body_util::Empty;
+    use hyper::client::conn;
+    use hyper::{Request, StatusCode};
+
+    let (mut request_sender, connection) = conn::http1::handshake(io).await.unwrap();
+
+    // spawn a task to poll the connection and drive the HTTP state
+    tokio::spawn(async move {
+        if let Err(e) = connection.await {
+            eprintln!("Error in connection: {}", e);
+        }
+    });
+
+    let request = Request::builder()
+        // We need to manually add the host header because SendRequest does not
+        .header("Host", "example.com")
+        .method("GET")
+        .body(Empty::<Bytes>::new())
+        .unwrap();
+
+    let response = request_sender.send_request(request).await.unwrap();
+    assert!(response.status() == StatusCode::OK);
+
+    eprintln!("{:?} {:?} {:?}", db_path, args, response);
 }
 
 async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String) {
