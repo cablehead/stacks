@@ -1,6 +1,8 @@
 use std::path::Path;
 
+use http_body_util::BodyExt;
 use hyper_util::rt::TokioIo;
+use tokio::io::AsyncWriteExt as _;
 
 use clap::Parser;
 
@@ -13,7 +15,7 @@ struct Args {
 }
 
 pub async fn cli(db_path: &str) {
-    let args = Args::parse();
+    let _args = Args::parse();
 
     let socket_path = Path::new(db_path).join("sock");
     let stream = tokio::net::UnixStream::connect(socket_path)
@@ -37,13 +39,24 @@ pub async fn cli(db_path: &str) {
 
     let request = Request::builder()
         // We need to manually add the host header because SendRequest does not
-        .header("Host", "example.com")
         .method("GET")
+        .uri("/03BBMWT9FVUC6JUOOOLLTFEEZ")
         .body(Empty::<Bytes>::new())
         .unwrap();
 
-    let response = request_sender.send_request(request).await.unwrap();
-    assert!(response.status() == StatusCode::OK);
+    let mut res = request_sender.send_request(request).await.unwrap();
+    assert!(res.status() == StatusCode::OK);
 
-    eprintln!("{:?} {:?} {:?}", db_path, args, response);
+    // Stream the body, writing each chunk to stdout as we get it
+    // (instead of buffering and printing at the end).
+    while let Some(next) = res.frame().await {
+        let frame = next.expect("Error reading frame");
+        if let Some(chunk) = frame.data_ref() {
+            tokio::io::stdout()
+                .write_all(&chunk)
+                .await
+                .expect("Error writing to stdout");
+        }
+    }
+    // eprintln!("{:?} {:?} {:?}", db_path, args, res);
 }
