@@ -38,7 +38,6 @@ pub async fn cli(db_path: &str) {
     });
 
     let request = Request::builder()
-        // We need to manually add the host header because SendRequest does not
         .method("GET")
         .uri("/03BBMWT9FVUC6JUOOOLLTFEEZ")
         .body(Empty::<Bytes>::new())
@@ -48,7 +47,6 @@ pub async fn cli(db_path: &str) {
     assert!(res.status() == StatusCode::OK);
 
     // Stream the body, writing each chunk to stdout as we get it
-    // (instead of buffering and printing at the end).
     while let Some(next) = res.frame().await {
         let frame = next.expect("Error reading frame");
         if let Some(chunk) = frame.data_ref() {
