@@ -30,20 +30,26 @@ async fn handle(
     req: Request<hyper::body::Incoming>,
 ) -> HTTPResult {
     let path = req.uri().path();
-    let id = path
-        .strip_prefix("/")
-        .and_then(|id| scru128::Scru128Id::from_str(id).ok());
+    let id_option = match path.strip_prefix("/") {
+        Some("") | None => None, // Path is "/" or empty
+        Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
+    };
 
-    match (req.method(), id) {
-        (&Method::GET, Some(id)) => get(id, state).await,
+    match (req.method(), id_option) {
+        (&Method::GET, id) => get(id, state).await, // id is already an Option
         (&Method::POST, None) if path == "/" => post(req, state, app_handle).await,
         _ => response_404(),
     }
 }
 
-async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
+async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
     let (item, meta) = state.with_lock(|state| {
-        let item = state.view.items.get(&id).cloned();
+        let item = if let Some(id) = id {
+            state.view.items.get(&id).cloned()
+        } else {
+            state.view.first().map(|focus| focus.item.clone())
+        };
+
         let meta = item
             .as_ref()
             .and_then(|i| state.store.get_content_meta(&i.hash));
