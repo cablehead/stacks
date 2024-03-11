@@ -15,7 +15,7 @@ struct Args {
 }
 
 pub async fn cli(db_path: &str) {
-    let _args = Args::parse();
+    let args = Args::parse();
 
     let socket_path = Path::new(db_path).join("sock");
     let stream = tokio::net::UnixStream::connect(socket_path)
@@ -39,7 +39,7 @@ pub async fn cli(db_path: &str) {
 
     let request = Request::builder()
         .method("GET")
-        .uri("/03BBMWT9FVUC6JUOOOLLTFEEZ")
+        .uri(&format!("/{}", args.id.unwrap_or_default()))
         .body(Empty::<Bytes>::new())
         .unwrap();
 
