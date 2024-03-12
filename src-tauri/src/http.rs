@@ -59,7 +59,7 @@ async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
     match item {
         Some(item) => {
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
-            let reader = cacache::Reader::open_hash(cache_path, item.hash)
+            let reader = cacache::Reader::open_hash(cache_path, item.hash.clone())
                 .await
                 .unwrap();
 
@@ -70,7 +70,7 @@ async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
             let body = BodyExt::boxed(StreamBody::new(stream));
 
             let content_type = match meta {
-                Some(meta) => match meta.mime_type {
+                Some(ref meta) => match meta.mime_type {
                     MimeType::TextPlain => "text/plain",
                     MimeType::ImagePng => "image/png",
                 },
@@ -80,6 +80,10 @@ async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", content_type)
+                .header(
+                    "X-Stacks-Clip-Metadata",
+                    serde_json::json!({"clip": &item, "content":&meta}).to_string(),
+                )
                 .body(body)?)
         }
         None => response_404(),
