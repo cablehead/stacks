@@ -46,6 +46,10 @@ pub async fn cli(db_path: &str) {
     let mut res = request_sender.send_request(request).await.unwrap();
     assert!(res.status() == StatusCode::OK);
 
+    if let Some(metadata) = res.headers().get("X-Stacks-Clip-Metadata") {
+        eprint!("{}", metadata.to_str().unwrap());
+    }
+
     // Stream the body, writing each chunk to stdout as we get it
     while let Some(next) = res.frame().await {
         let frame = next.expect("Error reading frame");
