@@ -120,6 +120,12 @@ globalStyle("a", {
   textUnderlineOffset: "3px",
 });
 
+globalStyle("a:hover", {
+  backgroundColor: vars.backgroundColorHighlight,
+  borderRadius: "0.1em",
+  transition: "0.2s",
+});
+
 globalStyle(".terserow:hover", {
   backgroundColor: vars.backgroundColorHover,
 });

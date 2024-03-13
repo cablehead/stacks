@@ -1,5 +1,7 @@
 import { JSXInternal } from "preact/src/jsx";
 
+import { invoke } from "@tauri-apps/api/tauri";
+
 import { Scru128Id } from "scru128";
 
 import { Icon } from "../ui/icons";
@@ -21,7 +23,37 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
   };
 
   let meta: MetaValue[] = [
-    { name: item.stack_id ? content.content_type : "Stack", value: item.id },
+    {
+      name: item.stack_id ? content.content_type : "Stack",
+      value: (
+        <a
+          onClick={(e) => {
+            e.preventDefault;
+            invoke("store_new_note", {
+              stackId: null,
+              content: item.id,
+              shouldFocus: false,
+            });
+          }}
+          style="display:flex; align-items: center; cursor: pointer;"
+        >
+          <span>
+            {item.id}
+          </span>
+          <span
+            style={{
+              display: "inline-block",
+              verticalAlign: "middle",
+              width: "2ch",
+              whiteSpace: "nowrap",
+              overflow: "hidden",
+            }}
+          >
+            <Icon name="IconClipboard" />
+          </span>
+        </a>
+      ),
+    },
   ];
 
   /*
@@ -70,6 +102,7 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
             e.preventDefault();
             attemptActionByName("Open", stack);
           }}
+          style="cursor: pointer;"
         >
           <span>{truncateUrl(url, 54)}</span>
           <span
