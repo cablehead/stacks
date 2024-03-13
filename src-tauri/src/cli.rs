@@ -12,6 +12,10 @@ struct Args {
     /// Path to the store
     #[clap(value_parser)]
     id: Option<String>,
+
+    /// output metadata, instead of content
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    meta: bool,
 }
 
 pub async fn cli(db_path: &str) {
@@ -37,6 +41,7 @@ pub async fn cli(db_path: &str) {
         }
     });
 
+    // we should just do a HEAD request if --meta is set
     let request = Request::builder()
         .method("GET")
         .uri(&format!("/{}", args.id.unwrap_or_default()))
@@ -46,8 +51,11 @@ pub async fn cli(db_path: &str) {
     let mut res = request_sender.send_request(request).await.unwrap();
     assert!(res.status() == StatusCode::OK);
 
-    if let Some(metadata) = res.headers().get("X-Stacks-Clip-Metadata") {
-        eprint!("{}", metadata.to_str().unwrap());
+    if args.meta {
+        if let Some(metadata) = res.headers().get("X-Stacks-Clip-Metadata") {
+            println!("{}", metadata.to_str().unwrap());
+            return;
+        }
     }
 
     // Stream the body, writing each chunk to stdout as we get it
