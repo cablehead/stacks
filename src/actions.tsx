@@ -41,7 +41,7 @@ export const actions: Action[] = [
     name: "Edit clip",
     keys: [<Icon name="IconCommandKey" />, <Icon name="IconReturnKey" />],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.key === "Enter",
+      matchKeyEvent(event, { meta: true, code: "Enter" }),
     canApply: (stack: Stack) => {
       const item = stack.selected_item();
       if (!item) return false;
