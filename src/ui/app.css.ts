@@ -122,7 +122,7 @@ globalStyle("a", {
 
 globalStyle("a:hover", {
   backgroundColor: vars.backgroundColorHighlight,
-  borderRadius: "0.1em",
+  borderRadius: "0.15em",
   transition: "0.2s",
 });
 

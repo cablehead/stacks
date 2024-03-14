@@ -38,12 +38,12 @@ export const actions: Action[] = [
   },
 
   {
-    name: "Edit",
+    name: "Edit clip",
     keys: [<Icon name="IconCommandKey" />, <Icon name="IconReturnKey" />],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key === "Enter",
     canApply: (stack: Stack) => {
-      const item = stack.selected();
+      const item = stack.selected_item();
       if (!item) return false;
       return getContent(item).value?.mime_type == "text/plain";
     },

@@ -45,6 +45,7 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
               display: "inline-block",
               verticalAlign: "middle",
               width: "2ch",
+              paddingBottom: "0.2em",
               whiteSpace: "nowrap",
               overflow: "hidden",
             }}
@@ -112,6 +113,7 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
               width: "2ch",
               whiteSpace: "nowrap",
               overflow: "hidden",
+              paddingBottom: "0.4em",
             }}
           >
             <Icon name="IconExternalLink" />
