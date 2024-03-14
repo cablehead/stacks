@@ -35,14 +35,47 @@ async fn handle(
         Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
     };
 
+    use std::collections::HashMap;
+    let params: HashMap<String, String> = req
+        .uri()
+        .query()
+        .map(|v| {
+            url::form_urlencoded::parse(v.as_bytes())
+                .into_owned()
+                .collect()
+        })
+        .unwrap_or_else(HashMap::new);
+
+    let as_html = params.get("as-html").is_some();
+
     match (req.method(), id_option) {
-        (&Method::GET, id) => get(id, state).await, // id is already an Option
+        (&Method::GET, id) => get(id, state, as_html).await,
         (&Method::POST, None) if path == "/" => post(req, state, app_handle).await,
         _ => response_404(),
     }
 }
 
-async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
+fn get_as_html(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
+    let preview = state.with_lock(|state| {
+        let content = state.store.get_content(&hash);
+        let meta = state.store.get_content_meta(&hash).unwrap();
+
+        generate_preview(
+            &state.ui.theme_mode,
+            &content,
+            &meta.mime_type,
+            &meta.content_type,
+            false,
+        )
+    });
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "text/html")
+        .body(full(preview))?)
+}
+
+async fn get(id: Option<scru128::Scru128Id>, state: SharedState, as_html: bool) -> HTTPResult {
     let (item, meta) = state.with_lock(|state| {
         let item = if let Some(id) = id {
             state.view.items.get(&id).cloned()
@@ -58,6 +91,10 @@ async fn get(id: Option<scru128::Scru128Id>, state: SharedState) -> HTTPResult {
 
     match item {
         Some(item) => {
+            if as_html {
+                return get_as_html(state, item.hash);
+            }
+
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
             let reader = cacache::Reader::open_hash(cache_path, item.hash.clone())
                 .await
