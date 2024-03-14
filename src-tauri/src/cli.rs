@@ -4,18 +4,23 @@ use http_body_util::BodyExt;
 use hyper_util::rt::TokioIo;
 use tokio::io::AsyncWriteExt as _;
 
-use clap::Parser;
+use clap::{ArgGroup, Parser};
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
+#[clap(group(ArgGroup::new("output").args(&["meta", "html"]).required(false)))]
 struct Args {
-    /// Path to the store
+    /// clip id to retrieve
     #[clap(value_parser)]
     id: Option<String>,
 
     /// output metadata, instead of content
-    #[clap(long, action = clap::ArgAction::SetTrue)]
+    #[clap(long, action = clap::ArgAction::SetTrue, group = "output")]
     meta: bool,
+
+    /// output in HTML format
+    #[clap(long, action = clap::ArgAction::SetTrue, group = "output")]
+    html: bool,
 }
 
 pub async fn cli(db_path: &str) {
@@ -44,7 +49,11 @@ pub async fn cli(db_path: &str) {
     // we should just do a HEAD request if --meta is set
     let request = Request::builder()
         .method("GET")
-        .uri(&format!("/{}", args.id.unwrap_or_default()))
+        .uri(&format!(
+            "/{}{}",
+            args.id.unwrap_or_default(),
+            if args.html { "?as-html" } else { "" }
+        ))
         .body(Empty::<Bytes>::new())
         .unwrap();
 
