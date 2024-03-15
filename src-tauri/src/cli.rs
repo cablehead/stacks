@@ -1,8 +1,8 @@
+use std::io::Write;
 use std::path::Path;
 
 use http_body_util::BodyExt;
 use hyper_util::rt::TokioIo;
-use tokio::io::AsyncWriteExt as _;
 
 use clap::{ArgGroup, Parser};
 
@@ -67,15 +67,15 @@ pub async fn cli(db_path: &str) {
         }
     }
 
-    // Stream the body, writing each chunk to stdout as we get it
     while let Some(next) = res.frame().await {
         let frame = next.expect("Error reading frame");
         if let Some(chunk) = frame.data_ref() {
-            tokio::io::stdout()
+            // i was seeing some corruption using `tokio::io::stdout()`
+            // https://discord.com/channels/500028886025895936/670880858630258689/1217899402325393500
+            // switching to std's blocking io worked around the issue
+            std::io::stdout()
                 .write_all(&chunk)
-                .await
                 .expect("Error writing to stdout");
         }
     }
-    // eprintln!("{:?} {:?} {:?}", db_path, args, res);
 }
