@@ -23,26 +23,66 @@ use crate::ui::generate_preview;
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 type HTTPResult = Result<Response<BoxBody<Bytes, BoxError>>, BoxError>;
 
+#[tracing::instrument(skip(state, app_handle))]
 async fn handle(
     state: SharedState,
     app_handle: tauri::AppHandle,
     req: Request<hyper::body::Incoming>,
 ) -> HTTPResult {
     let path = req.uri().path();
-    let id = path
-        .strip_prefix("/")
-        .and_then(|id| scru128::Scru128Id::from_str(id).ok());
+    let id_option = match path.strip_prefix("/") {
+        Some("") | None => None, // Path is "/" or empty
+        Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
+    };
 
-    match (req.method(), id) {
-        (&Method::GET, Some(id)) => get(id, state).await,
+    use std::collections::HashMap;
+    let params: HashMap<String, String> = req
+        .uri()
+        .query()
+        .map(|v| {
+            url::form_urlencoded::parse(v.as_bytes())
+                .into_owned()
+                .collect()
+        })
+        .unwrap_or_else(HashMap::new);
+
+    let as_html = params.get("as-html").is_some();
+
+    match (req.method(), id_option) {
+        (&Method::GET, id) => get(id, state, as_html).await,
         (&Method::POST, None) if path == "/" => post(req, state, app_handle).await,
         _ => response_404(),
     }
 }
 
-async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
+fn get_as_html(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
+    let preview = state.with_lock(|state| {
+        let content = state.store.get_content(&hash);
+        let meta = state.store.get_content_meta(&hash).unwrap();
+
+        generate_preview(
+            &state.ui.theme_mode,
+            &content,
+            &meta.mime_type,
+            &meta.content_type,
+            false,
+        )
+    });
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "text/html")
+        .body(full(preview))?)
+}
+
+async fn get(id: Option<scru128::Scru128Id>, state: SharedState, as_html: bool) -> HTTPResult {
     let (item, meta) = state.with_lock(|state| {
-        let item = state.view.items.get(&id).cloned();
+        let item = if let Some(id) = id {
+            state.view.items.get(&id).cloned()
+        } else {
+            state.view.first().map(|focus| focus.item.clone())
+        };
+
         let meta = item
             .as_ref()
             .and_then(|i| state.store.get_content_meta(&i.hash));
@@ -51,8 +91,12 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
 
     match item {
         Some(item) => {
+            if as_html {
+                return get_as_html(state, item.hash);
+            }
+
             let cache_path = state.with_lock(|state| state.store.cache_path.clone());
-            let reader = cacache::Reader::open_hash(cache_path, item.hash)
+            let reader = cacache::Reader::open_hash(cache_path, item.hash.clone())
                 .await
                 .unwrap();
 
@@ -63,7 +107,7 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
             let body = BodyExt::boxed(StreamBody::new(stream));
 
             let content_type = match meta {
-                Some(meta) => match meta.mime_type {
+                Some(ref meta) => match meta.mime_type {
                     MimeType::TextPlain => "text/plain",
                     MimeType::ImagePng => "image/png",
                 },
@@ -73,6 +117,10 @@ async fn get(id: scru128::Scru128Id, state: SharedState) -> HTTPResult {
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", content_type)
+                .header(
+                    "X-Stacks-Clip-Metadata",
+                    serde_json::json!({"clip": &item, "content":&meta}).to_string(),
+                )
                 .body(body)?)
         }
         None => response_404(),

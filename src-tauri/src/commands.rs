@@ -767,6 +767,7 @@ pub fn store_new_note(
     state: tauri::State<SharedState>,
     content: String,
     stack_id: Option<scru128::Scru128Id>,
+    should_focus: bool,
 ) {
     state.with_lock(|state| {
         let stack_id = stack_id.unwrap_or_else(|| state.get_curr_stack());
@@ -778,8 +779,10 @@ pub fn store_new_note(
         let id = packet.id;
         state.merge(&packet);
 
-        let focus = state.view.get_focus_for_id(&id);
-        state.ui.select(focus);
+        if should_focus {
+            let focus = state.view.get_focus_for_id(&id);
+            state.ui.select(focus);
+        }
 
         state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
     });

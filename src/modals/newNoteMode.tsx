@@ -24,6 +24,7 @@ const state = (() => {
       const args = {
         stackId: selected.stack_id || selected.id,
         content: curr.value,
+        shouldFocus: true,
       };
 
       invoke("store_new_note", args);
