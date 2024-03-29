@@ -24,6 +24,7 @@ import { Stack } from "./types";
 import { invoke } from "@tauri-apps/api/tauri";
 
 import { default as theme } from "./theme";
+import { matchKeyEvent } from "./utils";
 
 const stack = new Stack({});
 
@@ -52,11 +53,11 @@ async function globalKeyHandler(event: KeyboardEvent) {
   if (attemptAction(event, stack)) return;
 
   switch (true) {
-    case !event.metaKey && event.key === "Enter":
+    case matchKeyEvent(event, { key: "Enter" }):
       await stack.triggerCopy();
       return;
 
-    case event.key === "Escape":
+    case matchKeyEvent(event, { key: "Escape" }):
       event.preventDefault();
 
       // attempt to clear filter first
@@ -65,89 +66,82 @@ async function globalKeyHandler(event: KeyboardEvent) {
         return;
       }
 
-      /*
-      // attempt to pop the current stack
-      if (stack.parent) {
-        stack = stack.parent;
-        return;
-      }
-      */
-
-      // otherwise, hide the window
-      // stack.selected.value = Focus.first();
       modes.deactivate();
       return;
 
-    case (event.metaKey && event.key === "z"):
+    case matchKeyEvent(event, { meta: true, key: "z" }):
       event.preventDefault();
       stack.undo();
       return;
 
-    case (event.metaKey && event.key === "t"):
+    case matchKeyEvent(event, { meta: true, key: "t" }):
       event.preventDefault();
       stack.touch();
       return;
 
-    case event.metaKey && event.key === "l":
+    case matchKeyEvent(event, { meta: true, key: "l" }):
       event.preventDefault();
       console.log("store_win_move");
       invoke("store_win_move", {});
       return;
 
-    case (event.ctrlKey && event.key === "h") || event.key === "ArrowLeft": {
+    case matchKeyEvent(event, { ctrl: true, key: "h" }) ||
+      matchKeyEvent(event, { key: "ArrowLeft" }): {
       event.preventDefault();
       stack.selectLeft();
       return;
     }
 
-    case event.ctrlKey && event.key === "l" || event.key === "ArrowRight": {
+    case matchKeyEvent(event, { ctrl: true, key: "l" }) ||
+      matchKeyEvent(event, { key: "ArrowRight" }): {
       event.preventDefault();
       stack.selectRight();
       return;
     }
 
-    case event.metaKey && event.key === "0":
+    case matchKeyEvent(event, { meta: true, key: "0" }):
       event.preventDefault();
       stack.reset();
       return;
 
-    case event.metaKey &&
-      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+    case matchKeyEvent(event, { meta: true, ctrl: true, key: "n" }) ||
+      matchKeyEvent(event, { meta: true, key: "ArrowDown" }):
       event.preventDefault();
       stack.moveDown();
       return;
 
-    case event.metaKey &&
-      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+    case matchKeyEvent(event, { meta: true, ctrl: true, key: "p" }) ||
+      matchKeyEvent(event, { meta: true, key: "ArrowUp" }):
       event.preventDefault();
       stack.moveUp();
       return;
 
-    case !event.metaKey && !event.altKey &&
-      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+    case matchKeyEvent(event, { ctrl: true, key: "n" }) ||
+      matchKeyEvent(event, { key: "ArrowDown" }):
       event.preventDefault();
       stack.selectDown();
       return;
 
-    case !event.metaKey && !event.altKey &&
-      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+    case matchKeyEvent(event, { ctrl: true, key: "p" }) ||
+      matchKeyEvent(event, { key: "ArrowUp" }):
       event.preventDefault();
       stack.selectUp();
       return;
 
-    case !event.metaKey && event.altKey &&
-      ((event.ctrlKey && event.key === "n") || event.key === "ArrowDown"):
+    case matchKeyEvent(event, { ctrl: true, alt: true, key: "n" }) ||
+      matchKeyEvent(event, { alt: true, key: "ArrowDown" }):
       event.preventDefault();
       stack.selectDownStack();
       return;
 
-    case !event.metaKey && event.altKey &&
-      (event.ctrlKey && event.key === "p" || event.key === "ArrowUp"):
+    case matchKeyEvent(event, { ctrl: true, alt: true, key: "p" }) ||
+      matchKeyEvent(event, { alt: true, key: "ArrowUp" }):
       event.preventDefault();
       stack.selectUpStack();
       return;
 
-    case (event.metaKey && (event.key === "Meta" || event.key === "c")):
+    case matchKeyEvent(event, { meta: true, key: "Meta" }) ||
+      matchKeyEvent(event, { meta: true, key: "c" }):
       // avoid capturing command-c
       return;
 
