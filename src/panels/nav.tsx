@@ -18,10 +18,15 @@ const TerseRow = (
 
   useEffect(() => {
     if (isSelected && theRef.current) {
-      theRef.current.scrollIntoView({
-        behavior: "smooth",
-        block: "nearest",
-      });
+      const fontSize = parseFloat(getComputedStyle(theRef.current).fontSize);
+      const yOffset = -2.5 * fontSize; // Desired offset from the top
+      const parent = theRef.current.parentElement;
+      if (parent) {
+        // Calculate new scrollTop position with offset
+        const topPosition = theRef.current.offsetTop + yOffset;
+        // Apply calculated scrollTop position directly
+        parent.scrollTop = topPosition;
+      }
     }
   }, [isSelected, isFocused, theRef.current]);
 
@@ -87,6 +92,7 @@ const renderItems = (
         maxWidth: layer.is_focus ? "20ch" : "14ch",
         overflowY: "auto",
         paddingRight: "0.5rem",
+        scrollBehavior: "smooth",
       }}
     >
       {layer.items
@@ -106,6 +112,8 @@ const renderItems = (
             />
           );
         })}
+
+      <div style={{ height: `calc(100% - 2.5em)` }}></div>
     </div>
   );
 };
@@ -119,7 +127,8 @@ export function Preview(
 
   useEffect(() => {
     if (active && anchorRef.current) {
-      const yOffset = -30;
+      const fontSize = parseFloat(getComputedStyle(anchorRef.current).fontSize);
+      const yOffset = -2.5 * fontSize; // Desired offset from the top
       const parent = anchorRef.current.parentElement;
       if (parent) {
         const topPosition = anchorRef.current.offsetTop + yOffset;
@@ -171,7 +180,6 @@ export function Nav({ stack }: { stack: Stack }) {
                     style={{
                       flex: 3,
                       overflow: "auto",
-                      height: "100%",
                       display: "flex",
                       flexDirection: "column",
                       scrollBehavior: "smooth",
@@ -189,6 +197,7 @@ export function Nav({ stack }: { stack: Stack }) {
                         />
                       );
                     })}
+                    <div style={{ minHeight: `calc(100% - 2.5em)` }}></div>
                   </div>
                 </>
               )
