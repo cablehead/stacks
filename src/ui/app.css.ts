@@ -62,6 +62,10 @@ globalStyle("html, body", {
   overflow: "hidden",
 });
 
+globalStyle("::-webkit-scrollbar", {
+  display: "none",
+});
+
 globalStyle("main", {
   color: vars.textColor,
   backgroundColor: vars.backgroundColorTransparent,
