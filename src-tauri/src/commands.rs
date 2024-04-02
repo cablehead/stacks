@@ -809,13 +809,15 @@ pub fn store_edit_note(
     content: String,
 ) {
     state.with_lock(|state| {
-        let meta = state
-            .view
-            .items
-            .get(&source_id)
-            .and_then(|source| state.store.get_content_meta(&source.hash));
+        let source = state.view.items.get(&source_id);
+        if source.is_none() {
+            tracing::warn!("source not found");
+            return;
+        }
+        let source = source.unwrap().clone();
+        let meta = state.store.get_content_meta(&source.hash);
         if meta.is_none() {
-            tracing::warn!("source or meta not found");
+            tracing::warn!("meta not found");
             return;
         }
         let meta = meta.unwrap();
@@ -835,9 +837,13 @@ pub fn store_edit_note(
             }
         }
 
-        let focus = state.view.get_focus_for_id(&source_id);
-        state.ui.select(focus);
-        state.skip_change_num = write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+        // if this isn't a stack, focus the updated clip
+        if source.stack_id.is_some() {
+            let focus = state.view.get_focus_for_id(&source_id);
+            state.ui.select(focus);
+            state.skip_change_num =
+                write_to_clipboard("public.utf8-plain-text", content.as_bytes());
+        }
     });
     app.emit_all("refresh-items", true).unwrap();
 }

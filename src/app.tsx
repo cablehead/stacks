@@ -7,6 +7,7 @@ import {
   modes,
   newNoteMode,
   pipeToCommand,
+  renameStackMode,
 } from "./modals";
 
 import { darkThemeClass, lightThemeClass } from "./ui/app.css";
@@ -194,6 +195,7 @@ export function App() {
             {!modes.isActive(editorMode) &&
               !modes.isActive(newNoteMode) &&
               !modes.isActive(pipeToCommand) &&
+              !modes.isActive(renameStackMode) &&
               <Filter stack={stack} />}
             <div style="
             display: flex;

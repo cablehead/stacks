@@ -7,8 +7,9 @@ import {
   addToStackMode,
   editorMode,
   modes,
-  pipeToCommand,
   pipeStackToShell,
+  pipeToCommand,
+  renameStackMode,
   setContentTypeAction,
 } from "./modals";
 
@@ -49,6 +50,24 @@ export const actions: Action[] = [
     },
     trigger: (stack: Stack) => modes.activate(stack, editorMode),
   },
+
+  {
+    name: "Rename stack",
+    keys: [
+      <Icon name="IconAltKey" />,
+      <Icon name="IconCommandKey" />,
+      <Icon name="IconReturnKey" />,
+    ],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, alt: true, code: "Enter" }),
+    canApply: (stack: Stack) => {
+      const item = stack.selected_stack();
+      if (!item) return false;
+      return getContent(item).value?.mime_type == "text/plain";
+    },
+    trigger: (stack: Stack) => modes.activate(stack, renameStackMode),
+  },
+
   {
     name: "Pipe clip to shell",
     keys: [<Icon name="IconCommandKey" />, "P"],

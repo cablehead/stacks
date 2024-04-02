@@ -11,6 +11,7 @@ import { default as filterContentTypeMode } from "./filterContentTypeMode";
 import { default as mainMode } from "./mainMode";
 import { default as newMode } from "./newMode";
 import { default as newNoteMode } from "./newNoteMode";
+import { default as renameStackMode } from "./renameStackMode";
 import { default as pipeToCommand } from "./pipeToCommand";
 import { default as pipeStackToShell } from "./pipeStackToShell";
 import { default as setContentTypeAction } from "./setContentTypeAction";
@@ -29,6 +30,7 @@ export {
   newNoteMode,
   pipeStackToShell,
   pipeToCommand,
+  renameStackMode,
   setContentTypeAction,
   settingsMode,
 };
