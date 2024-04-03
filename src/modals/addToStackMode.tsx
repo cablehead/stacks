@@ -92,7 +92,7 @@ const state = (() => {
 })();
 
 export default {
-  name: () => "Copy clip to stack",
+  name: () => "Stash clip to stack ...",
 
   hotKeys: (stack: Stack, modes: Modes) => {
     const ret = [];

@@ -18,74 +18,7 @@ import { Action, getContent, Stack } from "./types";
 
 export const actions: Action[] = [
   {
-    name: "Set content type",
-    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
-    keys: [<Icon name="IconCommandKey" />, <Icon name="IconShiftKey" />, "U"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { meta: true, shift: true, key: "u" }),
-    trigger: (stack: Stack) => {
-      modes.activate(stack, setContentTypeAction);
-    },
-  },
-
-  {
-    name: "Copy clip to stack",
-    keys: ["TAB"],
-    matchKeyEvent: (event: KeyboardEvent) => event.key === "Tab",
-    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
-    trigger: (stack: Stack) => {
-      modes.activate(stack, addToStackMode);
-    },
-  },
-
-  {
-    name: "Edit clip",
-    keys: [<Icon name="IconCommandKey" />, <Icon name="IconReturnKey" />],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { meta: true, code: "Enter" }),
-    canApply: (stack: Stack) => {
-      const item = stack.selected_item();
-      if (!item) return false;
-      return getContent(item).value?.mime_type == "text/plain";
-    },
-    trigger: (stack: Stack) => modes.activate(stack, editorMode),
-  },
-
-  {
-    name: "Rename stack",
-    keys: [
-      <Icon name="IconAltKey" />,
-      <Icon name="IconCommandKey" />,
-      <Icon name="IconReturnKey" />,
-    ],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { meta: true, alt: true, code: "Enter" }),
-    canApply: (stack: Stack) => {
-      const item = stack.selected_stack();
-      if (!item) return false;
-      return getContent(item).value?.mime_type == "text/plain";
-    },
-    trigger: (stack: Stack) => modes.activate(stack, renameStackMode),
-  },
-
-  {
-    name: "Pipe clip to shell",
-    keys: [<Icon name="IconCommandKey" />, "P"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { meta: true, code: "KeyP" }),
-    trigger: (stack: Stack) => modes.activate(stack, pipeToCommand),
-    canApply: (stack: Stack) => !!stack.selected_item(),
-  },
-  {
-    name: "Pipe stack to shell",
-    keys: [<Icon name="IconCommandKey" />, <span>&#x2325;</span>, "P"],
-    matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { meta: true, alt: true, code: "KeyP" }),
-    trigger: (stack: Stack) => modes.activate(stack, pipeStackToShell),
-    canApply: (stack: Stack) => !!stack.selected_item(),
-  },
-  {
-    name: "Open",
+    name: "Open link in browser",
     keys: [<Icon name="IconCommandKey" />, "O"],
     matchKeyEvent: (event: KeyboardEvent) =>
       event.metaKey && event.key.toLowerCase() === "o",
@@ -110,39 +43,102 @@ export const actions: Action[] = [
       return getContent(item).value?.content_type == "Link";
     },
   },
+
+  {
+    name: "Set clip content type",
+    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconShiftKey" />, "U"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, shift: true, key: "u" }),
+    trigger: (stack: Stack) => {
+      modes.activate(stack, setContentTypeAction);
+    },
+  },
+
+  {
+    name: "Stash clip",
+    keys: [<Icon name="IconCommandKey" />, "S"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, code: "KeyS" }),
+    canApply: (stack: Stack) => stack.selected()?.stack_id != null,
+    trigger: (stack: Stack) => {
+      modes.activate(stack, addToStackMode);
+    },
+  },
+
+  {
+    name: "Edit clip",
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconReturnKey" />],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, code: "Enter" }),
+    canApply: (stack: Stack) => {
+      const item = stack.selected_item();
+      if (!item) return false;
+      return getContent(item).value?.mime_type == "text/plain";
+    },
+    trigger: (stack: Stack) => modes.activate(stack, editorMode),
+  },
+
+  {
+    name: "Pipe clip",
+    keys: [<Icon name="IconCommandKey" />, "P"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, code: "KeyP" }),
+    trigger: (stack: Stack) => modes.activate(stack, pipeToCommand),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+  },
+
+
   {
     name: "Delete clip",
     keys: [<Icon name="IconCommandKey" />, "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.key === "Backspace",
-    canApply: (stack: Stack) => {
-      const item = stack.selected();
-      if (item) {
-        return !!item.stack_id;
-      }
-      return false;
-    },
+      matchKeyEvent(event, { meta: true, code: "Backspace" }),
+    canApply: (stack: Stack) => !!stack.selected_item(),
     trigger: (stack: Stack) => {
-      const item = stack.selected();
+      const item = stack.selected_item();
       if (item) {
         invoke("store_delete", { id: item.id });
       }
     },
   },
+
+  {
+    name: "Rename stack",
+    keys: [
+      <Icon name="IconAltKey" />,
+      <Icon name="IconCommandKey" />,
+      <Icon name="IconReturnKey" />,
+    ],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, alt: true, code: "Enter" }),
+    canApply: (stack: Stack) => {
+      const item = stack.selected_stack();
+      if (!item) return false;
+      return getContent(item).value?.mime_type == "text/plain";
+    },
+    trigger: (stack: Stack) => modes.activate(stack, renameStackMode),
+  },
+
+  {
+    name: "Pipe stack",
+    keys: [<Icon name="IconAltKey" />, <Icon name="IconCommandKey" />, "P"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, alt: true, code: "KeyP" }),
+    trigger: (stack: Stack) => modes.activate(stack, pipeStackToShell),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+  },
+
   {
     name: "Delete stack",
-    keys: ["SHIFT", <Icon name="IconCommandKey" />, "DEL"],
+    keys: [<Icon name="IconAltKey" />, <Icon name="IconCommandKey" />, "DEL"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      event.metaKey && event.shiftKey && event.code == "Backspace",
+      matchKeyEvent(event, { meta: true, alt: true, code: "Backspace" }),
     canApply: (stack: Stack) => {
-      const item = stack.selected();
-      if (item) {
-        return !item.stack_id;
-      }
-      return false;
+      return !!stack.selected_stack();
     },
     trigger: (stack: Stack) => {
-      const item = stack.selected();
+      const item = stack.selected_stack();
       if (item) {
         invoke("store_delete", { id: item.id });
       }
