@@ -70,6 +70,7 @@ const state = (() => {
         await invoke("store_add_to_new_stack", {
           name: name,
           sourceId: item.id,
+          focus: false,
         });
         modes.deactivate();
       })();

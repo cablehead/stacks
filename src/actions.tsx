@@ -1,7 +1,7 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
 
-import { b64ToUtf8, matchKeyEvent } from "./utils";
+import { dn, b64ToUtf8, matchKeyEvent } from "./utils";
 
 import {
   addToStackMode,
@@ -56,6 +56,26 @@ export const actions: Action[] = [
   },
 
   {
+    name: "Focus clip",
+    keys: ["TAB"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { code: "Tab" }),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+    trigger: (stack: Stack) => {
+      const item = stack.selected_item();
+      if (item) {
+        (async () => {
+          await invoke("store_add_to_new_stack", {
+            name: dn(),
+            sourceId: item.id,
+            focus: true,
+          });
+        })();
+      }
+    },
+  },
+
+  {
     name: "Stash clip",
     keys: [<Icon name="IconCommandKey" />, "S"],
     matchKeyEvent: (event: KeyboardEvent) =>
@@ -87,7 +107,6 @@ export const actions: Action[] = [
     trigger: (stack: Stack) => modes.activate(stack, pipeToCommand),
     canApply: (stack: Stack) => !!stack.selected_item(),
   },
-
 
   {
     name: "Delete clip",

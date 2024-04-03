@@ -985,12 +985,17 @@ pub fn store_add_to_new_stack(
     state: tauri::State<SharedState>,
     name: String,
     source_id: scru128::Scru128Id,
+    focus: bool,
 ) {
     state.with_lock(|state| {
-        // realize current focus, so that it remains stable, to avoid jumping to the forked item
-        state
-            .ui
-            .select(state.view.get_best_focus(&state.ui.focused));
+        if focus {
+            state.ui.select(None); // focus first
+        } else {
+            // realize current focus, so that it remains stable, to avoid jumping to the forked item
+            state
+                .ui
+                .select(state.view.get_best_focus(&state.ui.focused));
+        }
 
         let stack_packet = state
             .store
