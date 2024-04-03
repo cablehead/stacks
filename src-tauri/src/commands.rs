@@ -953,6 +953,10 @@ pub fn store_add_to_stack(
     source_id: scru128::Scru128Id,
 ) {
     state.with_lock(|state| {
+        // realize current focus, so that it remains stable, to avoid jumping to the forked item
+        state
+            .ui
+            .select(state.view.get_best_focus(&state.ui.focused));
         let packet = state
             .store
             .fork(source_id, None, MimeType::TextPlain, Some(stack_id));
