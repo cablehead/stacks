@@ -22,8 +22,6 @@ import { attemptAction } from "./actions";
 
 import { Stack } from "./types";
 
-import { invoke } from "@tauri-apps/api/tauri";
-
 import { default as theme } from "./theme";
 import { matchKeyEvent } from "./utils";
 
@@ -82,8 +80,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
 
     case matchKeyEvent(event, { meta: true, key: "l" }):
       event.preventDefault();
-      console.log("store_win_move");
-      invoke("store_win_move", {});
+      stack.toggleLock();
       return;
 
     case matchKeyEvent(event, { ctrl: true, key: "h" }) ||

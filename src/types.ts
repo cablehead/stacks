@@ -176,6 +176,19 @@ export class Stack {
     }
   }
 
+  // toggles the current stack's lock status
+  toggleLock() {
+    const curr = this.nav.value.root?.selected;
+    if (!curr) return;
+    const command = curr.locked ? "store_stack_unlock" : "store_stack_lock";
+    invoke(command, { sourceId: curr.id });
+  }
+
+  // is the current stack locked?
+  isLocked(): boolean {
+    return !!this.nav.value.root?.selected.locked;
+  }
+
   // returns the item which is currently focused
   selected(): Item | undefined {
     const nav = this.nav.value;

@@ -30,16 +30,9 @@ const VertDiv = () => (
 );
 
 const Lock = ({ stack }: { stack: Stack }) => {
-  const currStack = stack.nav.value.root?.selected;
-  if (!currStack) return <span></span>;
   return (
     <div
-      onMouseDown={() => {
-        const command = currStack.locked
-          ? "store_stack_unlock"
-          : "store_stack_lock";
-        invoke(command, { sourceId: currStack.id });
-      }}
+      onMouseDown={() => stack.toggleLock()}
       class="hoverable"
     >
       <span style="
@@ -49,7 +42,7 @@ const Lock = ({ stack }: { stack: Stack }) => {
             text-align: center;
             border-radius: 5px;
             ">
-        {currStack.locked
+        {stack.isLocked()
           ? <Icon name="IconLockClosed" />
           : <Icon name="IconLockOpen" />}
       </span>
@@ -93,8 +86,14 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
 
   useEffect(() => {
     (async () => {
-      const settings = await invoke<Record<string, string>>("store_settings_get", {});
-      if (settings && settings.cross_stream_access_token && settings.cross_stream_access_token.length === 64) {
+      const settings = await invoke<Record<string, string>>(
+        "store_settings_get",
+        {},
+      );
+      if (
+        settings && settings.cross_stream_access_token &&
+        settings.cross_stream_access_token.length === 64
+      ) {
         tokenLooksGood.value = true;
       }
     })();
@@ -108,25 +107,23 @@ const Broadcast = ({ stack }: { stack: Stack }) => {
     <>
       <div
         onMouseDown={() => {
-        invoke("store_mark_as_cross_stream", { stackId: currStack.id });
-      }}
-      className={active
-        ? enchantedForestGradientActive
-        : enchantedForestGradient}
-    >
-      <span style="
+          invoke("store_mark_as_cross_stream", { stackId: currStack.id });
+        }}
+        className={active
+          ? enchantedForestGradientActive
+          : enchantedForestGradient}
+      >
+        <span style="
             display: inline-block;
             width: 1.5em;
             height: 1.5em;
             text-align: center;
             border-radius: 5px;
             ">
-        {active
-          ? <Icon name="IconBolt" />
-          : <Icon name="IconBoltSlash" />}
-      </span>
-    </div>
-        <VertDiv />
+          {active ? <Icon name="IconBolt" /> : <Icon name="IconBoltSlash" />}
+        </span>
+      </div>
+      <VertDiv />
     </>
   );
 };
