@@ -987,9 +987,14 @@ pub fn store_add_to_new_stack(
     source_id: scru128::Scru128Id,
 ) {
     state.with_lock(|state| {
+        // realize current focus, so that it remains stable, to avoid jumping to the forked item
+        state
+            .ui
+            .select(state.view.get_best_focus(&state.ui.focused));
+
         let stack_packet = state
             .store
-            .add_stack(name.as_bytes(), StackLockStatus::Locked);
+            .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
         state.merge(&stack_packet);
 
         let item_packet =
