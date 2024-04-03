@@ -28,7 +28,7 @@ const TerseRow = (
         parent.scrollTop = topPosition;
       }
     }
-  }, [isSelected, isFocused, theRef.current]);
+  }, [item]);
 
   return (
     <div
