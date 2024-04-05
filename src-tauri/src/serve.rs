@@ -49,7 +49,7 @@ pub async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::store_win_move,
+            commands::store_window_reset,
             commands::store_get_content,
             commands::store_get_raw_content,
             commands::store_get_root,

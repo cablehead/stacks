@@ -117,13 +117,10 @@ export default function createActionMode(
           style={{
             position: "absolute",
             width: "40ch",
-            // overflow: "auto",
             maxHeight: "10.5lh",
-            //bottom: "0.25lh",
             bottom: "0",
             fontSize: "0.9rem",
             right: "4ch",
-            // borderRadius: "0.5rem",
             borderRadius: "0.5rem 0.5rem 0 0",
             zIndex: 100,
             display: "flex",
@@ -135,6 +132,8 @@ export default function createActionMode(
             style="
         padding:1ch;
         width: 100%;
+        display: flex;
+        align-items: center;
         "
           >
             <div style="width: 100%">

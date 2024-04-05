@@ -791,13 +791,12 @@ pub fn store_new_note(
 
 #[tauri::command]
 #[tracing::instrument(skip(app))]
-pub fn store_win_move(app: tauri::AppHandle) {
+pub fn store_window_reset(app: tauri::AppHandle) {
     let win = app.get_window("main").unwrap();
+    win.set_size(tauri::LogicalSize::new(1000, 600)).unwrap();
+    win.center().unwrap();
     // use tauri_plugin_positioner::{Position, WindowExt};
-    // let _ = win.move_window(Position::TopRight);
-    win.set_size(tauri::PhysicalSize::new(1954, 978)).unwrap();
-    win.set_position(tauri::PhysicalPosition::new(722, 678))
-        .unwrap();
+    // win.move_window(Position::Center).unwrap();
 }
 
 #[tauri::command]

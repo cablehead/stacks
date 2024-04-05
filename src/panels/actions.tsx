@@ -76,28 +76,37 @@ export function Actions({ stack }: {
     return val;
   });
 
+  useEffect(() => {
+    const container = document.querySelector(".actionRows");
+    const selectedElement = container?.children[normalizedSelected.value];
+    selectedElement?.scrollIntoView({
+      behavior: "smooth",
+      block: "nearest",
+    });
+  }, [normalizedSelected.value]);
+
   return (
     <div
       className={overlay}
       style={{
         position: "absolute",
         width: "40ch",
-        overflow: "auto",
-        //bottom: "0.25lh",
+        maxHeight: "10.5lh",
         bottom: "0",
         fontSize: "0.9rem",
         right: "4ch",
-        // borderRadius: "0.5rem",
         borderRadius: "0.5rem 0.5rem 0 0",
         zIndex: 100,
+        display: "flex",
+        flexDirection: "column",
       }}
     >
       <div
         className={borderBottom}
         style="
         padding:1ch;
-        display: flex;
         width: 100%;
+        display: flex;
         align-items: center;
         "
       >
@@ -112,7 +121,6 @@ export function Actions({ stack }: {
               currFilter.value = inputRef.current.value;
             }}
             onKeyDown={(event) => {
-              console.log("ACTIONS", event);
               event.stopPropagation();
 
               if (modes.attemptAction(event, stack)) return;
@@ -152,9 +160,14 @@ export function Actions({ stack }: {
         </div>
       </div>
 
-      <div style="
-        padding:1ch;
-        ">
+      <div
+        className="actionRows"
+        style={{
+          overflow: "auto",
+          flex: 1,
+          padding: "1ch",
+        }}
+      >
         {actionsAvailable.value
           .map((action, index) => (
             <ActionRow

@@ -1,7 +1,8 @@
 import { invoke } from "@tauri-apps/api/tauri";
 import { open } from "@tauri-apps/api/shell";
+import { appWindow, LogicalSize } from "@tauri-apps/api/window";
 
-import { dn, b64ToUtf8, matchKeyEvent } from "./utils";
+import { b64ToUtf8, dn, matchKeyEvent } from "./utils";
 
 import {
   addToStackMode,
@@ -161,6 +162,20 @@ export const actions: Action[] = [
       if (item) {
         invoke("store_delete", { id: item.id });
       }
+    },
+  },
+
+  {
+    name: "Reset window",
+    canApply: (_: Stack) => {
+      return true;
+    },
+    trigger: (_: Stack) => {
+      (async () => {
+        document.documentElement.style.fontSize = "1rem";
+        await appWindow.setSize(new LogicalSize(1000, 600));
+        await appWindow.center();
+      })();
     },
   },
 ];
