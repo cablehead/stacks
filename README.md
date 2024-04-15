@@ -6,11 +6,13 @@ A terrific clipboard manager
 
 ## Download
 
-`.DMG` installers that have been notarized by Apple.
+Stack releases are getting backed up as I try to work out how "pipe clip to
+shell" should hang together. To minimize distractions from formal release
+processes, I’m currently just dropping preview releases directly in the Stacks'
+Discord channel. If you'd like to grab the latest version of Stacks, swing by!
+(link below).
 
-Latest release (in preview) -- `0.15.5`:
-
-[![MacOS (Universal)](./docs/assets/MacOS-Universal.svg)](https://stacks.cross.stream/releases/Stacks_0.15.5_universal.dmg)
+Current release is >= 0.15.8
 
 ## Community
 
