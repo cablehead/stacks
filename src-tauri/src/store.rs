@@ -148,9 +148,9 @@ pub struct Packet {
 }
 
 fn deserialize_packet(value: &[u8]) -> Option<Packet> {
-    bincode::deserialize::<Packet>(&value)
+    bincode::deserialize::<Packet>(value)
         .or_else(|_| {
-            bincode::deserialize::<PacketV3>(&value).map(|v3_packet| Packet {
+            bincode::deserialize::<PacketV3>(value).map(|v3_packet| Packet {
                 id: v3_packet.id,
                 packet_type: v3_packet.packet_type,
                 source_id: v3_packet.source_id,
@@ -229,23 +229,12 @@ impl Index {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone)]
+#[derive(Serialize, Deserialize, Default, Debug, Clone)]
 pub struct Settings {
     pub openai_access_token: String,
     pub openai_selected_model: String,
     pub cross_stream_access_token: Option<String>,
     pub activation_shortcut: Option<spotlight::Shortcut>,
-}
-
-impl Default for Settings {
-    fn default() -> Self {
-        Settings {
-            openai_access_token: String::new(),
-            openai_selected_model: String::new(),
-            cross_stream_access_token: None,
-            activation_shortcut: None,
-        }
-    }
 }
 
 pub struct Store {
