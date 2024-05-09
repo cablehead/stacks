@@ -335,8 +335,8 @@ impl Store {
 
         self.scan().for_each(|p| {
             if p.packet_type == PacketType::Update || p.packet_type == PacketType::Add {
-                if let Some(hash) = p.hash.clone() {
-                    if let Some(content_type) = p.content_type.clone() {
+                if let Some(hash) = p.hash {
+                    if let Some(content_type) = p.content_type {
                         if let Some(meta) = content_meta_cache.get_mut(&hash) {
                             meta.content_type = content_type;
                         }
@@ -423,7 +423,7 @@ impl Store {
         }
     }
 
-    pub fn insert_packet(&mut self, packet: &Packet) {
+    pub fn insert_packet(&self, packet: &Packet) {
         let encoded: Vec<u8> = bincode::serialize(&packet).unwrap();
         self.packets.insert(packet.id.to_bytes(), encoded).unwrap();
     }
@@ -501,7 +501,7 @@ impl Store {
         packet
     }
 
-    pub fn update_touch(&mut self, source_id: Scru128Id) -> Packet {
+    pub fn update_touch(&self, source_id: Scru128Id) -> Packet {
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -540,7 +540,7 @@ impl Store {
         packet
     }
 
-    pub fn update_move(&mut self, source_id: Scru128Id, movement: Movement) -> Packet {
+    pub fn update_move(&self, source_id: Scru128Id, movement: Movement) -> Packet {
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -558,7 +558,7 @@ impl Store {
         packet
     }
 
-    pub fn mark_as_cross_stream(&mut self, stack_id: Scru128Id) -> Packet {
+    pub fn mark_as_cross_stream(&self, stack_id: Scru128Id) -> Packet {
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Update,
@@ -577,7 +577,7 @@ impl Store {
     }
 
     pub fn update_stack_lock_status(
-        &mut self,
+        &self,
         source_id: Scru128Id,
         lock_status: StackLockStatus,
     ) -> Packet {
@@ -599,7 +599,7 @@ impl Store {
     }
 
     pub fn update_stack_sort_order(
-        &mut self,
+        &self,
         source_id: Scru128Id,
         sort_order: StackSortOrder,
     ) -> Packet {
@@ -648,7 +648,7 @@ impl Store {
         packet
     }
 
-    pub fn delete(&mut self, source_id: Scru128Id) -> Packet {
+    pub fn delete(&self, source_id: Scru128Id) -> Packet {
         let packet = Packet {
             id: scru128::new(),
             packet_type: PacketType::Delete,
@@ -666,12 +666,12 @@ impl Store {
         packet
     }
 
-    pub fn remove_packet(&mut self, id: &Scru128Id) -> Option<Packet> {
+    pub fn remove_packet(&self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
         removed.and_then(|value| deserialize_packet(&value))
     }
 
-    pub fn settings_save(&mut self, settings: Settings) {
+    pub fn settings_save(&self, settings: Settings) {
         let settings_str = serde_json::to_string(&settings).unwrap();
         self.meta
             .insert("settings", settings_str.as_bytes())
