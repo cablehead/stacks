@@ -219,7 +219,7 @@ impl UI {
             let sub = if !children.is_empty() {
                 let possible = self.last_selected.get(&focused.item.id).cloned();
                 let possible =
-                    possible.or(self.view.get_focus_for_id(&children.get(0).unwrap().id));
+                    possible.or(self.view.get_focus_for_id(&children.first().unwrap().id));
                 let selected = self.view.get_best_focus(&possible).unwrap();
                 let selected = with_meta(store, &selected.item);
                 let items: Vec<_> = children.iter().map(|item| with_meta(store, item)).collect();
@@ -271,7 +271,7 @@ pub fn with_meta(store: &Store, item: &view::Item) -> Item {
 use comrak::plugins::syntect::SyntectAdapter;
 use comrak::{markdown_to_html_with_plugins, ComrakOptions, ComrakPlugins};
 
-pub fn markdown_to_html(theme_mode: &str, input: &Vec<u8>) -> String {
+pub fn markdown_to_html(theme_mode: &str, input: &[u8]) -> String {
     let adapter = SyntectAdapter::new(&format!("base16-ocean.{}", theme_mode));
 
     let mut options = ComrakOptions::default();
@@ -294,7 +294,7 @@ pub fn markdown_to_html(theme_mode: &str, input: &Vec<u8>) -> String {
     let mut plugins = ComrakPlugins::default();
     plugins.render.codefence_syntax_highlighter = Some(&adapter);
 
-    let input_str = String::from_utf8(input.clone()).unwrap();
+    let input_str = String::from_utf8(input.to_owned()).unwrap();
     markdown_to_html_with_plugins(&input_str, &options, &plugins)
 }
 
@@ -302,13 +302,13 @@ use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-pub fn code_to_html(theme_mode: &str, input: &Vec<u8>, ext: &str) -> String {
+pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str) -> String {
     let ps = SyntaxSet::load_defaults_newlines();
     let ts = ThemeSet::load_defaults();
     let syntax = ps.find_syntax_by_extension(ext).unwrap();
     info!("Theme mode: {}", theme_mode);
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
-    let input_str = String::from_utf8(input.clone()).unwrap();
+    let input_str = String::from_utf8(input.to_owned()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
     highlighted_html.unwrap()
 }

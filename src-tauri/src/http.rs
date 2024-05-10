@@ -30,7 +30,7 @@ async fn handle(
     req: Request<hyper::body::Incoming>,
 ) -> HTTPResult {
     let path = req.uri().path();
-    let id_option = match path.strip_prefix("/") {
+    let id_option = match path.strip_prefix('/') {
         Some("") | None => None, // Path is "/" or empty
         Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
     };
@@ -44,7 +44,7 @@ async fn handle(
                 .into_owned()
                 .collect()
         })
-        .unwrap_or_else(HashMap::new);
+        .unwrap_or_default();
 
     let as_html = params.get("as-html").is_some();
 

@@ -313,7 +313,7 @@ impl Store {
                 if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
                     if meta.mime_type == MimeType::TextPlain
                         && meta.tiktokens == 0
-                        && meta.terse.len() > 0
+                        && !meta.terse.is_empty()
                     {
                         tracing::warn!("TODO: backfill tiktokens for content that falls through the cracks: {:?}", &meta);
                     }

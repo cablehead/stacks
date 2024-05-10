@@ -54,7 +54,7 @@ async fn main() {
 
 fn command_name() -> String {
     std::env::args()
-        .nth(0)
+        .next()
         .map(|arg| {
             std::path::Path::new(&arg)
                 .file_name()

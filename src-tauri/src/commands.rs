@@ -260,7 +260,7 @@ pub async fn store_pipe_stack_to_shell(
 
     let status = cmd.wait().await.unwrap();
 
-    let _ = read_stdout.await.expect("Task failed");
+    read_stdout.await.expect("Task failed");
     app.emit_all(
         "pipe-stack-to-shell",
         ExecStatus {
@@ -494,7 +494,7 @@ pub async fn store_pipe_to_command(
 
     let status = cmd.wait().await.unwrap();
 
-    let _ = read_stdout.await.expect("Task failed");
+    read_stdout.await.expect("Task failed");
     app.emit_all(
         "pipe-to-shell",
         ExecStatus {

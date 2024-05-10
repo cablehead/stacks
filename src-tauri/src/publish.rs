@@ -3,8 +3,8 @@ use std::sync::mpsc::Receiver;
 use tracing::{error, info};
 
 use crate::state::SharedState;
-use crate::ui;
 use crate::store;
+use crate::ui;
 use crate::view;
 
 // tracks previously published state
@@ -125,7 +125,7 @@ fn process(state: &SharedState, view: &view::View, previous: &mut PreviousPublis
             previous
                 .cache
                 .entry(cache_key.clone())
-                .or_insert_with(|| generate(&state, &item, &meta))
+                .or_insert_with(|| generate(state, item, meta))
                 .clone()
         })
         .collect();
@@ -136,9 +136,8 @@ fn process(state: &SharedState, view: &view::View, previous: &mut PreviousPublis
         .collect::<Vec<String>>()
         .join("");
 
-    match post(&token, &previews) {
-        Ok(_) => previous.items = items,
-        Err(_) => {}
+    if post(&token, &previews).is_ok() {
+        previous.items = items
     }
 }
 

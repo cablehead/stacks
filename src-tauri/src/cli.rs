@@ -74,7 +74,7 @@ pub async fn cli(db_path: &str) {
             // https://discord.com/channels/500028886025895936/670880858630258689/1217899402325393500
             // switching to std's blocking io worked around the issue
             std::io::stdout()
-                .write_all(&chunk)
+                .write_all(chunk)
                 .expect("Error writing to stdout");
         }
     }

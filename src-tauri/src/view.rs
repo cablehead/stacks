@@ -87,10 +87,7 @@ impl View {
                     children: Vec::new(),
                     ephemeral: packet.ephemeral,
                     ordered: false,
-                    locked: match packet.lock_status {
-                        Some(StackLockStatus::Locked) => true,
-                        _ => false,
-                    },
+                    locked: matches!(packet.lock_status, Some(StackLockStatus::Locked)),
                     cross_stream: false,
                 };
 
@@ -107,7 +104,7 @@ impl View {
                 if packet.cross_stream {
                     let mut previously_cross_stream = None;
 
-                    for (_, item) in &mut self.items {
+                    for item in self.items.values_mut() {
                         if item.cross_stream {
                             item.cross_stream = false;
                             previously_cross_stream = Some(item.id);
@@ -319,11 +316,9 @@ impl View {
             } else {
                 stack.id
             };
-            self.items.get(&id).and_then(|item| {
-                Some(Focus {
-                    item: item.clone(),
-                    index: 0,
-                })
+            self.items.get(&id).map(|item| Focus {
+                item: item.clone(),
+                index: 0,
             })
         } else {
             None
@@ -345,15 +340,13 @@ impl View {
     #[tracing::instrument(skip_all)]
     pub fn get_focus_for_id(&self, id: &Scru128Id) -> Option<Focus> {
         self.items.get(id).and_then(|item| {
-            let peers = self.get_peers(&item);
+            let peers = self.get_peers(item);
             peers
                 .iter()
                 .position(|&peer| item.id == peer.id)
-                .and_then(|index| {
-                    Some(Focus {
-                        item: item.clone(),
-                        index,
-                    })
+                .map(|index| Focus {
+                    item: item.clone(),
+                    index,
                 })
         })
     }

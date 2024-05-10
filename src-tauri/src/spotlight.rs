@@ -43,23 +43,23 @@ impl Shortcut {
 
 use tauri::{GlobalShortcutManager, Manager, Window, WindowEvent, Wry};
 
-static SELF_KEY_PREFIX: &'static str = "self:";
+static SELF_KEY_PREFIX: &str = "self:";
 
 #[derive(Debug)]
 pub enum Error {
-    FailedToLockMutex,
-    FailedToRegisterShortcut,
-    FailedToGetNSWindow,
-    FailedToGetNSWorkspaceClass,
-    FailedToCheckWindowVisibility,
-    FailedToHideWindow,
-    FailedToShowWindow,
+    LockMutex,
+    RegisterShortcut,
+    GetNSWindow,
+    GetNSWorkspaceClass,
+    CheckWindowVisibility,
+    HideWindow,
+    ShowWindow,
 }
 
 pub fn init(window: &Window<Wry>) -> Result<(), Error> {
-    handle_focus_state_change(&window);
-    set_spotlight_window_collection_behavior(&window)?;
-    set_window_level(&window, 7)?;
+    handle_focus_state_change(window);
+    set_spotlight_window_collection_behavior(window)?;
+    set_window_level(window, 7)?;
     Ok(())
 }
 
@@ -75,17 +75,17 @@ pub fn register_shortcut(window: &Window<Wry>, shortcut: &str) -> Result<(), Err
                 show(&window).unwrap();
             }
         })
-        .map_err(|_| Error::FailedToRegisterShortcut)?;
+        .map_err(|_| Error::RegisterShortcut)?;
     Ok(())
 }
 
 pub fn show(window: &Window<Wry>) -> Result<(), Error> {
     if !window
         .is_visible()
-        .map_err(|_| Error::FailedToCheckWindowVisibility)?
+        .map_err(|_| Error::CheckWindowVisibility)?
     {
         set_previous_app(get_frontmost_app_path());
-        window.set_focus().map_err(|_| Error::FailedToShowWindow)?;
+        window.set_focus().map_err(|_| Error::ShowWindow)?;
     }
     Ok(())
 }
@@ -93,15 +93,15 @@ pub fn show(window: &Window<Wry>) -> Result<(), Error> {
 pub fn hide(window: &Window<Wry>) -> Result<(), Error> {
     if window
         .is_visible()
-        .map_err(|_| Error::FailedToCheckWindowVisibility)?
+        .map_err(|_| Error::CheckWindowVisibility)?
     {
-        window.hide().map_err(|_| Error::FailedToHideWindow)?;
+        window.hide().map_err(|_| Error::HideWindow)?;
         if let Ok(Some(prev_frontmost_window_path)) = get_previous_app() {
             if prev_frontmost_window_path.starts_with(SELF_KEY_PREFIX) {
                 if let Some(window_label) = prev_frontmost_window_path.strip_prefix(SELF_KEY_PREFIX)
                 {
                     if let Some(window) = window.app_handle().get_window(window_label) {
-                        window.set_focus().map_err(|_| Error::FailedToShowWindow)?;
+                        window.set_focus().map_err(|_| Error::ShowWindow)?;
                     }
                 }
             } else {
@@ -124,7 +124,7 @@ pub fn set_previous_app(value: Option<String>) {
 }
 
 pub fn get_previous_app() -> Result<Option<String>, Error> {
-    let previous_app = PREVIOUS_APP.lock().map_err(|_| Error::FailedToLockMutex)?;
+    let previous_app = PREVIOUS_APP.lock().map_err(|_| Error::LockMutex)?;
     Ok((*previous_app).clone())
 }
 
@@ -152,7 +152,7 @@ fn active_another_app(bundle_url: &str) -> Result<(), Error> {
             let shared_workspace: *mut Object = msg_send![workspace_class, sharedWorkspace];
             shared_workspace
         } else {
-            return Err(Error::FailedToGetNSWorkspaceClass);
+            return Err(Error::GetNSWorkspaceClass);
         }
     };
     let running_apps = unsafe {
@@ -168,7 +168,7 @@ fn active_another_app(bundle_url: &str) -> Result<(), Error> {
             let path: id = msg_send![app_bundle_url, path];
             let app_bundle_url_str = nsstring_to_string!(path);
             if let Some(app_bundle_url_str) = app_bundle_url_str {
-                if app_bundle_url_str == bundle_url.to_string() {
+                if app_bundle_url_str == bundle_url {
                     target_app = Some(app);
                     break;
                 }
@@ -195,7 +195,7 @@ fn handle_focus_state_change(window: &Window<Wry>) {
 
 /// Set the behaviors that makes the window appear on all workspaces
 fn set_spotlight_window_collection_behavior(window: &Window<Wry>) -> Result<(), Error> {
-    let handle: id = window.ns_window().map_err(|_| Error::FailedToGetNSWindow)? as _;
+    let handle: id = window.ns_window().map_err(|_| Error::GetNSWindow)? as _;
     unsafe {
         handle.setCollectionBehavior_(
             NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
@@ -208,7 +208,7 @@ fn set_spotlight_window_collection_behavior(window: &Window<Wry>) -> Result<(), 
 }
 
 fn set_window_level(window: &Window<Wry>, level: i32) -> Result<(), Error> {
-    let handle: id = window.ns_window().map_err(|_| Error::FailedToGetNSWindow)? as _;
+    let handle: id = window.ns_window().map_err(|_| Error::GetNSWindow)? as _;
     unsafe { handle.setLevel_((level).into()) };
     Ok(())
 }

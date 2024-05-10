@@ -43,8 +43,7 @@ lazy_static! {
 pub fn process_command(command: &str) -> (String, Option<String>) {
     let parts: Vec<&str> = command.split('|').map(str::trim).collect();
     if let Some(last_part) = parts.last() {
-        if last_part.starts_with(".") {
-            let extension = &last_part[1..];
+        if let Some(extension) = last_part.strip_prefix('.') {
             if let Some(&content_type) = FILE_EXTENSIONS.get(extension) {
                 let new_command = parts[..parts.len() - 1].join(" | ");
                 return (new_command, Some(content_type.to_string()));

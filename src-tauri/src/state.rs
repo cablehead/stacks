@@ -46,7 +46,7 @@ impl State {
     }
 
     pub fn nav_select(&mut self, focused_id: &Scru128Id) {
-        let focused = self.view.get_focus_for_id(&focused_id);
+        let focused = self.view.get_focus_for_id(focused_id);
         self.ui.select(focused);
     }
 
