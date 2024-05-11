@@ -1,4 +1,4 @@
-# Stacks
+# Stacks [![CI](https://github.com/cablehead/stacks/actions/workflows/rust.yml/badge.svg)](https://github.com/cablehead/stacks/actions/workflows/rust.yml)
 
 A terrific clipboard manager
 
