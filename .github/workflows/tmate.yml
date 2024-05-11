@@ -1,6 +1,7 @@
 name: tmate session
 
-on: push
+on:
+  workflow_dispatch:
 
 jobs:
   build:
