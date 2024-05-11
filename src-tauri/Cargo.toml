@@ -26,8 +26,6 @@ cacache = { version = "11.6.0", default-features = false, features = ["tokio-run
 sled = "0.34.7"
 bincode = "1.3.3"
 ssri = "9.0.0"
-objc = "0.2.7"
-cocoa = "0.25.0"
 tiktoken-rs = "0.5.0"
 dirs = "5.0.1"
 tantivy = "0.20.2"
@@ -51,6 +49,10 @@ futures-util = "0.3.30"
 clap = "4.5.2"
 bytes = "1.5.0"
 url = "2.5.0"
+
+[target.'cfg(target_os = "macos")'.dependencies]
+objc = "0.2.7"
+cocoa = "0.25.0"
 
 
 [dev-dependencies]
