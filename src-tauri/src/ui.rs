@@ -76,6 +76,9 @@ impl UI {
             None
         };
         self.refresh_view(v);
+        if !filter.is_empty() || (content_type != "All" && !content_type.is_empty()) {
+            self.select(self.view.get_best_focus(&None));
+        }
     }
 
     pub fn refresh_view(&mut self, v: &view::View) {
