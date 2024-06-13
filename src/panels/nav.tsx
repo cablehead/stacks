@@ -38,6 +38,7 @@ const TerseRow = (
       onMouseDown={() => {
         stack.select(item.id);
       }}
+      title={content ? undefined : item.name}
       style="
           display: flex;
           width: 100%;
