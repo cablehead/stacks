@@ -38,7 +38,7 @@ async function globalKeyHandler(event: KeyboardEvent) {
   }
 
   switch (true) {
-    case event.metaKey && event.shiftKey && event.key === "=":
+    case event.metaKey && event.code === "Equal":
       adjustFontSize(1);
       return;
 
