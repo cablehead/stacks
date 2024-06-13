@@ -101,7 +101,8 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
         <a
           onClick={(e) => {
             e.preventDefault();
-            attemptActionByName("Open", stack);
+            // todo: these names need to be enums that are typed checked
+            attemptActionByName("Open link in browser", stack);
           }}
           style="cursor: pointer;"
         >
