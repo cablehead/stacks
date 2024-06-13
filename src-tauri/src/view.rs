@@ -418,7 +418,7 @@ impl View {
                             false
                         })
                         .collect();
-                    if item.children.is_empty() {
+                    if item.children.is_empty() && !matches.contains(&item.hash) {
                         return None;
                     }
                 } else if !matches.contains(&item.hash) {
