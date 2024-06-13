@@ -73,12 +73,11 @@ impl UI {
             let matches = store.query(filter, content_type);
             Some(matches)
         } else {
+            // preserve current focus when clearing the filter
+            self.select(self.view.get_best_focus(&self.focused));
             None
         };
         self.refresh_view(v);
-        if !filter.is_empty() || (content_type != "All" && !content_type.is_empty()) {
-            self.select(self.view.get_best_focus(&None));
-        }
     }
 
     pub fn refresh_view(&mut self, v: &view::View) {
