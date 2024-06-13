@@ -157,23 +157,12 @@ export default {
     let ret = [];
 
     ret.push({
-      name: "Copy",
+      name: "Copy clip",
       keys: [<Icon name="IconReturnKey" />],
       onMouseDown: () => {
         stack.triggerCopy();
       },
     });
-
-    let action = actions.find((action) => action.name === "Copy entire stack");
-    if (action && action.canApply && action.canApply(stack)) {
-      ret.push({
-        name: action.name,
-        keys: action.keys,
-        onMouseDown: () => {
-          if (action && action.trigger) action.trigger(stack);
-        },
-      } as HotKey);
-    }
 
     ret.push({
       name: "Actions",

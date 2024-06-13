@@ -234,7 +234,7 @@ export class Stack {
   }
 
   async triggerCopy() {
-    const item = this.selected();
+    const item = this.selected_item();
     if (!item) return;
     await invoke("store_copy_to_clipboard", {
       sourceId: item.id,
