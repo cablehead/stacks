@@ -830,7 +830,8 @@ pub fn store_edit_note(
         state.merge(&packet);
 
         if let Some(hash) = packet.hash {
-            if meta.content_type != "Text" {
+            // todo: which types can be auto-detected should be consolidated
+            if !matches!(meta.content_type.as_str(), "Text" | "Link") {
                 let packet = state.store.update_content_type(hash, meta.content_type);
                 state.merge(&packet);
             }
