@@ -57,10 +57,10 @@ export const actions: Action[] = [
   },
 
   {
-    name: "Focus clip",
-    keys: ["TAB"],
+    name: "Yak shave",
+    keys: [<Icon name="IconCommandKey" />, "Y"],
     matchKeyEvent: (event: KeyboardEvent) =>
-      matchKeyEvent(event, { code: "Tab" }),
+      matchKeyEvent(event, { meta: true, code: "KeyY" }),
     canApply: (stack: Stack) => !!stack.selected_item(),
     trigger: (stack: Stack) => {
       const item = stack.selected_item();
