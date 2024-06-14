@@ -5,13 +5,11 @@ import { useSignal } from "@preact/signals";
 
 import { Icon } from "../ui/icons";
 
-import { HotKey, Modes } from "./types";
+import { Modes } from "./types";
 
 import { default as actionsMode } from "./actionsMode";
 
 import { Stack } from "../types";
-
-import { actions } from "../actions";
 
 import {
   borderRight,
