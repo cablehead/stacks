@@ -1,9 +1,5 @@
 ## Todo
 
-Update for `notarytool`:
-
-https://github.com/tauri-apps/tauri/pull/7616/files
-
 ## Release
 
 ```
