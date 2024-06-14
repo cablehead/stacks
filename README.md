@@ -1,8 +1,16 @@
 # Stacks [![CI](https://github.com/cablehead/stacks/actions/workflows/rust.yml/badge.svg)](https://github.com/cablehead/stacks/actions/workflows/rust.yml)
 
-A terrific clipboard manager
+Stacks is a tool to track and manipulate your current context, with pipes and
+filters. To be honest, I'm not quite sure what it is, or where it's going, but
+let's keep things simple and say it's a clipboard manager.
+
+A humble clipboard manager aspiring to elevate the depth of our conversations—
+no less.
 
 ![screenshot](./docs/screenshots/screenshot.png)
+
+It's free, as in beer, but mostly as in 'freedom', and it's also open source.
+If you're into that sort of thing, give it a spin!
 
 ## Download
 
