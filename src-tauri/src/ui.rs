@@ -74,16 +74,15 @@ impl UI {
             Some(matches)
         } else {
             // preserve current focus when clearing the filter
+            self.select(self.view.get_best_focus(&self.focused));
+
             // if the current focus is a stack, navigate right, and then left to cause
-            // last_selected to be set in order to preserve the current focus
+            // last_selected to be set in order to preserve the current sub-focus
             if let Some(focused) = self.focused.as_ref() {
                 if focused.item.stack_id.is_none() {
                     self.select_right();
                     self.select_left();
                 }
-            } else {
-                // otherwise just lock in the current focus
-                self.select(self.view.get_best_focus(&self.focused));
             }
 
             None
