@@ -1,4 +1,4 @@
-# Stacks [![CI](https://github.com/cablehead/stacks/actions/workflows/rust.yml/badge.svg)](https://github.com/cablehead/stacks/actions/workflows/rust.yml)
+# Stacks [![CI](https://github.com/cablehead/stacks/actions/workflows/rust.yml/badge.svg)](https://github.com/cablehead/stacks/actions/workflows/rust.yml) [![Discord](https://img.shields.io/discord/1182364431435436042?logo=discord)](https://discord.com/invite/YNbScHBHrh)
 
 Stacks is a tool to track and manipulate your current context, with pipes and
 filters. To be honest, I'm not quite sure what it is, or where it's going, but
