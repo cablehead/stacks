@@ -35,7 +35,6 @@ fn handle_clipboard_update(state: &mut state::State, line: &str, app: &tauri::Ap
                 return;
             }
         }
-
         Some(state.store.add(&content, MimeType::TextPlain, curr_stack))
     } else if types.contains_key("public.png") {
         let content = util::b64decode(types["public.png"].as_str().unwrap());

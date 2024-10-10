@@ -184,7 +184,7 @@ impl Index {
         std::fs::create_dir_all(&path).unwrap();
         let dir = tantivy::directory::MmapDirectory::open(&path).unwrap();
         let index = tantivy::Index::open_or_create(dir, schema).unwrap();
-        let writer = index.writer_with_num_threads(1, 3_000_000).unwrap();
+        let writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
         let reader = index.reader().unwrap();
 
         Index {
@@ -198,7 +198,7 @@ impl Index {
     #[tracing::instrument(skip_all)]
     fn write(&mut self, hash: &ssri::Integrity, content: &[u8]) {
         let content = String::from_utf8_lossy(content);
-        let mut doc = tantivy::Document::new();
+        let mut doc = tantivy::TantivyDocument::new();
         doc.add_text(self.content_field, &content);
         let bytes = bincode::serialize(&hash).unwrap();
         doc.add_bytes(self.hash_field, bytes);
