@@ -28,7 +28,18 @@ fn handle_clipboard_update(state: &mut state::State, line: &str, app: &tauri::Ap
 
     let curr_stack = state.get_curr_stack();
 
-    let packet = if types.contains_key("public.utf8-plain-text") {
+    let packet = if types.contains_key("public.png") {
+        let content = util::b64decode(types["public.png"].as_str().unwrap());
+        Some(state.store.add(&content, MimeType::ImagePng, curr_stack))
+    } else if types.contains_key("public.tiff") {
+        let content = util::b64decode(types["public.tiff"].as_str().unwrap());
+        let png_content = tiff_to_png(&content).unwrap();
+        Some(
+            state
+                .store
+                .add(&png_content, MimeType::ImagePng, curr_stack),
+        )
+    } else if types.contains_key("public.utf8-plain-text") {
         let content = util::b64decode(types["public.utf8-plain-text"].as_str().unwrap());
         if let Ok(str_ref) = std::str::from_utf8(&content) {
             if str_ref.trim().is_empty() {
@@ -36,9 +47,6 @@ fn handle_clipboard_update(state: &mut state::State, line: &str, app: &tauri::Ap
             }
         }
         Some(state.store.add(&content, MimeType::TextPlain, curr_stack))
-    } else if types.contains_key("public.png") {
-        let content = util::b64decode(types["public.png"].as_str().unwrap());
-        Some(state.store.add(&content, MimeType::ImagePng, curr_stack))
     } else {
         None
     };
@@ -72,4 +80,24 @@ pub fn start(app: tauri::AppHandle, state: &SharedState) {
             }
         }
     });
+}
+
+use image::{ImageEncoder, ImageError};
+
+pub fn tiff_to_png(tiff_data: &[u8]) -> Result<Vec<u8>, ImageError> {
+    let img = image::load_from_memory_with_format(tiff_data, image::ImageFormat::Tiff)?;
+
+    let rgb_img = img.into_rgb8();
+
+    let mut png_data = Vec::new();
+
+    let encoder = image::codecs::png::PngEncoder::new(&mut png_data);
+    encoder.write_image(
+        rgb_img.as_raw(),
+        rgb_img.width(),
+        rgb_img.height(),
+        image::ColorType::Rgb8.into(),
+    )?;
+
+    Ok(png_data)
 }

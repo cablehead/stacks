@@ -46,7 +46,7 @@ async fn handle(
         })
         .unwrap_or_default();
 
-    let as_html = params.get("as-html").is_some();
+    let as_html = params.contains_key("as-html");
 
     match (req.method(), id_option) {
         (&Method::GET, id) => get(id, state, as_html).await,

@@ -209,6 +209,7 @@ impl Index {
 
     #[cfg(test)]
     pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
+        use tantivy::schema::Value;
         let term = tantivy::schema::Term::from_field_text(self.content_field, query);
         let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
 
@@ -220,7 +221,7 @@ impl Index {
         top_docs
             .into_iter()
             .map(|(_, doc_address)| {
-                let doc = searcher.doc(doc_address).unwrap();
+                let doc: tantivy::TantivyDocument = searcher.doc(doc_address).unwrap();
                 let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
                 let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
                 hash
