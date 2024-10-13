@@ -1,0 +1,1256 @@
+%YAML 1.2
+---
+# https://www.sublimetext.com/docs/syntax.html
+# https://www.https://www.nushell.sh/book/
+name: nushell
+scope: source.nu
+version: 2
+
+file_extensions:
+  - nu
+
+first_line_match: |-
+  (?xi:
+    ^ \s* \%+ .*? -\*- .*? \bnu\b .*? -\*-  # editorconfig
+  )
+
+variables:
+  # ?
+  identifier: (?:[A-Za-z]\w*)
+  filename: (?:[^;,(\s]+)
+  eol: (?=\s*[%\n])
+
+  # https://www.nushell.sh/book/command_reference.html#command-reference
+  nushell_functions: |-
+    (?x: all | ansi | any | append | ast | bits | bytes | cd | char | chunks | clear | collect | columns | commandline | compact | complete | config | cp | date | debug | decode | default | describe | detect | do | drop | du | each | echo | encode | enumerate | error | every | exec | exit | explain | explore | fill | filter | find | first | flatten | fmt | format | from | generate | get | glob | grid | group | group-by | hash | headers | help | hide-env | histogram | history | http | ignore | input | insert | inspect | interleave | into | is-admin | is-empty | is-not-empty | is-terminal | items | join | keybindings | kill | last | length | let-env | lines | load-env | ls | math | merge | metadata | mkdir | mktemp | move | mv | nu-check | nu-highlight | open | overlay | panic | par-each | parse | path | plugin | port | prepend | print | ps | query | random | range | reduce | reject | rename | reverse | rm | roll | rotate | run-external | save | schema | scope | select | seq | shuffle | skip | sleep | sort | sort-by | split | split-by | start | stor | str | sys | table | take | tee | term | timeit | to | touch | transpose | tutor | ulimit | uname | uniq | update | upsert | url | values | version | view | watch | which | whoami | window | with-env | wrap | zip)
+
+  custom_functions: |-
+    (?x: 7z | \? | activate | adbtasker | add-preamble | ai | ansi-strip-table | apps-update | askai | askdalle | askpdf | assert | autolister | autouse-file | balena | banner | bar | base2dec | batstat | bench | bhe-update | bitly | cblue | cd-pipe | chat_gpt | chatpdf | check-link | clean-analytics | clone-ubuntu-install | code | column | column2 | copy-downloads-2-ubbdrive | copy-research-2-ubbdrive | copy-scripts-and-commit | copy-webies-2-ubbdrive | copy-yandex-and-commit | coretemp | countdown | cp-pipe | cpwd | create_left_prompt | create_right_prompt | dall_e | date | debunk-table | dec2base | default-table | dirs | dpx | dt | echo-c | echo-g | echo-r | ellie | exchange_rates | export-nushell-docs | find-file | find-index | fix-docker | fix-green-dirs | format-mails | formats | fuzzy-dispatcher | fuzzy-select-fs | gcal | geek | get-aliases | get-devices | get-dirs | get-files | get-github-latest | get-ips | get-keybindings | get-miss-chapters | get-monitors | get-pass | get-phone-number | get-rows | get-vers | get_weather_by_interval | gg | gg-trans | github-app-update | gmail | gnome-settings | gnu-plot | google_ai | google_search | goto-nuconfigdir | grep-nu | group-list | guake | h | habitica | help | history | http | indexify | input | install-font | intersect | into | is-column | is-mounted | iselect | isleap | iter | jd | jdown | join-text-files | killn | le | left_prompt | lg | libreoff | list-diff | list-sum | listen-ports | lister | ln | lo | log | ls-ports | lt | m | maps | math | matlab-cli | mcx | med_discord | media | mk-anime | mkcd | monitor | mpv | mv-anime | mv-manga | mv-pipe | my-pandoc | my-pdflatex | nchat | network-switcher | nu-crypt | nu-sloc | nufetch | null-device | nushell-syntax-2-sublime | obs | op | open-analytics | open-credential | open-link | openf | openl | openm | path | pdf | pip3-upgrade | pivot-table | plot-table | png-plot | print-file | progress_bar | psn | pwd | pwd-short | qrenc | quick-ubuntu-and-tools-update-module | r9 | ram | rand-select | randi | range2list | rclone | re-enamerate | rebrandly | rename-all | rename-date | repeat | replicate-tree | reset-alpine-auth | return-error | rm-empty-dirs | rm-pipe | rmount | save-credential | scale-minmax | scale-minmax-table | scompact | send-gmail | set-screen | setdiff | show-ips | show_banner | speedtest-plot | ssh-sin-pass | ssh-termux | ssh-to | stop-net-apps | str | subl | sum-size | supgrade | svg2pdf | t | table-diff | table2record | table_manipulation | tasker | tasker-join | test-api | to-onedrive | tokei | trans | tts | typeof | ubb | ubb_announce | um | umall | union | uniq-by | up2ubb | update-nu-config | upload-debs-to-gdrive | ver | weather | wget-all | which-cd | wifi-info | wifi-pass | xls2csv | xml | ydx | yt-api | ytcli | ytm | z | zi)
+
+  plugin_functions: |-
+    (?x: custom-value | example | from | gstat | highlight | inc | net | polars | port | query | to)
+
+  nushell_keywords: |-
+    (?x: alias | break | const | continue | def | export | export-env | extern | for | hide | if | let | loop | match | module | mut | overlay | plugin | return | source | source-env | try | use | where | while | else | catch)
+
+  nushell_aliases: |-
+    (?x: apagar | append-table | bard | bat | btop | cable-ubb | cal | chatgpt | copy | cputemp | dexit | dirs dexit | dirs enter | dirs g | dirs n | dirs p | dirs shells | dsitcl | enter | finished | g | get-mac | get-wg | grp | math mean | math std | max-vol | mount-ssd4 | mpydf | mute | n | ncdu | netspeed | nu-clean | open-config | p | paste | png | print-list | quantum | reiniciar | s | shells | takephoto | trc | tree | unmute | wsp)
+
+  nushell_personal: |-
+    (?x: duf | speedtest | myffmpeg | subtitles-renamer)
+
+  nushell_operators: |-
+    (?x: and | or | mod | in | not-in | not | xor | bit-or | bit-xor | bit-and | bit-shl | bit-shr | starts-with | ends-with)
+
+  boolean_operators: |-
+    (?x: true | false)
+
+################################################################################
+
+contexts:
+
+  main:
+    - include: function-declarations
+    - include: class-declarations
+    - include: keywords
+    - include: expressions
+
+  expressions:
+    - include: comments
+    - include: line-continuations
+    - include: parens
+    - include: brackets
+    - include: braces
+    - include: numbers
+    - include: strings
+    - include: operators
+    - include: accessor-dots
+    - include: terminators
+    - include: separator-commas
+    - include: builtin-packages
+    - include: structures
+    - include: builtin-constants
+    - include: builtin-variables
+    - include: transposed-variables
+    - include: variable-assignments
+    - include: builtin-types
+    - include: builtin-commands
+    - include: builtin-functions
+    - include: custom-functions
+    - include: plugin-functions
+    - include: nushell-keywords
+    - include: nushell-aliases
+    - include: nushell-personal
+    - include: nushell-operators
+    - include: boolean-operators
+    - include: variables
+    - include: invalid-variables
+
+  eol-pop:
+    - match: '{{eol}}'
+      pop: 1
+
+  else-pop:
+    - match: (?=\S)
+      pop: 1
+
+###[ COMMENTS AND LINE CONTINUATION ]###########################################
+
+  comments:
+    - include: block-comments
+    - include: line-comments
+
+  block-comments:
+   - match: ^\s*(#\{)\s*\n
+     captures:
+       1: punctuation.definition.comment.nu
+     push: block-comment-content
+
+  block-comment-content:
+    - meta_scope: comment.block.percentage.nu
+    - match: ^\s*(#)\s*$\n?
+      captures:
+        1: punctuation.definition.comment.nu
+      pop: 1
+    - include: block-comments
+
+  line-comments:
+    - match: (#+).*\n?
+      scope: comment.line.percentage.nu
+      captures:
+        1: punctuation.definition.comment.nu
+
+  # line-continuations:
+  #   - match: (\.{3})\s*(\S.*\n?)?
+  #     captures:
+  #       1: punctuation.separator.continuation.line.nu
+  #       2: comment.line.nu
+
+###[ LANGUAGE FUNDAMENTALS ]####################################################
+
+  numbers: #?
+    - match: \b(0[xX])(\h+)(u8|u16|u32|u64|s8|s16|s32|s64)?\b
+      scope: meta.number.integer.hexadecimal.nu
+      captures:
+        1: constant.numeric.base.nu
+        2: constant.numeric.value.nu
+        3: constant.numeric.suffix.nu
+      push: maybe-transpose
+    - match: \b(0[bB])([01]+)(u8|u16|u32|u64|s8|s16|s32|s64)?\b
+      scope: meta.number.integer.binary.nu
+      captures:
+        1: constant.numeric.base.nu
+        2: constant.numeric.value.nu
+        3: constant.numeric.suffix.nu
+      push: maybe-transpose
+    - match: ((?:\d+(\.)\d*|(\.)?\d+)(?:[Ee][-+]?\d+)?)(i|j)\b
+      scope: meta.number.imaginary.decimal.nu
+      captures:
+        1: constant.numeric.value.nu
+        2: punctuation.separator.decimal.nu
+        3: punctuation.separator.decimal.nu
+        4: constant.numeric.suffix.nu
+      push: maybe-transpose
+    - match: (?:\d+(\.)\d*|(\.)?\d+)(?:[Ee][-+]?\d+)?(?!\w)
+      scope: meta.number.float.decimal.nu constant.numeric.value.nu
+      captures:
+        1: punctuation.separator.decimal.nu
+        2: punctuation.separator.decimal.nu
+      push: maybe-transpose
+
+  strings:
+    - match: \'
+      scope: punctuation.definition.string.begin.nu
+      push: single-quoted-string
+    - match: \"
+      scope: punctuation.definition.string.begin.nu
+      push: double-quoted-string
+
+  single-quoted-string:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.nu string.quoted.single.nu
+    - match: \'\'
+      scope: constant.character.escape.nu
+    - match: \'
+      scope: punctuation.definition.string.end.nu
+      set: maybe-dot-transpose
+    - match: $\n?
+      scope: invalid.illegal.unclosed-string.nu
+      pop: 1
+    - include: escaped-characters
+    - include: format-specs
+
+  double-quoted-string:
+    - meta_include_prototype: false
+    - meta_scope: meta.string.nu string.quoted.double.nu
+    - match: \"\"
+      scope: constant.character.escape.nu
+    - match: \"
+      scope: punctuation.definition.string.end.nu
+      set: maybe-transpose
+    - match: $\n?
+      scope: invalid.illegal.unclosed-string.nu
+      pop: 1
+    - include: escaped-characters
+    - include: format-specs
+
+  escaped-characters:
+    - match: \%\%|\\\\|\\[abfnrtv]
+      scope: constant.character.escape.nu
+
+  format-specs:
+    - match: \%(?:\d\$)?[-+\s0#]?(?:\d+|\*)?(?:\.\d+|\.\*)?(?:[cdeEfgGis]|[bt]?[ouxX])
+      scope: constant.other.placeholder.nu
+
+  variables:
+    - match: \b{{identifier}}
+      scope: variable.other.nu
+
+  transposed-variables:
+    - match: \b({{identifier}})(?:\s*(\.\')|(\'))
+      captures:
+        1: variable.other.nu
+        2: keyword.operator.transpose.nu
+        3: keyword.operator.transpose.nu
+
+  variable-assignments:
+    - match: \b({{identifier}})\s*(=)(?!=)
+      captures:
+        1: variable.other.nu
+        2: keyword.operator.assignment.nu
+
+  structures:
+    - match: \b({{identifier}})(\.)(?={{identifier}})
+      captures:
+        1: variable.other.nu
+        2: punctuation.accessor.dot.nu
+      push: structure-fields
+
+  structure-fields:
+    - match: ({{identifier}})(\.)(?={{identifier}})
+      captures:
+        1: variable.other.member.nu
+        2: punctuation.accessor.dot.nu
+    - match: '{{identifier}}'
+      scope: variable.other.member.nu
+      set: maybe-transpose
+
+###[ PARENS/BRACKETS/BRACES BLOCKS ]############################################
+
+  parens:
+    - match: \(
+      scope: punctuation.section.parens.begin.nu
+      push: parens-content
+
+  parens-content:
+    - meta_scope: meta.parens.nu
+    - match: \)
+      scope: punctuation.section.parens.end.nu
+      set: maybe-fields-or-transpose
+    - include: last-indices
+    - include: expressions
+
+  maybe-fields-or-transpose:
+    - match: (\.)({{identifier}})
+      captures:
+        1: punctuation.accessor.dot.nu
+        2: variable.other.member.nu
+    - match: \.(?!['*/\\^])
+      scope: punctuation.accessor.dot.nu
+      pop: 1
+    - include: maybe-transpose
+
+  brackets:
+    - match: \[
+      scope: punctuation.section.brackets.begin.nu
+      push: brackets-content
+
+  brackets-content:
+    - meta_scope: meta.brackets.nu
+    - match: \]
+      scope: punctuation.section.brackets.end.nu
+      set: maybe-transpose
+    - include: separator-semicolons
+    - include: argument-placeholders
+    - include: expressions
+
+  braces:
+    - match: \{
+      scope: punctuation.section.braces.begin.nu
+      push: braces-content
+
+  braces-content:
+    - meta_scope: meta.braces.nu
+    - match: \}
+      scope: punctuation.section.braces.end.nu
+      set: maybe-fields-or-transpose
+    - include: separator-semicolons
+    - include: last-indices
+    - include: expressions
+
+###[ DECLARATION BLOCKS ]#######################################################
+
+  function-declarations:
+    - match: \bdef\b
+      scope: keyword.declaration.function.nu
+      push: function-declaration-header
+
+  function-declaration-header:
+    - meta_scope: meta.function.nu
+    - include: line-continuations
+    - match: '{{eol}}'
+      set: maybe-function-arguments-block
+    - match: ({{identifier}})\s*(=)
+      captures:
+        1: variable.parameter.output.nu
+        2: keyword.operator.assignment.nu
+    - match: \[
+      scope: punctuation.section.brackets.begin.nu
+      push: function-output-parameters-list
+    # - match: =
+    #   scope: keyword.operator.assignment.nu
+    - match: (?:(?:set|get)(\.))?{{identifier}}
+      scope: entity.name.function.nu
+      captures:
+        1: punctuation.accessor.dot.nu
+    - match: \{
+      scope: punctuation.section.parens.begin.nu
+      push: function-input-parameters-list
+
+  function-output-parameters-list:
+    - include: line-continuations
+    - include: eol-pop
+    - include: separator-commas
+    - match: \]
+      scope: punctuation.section.brackets.end.nu
+      pop: 1
+    - match: '{{identifier}}'
+      scope: variable.parameter.output.nu
+
+  function-input-parameters-list:
+    - clear_scopes: 1
+    - meta_scope: meta.function.parameters.nu
+    - include: line-continuations
+    - include: eol-pop
+    - include: separator-commas
+    - include: argument-placeholders
+    - match: \)
+      scope: punctuation.section.parens.end.nu
+      pop: 1
+    - match: '{{identifier}}'
+      scope: variable.parameter.input.nu
+
+  maybe-function-arguments-block:
+    - meta_content_scope: meta.function.nu
+    - include: comments
+    - match: \barguments\b
+      scope: keyword.context.arguments.nu
+      push: function-arguments-block-header
+    - match: (?=\S)
+      set: function-body
+
+  function-arguments-block-header:
+    - meta_scope: meta.arguments.nu
+    - match: \[
+      scope: punctuation.section.parens.begin.nu
+      push: function-arguments-block-attributes-list
+    - match: '{{eol}}'
+      set: function-arguments-block-content
+
+  function-arguments-block-attributes-list:
+    - meta_scope: meta.attributes.nu
+    - include: eol-pop
+    - match: \]
+      scope: punctuation.section.parens.end.nu
+      pop: 1
+    - match: \bRepeating\b
+      scope: variable.parameter.attribute.nu
+
+  function-arguments-block-content:
+    - meta_scope: meta.arguments.nu
+    - match: \bend\b
+      scope: keyword.context.arguments.end.nu
+      pop: 1
+    - match: \b\.\?
+      scope: keyword.operator.properties.nu
+    - include: argument-placeholders
+    - include: builtin-types
+    - include: expressions
+
+  function-body:
+    - meta_scope: meta.function.nu
+    - match: \bend\b
+      scope: keyword.declaration.function.end.nu
+      pop: 1
+    - include: function-declarations
+    - include: keywords
+    - include: expressions
+
+
+###[ KEYWORDS AND FLOW CONTROL BLOCKS ]#########################################
+
+  # https://www.mathworks.com/help/matlab/ref/iskeyword.html
+  # https://www.mathworks.com/help/matlab/control-flow.html
+  keywords:
+    - include: if-blocks
+    - include: switch-blocks
+    - include: for-blocks
+    - include: parfor-blocks
+    - include: while-blocks
+    - include: try-blocks
+    - include: spmd-blocks
+    # - match: \bbreak\b
+    #   scope: keyword.control.flow.break.nu
+    # - match: \bcontinue\b
+    #   scope: keyword.control.flow.continue.nu
+    # - match: \breturn\b
+    #   scope: keyword.control.flow.return.nu
+    # - match: \bglobal\b
+    #   scope: storage.modifier.global.nu
+    # - match: \bpersistent\b
+    #   scope: storage.modifier.persistent.nu
+
+  if-blocks:
+    - match: \bif\b
+      scope: keyword.control.conditional.if.nu
+      push: if-block-content
+
+  if-block-content:
+    - meta_scope: meta.block.if.nu
+    - match: \belseif\b
+      scope: keyword.control.conditional.elseif.nu
+    - match: \belse\b
+      scope: keyword.control.conditional.else.nu
+    - match: \bend\b
+      scope: keyword.control.conditional.end.nu
+      pop: 1
+    - include: keywords
+    - include: expressions
+
+  # switch-blocks:
+  #   - match: \bswitch\b
+  #     scope: keyword.control.conditional.switch.nu
+  #     push: switch-block-content
+
+  # switch-block-content:
+  #   - meta_scope: meta.block.switch.nu
+  #   - match: \bcase\b
+  #     scope: keyword.control.conditional.case.nu
+  #   - match: \botherwise\b
+  #     scope: keyword.control.conditional.otherwise.nu
+  #   - match: \bend\b
+  #     scope: keyword.control.conditional.end.nu
+  #     pop: 1
+  #   - include: keywords
+  #   - include: expressions
+
+  for-blocks:
+    - match: \bfor\b
+      scope: keyword.control.loop.for.nu
+      push: for-block-content
+
+  for-block-content:
+    - meta_scope: meta.block.for.nu
+    - match: \bend\b
+      scope: keyword.control.loop.end.nu
+      pop: 1
+    - include: keywords
+    - include: expressions
+
+  # parfor-blocks:
+  #   - match: \bparfor\b
+  #     scope: keyword.control.loop.parfor.nu
+  #     push: parfor-block-content
+
+  # parfor-block-content:
+  #   - meta_scope: meta.block.parfor.nu
+  #   - match: \bend\b
+  #     scope: keyword.control.loop.end.nu
+  #     pop: 1
+  #   - include: keywords
+  #   - include: expressions
+
+  # while-blocks:
+  #   - match: \bwhile\b
+  #     scope: keyword.control.loop.while.nu
+  #     push: while-block-content
+
+  # while-block-content:
+  #   - meta_scope: meta.block.while.nu
+  #   - match: \bend\b
+  #     scope: keyword.control.loop.end.nu
+  #     pop: 1
+  #   - include: keywords
+  #   - include: expressions
+
+  # try-blocks:
+  #   - match: \btry\b
+  #     scope: keyword.control.exception.try.nu
+  #     push: try-block-content
+
+  # try-block-content:
+  #   - meta_scope: meta.block.try.nu
+  #   - match: \bcatch\b
+  #     scope: keyword.control.exception.catch.nu
+  #   - match: \bend\b
+  #     scope: keyword.control.exception.end.nu
+  #     pop: 1
+  #   - include: keywords
+  #   - include: expressions
+
+  # spmd-blocks:
+  #   - match: \bspmd\b
+  #     scope: keyword.context.spmd.nu
+  #     push: spmd-block-content
+
+  # spmd-block-content:
+  #   - meta_scope: meta.block.spmd.nu
+  #   - match: \bend\b
+  #     scope: keyword.context.spmd.end.nu
+  #     pop: 1
+  #   - include: keywords
+  #   - include: expressions
+
+###[ OPERATORS AND PUNCTUATION ]################################################
+
+  # https://www.mathworks.com/help/matlab/matlab_prog/matlab-operators-and-special-characters.html
+  operators:
+    - match: '\+|-|\*|\.\*|/|\./|\\|\.\\|\^|\.\^'
+      scope: keyword.operator.arithmetic.nu
+    - match: '==|~=|>=|>|<=|<'
+      scope: keyword.operator.comparison.nu
+    - match: '~|&&|&|\|\||\|'
+      scope: keyword.operator.logical.nu
+    - match: ':'
+      scope: keyword.operator.colon.nu
+    - match: '='
+      scope: keyword.operator.assignment.nu
+    - match: \?(?=[A-Za-z])
+      scope: keyword.operator.metaclass.nu
+    - match: \!
+      scope: keyword.operator.shell-escape.nu
+      push: shell-escape-content
+    - match: \b\@
+      scope: punctuation.accessor.at.nu
+    - match: \@
+      scope: keyword.operator.at.nu
+      push: function-handle
+
+  shell-escape-content:
+    - meta_content_scope: meta.string.nu string.unquoted.nu
+    - match: \n
+      pop: 1
+
+  function-handle:
+    - match: \(
+      scope: punctuation.section.parens.begin.nu
+      set: anonymous-function-parameters-list
+    - match: ''
+      pop: 1
+
+  anonymous-function-parameters-list:
+    - meta_scope: meta.function.parameters.nu
+    - include: line-continuations
+    - include: eol-pop
+    - match: '{{identifier}}'
+      scope: variable.parameter.input.nu
+    - include: separator-commas
+    - match: \)
+      scope: punctuation.section.parens.end.nu
+      pop: 1
+
+  maybe-transpose:
+    - match: (?:\s*(\.\')|(\'))?
+      captures:
+        1: keyword.operator.transpose.nu
+        2: keyword.operator.transpose.nu
+      pop: 1
+
+  maybe-dot-transpose:
+    - match: (?:\s*(\.\'))?
+      captures:
+        1: keyword.operator.transpose.nu
+      pop: 1
+
+  accessor-dots:
+    - match: \b\.
+      scope: punctuation.accessor.dot.nu
+
+  terminators:
+    - match: \;
+      scope: punctuation.terminator.nu
+
+  separator-commas:
+    - match: \,
+      scope: punctuation.separator.sequence.nu
+
+  separator-semicolons:
+    - match: \;
+      scope: punctuation.separator.sequence.nu
+
+###[ BUILTIN CONSTANTS, VARIABLES AND DATA TYPES ]##############################
+
+  # Functions that return essential constants, usually used without parameters
+  # builtin-constants:
+  #   - match: \b(true|false|eps|pi|Inf|NaN|NaT|flintmax|intmax|intmin|realmax|realmin|namelengthmax)\b
+  #     scope: constant.language.nu
+  #     push: maybe-transpose
+
+  # builtin-variables:
+  #   - match: \b(ans|nargin|nargout|varargin|varargout)\b
+  #     scope: variable.language.nu
+  #     push: maybe-transpose
+
+  # builtin-types:
+  #   - match: \b(?:categorical|cell|char|complex|double|int8|int16|int32|int64|logical|single|string|struct|table|timeseries|timetable|uint8|uint16|uint32|uint64)\b(?!\()
+  #     scope: storage.type.nu
+
+  # last-indices:
+  #   - match: \bend\b
+  #     scope: variable.language.nu
+  #     push: maybe-transpose
+
+  # argument-placeholders:
+  #   - match: \~(?![A-Za-z])
+  #     scope: variable.language.anonymous.nu
+
+###[ BUILTIN COMMANDS AND FUNCTIONS ]###########################################
+
+  # Functions with predefined parameters, mostly used in command syntax form
+  # builtin-commands:
+  #   # https://www.mathworks.com/help/matlab/ref/axis.html
+  #   - match: \baxis\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-axis-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/beep.html
+  #   - match: \bbeep\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/box.html
+  #   - match: \bbox\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/matlab.graphics.interaction.internal.brush.html
+  #   - match: \bbrush\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/cla.html
+  #   - match: \bcla\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-cla-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/clear.html
+  #   - match: \bclear\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-clear-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/close.html
+  #   - match: \bclose\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-close-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/diary.html
+  #   - match: \bdiary\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/drawnow.html
+  #   - match: \bdrawnow\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-drawnow-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/echo.html
+  #   - match: \becho\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-echo-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/exist.html
+  #   - match: \bexist\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-exist-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/exit.html
+  #   # https://www.mathworks.com/help/matlab/ref/quit.html
+  #   - match: \b(?:exit|quit)\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-exit-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/format.html
+  #   - match: \bformat\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-format-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/grid.html
+  #   - match: \bgrid\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-grid-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/hidden.html
+  #   - match: \bhidden\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/hold.html
+  #   - match: \bhold\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-hold-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/import.html
+  #   - match: \bimport\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-import-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/material.html
+  #   - match: \bmaterial\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-material-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/mkdir.html
+  #   - match: \bmkdir\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-mkdir-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/more.html
+  #   - match: \bmore\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-on-off-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/movefile.html
+  #   - match: \bmovefile\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-movefile-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/opengl.html
+  #   - match: \bopengl\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-opengl-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/rmdir.html
+  #   - match: \brmdir\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-rmdir-parameter
+  #   # https://www.mathworks.com/help/matlab/ref/who.html
+  #   # https://www.mathworks.com/help/matlab/ref/whos.html
+  #   - match: \b(?:who|whos)\b
+  #     scope: meta.function-call.nu support.function.builtin.nu
+  #     push: maybe-who-parameter
+
+  # maybe-on-off-parameter:
+  #   - match: (?:on|off)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-axis-parameter:
+  #   - match: (?:manual|auto|tight|padded|equal|image|square|fill|vis3d|normal|xy|ij|on|off)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-cla-parameter:
+  #   - match: reset\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-clear-parameter:
+  #   - match: -regexp\b
+  #     scope: meta.string.nu support.constant.nu
+  #     set: regexp-pattern-list
+  #   - match: (?:all|classes|functions|global|import|java|mex|variables)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # regexp-pattern-list:
+  #   - include: eol-pop
+  #   - match: (?=[;,])
+  #     pop: 1
+  #   - match: '[^;,\s]+'
+  #     scope: meta.string.nu string.regexp.nu
+
+  # maybe-close-parameter:
+  #   - match: all\b
+  #     scope: meta.string.nu support.constant.nu
+  #     set: maybe-close-parameter-2
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-close-parameter-2:
+  #   - match: (?:hidden|force)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-drawnow-parameter:
+  #   - match: (?:limitrate|nocallbacks|update|expose)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-echo-parameter:
+  #   - match: (?:on|off)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     set: maybe-echo-parameter-2
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-on-off-parameter
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-echo-parameter-2:
+  #   - match: all\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-exist-parameter:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-exist-parameter-2
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-exist-parameter-2:
+  #   - match: (?:builtin|class|dir|file|var)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-exit-parameter:
+  #   - match: (?:cancel|force)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-format-parameter:
+  #   - match: (?:short|long|shortE|longE|shortG|longG|shortEng|longEng|bank|hex|rational|compact|loose)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-grid-parameter:
+  #   - match: (?:on|off|minor)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-hold-parameter:
+  #   - match: (?:on|off|all)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-import-parameter:
+  #   - match: (?:\w+\.)*(?:\w+|\*)
+  #     scope: meta.string.nu string.unquoted.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-material-parameter:
+  #   - match: (?:shiny|dull|metal|default)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-mkdir-parameter:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-mkdir-parameter-2
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-mkdir-parameter-2:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-movefile-parameter:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-movefile-parameter-2
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-movefile-parameter-2:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-movefile-parameter-3
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-movefile-parameter-3:
+  #   - match: f\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-opengl-parameter:
+  #   - match: (?:info|software|hardware|hardwarebasic)\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-rmdir-parameter:
+  #   - match: '{{filename}}'
+  #     scope: meta.string.nu string.unquoted.nu
+  #     set: maybe-rmdir-parameter-2
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-rmdir-parameter-2:
+  #   - match: s\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # maybe-who-parameter:
+  #   - match: global\b
+  #     scope: meta.string.nu support.constant.nu
+  #     pop: 1
+  #   - include: else-pop
+  #   - include: eol-pop
+
+  # Parentheses are usually omitted when functions are used without parameters.
+  # This command syntax is also possible for functions if all parameters are character arrays.
+  # Only the function names are matched here to allow both command syntax and function syntax form.
+  # https://www.mathworks.com/help/matlab/matlab_prog/command-vs-function-syntax.html
+  builtin-functions:
+    - match: \b{{nushell_functions}}\b
+      scope: meta.function-call.nu support.function.builtin.nu
+
+  custom-functions:
+  - match: \b{{custom_functions}}\b
+    scope: support.function.custom.nu
+
+  plugin-functions:
+  - match: \b{{plugin_functions}}\b
+    scope: support.function.plugin.nu
+
+  nushell-keywords:
+  - match: \b{{nushell_keywords}}\b
+    scope: support.function.keywords.nu
+
+  nushell-aliases:
+  - match: \b{{nushell_aliases}}\b
+    scope: support.function.aliases.nu
+
+  nushell-personal:
+  - match: \b{{nushell_personal}}\b
+    scope: support.function.personal.nu
+
+  nushell-operators:
+  - match: \b{{nushell_operators}}\b
+    scope: support.function.operators.nu
+
+  boolean-operators:
+  - match: \b{{boolean_operators}}\b
+    scope: support.function.boolean.nu
+
+###[ BUILTIN PACKAGES AND OBJECT FUNCTIONS ]####################################
+
+  # builtin-packages:
+  #   - match: \bcdflib\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-cdflib-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bclibgen\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-clibgen-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5A\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5a-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5DS\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5ds-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5E\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5e-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5F\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5f-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5G\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5g-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5I\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5i-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5L\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5l-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5ML\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5ml-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5O\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5o-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5P\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5p-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5R\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5r-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5S\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5s-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5T\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5t-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bH5Z\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-h5z-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bMException\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-mexception-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bNET\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-net-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bnetcdf\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-netcdf-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bRandStream\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-randstream-object-function
+  #       - maybe-accessor-dot
+  #   - match: \bTiff\b
+  #     scope: support.module.builtin.nu
+  #     push:
+  #       - maybe-tiff-object-function
+  #       - maybe-accessor-dot
+
+  # maybe-accessor-dot:
+  #   - match: \.\'
+  #     scope: keyword.operator.transpose.nu
+  #     pop: 2
+  #   - match: \.(?!\*|/|\\|\^)
+  #     scope: punctuation.accessor.dot.nu
+  #     pop: 1
+  #   - match: ''
+  #     pop: 2
+
+  # maybe-cdflib-object-function:
+  #   - match: '{{cdflib_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-clibgen-object-function:
+  #   - match: '{{clibgen_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5-object-function:
+  #   - match: '{{H5_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5a-object-function:
+  #   - match: '{{H5A_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5ds-object-function:
+  #   - match: '{{H5DS_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5e-object-function:
+  #   - match: '{{H5E_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5f-object-function:
+  #   - match: '{{H5F_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5g-object-function:
+  #   - match: '{{H5G_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5i-object-function:
+  #   - match: '{{H5I_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5l-object-function:
+  #   - match: '{{H5L_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5ml-object-function:
+  #   - match: '{{H5ML_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5o-object-function:
+  #   - match: '{{H5O_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5p-object-function:
+  #   - match: '{{H5P_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5r-object-function:
+  #   - match: '{{H5R_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5s-object-function:
+  #   - match: '{{H5S_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5t-object-function:
+  #   - match: '{{H5T_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-h5z-object-function:
+  #   - match: '{{H5Z_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-mexception-object-function:
+  #   - match: last\b
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-net-object-function:
+  #   - match: '{{NET_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-netcdf-object-function:
+  #   - match: '{{netcdf_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-randstream-object-function:
+  #   - match: '{{RandStream_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+  # maybe-tiff-object-function:
+  #   - match: '{{Tiff_object_functions}}\b'
+  #     scope: meta.function-call.nu support.function.nu
+  #     pop: 1
+  #   - match: '{{identifier}}?'
+  #     scope: variable.other.nu
+  #     pop: 1
+
+###[ INVALID ]##################################################################
+
+  invalid-variables:
+    # No variables or function names can start with a number or an underscore.
+    - match: '\b(_\w|\d+[_a-df-zA-DF-Z])\w*\b'
+      scope: invalid.illegal.invalid-variable-name.nu

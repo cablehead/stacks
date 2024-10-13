@@ -12,6 +12,8 @@ const setContentType = createActionMode(
     availOptions.value = [
       "Plain Text",
       "Markdown",
+      "Nushell",
+      "Shell",
       "C",
       "C++",
       "CSS",
@@ -38,7 +40,6 @@ const setContentType = createActionMode(
       "reStructuredText",
       "Ruby",
       "Rust",
-      "Shell",
       "SQL",
       "XML",
       "YAML",

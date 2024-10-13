@@ -312,13 +312,25 @@ pub fn markdown_to_html(theme_mode: &str, input: &[u8]) -> String {
 
 use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
-use syntect::parsing::SyntaxSet;
+use syntect::parsing::{SyntaxDefinition, SyntaxSetBuilder};
 
 pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str) -> String {
-    let ps = SyntaxSet::load_defaults_newlines();
+    let nushell_syntax = include_str!("../syntaxes/nushell.sublime-syntax");
+
+    let mut builder = SyntaxSetBuilder::new();
+    let syntax = SyntaxDefinition::load_from_str(nushell_syntax, true, None)
+        .expect("Failed to load NuShell syntax");
+    builder.add(syntax);
+
+    let ps = builder.build();
+
     let ts = ThemeSet::load_defaults();
-    let syntax = ps.find_syntax_by_extension(ext).unwrap();
+    let syntax = ps
+        .find_syntax_by_extension(ext)
+        .unwrap_or_else(|| ps.find_syntax_plain_text());
+
     info!("Theme mode: {}", theme_mode);
+
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.to_owned()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
@@ -360,6 +372,7 @@ pub fn generate_preview(
         ("Lua", "lua"),
         ("Makefile", "make"),
         ("MATLAB", "matlab"),
+        ("Nushell", "nu"),
         ("OCaml", "ml"),
         ("Objective-C", "m"),
         ("PHP", "php"),
