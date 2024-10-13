@@ -20,7 +20,7 @@ processes, I’m currently just dropping preview releases directly in the Stacks
 Discord channel. If you'd like to grab the latest version of Stacks, swing by!
 (link below).
 
-Current release is >= 0.15.8
+Current release is >= 0.15.10
 
 ## Community
 
