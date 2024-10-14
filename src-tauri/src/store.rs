@@ -309,9 +309,13 @@ impl Store {
 
     pub fn scan_content_meta(&self) -> HashMap<ssri::Integrity, ContentMeta> {
         let mut content_meta_cache = HashMap::new();
+
         for (key, value) in self.content_meta.iter().flatten() {
-            if let Ok(hash) = bincode::deserialize::<ssri::Integrity>(&key) {
-                if let Ok(meta) = bincode::deserialize::<ContentMeta>(&value) {
+            let hash = bincode::deserialize::<ssri::Integrity>(&key);
+            let meta = bincode::deserialize::<ContentMeta>(&value);
+
+            match (hash, meta) {
+                (Ok(hash), Ok(meta)) => {
                     if meta.mime_type == MimeType::TextPlain
                         && meta.tiktokens == 0
                         && !meta.terse.is_empty()
@@ -320,20 +324,24 @@ impl Store {
                     }
                     content_meta_cache.insert(hash, meta);
                 }
+                (Err(e), _) | (_, Err(e)) => {
+                    panic!("Could not deserialize content: {e:?}");
+                }
             }
         }
 
-        self.scan().for_each(|p| {
-            if p.packet_type == PacketType::Update || p.packet_type == PacketType::Add {
-                if let Some(hash) = p.hash {
-                    if let Some(content_type) = p.content_type {
-                        if let Some(meta) = content_meta_cache.get_mut(&hash) {
-                            meta.content_type = content_type;
-                        }
+        self.scan()
+            .filter(|p| p.packet_type == PacketType::Update || p.packet_type == PacketType::Add)
+            .for_each(|p| {
+                let meta = p.hash.and_then(|hash| content_meta_cache.get_mut(&hash));
+
+                match (meta, p.content_type) {
+                    (Some(meta), Some(content_type)) => {
+                        meta.content_type = content_type;
                     }
+                    _ => {}
                 }
-            }
-        });
+            });
 
         content_meta_cache
     }
