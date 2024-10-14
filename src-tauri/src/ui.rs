@@ -7,8 +7,6 @@ use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
 use syntect::parsing::SyntaxSet;
 
-use tracing::info;
-
 pub use crate::store::{MimeType, Store};
 
 use crate::util;
@@ -342,7 +340,6 @@ pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str, ps: &SyntaxSet) -
     let syntax = ps
         .find_syntax_by_extension(ext)
         .unwrap_or_else(|| ps.find_syntax_plain_text());
-    info!("Theme mode: {}", theme_mode);
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.to_owned()).unwrap();
     let highlighted_html = highlighted_html_for_string(&input_str, ps, syntax, theme);
@@ -352,7 +349,7 @@ pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str, ps: &SyntaxSet) -
 use maud::html;
 
 #[tracing::instrument(
-    skip(content)
+    skip(content, syntax_set),
     fields(
         size = match content {
             Some(c) => c.len(),

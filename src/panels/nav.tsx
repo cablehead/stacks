@@ -247,6 +247,7 @@ const RowIcon = (
     case "Lua":
     case "Makefile":
     case "MATLAB":
+    case "Nushell":
     case "OCaml":
     case "Objective-C":
     case "PHP":
