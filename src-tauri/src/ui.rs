@@ -3,6 +3,10 @@ use std::collections::{HashMap, HashSet};
 use scru128::Scru128Id;
 use ssri::Integrity;
 
+use syntect::highlighting::ThemeSet;
+use syntect::html::highlighted_html_for_string;
+use syntect::parsing::{SyntaxDefinition, SyntaxSet, SyntaxSetBuilder};
+
 use tracing::info;
 
 pub use crate::store::{MimeType, Store};
@@ -46,10 +50,19 @@ pub struct UI {
     pub view: view::View,
     pub theme_mode: String,
     pub is_visible: bool,
+    pub syntax_set: SyntaxSet,
 }
 
 impl UI {
     pub fn new(v: &view::View) -> Self {
+        // Build the SyntaxSet once during UI initialization
+        let nushell_syntax = include_str!("../syntaxes/nushell.sublime-syntax");
+        let mut builder = SyntaxSetBuilder::new();
+        let syntax = SyntaxDefinition::load_from_str(nushell_syntax, true, None)
+            .expect("Failed to load NuShell syntax");
+        builder.add(syntax);
+        let syntax_set = builder.build();
+
         Self {
             focused: None,
             last_selected: HashMap::new(),
@@ -57,6 +70,7 @@ impl UI {
             view: v.clone(),
             theme_mode: "light".to_string(),
             is_visible: false,
+            syntax_set,
         }
     }
 
@@ -262,6 +276,23 @@ impl UI {
             }
         }
     }
+
+    pub fn generate_preview(
+        &self,
+        content: &Option<Vec<u8>>,
+        mime_type: &MimeType,
+        content_type: &String,
+        ephemeral: bool,
+    ) -> String {
+        generate_preview(
+            &self.theme_mode,
+            content,
+            mime_type,
+            content_type,
+            ephemeral,
+            &self.syntax_set,
+        )
+    }
 }
 
 pub fn with_meta(store: &Store, item: &view::Item) -> Item {
@@ -310,30 +341,15 @@ pub fn markdown_to_html(theme_mode: &str, input: &[u8]) -> String {
     markdown_to_html_with_plugins(&input_str, &options, &plugins)
 }
 
-use syntect::highlighting::ThemeSet;
-use syntect::html::highlighted_html_for_string;
-use syntect::parsing::{SyntaxDefinition, SyntaxSetBuilder};
-
-pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str) -> String {
-    let nushell_syntax = include_str!("../syntaxes/nushell.sublime-syntax");
-
-    let mut builder = SyntaxSetBuilder::new();
-    let syntax = SyntaxDefinition::load_from_str(nushell_syntax, true, None)
-        .expect("Failed to load NuShell syntax");
-    builder.add(syntax);
-
-    let ps = builder.build();
-
+pub fn code_to_html(theme_mode: &str, input: &[u8], ext: &str, ps: &SyntaxSet) -> String {
     let ts = ThemeSet::load_defaults();
     let syntax = ps
         .find_syntax_by_extension(ext)
         .unwrap_or_else(|| ps.find_syntax_plain_text());
-
     info!("Theme mode: {}", theme_mode);
-
     let theme = &ts.themes[&format!("base16-ocean.{}", theme_mode)];
     let input_str = String::from_utf8(input.to_owned()).unwrap();
-    let highlighted_html = highlighted_html_for_string(&input_str, &ps, syntax, theme);
+    let highlighted_html = highlighted_html_for_string(&input_str, ps, syntax, theme);
     highlighted_html.unwrap()
 }
 
@@ -354,6 +370,7 @@ pub fn generate_preview(
     mime_type: &MimeType,
     content_type: &String,
     ephemeral: bool,
+    syntax_set: &SyntaxSet,
 ) -> String {
     let file_extensions: HashMap<&str, &str> = [
         ("C++", "cpp"),
@@ -411,7 +428,8 @@ pub fn generate_preview(
                 };
                 div.into_string()
             } else if let Some(ext) = file_extensions.get(content_type.as_str()) {
-                let html = code_to_html(theme_mode, data, ext);
+                // Pass the pre-built SyntaxSet to code_to_html
+                let html = code_to_html(theme_mode, data, ext, syntax_set);
                 let html = maud::PreEscaped(html);
                 let div = html! {
                     div.("scroll-me")[ephemeral] .preview.rust {
