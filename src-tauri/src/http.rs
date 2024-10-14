@@ -18,7 +18,6 @@ use hyper_util::rt::TokioIo;
 
 use crate::state::SharedState;
 use crate::store::{infer_mime_type, InProgressStream, MimeType};
-use crate::ui::generate_preview;
 
 type BoxError = Box<dyn std::error::Error + Send + Sync>;
 type HTTPResult = Result<Response<BoxBody<Bytes, BoxError>>, BoxError>;
@@ -59,14 +58,9 @@ fn get_as_html(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
     let preview = state.with_lock(|state| {
         let content = state.store.get_content(&hash);
         let meta = state.store.get_content_meta(&hash).unwrap();
-
-        generate_preview(
-            &state.ui.theme_mode,
-            &content,
-            &meta.mime_type,
-            &meta.content_type,
-            false,
-        )
+        state
+            .ui
+            .generate_preview(&content, &meta.mime_type, &meta.content_type, false)
     });
 
     Ok(Response::builder()
@@ -158,13 +152,14 @@ async fn post(
     while let Some(frame) = body.frame().await {
         let data = frame?.into_data().unwrap();
         streamer.append(&data);
-        let preview = generate_preview(
-            "dark",
-            &Some(streamer.content.clone()),
-            &MimeType::TextPlain,
-            &"Text".to_string(),
-            true,
-        );
+        let preview = state.with_lock(|state| {
+            state.ui.generate_preview(
+                &Some(streamer.content.clone()),
+                &MimeType::TextPlain,
+                &"Text".to_string(),
+                true,
+            )
+        });
 
         let content = String::from_utf8_lossy(&streamer.content);
         let content = Content {
