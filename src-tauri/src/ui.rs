@@ -5,7 +5,7 @@ use ssri::Integrity;
 
 use syntect::highlighting::ThemeSet;
 use syntect::html::highlighted_html_for_string;
-use syntect::parsing::{SyntaxDefinition, SyntaxSet, SyntaxSetBuilder};
+use syntect::parsing::SyntaxSet;
 
 use tracing::info;
 
@@ -55,13 +55,9 @@ pub struct UI {
 
 impl UI {
     pub fn new(v: &view::View) -> Self {
-        // Build the SyntaxSet once during UI initialization
-        let nushell_syntax = include_str!("../syntaxes/nushell.sublime-syntax");
-        let mut builder = SyntaxSetBuilder::new();
-        let syntax = SyntaxDefinition::load_from_str(nushell_syntax, true, None)
-            .expect("Failed to load NuShell syntax");
-        builder.add(syntax);
-        let syntax_set = builder.build();
+        let embedded_syntax_set: &[u8] = include_bytes!("../syntax_set.bin");
+        // Deserialize the SyntaxSet from the embedded binary data
+        let syntax_set = syntect::dumps::from_binary::<SyntaxSet>(embedded_syntax_set);
 
         Self {
             focused: None,
