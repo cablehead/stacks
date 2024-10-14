@@ -12,7 +12,6 @@ use crate::clipboard;
 use crate::commands;
 use crate::content_bus;
 use crate::http;
-use crate::publish;
 use crate::spotlight;
 use crate::state::{SharedState, State};
 
@@ -101,14 +100,12 @@ pub async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String
                 let _ = window.move_window(Position::Center);
             }
 
-            let (packet_sender, packet_receiver) = std::sync::mpsc::channel();
-
+            let (packet_sender, _) = std::sync::mpsc::channel();
             let state = State::new(&db_path, packet_sender);
             let mutex = tracing_mutex_span::TracingMutexSpan::new("SharedState", state);
             let state: SharedState = Arc::new(mutex);
             app.manage(state.clone());
 
-            publish::spawn(state.clone(), packet_receiver);
             content_bus::spawn_tiktokens(app.handle(), state.clone());
 
             http::start(app.handle().clone(), state.clone(), &db_path);

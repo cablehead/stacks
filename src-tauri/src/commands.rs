@@ -12,7 +12,7 @@ use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
 };
-use crate::ui::{generate_preview, with_meta, Item as UIItem, Nav, UI};
+use crate::ui::{with_meta, Item as UIItem, Nav, UI};
 use crate::view::View;
 
 #[derive(Debug, Clone, serde::Serialize)]
@@ -170,13 +170,15 @@ pub async fn store_pipe_stack_to_shell(
                         streamer.append(&buffer[..size]);
 
                         if mime_type == MimeType::TextPlain {
-                            let preview = generate_preview(
-                                "dark",
-                                &Some(streamer.content.clone()),
-                                &streamer.content_meta.mime_type,
-                                &streamer.content_meta.content_type,
-                                true,
-                            );
+                            let preview = state.with_lock(|state| {
+                                state.ui.generate_preview(
+                                    &Some(streamer.content.clone()),
+                                    &streamer.content_meta.mime_type,
+                                    &streamer.content_meta.content_type,
+                                    true,
+                                )
+                            });
+
                             let content = String::from_utf8_lossy(&streamer.content);
                             let content = Content {
                                 mime_type: streamer.content_meta.mime_type.clone(),
@@ -403,13 +405,15 @@ pub async fn store_pipe_to_command(
                         streamer.append(&buffer[..size]);
 
                         if mime_type == MimeType::TextPlain {
-                            let preview = generate_preview(
-                                "dark",
-                                &Some(streamer.content.clone()),
-                                &streamer.content_meta.mime_type,
-                                &streamer.content_meta.content_type,
-                                true,
-                            );
+                            let preview = state.with_lock(|state| {
+                                state.ui.generate_preview(
+                                    &Some(streamer.content.clone()),
+                                    &streamer.content_meta.mime_type,
+                                    &streamer.content_meta.content_type,
+                                    true,
+                                )
+                            });
+
                             let content = String::from_utf8_lossy(&streamer.content);
                             let content = Content {
                                 mime_type: streamer.content_meta.mime_type.clone(),
@@ -574,13 +578,10 @@ pub fn store_get_content(state: tauri::State<SharedState>, hash: ssri::Integrity
             _ => (0, 0),
         };
 
-        let preview = generate_preview(
-            &state.ui.theme_mode,
-            &content,
-            &meta.mime_type,
-            &meta.content_type,
-            false,
-        );
+        let preview =
+            state
+                .ui
+                .generate_preview(&content, &meta.mime_type, &meta.content_type, false);
 
         Content {
             mime_type: meta.mime_type,

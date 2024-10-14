@@ -356,3 +356,76 @@ fn test_ui_render() {
     state.nav_set_filter("FOOBAR", "");
     assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 }
+
+#[test]
+fn test_ui_generate_preview() {
+    let dir = tempfile::tempdir().unwrap();
+    let path = dir.path().to_str().unwrap();
+
+    let (sender, _receiver) = std::sync::mpsc::channel();
+    let mut state = State::new(path, sender);
+
+    let stack = state
+        .store
+        .add_stack(b"Code Snippets Stack", StackLockStatus::Unlocked);
+
+    // Add the Rust snippet to the store
+    let rust_code = r#"
+    fn main() {
+        println!("Hello, world!");
+    }
+    "#;
+    let rust_packet = state
+        .store
+        .add(rust_code.as_bytes(), MimeType::TextPlain, stack.id);
+    state
+        .store
+        .update_content_type(rust_packet.hash.clone().unwrap(), "Rust".to_string());
+
+    // Add the Nushell snippet to the same stack
+    let nushell_code = r#"
+    let x = 10
+    echo $x
+    "#;
+    let nushell_packet = state
+        .store
+        .add(nushell_code.as_bytes(), MimeType::TextPlain, stack.id);
+    state
+        .store
+        .update_content_type(nushell_packet.hash.clone().unwrap(), "Nushell".to_string());
+
+    // Scan and merge to update the state
+    state.store.scan().for_each(|p| state.merge(&p));
+
+    // Test Rust preview generation
+    let rust_content = state
+        .store
+        .get_content(&rust_packet.hash.clone().unwrap())
+        .unwrap();
+    let rust_meta = state
+        .store
+        .get_content_meta(&rust_packet.hash.clone().unwrap())
+        .unwrap();
+    let _rust_preview = state.ui.generate_preview(
+        &Some(rust_content),
+        &rust_meta.mime_type,
+        &rust_meta.content_type,
+        false,
+    );
+
+    // Test Nushell preview generation
+    let nushell_content = state
+        .store
+        .get_content(&nushell_packet.hash.clone().unwrap())
+        .unwrap();
+    let nushell_meta = state
+        .store
+        .get_content_meta(&nushell_packet.hash.clone().unwrap())
+        .unwrap();
+    let _nushell_preview = state.ui.generate_preview(
+        &Some(nushell_content),
+        &nushell_meta.mime_type,
+        &nushell_meta.content_type,
+        false,
+    );
+}

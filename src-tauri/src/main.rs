@@ -10,7 +10,6 @@ mod commands;
 mod content_bus;
 mod content_type;
 mod http;
-mod publish;
 mod serve;
 mod spotlight;
 mod state;
