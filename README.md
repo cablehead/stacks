@@ -9,25 +9,26 @@ no less.
 
 ![screenshot](./docs/screenshots/screenshot.png)
 
-It's free, as in beer, but mostly as in 'freedom', and it's also open source.
-If you're into that sort of thing, give it a spin!
+It's free, as in beer, but mostly as in 'freedom', and it's also open source. If
+you're into that sort of thing, give it a spin!
 
 ## Download
 
-Stack releases are getting backed up as I try to work out how "pipe clip to
-shell" should hang together. To minimize distractions from formal release
-processes, I’m currently just dropping preview releases directly in the Stacks'
-Discord channel. If you'd like to grab the latest version of Stacks, swing by!
-(link below).
+`.DMG` installers that have been notarized by Apple.
 
-Current release is >= 0.15.10
+- **Current version**: v0.15.11
+- **Last release**: Oct 14, 2024
+
+[![MacOS (Universal)](./docs/assets/MacOS-Universal.svg)](https://stacks.cross.stream/releases/Stacks_0.15.11_universal.dmg)
 
 ## Community
 
-- We have a [Discord channel](https://discord.gg/fDEcqjKHpv) where we chat
-  about clipboard managers, flashcards, neo-browsers, Tauri, Rust, wasm, tools
-  of thought, and generally fun geekery, and
-- We're using [Github Discussions](https://github.com/cablehead/stacks/discussions) as a forum.
+- We have a [Discord channel](https://discord.gg/fDEcqjKHpv) where we chat about
+  clipboard managers, flashcards, neo-browsers, Tauri, Rust, wasm, tools of
+  thought, and generally fun geekery, and
+- We're using
+  [Github Discussions](https://github.com/cablehead/stacks/discussions) as a
+  forum.
 
 ## Usage
 
@@ -72,17 +73,13 @@ npm run tauri dev
 
 ## Built with:
 
-[Rust](https://www.rust-lang.org),
-[Tauri](https://tauri.app),
+[Rust](https://www.rust-lang.org), [Tauri](https://tauri.app),
 [sled](https://github.com/spacejam/sled),
 [cacache](https://github.com/zkat/cacache-rs),
-[Tantivy](https://github.com/quickwit-oss/tantivy),
-[Tokio](https://tokio.rs),
-[hyper](https://hyper.rs),
-[Comrak](https://crates.io/crates/comrak),
+[Tantivy](https://github.com/quickwit-oss/tantivy), [Tokio](https://tokio.rs),
+[hyper](https://hyper.rs), [Comrak](https://crates.io/crates/comrak),
 [syntect](https://github.com/trishume/syntect),
-[TypeScript](https://www.typescriptlang.org),
-[Preact](https://preactjs.com),
+[TypeScript](https://www.typescriptlang.org), [Preact](https://preactjs.com),
 [scru128](https://github.com/scru128/rust),
 [tracing](https://docs.rs/tracing/latest/tracing/),
 
