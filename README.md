@@ -20,12 +20,6 @@ Stacks is an experimental tool for tracking and manipulating your current
 context using pipes and filters. But that’s a lot to explain, so I usually just
 describe it as a clipboard manager.
 
-A humble clipboard manager aspiring to elevate the depth of our conversations—
-no less.
-
-It's free, as in beer, but mostly as in 'freedom', and it's also open source. If
-you're into that sort of thing, give it a spin!
-
 ## UX disclaimer
 
 A quick note on the user experience (UX): it’s fair to say it’s still a bit
