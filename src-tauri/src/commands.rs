@@ -1011,8 +1011,7 @@ pub fn store_add_to_new_stack(
                 if let Some(stack_id) = item.stack_id {
                     if let Some(stack) = state.view.items.get(&stack_id) {
                         let children = state.view.children(stack);
-                        let mut iter = children.iter().rev().skip_while(|&&id| id != source_id);
-                        for &item_id in iter {
+                        for &item_id in children.iter().rev().skip_while(|&&id| id != source_id) {
                             let item_packet = state.store.fork(
                                 item_id,
                                 None,
