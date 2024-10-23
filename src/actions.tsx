@@ -70,6 +70,28 @@ export const actions: Action[] = [
             name: dn(),
             sourceId: item.id,
             focus: true,
+            andUp: false,
+          });
+        })();
+      }
+    },
+  },
+
+  {
+    name: "Yak on here and up",
+    keys: [<Icon name="IconCommandKey" />, <Icon name="IconShiftKey" />, "Y"],
+    matchKeyEvent: (event: KeyboardEvent) =>
+      matchKeyEvent(event, { meta: true, shift: true, code: "KeyY" }),
+    canApply: (stack: Stack) => !!stack.selected_item(),
+    trigger: (stack: Stack) => {
+      const item = stack.selected_item();
+      if (item) {
+        (async () => {
+          await invoke("store_add_to_new_stack", {
+            name: dn(),
+            sourceId: item.id,
+            focus: true,
+            andUp: true,
           });
         })();
       }

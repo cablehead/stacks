@@ -334,12 +334,8 @@ impl Store {
             .filter(|p| p.packet_type == PacketType::Update || p.packet_type == PacketType::Add)
             .for_each(|p| {
                 let meta = p.hash.and_then(|hash| content_meta_cache.get_mut(&hash));
-
-                match (meta, p.content_type) {
-                    (Some(meta), Some(content_type)) => {
-                        meta.content_type = content_type;
-                    }
-                    _ => {}
+                if let (Some(meta), Some(content_type)) = (meta, p.content_type) {
+                    meta.content_type = content_type;
                 }
             });
 

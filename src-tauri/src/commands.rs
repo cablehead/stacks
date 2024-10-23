@@ -986,6 +986,7 @@ pub fn store_add_to_new_stack(
     state: tauri::State<SharedState>,
     name: String,
     source_id: scru128::Scru128Id,
+    and_up: bool, // fork the source_id and all items above it into the new stack
     focus: bool,
 ) {
     state.with_lock(|state| {
@@ -998,17 +999,40 @@ pub fn store_add_to_new_stack(
                 .select(state.view.get_best_focus(&state.ui.focused));
         }
 
+        // Create a new stack
         let stack_packet = state
             .store
             .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
         state.merge(&stack_packet);
 
-        let item_packet =
-            state
-                .store
-                .fork(source_id, None, MimeType::TextPlain, Some(stack_packet.id));
-        state.merge(&item_packet);
+        if and_up {
+            // Fork the source_id and all items above it into the new stack
+            if let Some(item) = state.view.items.get(&source_id) {
+                if let Some(stack_id) = item.stack_id {
+                    if let Some(stack) = state.view.items.get(&stack_id) {
+                        let children = state.view.children(stack);
+                        for &item_id in children.iter().rev().skip_while(|&&id| id != source_id) {
+                            let item_packet = state.store.fork(
+                                item_id,
+                                None,
+                                MimeType::TextPlain,
+                                Some(stack_packet.id),
+                            );
+                            state.merge(&item_packet);
+                        }
+                    }
+                }
+            }
+        } else {
+            // Fork the source_id into the new stack
+            let item_packet =
+                state
+                    .store
+                    .fork(source_id, None, MimeType::TextPlain, Some(stack_packet.id));
+            state.merge(&item_packet);
+        }
     });
+
     app.emit_all("refresh-items", true).unwrap();
 }
 
