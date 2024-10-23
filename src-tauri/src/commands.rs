@@ -986,6 +986,7 @@ pub fn store_add_to_new_stack(
     state: tauri::State<SharedState>,
     name: String,
     source_id: scru128::Scru128Id,
+    and_up: bool,
     focus: bool,
 ) {
     state.with_lock(|state| {
@@ -998,17 +999,55 @@ pub fn store_add_to_new_stack(
                 .select(state.view.get_best_focus(&state.ui.focused));
         }
 
+        // Create a new stack
         let stack_packet = state
             .store
             .add_stack(name.as_bytes(), StackLockStatus::Unlocked);
         state.merge(&stack_packet);
 
+        // Fork the source_id into the new stack
         let item_packet =
             state
                 .store
                 .fork(source_id, None, MimeType::TextPlain, Some(stack_packet.id));
         state.merge(&item_packet);
+
+        if and_up {
+            // Get the stack associated with source_id
+            if let Some(item) = state.view.items.get(&source_id) {
+                if let Some(stack_id) = item.stack_id {
+                    if let Some(stack) = state.view.items.get(&stack_id) {
+                        // Get all items "above" the source_id in the stack
+                        let children = state.view.children(stack);
+                        let mut items_above = Vec::new();
+                        let mut found_source = false;
+
+                        for child_id in children {
+                            if child_id == source_id {
+                                found_source = true;
+                                continue;
+                            }
+                            if found_source {
+                                items_above.push(child_id);
+                            }
+                        }
+
+                        // Fork each item into the new stack
+                        for item_id in items_above {
+                            let item_packet = state.store.fork(
+                                item_id,
+                                None,
+                                MimeType::TextPlain,
+                                Some(stack_packet.id),
+                            );
+                            state.merge(&item_packet);
+                        }
+                    }
+                }
+            }
+        }
     });
+
     app.emit_all("refresh-items", true).unwrap();
 }
 
