@@ -44,7 +44,7 @@ utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
 `.DMG` installers that have been notarized by Apple.
 
 - **Current version**: v0.15.12
-- **Last release**: Oct 14, 2024
+- **Last release**: Oct 23, 2024
 
 [![MacOS (Universal)](./docs/assets/MacOS-Universal.svg)](https://stacks.cross.stream/releases/Stacks_0.15.12_universal.dmg)
 
