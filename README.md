@@ -1,18 +1,51 @@
 # Stacks [![CI](https://github.com/cablehead/stacks/actions/workflows/rust.yml/badge.svg)](https://github.com/cablehead/stacks/actions/workflows/rust.yml) [![Discord](https://img.shields.io/discord/1182364431435436042?logo=discord)](https://discord.com/invite/YNbScHBHrh)
 
-Stacks is a tool to track and manipulate your current context, with pipes and
-filters. To be honest, I'm not quite sure what it is, or where it's going, but
-let's keep things simple and say it's a clipboard manager.
+Stacks is a clipboard manager.
+
+![screenshot](./docs/screenshots/screenshot.png)
+
+## About
+
+With so many great clipboard managers already available, why create another one?
+
+I think of my clipboard as "picking things up" to move them around or redirect
+them. In this sense, your system's clipboard acts as a strong proxy for your
+["locus of attention"](https://www.oreilly.com/library/view/humane-interface-the/0201379376/0201379376_ch02lev1sec3.html)
+when you're using a computer.
+
+A clipboard manager, then, is a tool to capture and work with your "locus of
+attention." It ambiently captures your current tasks and work _context_.
+
+Stacks is an experimental tool for tracking and manipulating your current
+context using pipes and filters. But that’s a lot to explain, so I usually just
+describe it as a clipboard manager.
 
 A humble clipboard manager aspiring to elevate the depth of our conversations—
 no less.
 
-![screenshot](./docs/screenshots/screenshot.png)
-
 It's free, as in beer, but mostly as in 'freedom', and it's also open source. If
 you're into that sort of thing, give it a spin!
 
-## Download
+## UX disclaimer
+
+A quick note on the user experience (UX): it’s fair to say it’s still a bit
+rough around the edges. If Stacks reaches a UX level similar to (neo)vim, I'd
+consider that a success. It’s pretty spartan and utilitarian, so being
+comfortable with the command line, or feeling adventurous, definitely helps.
+
+Stacks is my personal
+["tool for thought"](https://maggieappleton.com/tools-for-thought) that I use as
+my daily driver. Eventually, I’d like Stacks to reach the polish of tools like
+[Obsidian](https://obsidian.md), but for now, the focus is on its experimental
+nature and the underlying
+[event-sourcing store](https://github.com/cablehead/xs).
+
+## Give it a try!
+
+If you're into experimental tools and are okay with a minimalist,
+utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
+
+### Download
 
 `.DMG` installers that have been notarized by Apple.
 
