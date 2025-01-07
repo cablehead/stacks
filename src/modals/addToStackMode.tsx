@@ -71,6 +71,7 @@ const state = (() => {
           name: name,
           sourceId: item.id,
           focus: false,
+          andUp: false,
         });
         modes.deactivate();
       })();
