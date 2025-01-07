@@ -4470,6 +4470,7 @@ dependencies = [
  "tantivy",
  "tauri",
  "tauri-build",
+ "tauri-nspanel",
  "tauri-plugin-positioner",
  "tempfile",
  "tiktoken-rs",
@@ -4964,6 +4965,22 @@ dependencies = [
  "syn 1.0.109",
  "tauri-codegen",
  "tauri-utils",
+]
+
+[[package]]
+name = "tauri-nspanel"
+version = "0.0.0"
+source = "git+https://github.com/ahkohd/tauri-nspanel?branch=v1#d619c5581b064fd48a9b5a6a5e042fb29ddb52a4"
+dependencies = [
+ "bitflags 2.6.0",
+ "block",
+ "cocoa 0.26.0",
+ "core-foundation 0.10.0",
+ "core-graphics 0.24.0",
+ "objc",
+ "objc-foundation",
+ "objc_id",
+ "tauri",
 ]
 
 [[package]]
