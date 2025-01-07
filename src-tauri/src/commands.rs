@@ -1157,8 +1157,7 @@ pub fn spotlight_update_shortcut(
         settings.activation_shortcut = Some(shortcut.clone());
         state.store.settings_save(settings);
     });
-    let window = app.get_window("main").unwrap();
-    spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
+    spotlight::register_shortcut(app.clone(), &shortcut.to_macos_shortcut()).unwrap();
 }
 
 #[tauri::command]
@@ -1180,6 +1179,5 @@ pub fn spotlight_get_shortcut(state: tauri::State<'_, SharedState>) -> Shortcut 
 #[tauri::command]
 #[tracing::instrument(skip(app))]
 pub fn spotlight_hide(app: tauri::AppHandle) {
-    let window = app.get_window("main").unwrap();
-    spotlight::hide(&window).unwrap();
+    spotlight::hide(&app).unwrap();
 }

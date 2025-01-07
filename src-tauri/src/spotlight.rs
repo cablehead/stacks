@@ -1,16 +1,12 @@
-// based on: https://github.com/zzzze/tauri-plugin-spotlight 🙏
-
-use std::sync::Mutex;
+use tauri::AppHandle;
+use tauri_nspanel::ManagerExt;
+use tauri_nspanel::WindowExt;
 
 use cocoa::{
-    appkit::{NSApplicationActivateIgnoringOtherApps, NSWindow, NSWindowCollectionBehavior},
+    appkit::{NSWindow, NSWindowCollectionBehavior},
     base::id,
 };
-use objc::{
-    class, msg_send,
-    runtime::{Class, Object},
-    sel, sel_impl,
-};
+use objc::{msg_send, sel, sel_impl};
 
 #[derive(serde::Deserialize, serde::Serialize, Debug, Clone)]
 pub struct Shortcut {
@@ -41,146 +37,62 @@ impl Shortcut {
     }
 }
 
-use tauri::{GlobalShortcutManager, Manager, Window, WindowEvent, Wry};
-
-static SELF_KEY_PREFIX: &str = "self:";
+use tauri::{GlobalShortcutManager, Window, WindowEvent, Wry};
 
 #[derive(Debug)]
 pub enum Error {
-    LockMutex,
     RegisterShortcut,
     GetNSWindow,
-    GetNSWorkspaceClass,
-    CheckWindowVisibility,
-    HideWindow,
-    ShowWindow,
 }
+
+#[allow(non_upper_case_globals)]
+const NSWindowStyleMaskNonActivatingPanel: i32 = 1 << 7;
 
 pub fn init(window: &Window<Wry>) -> Result<(), Error> {
     handle_focus_state_change(window);
-    set_spotlight_window_collection_behavior(window)?;
+
+    let panel = window.to_panel().unwrap();
+    panel.set_collection_behaviour(
+        NSWindowCollectionBehavior::NSWindowCollectionBehaviorMoveToActiveSpace
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorTransient
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenAuxiliary
+            | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
+    );
+
+    let current_mask: i32 = unsafe { msg_send![panel, styleMask] };
+    panel.set_style_mask(current_mask | NSWindowStyleMaskNonActivatingPanel);
+
     set_window_level(window, 7)?;
     Ok(())
 }
 
-pub fn register_shortcut(window: &Window<Wry>, shortcut: &str) -> Result<(), Error> {
-    let window = window.to_owned();
-    let mut shortcut_manager = window.app_handle().global_shortcut_manager();
-    shortcut_manager.unregister_all().unwrap();
+pub fn register_shortcut(app: AppHandle<Wry>, shortcut: &str) -> Result<(), Error> {
+    let mut shortcut_manager = app.global_shortcut_manager();
+    shortcut_manager
+        .unregister_all()
+        .map_err(|_| Error::RegisterShortcut)?;
+
     shortcut_manager
         .register(shortcut, move || {
-            if window.is_visible().unwrap() {
-                hide(&window).unwrap();
+            let panel = app.get_panel("main").unwrap_or_else(|e| {
+                eprintln!("Failed to get panel: {:?}", e);
+                panic!("Panel not found")
+            });
+
+            if panel.is_visible() {
+                panel.order_out(None);
             } else {
-                show(&window).unwrap();
+                panel.show();
             }
         })
         .map_err(|_| Error::RegisterShortcut)?;
     Ok(())
 }
 
-pub fn show(window: &Window<Wry>) -> Result<(), Error> {
-    if !window
-        .is_visible()
-        .map_err(|_| Error::CheckWindowVisibility)?
-    {
-        set_previous_app(get_frontmost_app_path());
-        window.set_focus().map_err(|_| Error::ShowWindow)?;
-    }
-    Ok(())
-}
-
-pub fn hide(window: &Window<Wry>) -> Result<(), Error> {
-    if window
-        .is_visible()
-        .map_err(|_| Error::CheckWindowVisibility)?
-    {
-        window.hide().map_err(|_| Error::HideWindow)?;
-        if let Ok(Some(prev_frontmost_window_path)) = get_previous_app() {
-            if prev_frontmost_window_path.starts_with(SELF_KEY_PREFIX) {
-                if let Some(window_label) = prev_frontmost_window_path.strip_prefix(SELF_KEY_PREFIX)
-                {
-                    if let Some(window) = window.app_handle().get_window(window_label) {
-                        window.set_focus().map_err(|_| Error::ShowWindow)?;
-                    }
-                }
-            } else {
-                active_another_app(&prev_frontmost_window_path)?;
-            }
-        }
-    }
-    Ok(())
-}
-
-use lazy_static::lazy_static;
-
-lazy_static! {
-    static ref PREVIOUS_APP: Mutex<Option<String>> = Mutex::new(None);
-}
-
-pub fn set_previous_app(value: Option<String>) {
-    let mut previous_app = PREVIOUS_APP.lock().unwrap();
-    *previous_app = value;
-}
-
-pub fn get_previous_app() -> Result<Option<String>, Error> {
-    let previous_app = PREVIOUS_APP.lock().map_err(|_| Error::LockMutex)?;
-    Ok((*previous_app).clone())
-}
-
-#[macro_export]
-macro_rules! nsstring_to_string {
-    ($ns_string:expr) => {{
-        use objc::{sel, sel_impl};
-        let utf8: id = objc::msg_send![$ns_string, UTF8String];
-        let string = if !utf8.is_null() {
-            Some({
-                std::ffi::CStr::from_ptr(utf8 as *const std::ffi::c_char)
-                    .to_string_lossy()
-                    .into_owned()
-            })
-        } else {
-            None
-        };
-        string
-    }};
-}
-
-fn active_another_app(bundle_url: &str) -> Result<(), Error> {
-    let workspace = unsafe {
-        if let Some(workspace_class) = Class::get("NSWorkspace") {
-            let shared_workspace: *mut Object = msg_send![workspace_class, sharedWorkspace];
-            shared_workspace
-        } else {
-            return Err(Error::GetNSWorkspaceClass);
-        }
-    };
-    let running_apps = unsafe {
-        let running_apps: *mut Object = msg_send![workspace, runningApplications];
-        running_apps
-    };
-    let target_app = unsafe {
-        let count = msg_send![running_apps, count];
-        let mut target_app: Option<*mut Object> = None;
-        for i in 0..count {
-            let app: *mut Object = msg_send![running_apps, objectAtIndex: i];
-            let app_bundle_url: id = msg_send![app, bundleURL];
-            let path: id = msg_send![app_bundle_url, path];
-            let app_bundle_url_str = nsstring_to_string!(path);
-            if let Some(app_bundle_url_str) = app_bundle_url_str {
-                if app_bundle_url_str == bundle_url {
-                    target_app = Some(app);
-                    break;
-                }
-            }
-        }
-        target_app
-    };
-    if let Some(app) = target_app {
-        unsafe {
-            let _: () = msg_send![app, activateWithOptions: NSApplicationActivateIgnoringOtherApps];
-        };
-    }
+pub fn hide(app: &tauri::AppHandle) -> Result<(), Error> {
+    let panel = app.get_panel("main").unwrap();
+    panel.order_out(None);
     Ok(())
 }
 
@@ -193,30 +105,8 @@ fn handle_focus_state_change(window: &Window<Wry>) {
     });
 }
 
-/// Set the behaviors that makes the window appear on all workspaces
-fn set_spotlight_window_collection_behavior(window: &Window<Wry>) -> Result<(), Error> {
-    let handle: id = window.ns_window().map_err(|_| Error::GetNSWindow)? as _;
-    unsafe {
-        handle.setCollectionBehavior_(
-            NSWindowCollectionBehavior::NSWindowCollectionBehaviorCanJoinAllSpaces
-                | NSWindowCollectionBehavior::NSWindowCollectionBehaviorStationary
-                | NSWindowCollectionBehavior::NSWindowCollectionBehaviorFullScreenPrimary
-                | NSWindowCollectionBehavior::NSWindowCollectionBehaviorIgnoresCycle,
-        );
-    };
-    Ok(())
-}
-
 fn set_window_level(window: &Window<Wry>, level: i32) -> Result<(), Error> {
     let handle: id = window.ns_window().map_err(|_| Error::GetNSWindow)? as _;
     unsafe { handle.setLevel_((level).into()) };
     Ok(())
-}
-
-pub fn get_frontmost_app_path() -> Option<String> {
-    let shared_workspace: id = unsafe { msg_send![class!(NSWorkspace), sharedWorkspace] };
-    let frontmost_app: id = unsafe { msg_send![shared_workspace, frontmostApplication] };
-    let bundle_url: id = unsafe { msg_send![frontmost_app, bundleURL] };
-    let path: id = unsafe { msg_send![bundle_url, path] };
-    unsafe { nsstring_to_string!(path) }
 }

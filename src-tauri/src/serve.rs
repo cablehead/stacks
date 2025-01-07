@@ -88,6 +88,7 @@ pub async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String
             commands::spotlight_get_shortcut,
             commands::spotlight_hide,
         ])
+        .plugin(tauri_nspanel::init())
         .setup(move |app| {
             app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
@@ -123,7 +124,8 @@ pub async fn serve<A: tauri::Assets>(context: tauri::Context<A>, db_path: String
                     })
             });
             spotlight::init(&window).unwrap();
-            spotlight::register_shortcut(&window, &shortcut.to_macos_shortcut()).unwrap();
+            spotlight::register_shortcut(app.handle().clone(), &shortcut.to_macos_shortcut())
+                .unwrap();
 
             Ok(())
         })
