@@ -28,7 +28,7 @@ function getMeta(stack: Stack, item: Item, content: Content): MetaValue[] {
       value: (
         <a
           onClick={(e) => {
-            e.preventDefault;
+            e.preventDefault();
             invoke("store_new_note", {
               stackId: null,
               content: item.id,
