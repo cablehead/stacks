@@ -83,7 +83,7 @@ utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
   <tr></tr>
   <tr><td>Reset nav (clears filter and brings focus to the top)</td><td><code>&#8984; + 0</code></td></tr>
   <tr><th colspan="2" align="left">Item Manipulation</th></tr>
-  <tr><td>Move an item down</td><td><code>&#8984; + &#8595;</code></code></td></tr>
+  <tr><td>Move an item down</td><td><code>&#8984; + &#8595;</code></td></tr>
   <tr></tr>
   <tr><td>Move an item up</td><td><code>&#8984; + &#8593;</code></td></tr>
   <tr></tr>
