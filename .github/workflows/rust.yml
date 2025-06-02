@@ -23,11 +23,14 @@ jobs:
     - uses: actions/checkout@v4
 
     - name: Install Linux dependencies
-      if: matrix.os == 'ubuntu-latest'
+      if: matrix.os == 'ubuntu-22.04'
       run: |
-        # https://github.com/tauri-apps/tauri/issues/9662
         sudo apt-get update
-        sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf
+        sudo apt-get install -y libwebkit2gtk-4.0-dev libwebkit2gtk-4.1-dev libappindicator3-dev librsvg2-dev patchelf \
+                                libgdk-pixbuf2.0-dev libatk1.0-dev
+    - name: Set PKG_CONFIG_PATH for Linux
+      if: matrix.os == 'ubuntu-22.04'
+      run: echo "PKG_CONFIG_PATH=/usr/lib/x86_64-linux-gnu/pkgconfig:/usr/share/pkgconfig" >> $GITHUB_ENV
 
     - name: Build
       run: cargo build --verbose
