@@ -316,6 +316,12 @@ impl Store {
 
             match (hash, meta) {
                 (Ok(hash), Ok(meta)) => {
+                    // Skip content metadata if CAS content no longer exists
+                    if self.cas_read(&hash).is_none() {
+                        tracing::warn!("Skipping content metadata for missing CAS entry: {}", hash);
+                        continue;
+                    }
+
                     if meta.mime_type == MimeType::TextPlain
                         && meta.tiktokens == 0
                         && !meta.terse.is_empty()
@@ -331,7 +337,20 @@ impl Store {
         }
 
         self.scan()
-            .filter(|p| p.packet_type == PacketType::Update || p.packet_type == PacketType::Add)
+            .filter(|p| {
+                // Filter packets that reference missing CAS content
+                if let Some(hash) = &p.hash {
+                    if self.cas_read(hash).is_none() {
+                        tracing::warn!(
+                            "Skipping packet {} with missing CAS content: {}",
+                            p.id,
+                            hash
+                        );
+                        return false;
+                    }
+                }
+                p.packet_type == PacketType::Update || p.packet_type == PacketType::Add
+            })
             .for_each(|p| {
                 let meta = p.hash.and_then(|hash| content_meta_cache.get_mut(&hash));
                 if let (Some(meta), Some(content_type)) = (meta, p.content_type) {
@@ -401,6 +420,21 @@ impl Store {
 
     pub fn cas_read(&self, hash: &Integrity) -> Option<Vec<u8>> {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn purge(&mut self, hash: &Integrity) -> Result<(), Box<dyn std::error::Error>> {
+        // Remove from CAS storage
+        cacache::remove_hash_sync(&self.cache_path, hash)?;
+
+        // Remove from content metadata
+        let hash_bytes = bincode::serialize(hash)?;
+        self.content_meta.remove(hash_bytes)?;
+
+        // Remove from in-memory cache
+        self.content_meta_cache.remove(hash);
+
+        Ok(())
     }
 
     pub fn update_tiktokens(&mut self, hash: ssri::Integrity, tiktokens: usize) {
