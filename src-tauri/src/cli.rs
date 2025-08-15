@@ -17,11 +17,11 @@ struct Args {
     id: Option<String>,
 
     /// output metadata, instead of content
-    #[clap(long, action = clap::ArgAction::SetTrue, group = "output")]
+    #[clap(long, action = clap::ArgAction::SetTrue)]
     meta: bool,
 
     /// output in HTML format
-    #[clap(long, action = clap::ArgAction::SetTrue, group = "output")]
+    #[clap(long, action = clap::ArgAction::SetTrue)]
     html: bool,
 }
 
@@ -87,8 +87,8 @@ async fn handle_cas_command(
 
     let (method, uri) = match &command {
         CasCommand::List => (Method::GET, "/cas".to_string()),
-        CasCommand::Get { hash } => (Method::GET, format!("/cas/{}", hash)),
-        CasCommand::Purge { hash } => (Method::DELETE, format!("/cas/{}", hash)),
+        CasCommand::Get { hash } => (Method::GET, format!("/cas/{hash}")),
+        CasCommand::Purge { hash } => (Method::DELETE, format!("/cas/{hash}")),
     };
 
     let request = Request::builder()
@@ -115,16 +115,19 @@ async fn handle_cas_command(
                 }
             }
 
-            let body_str = String::from_utf8(body_bytes).expect("Invalid UTF-8");
+            let body_str = String::from_utf8(body_bytes.clone()).unwrap_or_else(|_| {
+                eprintln!("Server returned invalid UTF-8");
+                String::from_utf8_lossy(&body_bytes).to_string()
+            });
             match serde_json::from_str::<Vec<String>>(&body_str) {
                 Ok(hashes) => {
                     for hash in hashes {
-                        println!("{}", hash);
+                        println!("{hash}");
                     }
                 }
                 Err(e) => {
-                    eprintln!("Failed to parse JSON response: {}", e);
-                    eprintln!("Raw response: {}", body_str);
+                    eprintln!("Failed to parse JSON response: {e}");
+                    eprintln!("Raw response: {body_str}");
                 }
             }
         }

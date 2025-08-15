@@ -85,7 +85,9 @@ async fn handle_cas(method: &Method, path: &str, state: SharedState) -> HTTPResu
 async fn get_cas_list(state: SharedState) -> HTTPResult {
     let hashes = state.with_lock(|state| state.store.enumerate_cas());
 
-    let json_response = serde_json::to_string(&hashes).unwrap();
+    // Convert Integrity objects to strings for JSON serialization
+    let hash_strings: Vec<String> = hashes.iter().map(|h| h.to_string()).collect();
+    let json_response = serde_json::to_string(&hash_strings).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)
@@ -136,14 +138,14 @@ async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPRe
 
     match result {
         Ok(_) => {
-            let response_body = format!("Purged content with hash: {}", hash);
+            let response_body = format!("Purged content with hash: {hash}");
             Ok(Response::builder()
                 .status(StatusCode::OK)
                 .header("Content-Type", "text/plain")
                 .body(full(response_body))?)
         }
         Err(e) => {
-            let error_body = format!("Error purging content: {}", e);
+            let error_body = format!("Error purging content: {e}");
             Ok(Response::builder()
                 .status(StatusCode::INTERNAL_SERVER_ERROR)
                 .header("Content-Type", "text/plain")
