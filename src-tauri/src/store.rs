@@ -437,6 +437,13 @@ impl Store {
         Ok(())
     }
 
+    #[tracing::instrument(skip_all)]
+    pub fn enumerate_cas(&self) -> Vec<ssri::Integrity> {
+        // Since we use cacache::write_hash_sync (no key), list_sync won't find entries.
+        // Instead, enumerate from our content metadata cache, which tracks all CAS hashes.
+        self.content_meta_cache.keys().cloned().collect()
+    }
+
     pub fn update_tiktokens(&mut self, hash: ssri::Integrity, tiktokens: usize) {
         if let Some(meta) = self.content_meta_cache.get(&hash) {
             let mut meta = meta.clone();

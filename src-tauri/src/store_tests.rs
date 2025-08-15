@@ -156,3 +156,37 @@ fn test_purge() {
     assert!(store.cas_read(&new_hash).is_some());
     assert!(store.get_content_meta(&new_hash).is_some());
 }
+
+#[test]
+fn test_enumerate_cas() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let mut store = Store::new(temp_dir.path().to_str().unwrap());
+
+    let stack_id = scru128::new();
+
+    // Add some content
+    let content1 = b"First content";
+    let packet1 = store.add(content1, MimeType::TextPlain, stack_id);
+    let hash1 = packet1.hash.unwrap();
+
+    let content2 = b"Second content";
+    let packet2 = store.add(content2, MimeType::TextPlain, stack_id);
+    let hash2 = packet2.hash.unwrap();
+
+    // Enumerate CAS entries
+    let cas_hashes = store.enumerate_cas();
+
+    // Should contain both hashes
+    assert!(cas_hashes.contains(&hash1));
+    assert!(cas_hashes.contains(&hash2));
+    assert_eq!(cas_hashes.len(), 2);
+
+    // Purge one entry
+    store.purge(&hash1).unwrap();
+
+    // Enumerate again - should only have one hash now
+    let cas_hashes_after_purge = store.enumerate_cas();
+    assert!(!cas_hashes_after_purge.contains(&hash1));
+    assert!(cas_hashes_after_purge.contains(&hash2));
+    assert_eq!(cas_hashes_after_purge.len(), 1);
+}
