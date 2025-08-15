@@ -29,10 +29,6 @@ async fn handle(
     req: Request<hyper::body::Incoming>,
 ) -> HTTPResult {
     let path = req.uri().path();
-    let id_option = match path.strip_prefix('/') {
-        Some("") | None => None, // Path is "/" or empty
-        Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
-    };
 
     use std::collections::HashMap;
     let params: HashMap<String, String> = req
@@ -47,10 +43,112 @@ async fn handle(
 
     let as_html = params.contains_key("as-html");
 
+    // Handle CAS routes
+    if path.starts_with("/cas") {
+        return handle_cas(req.method(), path, state).await;
+    }
+
+    // Handle legacy routes
+    let id_option = match path.strip_prefix('/') {
+        Some("") | None => None, // Path is "/" or empty
+        Some(id_str) => scru128::Scru128Id::from_str(id_str).ok(),
+    };
+
     match (req.method(), id_option) {
         (&Method::GET, id) => get(id, state, as_html).await,
         (&Method::POST, None) if path == "/" => post(req, state, app_handle).await,
         _ => response_404(),
+    }
+}
+
+async fn handle_cas(method: &Method, path: &str, state: SharedState) -> HTTPResult {
+    match (method, path) {
+        (&Method::GET, "/cas") => get_cas_list(state).await,
+        (&Method::GET, path) if path.starts_with("/cas/") => {
+            let hash_str = &path[5..]; // Remove "/cas/" prefix
+            match ssri::Integrity::from_str(hash_str) {
+                Ok(hash) => get_cas_content(state, hash).await,
+                Err(_) => response_404(),
+            }
+        }
+        (&Method::DELETE, path) if path.starts_with("/cas/") => {
+            let hash_str = &path[5..]; // Remove "/cas/" prefix
+            match ssri::Integrity::from_str(hash_str) {
+                Ok(hash) => delete_cas_content(state, hash).await,
+                Err(_) => response_404(),
+            }
+        }
+        _ => response_404(),
+    }
+}
+
+async fn get_cas_list(state: SharedState) -> HTTPResult {
+    let hashes = state.with_lock(|state| state.store.enumerate_cas());
+
+    let json_response = serde_json::to_string(&hashes).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
+}
+
+async fn get_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
+    let (content, meta) = state.with_lock(|state| {
+        let content = state.store.cas_read(&hash);
+        let meta = state.store.get_content_meta(&hash);
+        (content, meta)
+    });
+
+    match content {
+        Some(_content_bytes) => {
+            let cache_path = state.with_lock(|state| state.store.cache_path.clone());
+            let reader = cacache::Reader::open_hash(cache_path, hash.clone())
+                .await
+                .unwrap();
+
+            let stream = tokio_util::io::ReaderStream::new(reader);
+            let stream = stream
+                .map_ok(Frame::data)
+                .map_err(|e| Box::new(e) as BoxError);
+            let body = BodyExt::boxed(StreamBody::new(stream));
+
+            let content_type = match meta {
+                Some(ref meta) => match meta.mime_type {
+                    MimeType::TextPlain => "text/plain",
+                    MimeType::ImagePng => "image/png",
+                },
+                None => "application/octet-stream",
+            };
+
+            Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", content_type)
+                .header("X-Stacks-CAS-Hash", hash.to_string())
+                .body(body)?)
+        }
+        None => response_404(),
+    }
+}
+
+async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
+    let result = state.with_lock(|state| state.store.purge(&hash));
+
+    match result {
+        Ok(_) => {
+            let response_body = format!("Purged content with hash: {}", hash);
+            Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "text/plain")
+                .body(full(response_body))?)
+        }
+        Err(e) => {
+            let error_body = format!("Error purging content: {}", e);
+            Ok(Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .header("Content-Type", "text/plain")
+                .body(full(error_body))?)
+        }
     }
 }
 

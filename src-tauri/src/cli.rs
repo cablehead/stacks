@@ -4,13 +4,15 @@ use std::path::Path;
 use http_body_util::BodyExt;
 use hyper_util::rt::TokioIo;
 
-use clap::{ArgGroup, Parser};
+use clap::{Parser, Subcommand};
 
 #[derive(Parser, Debug, Clone)]
 #[clap(author, version, about, long_about = None)]
-#[clap(group(ArgGroup::new("output").args(&["meta", "html"]).required(false)))]
 struct Args {
-    /// clip id to retrieve
+    #[clap(subcommand)]
+    command: Option<Commands>,
+
+    /// clip id to retrieve (when no subcommand is used)
     #[clap(value_parser)]
     id: Option<String>,
 
@@ -23,6 +25,25 @@ struct Args {
     html: bool,
 }
 
+#[derive(Subcommand, Debug, Clone)]
+enum Commands {
+    /// Content-Addressable Storage operations
+    Cas {
+        #[clap(subcommand)]
+        command: CasCommand,
+    },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum CasCommand {
+    /// List all CAS hashes
+    List,
+    /// Get content by hash
+    Get { hash: String },
+    /// Purge content by hash
+    Purge { hash: String },
+}
+
 pub async fn cli(db_path: &str) {
     let args = Args::parse();
 
@@ -32,10 +53,7 @@ pub async fn cli(db_path: &str) {
         .expect("Failed to connect to server");
     let io = TokioIo::new(stream);
 
-    use bytes::Bytes;
-    use http_body_util::Empty;
     use hyper::client::conn;
-    use hyper::{Request, StatusCode};
 
     let (mut request_sender, connection) = conn::http1::handshake(io).await.unwrap();
 
@@ -46,7 +64,105 @@ pub async fn cli(db_path: &str) {
         }
     });
 
-    // we should just do a HEAD request if --meta is set
+    match args.command {
+        Some(Commands::Cas { command }) => {
+            handle_cas_command(command, &mut request_sender).await;
+        }
+        None => {
+            // Legacy behavior for backward compatibility
+            handle_legacy_request(args, &mut request_sender).await;
+        }
+    }
+}
+
+async fn handle_cas_command(
+    command: CasCommand,
+    request_sender: &mut hyper::client::conn::http1::SendRequest<
+        http_body_util::Empty<bytes::Bytes>,
+    >,
+) {
+    use bytes::Bytes;
+    use http_body_util::Empty;
+    use hyper::{Method, Request, StatusCode};
+
+    let (method, uri) = match &command {
+        CasCommand::List => (Method::GET, "/cas".to_string()),
+        CasCommand::Get { hash } => (Method::GET, format!("/cas/{}", hash)),
+        CasCommand::Purge { hash } => (Method::DELETE, format!("/cas/{}", hash)),
+    };
+
+    let request = Request::builder()
+        .method(method)
+        .uri(uri)
+        .body(Empty::<Bytes>::new())
+        .unwrap();
+
+    let mut res = request_sender.send_request(request).await.unwrap();
+
+    if res.status() != StatusCode::OK {
+        eprintln!("Request failed with status: {}", res.status());
+        return;
+    }
+
+    match command {
+        CasCommand::List => {
+            // Parse JSON response and output one hash per line
+            let mut body_bytes = Vec::new();
+            while let Some(next) = res.frame().await {
+                let frame = next.expect("Error reading frame");
+                if let Some(chunk) = frame.data_ref() {
+                    body_bytes.extend_from_slice(chunk);
+                }
+            }
+
+            let body_str = String::from_utf8(body_bytes).expect("Invalid UTF-8");
+            match serde_json::from_str::<Vec<String>>(&body_str) {
+                Ok(hashes) => {
+                    for hash in hashes {
+                        println!("{}", hash);
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to parse JSON response: {}", e);
+                    eprintln!("Raw response: {}", body_str);
+                }
+            }
+        }
+        CasCommand::Get { .. } => {
+            // Stream content to stdout
+            while let Some(next) = res.frame().await {
+                let frame = next.expect("Error reading frame");
+                if let Some(chunk) = frame.data_ref() {
+                    std::io::stdout()
+                        .write_all(chunk)
+                        .expect("Error writing to stdout");
+                }
+            }
+        }
+        CasCommand::Purge { .. } => {
+            // Output success/error message
+            while let Some(next) = res.frame().await {
+                let frame = next.expect("Error reading frame");
+                if let Some(chunk) = frame.data_ref() {
+                    std::io::stdout()
+                        .write_all(chunk)
+                        .expect("Error writing to stdout");
+                }
+            }
+        }
+    }
+}
+
+async fn handle_legacy_request(
+    args: Args,
+    request_sender: &mut hyper::client::conn::http1::SendRequest<
+        http_body_util::Empty<bytes::Bytes>,
+    >,
+) {
+    use bytes::Bytes;
+    use http_body_util::Empty;
+    use hyper::{Request, StatusCode};
+
     let request = Request::builder()
         .method("GET")
         .uri(&format!(
