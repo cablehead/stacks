@@ -134,7 +134,14 @@ async fn get_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResul
 }
 
 async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
-    let result = state.with_lock(|state| state.store.purge(&hash));
+    let result = state.with_lock(|state| {
+        let purge_result = state.store.purge(&hash);
+        if purge_result.is_ok() {
+            // Rescan to clean up any dangling references after purge
+            state.rescan(None);
+        }
+        purge_result
+    });
 
     match result {
         Ok(_) => {

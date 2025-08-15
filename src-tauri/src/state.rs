@@ -87,6 +87,18 @@ impl State {
         self.ui.refresh_view(&self.view);
         let _ = self.packet_sender.send(self.view.clone());
     }
+
+    pub fn rescan(&mut self, focus_item_id: Option<Scru128Id>) {
+        let mut view = View::new();
+        self.store.scan().for_each(|p| view.merge(&p));
+        let mut ui = UI::new(&view);
+        if let Some(id) = focus_item_id {
+            ui.select(view.get_focus_for_id(&id));
+        }
+        self.view = view;
+        self.ui = ui;
+        let _ = self.packet_sender.send(self.view.clone());
+    }
 }
 
 pub type SharedState = Arc<TracingMutexSpan<State>>;

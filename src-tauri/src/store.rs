@@ -337,20 +337,7 @@ impl Store {
         }
 
         self.scan()
-            .filter(|p| {
-                // Filter packets that reference missing CAS content
-                if let Some(hash) = &p.hash {
-                    if self.cas_read(hash).is_none() {
-                        tracing::warn!(
-                            "Skipping packet {} with missing CAS content: {}",
-                            p.id,
-                            hash
-                        );
-                        return false;
-                    }
-                }
-                p.packet_type == PacketType::Update || p.packet_type == PacketType::Add
-            })
+            .filter(|p| p.packet_type == PacketType::Update || p.packet_type == PacketType::Add)
             .for_each(|p| {
                 let meta = p.hash.and_then(|hash| content_meta_cache.get_mut(&hash));
                 if let (Some(meta), Some(content_type)) = (meta, p.content_type) {
@@ -463,10 +450,20 @@ impl Store {
         self.packets.insert(packet.id.to_bytes(), encoded).unwrap();
     }
 
-    pub fn scan(&self) -> impl Iterator<Item = Packet> {
+    pub fn scan(&self) -> impl Iterator<Item = Packet> + use<'_> {
         self.packets
             .iter()
             .filter_map(|item| item.ok().and_then(|(_, value)| deserialize_packet(&value)))
+            .filter(|packet| {
+                // Skip packets with dangling CAS hashes
+                if let Some(hash) = &packet.hash {
+                    if self.cas_read(hash).is_none() {
+                        tracing::warn!("Skipping packet with missing CAS content: {}", hash);
+                        return false;
+                    }
+                }
+                true
+            })
     }
 
     pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
