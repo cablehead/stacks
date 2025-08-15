@@ -19,7 +19,7 @@ fn assert_view_as_expected(
         .iter()
         .filter_map(|item| {
             let children = view
-                .children(&item)
+                .children(item)
                 .iter()
                 .filter_map(|child_id| {
                     view.items

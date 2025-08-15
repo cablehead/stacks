@@ -242,7 +242,7 @@ pub fn start(app_handle: tauri::AppHandle, state: SharedState, db_path: &str) {
                         // Silently ignore the NotConnected error
                     } else {
                         // Handle or log other errors
-                        println!("Error serving connection: {:?}", err);
+                        println!("Error serving connection: {err:?}");
                     }
                 }
             });

@@ -130,7 +130,7 @@ pub async fn store_pipe_stack_to_shell(
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
                 Some(mime_type) => {
-                    eprintln!("mime_type: {:?}", mime_type);
+                    eprintln!("mime_type: {mime_type:?}");
                     todo!()
                 }
             };
@@ -365,7 +365,7 @@ pub async fn store_pipe_to_command(
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
                 Some(mime_type) => {
-                    eprintln!("mime_type: {:?}", mime_type);
+                    eprintln!("mime_type: {mime_type:?}");
                     todo!()
                 }
             };

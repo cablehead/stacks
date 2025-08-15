@@ -36,7 +36,7 @@ fn test_update() {
 
     let updated_content = b"Hello, updated world!";
     let update_packet = store.update(
-        packet.id.clone(),
+        packet.id,
         Some(updated_content),
         MimeType::TextPlain,
         None,
@@ -70,7 +70,7 @@ fn test_fork() {
 
     let forked_content = b"Hello, forked world!";
     let forked_packet = store.fork(
-        packet.id.clone(),
+        packet.id,
         Some(forked_content),
         MimeType::TextPlain,
         None,
@@ -99,7 +99,7 @@ fn test_delete() {
     let mut store = Store::new(path);
     let content = b"Hello, world!";
     let packet = store.add_stack(content, StackLockStatus::Unlocked);
-    let delete_packet = store.delete(packet.id.clone());
+    let delete_packet = store.delete(packet.id);
     let stored_delete_packet = store.scan().last().unwrap();
     assert_eq!(delete_packet, stored_delete_packet);
 }

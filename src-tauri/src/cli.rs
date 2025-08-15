@@ -42,7 +42,7 @@ pub async fn cli(db_path: &str) {
     // spawn a task to poll the connection and drive the HTTP state
     tokio::spawn(async move {
         if let Err(e) = connection.await {
-            eprintln!("Error in connection: {}", e);
+            eprintln!("Error in connection: {e}");
         }
     });
 

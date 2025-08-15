@@ -81,7 +81,7 @@ fn test_ui_render() {
         .map(|i| {
             state
                 .store
-                .add_stack(format!("Stack {}", i).as_bytes(), StackLockStatus::Unlocked)
+                .add_stack(format!("Stack {i}").as_bytes(), StackLockStatus::Unlocked)
                 .id
         })
         .collect();
