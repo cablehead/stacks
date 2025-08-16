@@ -96,7 +96,7 @@ utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
 
 ## CLI
 
-Stacks includes a command-line interface for programmatic access. First, symlink the app binary to your PATH:
+Stacks includes a command-line interface for programmatic access. [First](https://stacks.cross.stream/releases/v0.15.6#xs-setup), symlink the app binary to your PATH:
 
 ```bash
 ln -s /Applications/Stacks.app/Contents/MacOS/Stacks ~/.local/bin/stacks
@@ -117,7 +117,7 @@ ln -s /Applications/Stacks.app/Contents/MacOS/Stacks ~/.local/bin/stacks
   <tr><td>Purge content by hash</td><td><code>stacks cas purge {hash}</code></td></tr>
 </table>
 
-*`stacks search` supports [Tantivy QueryParser](https://docs.rs/tantivy/latest/tantivy/query/struct.QueryParser.html) syntax: plain terms (`foo`), phrases (`"exact phrase"`), and boolean logic (`foo AND bar NOT baz`).*
+\*`stacks search` supports [Tantivy QueryParser](https://docs.rs/tantivy/latest/tantivy/query/struct.QueryParser.html) syntax: plain terms (`foo`), phrases (`"exact phrase"`), and boolean logic (`foo AND bar NOT baz`).*
 
 ## Development
 
