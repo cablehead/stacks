@@ -23,10 +23,48 @@ pub struct State {
 }
 
 impl State {
+    fn garbage_collect_delete_packet(store: &mut Store, packet: &Packet) {
+        if let Some(source_id) = packet.source_id {
+            if let Some(original_packet) = store.get_packet(&source_id) {
+                // If original packet has CAS content, purge it
+                if let Some(hash) = &original_packet.hash {
+                    if let Err(e) = store.purge(hash) {
+                        tracing::warn!("Failed to purge CAS content during GC: {}", e);
+                    }
+                }
+                // Remove original packet
+                store.remove_packet(&source_id);
+            }
+            // Remove delete packet
+            store.remove_packet(&packet.id);
+        }
+    }
+
     pub fn new(db_path: &str, packet_sender: Sender<View>) -> Self {
-        let store = Store::new(db_path);
+        let mut store = Store::new(db_path);
         let mut view = View::new();
-        store.scan().for_each(|p| view.merge(&p));
+        let mut delete_packets = Vec::new();
+
+        store.scan().for_each(|p| {
+            // Collect delete packets for garbage collection
+            if p.packet_type == crate::store::PacketType::Delete {
+                delete_packets.push(p.clone());
+            }
+
+            view.merge(&p);
+        });
+
+        // Garbage collection: process collected delete packets
+        let had_deletes = !delete_packets.is_empty();
+        for packet in delete_packets {
+            Self::garbage_collect_delete_packet(&mut store, &packet);
+        }
+
+        // Rebuild view after garbage collection to remove dangling references
+        if had_deletes {
+            view = View::new();
+            store.scan().for_each(|p| view.merge(&p));
+        }
 
         let ui = UI::new(&view);
         let state = Self {
@@ -85,6 +123,18 @@ impl State {
     pub fn merge(&mut self, packet: &Packet) {
         self.view.merge(packet);
         self.ui.refresh_view(&self.view);
+        let _ = self.packet_sender.send(self.view.clone());
+    }
+
+    pub fn rescan(&mut self, focus_item_id: Option<Scru128Id>) {
+        let mut view = View::new();
+        self.store.scan().for_each(|p| view.merge(&p));
+        let mut ui = UI::new(&view);
+        if let Some(id) = focus_item_id {
+            ui.select(view.get_focus_for_id(&id));
+        }
+        self.view = view;
+        self.ui = ui;
         let _ = self.packet_sender.send(self.view.clone());
     }
 }

@@ -81,7 +81,7 @@ fn test_ui_render() {
         .map(|i| {
             state
                 .store
-                .add_stack(format!("Stack {}", i).as_bytes(), StackLockStatus::Unlocked)
+                .add_stack(format!("Stack {i}").as_bytes(), StackLockStatus::Unlocked)
                 .id
         })
         .collect();
@@ -105,7 +105,7 @@ fn test_ui_render() {
     assert_nav_as_expected!(&state.ui.render(&state.store), (None, None));
 
     // post initial merge state
-    state.store.scan().for_each(|p| state.merge(&p));
+    state.rescan(None);
     assert_nav_as_expected!(
         &state.ui.render(&state.store),
         (
@@ -395,7 +395,7 @@ fn test_ui_generate_preview() {
         .update_content_type(nushell_packet.hash.clone().unwrap(), "Nushell".to_string());
 
     // Scan and merge to update the state
-    state.store.scan().for_each(|p| state.merge(&p));
+    state.rescan(None);
 
     // Test Rust preview generation
     let rust_content = state

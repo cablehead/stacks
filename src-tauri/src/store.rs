@@ -172,6 +172,7 @@ pub struct Index {
     hash_field: tantivy::schema::Field,
     writer: tantivy::IndexWriter,
     reader: tantivy::IndexReader,
+    index: tantivy::Index,
 }
 
 impl Index {
@@ -192,6 +193,7 @@ impl Index {
             hash_field,
             writer,
             reader,
+            index,
         }
     }
 
@@ -207,26 +209,31 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
-    #[cfg(test)]
-    pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
-        use tantivy::schema::Value;
-        let term = tantivy::schema::Term::from_field_text(self.content_field, query);
-        let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
+    pub fn query(
+        &self,
+        q: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<(ssri::Integrity, f32)>, Box<dyn std::error::Error>> {
+        // Build a QueryParser that targets the `content` field
+        let parser = tantivy::query::QueryParser::for_index(&self.index, vec![self.content_field]);
+        let query = parser.parse_query(q)?;
 
         let searcher = self.reader.searcher();
-        let top_docs = searcher
-            .search(&query, &tantivy::collector::TopDocs::with_limit(10000))
-            .unwrap();
+        let max = limit.unwrap_or(10_000);
+        let top_docs = searcher.search(&query, &tantivy::collector::TopDocs::with_limit(max))?;
 
-        top_docs
+        let results = top_docs
             .into_iter()
-            .map(|(_, doc_address)| {
+            .map(|(score, doc_address)| {
+                use tantivy::schema::Value;
                 let doc: tantivy::TantivyDocument = searcher.doc(doc_address).unwrap();
                 let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
                 let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
-                hash
+                (hash, score)
             })
-            .collect()
+            .collect();
+
+        Ok(results)
     }
 }
 
@@ -316,6 +323,12 @@ impl Store {
 
             match (hash, meta) {
                 (Ok(hash), Ok(meta)) => {
+                    // Skip content metadata if CAS content no longer exists
+                    if self.cas_read(&hash).is_none() {
+                        tracing::warn!("Skipping content metadata for missing CAS entry: {}", hash);
+                        continue;
+                    }
+
                     if meta.mime_type == MimeType::TextPlain
                         && meta.tiktokens == 0
                         && !meta.terse.is_empty()
@@ -403,6 +416,28 @@ impl Store {
         cacache::read_hash_sync(&self.cache_path, hash).ok()
     }
 
+    #[tracing::instrument(skip_all)]
+    pub fn purge(&mut self, hash: &Integrity) -> Result<(), Box<dyn std::error::Error>> {
+        // Remove from CAS storage
+        cacache::remove_hash_sync(&self.cache_path, hash)?;
+
+        // Remove from content metadata
+        let hash_bytes = bincode::serialize(hash)?;
+        self.content_meta.remove(hash_bytes)?;
+
+        // Remove from in-memory cache
+        self.content_meta_cache.remove(hash);
+
+        Ok(())
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn enumerate_cas(&self) -> Vec<ssri::Integrity> {
+        // Since we use cacache::write_hash_sync (no key), list_sync won't find entries.
+        // Instead, enumerate from our content metadata cache, which tracks all CAS hashes.
+        self.content_meta_cache.keys().cloned().collect()
+    }
+
     pub fn update_tiktokens(&mut self, hash: ssri::Integrity, tiktokens: usize) {
         if let Some(meta) = self.content_meta_cache.get(&hash) {
             let mut meta = meta.clone();
@@ -422,10 +457,20 @@ impl Store {
         self.packets.insert(packet.id.to_bytes(), encoded).unwrap();
     }
 
-    pub fn scan(&self) -> impl Iterator<Item = Packet> {
+    pub fn scan(&self) -> impl Iterator<Item = Packet> + use<'_> {
         self.packets
             .iter()
             .filter_map(|item| item.ok().and_then(|(_, value)| deserialize_packet(&value)))
+            .filter(|packet| {
+                // Skip packets with dangling CAS hashes
+                if let Some(hash) = &packet.hash {
+                    if self.cas_read(hash).is_none() {
+                        tracing::warn!("Skipping packet with missing CAS content: {}", hash);
+                        return false;
+                    }
+                }
+                true
+            })
     }
 
     pub fn add(&mut self, content: &[u8], mime_type: MimeType, stack_id: Scru128Id) -> Packet {
@@ -658,6 +703,11 @@ impl Store {
         };
         self.insert_packet(&packet);
         packet
+    }
+
+    pub fn get_packet(&self, id: &Scru128Id) -> Option<Packet> {
+        let value = self.packets.get(id.to_bytes()).unwrap();
+        value.and_then(|value| deserialize_packet(&value))
     }
 
     pub fn remove_packet(&self, id: &Scru128Id) -> Option<Packet> {

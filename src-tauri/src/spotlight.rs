@@ -76,7 +76,7 @@ pub fn register_shortcut(app: AppHandle<Wry>, shortcut: &str) -> Result<(), Erro
     shortcut_manager
         .register(shortcut, move || {
             let panel = app.get_panel("main").unwrap_or_else(|e| {
-                eprintln!("Failed to get panel: {:?}", e);
+                eprintln!("Failed to get panel: {e:?}");
                 panic!("Panel not found")
             });
 

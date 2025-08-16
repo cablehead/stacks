@@ -35,12 +35,7 @@ fn test_update() {
     let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
     let updated_content = b"Hello, updated world!";
-    let update_packet = store.update(
-        packet.id.clone(),
-        Some(updated_content),
-        MimeType::TextPlain,
-        None,
-    );
+    let update_packet = store.update(packet.id, Some(updated_content), MimeType::TextPlain, None);
 
     let stored_update_packet = store.scan().last().unwrap();
     assert_eq!(update_packet, stored_update_packet);
@@ -69,12 +64,7 @@ fn test_fork() {
     let packet = store.add_stack(content, StackLockStatus::Unlocked);
 
     let forked_content = b"Hello, forked world!";
-    let forked_packet = store.fork(
-        packet.id.clone(),
-        Some(forked_content),
-        MimeType::TextPlain,
-        None,
-    );
+    let forked_packet = store.fork(packet.id, Some(forked_content), MimeType::TextPlain, None);
 
     let stored_fork_packet = store.scan().last().unwrap();
     assert_eq!(forked_packet, stored_fork_packet);
@@ -99,7 +89,7 @@ fn test_delete() {
     let mut store = Store::new(path);
     let content = b"Hello, world!";
     let packet = store.add_stack(content, StackLockStatus::Unlocked);
-    let delete_packet = store.delete(packet.id.clone());
+    let delete_packet = store.delete(packet.id);
     let stored_delete_packet = store.scan().last().unwrap();
     assert_eq!(delete_packet, stored_delete_packet);
 }
@@ -119,10 +109,10 @@ fn test_query() {
     store.add_stack(content2, StackLockStatus::Unlocked);
     store.add_stack(content3, StackLockStatus::Unlocked);
 
-    let results = store.index.query("fzzy");
+    let results = store.index.query("fuzzy", None).unwrap();
     let results: Vec<_> = results
         .into_iter()
-        .map(|hash| store.cas_read(&hash).unwrap())
+        .map(|(hash, _score)| store.cas_read(&hash).unwrap())
         .collect();
     assert_eq!(results, vec![b"Hello, fuzzy world!".to_vec()]);
 }
@@ -131,4 +121,72 @@ fn test_query() {
 fn test_is_valid_https_url() {
     assert!(is_valid_https_url(b"https://www.example.com"));
     assert!(!is_valid_https_url(b"Good afternoon"));
+}
+
+#[test]
+fn test_purge() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let mut store = Store::new(temp_dir.path().to_str().unwrap());
+
+    let content = b"SECRET_KEY=super_secret_value";
+    let stack_id = scru128::new();
+    let packet = store.add(content, MimeType::TextPlain, stack_id);
+    let hash = packet.hash.clone().unwrap();
+
+    // Verify content exists before purge
+    assert!(store.cas_read(&hash).is_some());
+    assert!(store.get_content_meta(&hash).is_some());
+
+    // Purge the content
+    store.purge(&hash).unwrap();
+
+    // Verify content is gone after purge
+    assert!(store.cas_read(&hash).is_none());
+    assert!(store.get_content_meta(&hash).is_none());
+
+    // Test that scan_content_meta skips missing content
+    let content_meta_cache = store.scan_content_meta();
+    assert!(!content_meta_cache.contains_key(&hash));
+
+    // Add some new content to verify the store still works
+    let new_content = b"This is safe content";
+    let new_packet = store.add(new_content, MimeType::TextPlain, stack_id);
+    let new_hash = new_packet.hash.unwrap();
+
+    assert!(store.cas_read(&new_hash).is_some());
+    assert!(store.get_content_meta(&new_hash).is_some());
+}
+
+#[test]
+fn test_enumerate_cas() {
+    let temp_dir = tempfile::tempdir().unwrap();
+    let mut store = Store::new(temp_dir.path().to_str().unwrap());
+
+    let stack_id = scru128::new();
+
+    // Add some content
+    let content1 = b"First content";
+    let packet1 = store.add(content1, MimeType::TextPlain, stack_id);
+    let hash1 = packet1.hash.unwrap();
+
+    let content2 = b"Second content";
+    let packet2 = store.add(content2, MimeType::TextPlain, stack_id);
+    let hash2 = packet2.hash.unwrap();
+
+    // Enumerate CAS entries
+    let cas_hashes = store.enumerate_cas();
+
+    // Should contain both hashes
+    assert!(cas_hashes.contains(&hash1));
+    assert!(cas_hashes.contains(&hash2));
+    assert_eq!(cas_hashes.len(), 2);
+
+    // Purge one entry
+    store.purge(&hash1).unwrap();
+
+    // Enumerate again - should only have one hash now
+    let cas_hashes_after_purge = store.enumerate_cas();
+    assert!(!cas_hashes_after_purge.contains(&hash1));
+    assert!(cas_hashes_after_purge.contains(&hash2));
+    assert_eq!(cas_hashes_after_purge.len(), 1);
 }

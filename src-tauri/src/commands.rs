@@ -12,8 +12,7 @@ use crate::state::SharedState;
 use crate::store::{
     InProgressStream, MimeType, Movement, Settings, StackLockStatus, StackSortOrder,
 };
-use crate::ui::{with_meta, Item as UIItem, Nav, UI};
-use crate::view::View;
+use crate::ui::{with_meta, Item as UIItem, Nav};
 
 #[derive(Debug, Clone, serde::Serialize)]
 struct ExecStatus {
@@ -130,7 +129,7 @@ pub async fn store_pipe_stack_to_shell(
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
                 Some(mime_type) => {
-                    eprintln!("mime_type: {:?}", mime_type);
+                    eprintln!("mime_type: {mime_type:?}");
                     todo!()
                 }
             };
@@ -365,7 +364,7 @@ pub async fn store_pipe_to_command(
                 Some("image/png") => (MimeType::ImagePng, "Image".to_string()),
                 Some("text/html") => (MimeType::TextPlain, "HTML".to_string()),
                 Some(mime_type) => {
-                    eprintln!("mime_type: {:?}", mime_type);
+                    eprintln!("mime_type: {mime_type:?}");
                     todo!()
                 }
             };
@@ -914,12 +913,7 @@ pub fn store_undo(app: tauri::AppHandle, state: tauri::State<SharedState>) {
     state.with_lock(|state| {
         if let Some(item) = state.view.undo.clone() {
             state.store.remove_packet(&item.last_touched);
-            let mut view = View::new();
-            state.store.scan().for_each(|p| view.merge(&p));
-            let mut ui = UI::new(&view);
-            ui.select(view.get_focus_for_id(&item.id));
-            state.view = view;
-            state.ui = ui;
+            state.rescan(Some(item.id));
         }
     });
     app.emit_all("refresh-items", true).unwrap();

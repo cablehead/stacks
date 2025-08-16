@@ -154,7 +154,7 @@ fn init_tracing() {
 fn system_tray(version: &str) -> SystemTray {
     let menu = SystemTrayMenu::new()
         .add_item(CustomMenuItem::new("".to_string(), "Stacks").disabled())
-        .add_item(CustomMenuItem::new("".to_string(), format!("Version {}", version)).disabled())
+        .add_item(CustomMenuItem::new("".to_string(), format!("Version {version}")).disabled())
         .add_native_item(tauri::SystemTrayMenuItem::Separator)
         .add_item(CustomMenuItem::new(
             "check-updates".to_string(),

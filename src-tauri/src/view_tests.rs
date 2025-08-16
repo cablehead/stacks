@@ -19,7 +19,7 @@ fn assert_view_as_expected(
         .iter()
         .filter_map(|item| {
             let children = view
-                .children(&item)
+                .children(item)
                 .iter()
                 .filter_map(|child_id| {
                     view.items
@@ -163,7 +163,7 @@ fn test_no_duplicate_entry_on_same_hash() {
     // Add second item with same hash
     let id2 = state.store.add(b"Item 1", MimeType::TextPlain, stack_id).id;
 
-    state.store.scan().for_each(|p| state.merge(&p));
+    state.rescan(None);
 
     // Check that the stack item only has one child and that the item has been updated correctly
     assert_view_as_expected!(&state.store, &state.view, vec![("Stack 1", vec!["Item 1"])]);
