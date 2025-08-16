@@ -53,6 +53,11 @@ async fn handle(
         return get_stacks_list(state).await;
     }
 
+    // Handle stream routes
+    if path == "/stream" && req.method() == Method::GET {
+        return get_packet_stream(state).await;
+    }
+
     // Handle delete routes
     if path.starts_with("/delete") && req.method() == Method::DELETE {
         return handle_delete(path, state, app_handle).await;
@@ -204,6 +209,17 @@ async fn get_stacks_list(state: SharedState) -> HTTPResult {
     });
 
     let json_response = serde_json::to_string(&stacks).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
+}
+
+async fn get_packet_stream(state: SharedState) -> HTTPResult {
+    let packets: Vec<_> = state.with_lock(|state| state.store.scan().collect());
+
+    let json_response = serde_json::to_string(&packets).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)
