@@ -43,6 +43,11 @@ enum Commands {
         #[clap(long)]
         limit: Option<usize>,
     },
+    /// View state operations
+    View {
+        #[clap(subcommand)]
+        command: ViewCommand,
+    },
     /// Content-Addressable Storage operations
     Cas {
         #[clap(subcommand)]
@@ -58,6 +63,14 @@ enum CasCommand {
     Get { hash: String },
     /// Purge content by hash
     Purge { hash: String },
+}
+
+#[derive(Subcommand, Debug, Clone)]
+enum ViewCommand {
+    /// List the complete view structure (JSON)
+    View,
+    /// List only items as JSONL (one item per line)
+    Items,
 }
 
 pub async fn cli(db_path: &str) {
@@ -89,6 +102,9 @@ pub async fn cli(db_path: &str) {
         }
         Some(Commands::Search { query, limit }) => {
             handle_search_command(query, limit, &mut request_sender).await;
+        }
+        Some(Commands::View { command }) => {
+            handle_view_command(command, &mut request_sender).await;
         }
         Some(Commands::Cas { command }) => {
             handle_cas_command(command, &mut request_sender).await;
@@ -253,6 +269,69 @@ async fn handle_search_command(
         Err(e) => {
             eprintln!("Failed to parse JSON response: {e}");
             eprintln!("Raw response: {body_str}");
+        }
+    }
+}
+
+async fn handle_view_command(
+    command: ViewCommand,
+    request_sender: &mut hyper::client::conn::http1::SendRequest<
+        http_body_util::Empty<bytes::Bytes>,
+    >,
+) {
+    use bytes::Bytes;
+    use http_body_util::Empty;
+    use hyper::{Method, Request, StatusCode};
+
+    let uri = match &command {
+        ViewCommand::View => "/view".to_string(),
+        ViewCommand::Items => "/view/items".to_string(),
+    };
+
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri(uri)
+        .body(Empty::<Bytes>::new())
+        .unwrap();
+
+    let mut res = request_sender.send_request(request).await.unwrap();
+
+    if res.status() != StatusCode::OK {
+        eprintln!("Request failed with status: {}", res.status());
+        return;
+    }
+
+    let mut body_bytes = Vec::new();
+    while let Some(next) = res.frame().await {
+        let frame = next.expect("Error reading frame");
+        if let Some(chunk) = frame.data_ref() {
+            body_bytes.extend_from_slice(chunk);
+        }
+    }
+
+    let body_str = String::from_utf8(body_bytes.clone()).unwrap_or_else(|_| {
+        eprintln!("Server returned invalid UTF-8");
+        String::from_utf8_lossy(&body_bytes).to_string()
+    });
+
+    match &command {
+        ViewCommand::View => {
+            // Output the complete view structure as single JSON
+            println!("{body_str}");
+        }
+        ViewCommand::Items => {
+            // Parse JSON array and output each item as JSONL
+            match serde_json::from_str::<Vec<serde_json::Value>>(&body_str) {
+                Ok(items) => {
+                    for item in items {
+                        println!("{}", serde_json::to_string(&item).unwrap());
+                    }
+                }
+                Err(e) => {
+                    eprintln!("Failed to parse JSON response: {e}");
+                    eprintln!("Raw response: {body_str}");
+                }
+            }
         }
     }
 }

@@ -63,6 +63,15 @@ async fn handle(
         return handle_search(req.uri().query(), state).await;
     }
 
+    // Handle view routes
+    if path == "/view" && req.method() == Method::GET {
+        return get_view(state).await;
+    }
+
+    if path == "/view/items" && req.method() == Method::GET {
+        return get_view_items(state).await;
+    }
+
     // Handle delete routes
     if path.starts_with("/delete") && req.method() == Method::DELETE {
         return handle_delete(path, state, app_handle).await;
@@ -268,6 +277,28 @@ async fn handle_search(query_str: Option<&str>, state: SharedState) -> HTTPResul
         .collect();
 
     let json_response = serde_json::to_string(&json_results).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
+}
+
+async fn get_view(state: SharedState) -> HTTPResult {
+    let view = state.with_lock(|state| state.view.clone());
+
+    let json_response = serde_json::to_string(&view).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
+}
+
+async fn get_view_items(state: SharedState) -> HTTPResult {
+    let items: Vec<_> = state.with_lock(|state| state.view.items.values().cloned().collect());
+
+    let json_response = serde_json::to_string(&items).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)
