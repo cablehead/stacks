@@ -68,8 +68,8 @@ async fn handle(
         return get_view(state).await;
     }
 
-    if path == "/view/items" && req.method() == Method::GET {
-        return get_view_items(state).await;
+    if path == "/view/nav" && req.method() == Method::GET {
+        return get_view_nav(state).await;
     }
 
     // Handle delete routes
@@ -295,10 +295,10 @@ async fn get_view(state: SharedState) -> HTTPResult {
         .body(full(json_response))?)
 }
 
-async fn get_view_items(state: SharedState) -> HTTPResult {
-    let items: Vec<_> = state.with_lock(|state| state.view.items.values().cloned().collect());
+async fn get_view_nav(state: SharedState) -> HTTPResult {
+    let nav = state.with_lock(|state| state.ui.render(&state.store));
 
-    let json_response = serde_json::to_string(&items).unwrap();
+    let json_response = serde_json::to_string(&nav).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)

@@ -43,10 +43,10 @@ enum Commands {
         #[clap(long)]
         limit: Option<usize>,
     },
-    /// View state operations
+    /// View complete structure (JSON)
     View {
         #[clap(subcommand)]
-        command: ViewCommand,
+        command: Option<ViewCommand>,
     },
     /// Content-Addressable Storage operations
     Cas {
@@ -67,10 +67,8 @@ enum CasCommand {
 
 #[derive(Subcommand, Debug, Clone)]
 enum ViewCommand {
-    /// List the complete view structure (JSON)
-    View,
-    /// List only items as JSONL (one item per line)
-    Items,
+    /// View current navigation state (JSON)
+    Nav,
 }
 
 pub async fn cli(db_path: &str) {
@@ -274,7 +272,7 @@ async fn handle_search_command(
 }
 
 async fn handle_view_command(
-    command: ViewCommand,
+    command: Option<ViewCommand>,
     request_sender: &mut hyper::client::conn::http1::SendRequest<
         http_body_util::Empty<bytes::Bytes>,
     >,
@@ -284,8 +282,8 @@ async fn handle_view_command(
     use hyper::{Method, Request, StatusCode};
 
     let uri = match &command {
-        ViewCommand::View => "/view".to_string(),
-        ViewCommand::Items => "/view/items".to_string(),
+        None => "/view".to_string(),
+        Some(ViewCommand::Nav) => "/view/nav".to_string(),
     };
 
     let request = Request::builder()
@@ -314,26 +312,8 @@ async fn handle_view_command(
         String::from_utf8_lossy(&body_bytes).to_string()
     });
 
-    match &command {
-        ViewCommand::View => {
-            // Output the complete view structure as single JSON
-            println!("{body_str}");
-        }
-        ViewCommand::Items => {
-            // Parse JSON array and output each item as JSONL
-            match serde_json::from_str::<Vec<serde_json::Value>>(&body_str) {
-                Ok(items) => {
-                    for item in items {
-                        println!("{}", serde_json::to_string(&item).unwrap());
-                    }
-                }
-                Err(e) => {
-                    eprintln!("Failed to parse JSON response: {e}");
-                    eprintln!("Raw response: {body_str}");
-                }
-            }
-        }
-    }
+    // All view commands output JSON directly
+    println!("{body_str}");
 }
 
 async fn handle_cas_command(
