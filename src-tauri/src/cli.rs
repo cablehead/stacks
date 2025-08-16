@@ -27,6 +27,8 @@ struct Args {
 
 #[derive(Subcommand, Debug, Clone)]
 enum Commands {
+    /// List all stacks with full metadata (JSONL format)
+    List,
     /// Content-Addressable Storage operations
     Cas {
         #[clap(subcommand)]
@@ -65,12 +67,64 @@ pub async fn cli(db_path: &str) {
     });
 
     match args.command {
+        Some(Commands::List) => {
+            handle_list_command(&mut request_sender).await;
+        }
         Some(Commands::Cas { command }) => {
             handle_cas_command(command, &mut request_sender).await;
         }
         None => {
             // Legacy behavior for backward compatibility
             handle_legacy_request(args, &mut request_sender).await;
+        }
+    }
+}
+
+async fn handle_list_command(
+    request_sender: &mut hyper::client::conn::http1::SendRequest<
+        http_body_util::Empty<bytes::Bytes>,
+    >,
+) {
+    use bytes::Bytes;
+    use http_body_util::Empty;
+    use hyper::{Method, Request, StatusCode};
+
+    let request = Request::builder()
+        .method(Method::GET)
+        .uri("/stacks")
+        .body(Empty::<Bytes>::new())
+        .unwrap();
+
+    let mut res = request_sender.send_request(request).await.unwrap();
+
+    if res.status() != StatusCode::OK {
+        eprintln!("Request failed with status: {}", res.status());
+        return;
+    }
+
+    // Parse JSON response and output each stack as a line (JSONL format)
+    let mut body_bytes = Vec::new();
+    while let Some(next) = res.frame().await {
+        let frame = next.expect("Error reading frame");
+        if let Some(chunk) = frame.data_ref() {
+            body_bytes.extend_from_slice(chunk);
+        }
+    }
+
+    let body_str = String::from_utf8(body_bytes.clone()).unwrap_or_else(|_| {
+        eprintln!("Server returned invalid UTF-8");
+        String::from_utf8_lossy(&body_bytes).to_string()
+    });
+
+    match serde_json::from_str::<Vec<serde_json::Value>>(&body_str) {
+        Ok(stacks) => {
+            for stack in stacks {
+                println!("{}", serde_json::to_string(&stack).unwrap());
+            }
+        }
+        Err(e) => {
+            eprintln!("Failed to parse JSON response: {e}");
+            eprintln!("Raw response: {body_str}");
         }
     }
 }

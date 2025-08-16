@@ -48,6 +48,11 @@ async fn handle(
         return handle_cas(req.method(), path, state).await;
     }
 
+    // Handle stacks routes
+    if path == "/stacks" && req.method() == Method::GET {
+        return get_stacks_list(state).await;
+    }
+
     // Handle legacy routes
     let id_option = match path.strip_prefix('/') {
         Some("") | None => None, // Path is "/" or empty
@@ -159,6 +164,32 @@ async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPRe
                 .body(full(error_body))?)
         }
     }
+}
+
+async fn get_stacks_list(state: SharedState) -> HTTPResult {
+    let stacks = state.with_lock(|state| {
+        // Find all items that are stacks (stack_id is None)
+        let stack_items: Vec<_> = state
+            .view
+            .items
+            .values()
+            .filter(|item| item.stack_id.is_none())
+            .cloned()
+            .collect();
+
+        // Convert to UI items with full metadata
+        stack_items
+            .into_iter()
+            .map(|item| crate::ui::with_meta(&state.store, &item))
+            .collect::<Vec<_>>()
+    });
+
+    let json_response = serde_json::to_string(&stacks).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
 }
 
 fn get_as_html(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
