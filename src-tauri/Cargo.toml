@@ -1,6 +1,6 @@
 [package]
 name = "stacks"
-version = "0.15.15-dev"
+version = "0.15.16-dev"
 description = "Stacks"
 authors = ["Andy Gayton <andy@thecablelounge.com>"]
 license = ""

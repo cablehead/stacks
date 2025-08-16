@@ -211,19 +211,13 @@ async fn delete_cas_content(
 
 async fn get_stacks_list(state: SharedState) -> HTTPResult {
     let stacks = state.with_lock(|state| {
-        // Find all items that are stacks (stack_id is None)
-        let stack_items: Vec<_> = state
-            .view
-            .items
-            .values()
-            .filter(|item| item.stack_id.is_none())
-            .cloned()
-            .collect();
+        // Use the same sorting logic as the GUI (most recently touched first)
+        let stack_items = state.view.root();
 
         // Convert to UI items with full metadata
         stack_items
             .into_iter()
-            .map(|item| crate::ui::with_meta(&state.store, &item))
+            .map(|item| crate::ui::with_meta(&state.store, item))
             .collect::<Vec<_>>()
     });
 
