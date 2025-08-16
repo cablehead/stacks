@@ -698,6 +698,11 @@ impl Store {
         packet
     }
 
+    pub fn get_packet(&self, id: &Scru128Id) -> Option<Packet> {
+        let value = self.packets.get(id.to_bytes()).unwrap();
+        value.and_then(|value| deserialize_packet(&value))
+    }
+
     pub fn remove_packet(&self, id: &Scru128Id) -> Option<Packet> {
         let removed = self.packets.remove(id.to_bytes()).unwrap();
         removed.and_then(|value| deserialize_packet(&value))
