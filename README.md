@@ -97,7 +97,7 @@ utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
 Stacks includes a command-line interface for programmatic access. First, symlink the app binary to your PATH:
 
 ```bash
-ln -s /Applications/Stacks.app/Contents/MacOS/stacks /usr/local/bin/stacks
+ln -s /Applications/Stacks.app/Contents/MacOS/Stacks ~/.local/bin/stacks
 ```
 
 <table>
