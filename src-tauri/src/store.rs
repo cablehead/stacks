@@ -172,6 +172,7 @@ pub struct Index {
     hash_field: tantivy::schema::Field,
     writer: tantivy::IndexWriter,
     reader: tantivy::IndexReader,
+    index: tantivy::Index,
 }
 
 impl Index {
@@ -192,6 +193,7 @@ impl Index {
             hash_field,
             writer,
             reader,
+            index,
         }
     }
 
@@ -207,26 +209,31 @@ impl Index {
         self.reader.reload().unwrap();
     }
 
-    #[cfg(test)]
-    pub fn query(&self, query: &str) -> HashSet<ssri::Integrity> {
-        use tantivy::schema::Value;
-        let term = tantivy::schema::Term::from_field_text(self.content_field, query);
-        let query = tantivy::query::FuzzyTermQuery::new_prefix(term, 1, true);
+    pub fn query(
+        &self,
+        q: &str,
+        limit: Option<usize>,
+    ) -> Result<Vec<(ssri::Integrity, f32)>, Box<dyn std::error::Error>> {
+        // Build a QueryParser that targets the `content` field
+        let parser = tantivy::query::QueryParser::for_index(&self.index, vec![self.content_field]);
+        let query = parser.parse_query(q)?;
 
         let searcher = self.reader.searcher();
-        let top_docs = searcher
-            .search(&query, &tantivy::collector::TopDocs::with_limit(10000))
-            .unwrap();
+        let max = limit.unwrap_or(10_000);
+        let top_docs = searcher.search(&query, &tantivy::collector::TopDocs::with_limit(max))?;
 
-        top_docs
+        let results = top_docs
             .into_iter()
-            .map(|(_, doc_address)| {
+            .map(|(score, doc_address)| {
+                use tantivy::schema::Value;
                 let doc: tantivy::TantivyDocument = searcher.doc(doc_address).unwrap();
                 let bytes = doc.get_first(self.hash_field).unwrap().as_bytes().unwrap();
                 let hash: ssri::Integrity = bincode::deserialize(bytes).unwrap();
-                hash
+                (hash, score)
             })
-            .collect()
+            .collect();
+
+        Ok(results)
     }
 }
 

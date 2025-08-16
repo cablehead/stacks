@@ -58,6 +58,11 @@ async fn handle(
         return get_packet_stream(state).await;
     }
 
+    // Handle search routes
+    if path == "/search" && req.method() == Method::GET {
+        return handle_search(req.uri().query(), state).await;
+    }
+
     // Handle delete routes
     if path.starts_with("/delete") && req.method() == Method::DELETE {
         return handle_delete(path, state, app_handle).await;
@@ -220,6 +225,49 @@ async fn get_packet_stream(state: SharedState) -> HTTPResult {
     let packets: Vec<_> = state.with_lock(|state| state.store.scan().collect());
 
     let json_response = serde_json::to_string(&packets).unwrap();
+
+    Ok(Response::builder()
+        .status(StatusCode::OK)
+        .header("Content-Type", "application/json")
+        .body(full(json_response))?)
+}
+
+async fn handle_search(query_str: Option<&str>, state: SharedState) -> HTTPResult {
+    let query_str = query_str.unwrap_or("");
+
+    // Parse query parameters
+    let params: std::collections::HashMap<String, String> =
+        url::form_urlencoded::parse(query_str.as_bytes())
+            .into_owned()
+            .collect();
+
+    let query = match params.get("q") {
+        Some(q) => q,
+        None => {
+            return Ok(Response::builder()
+                .status(StatusCode::BAD_REQUEST)
+                .header("Content-Type", "text/plain")
+                .body(full("Missing 'q' parameter"))?);
+        }
+    };
+
+    let limit = params.get("limit").and_then(|l| l.parse::<usize>().ok());
+
+    let results =
+        state.with_lock(|state| state.store.index.query(query, limit).unwrap_or_default());
+
+    // Convert results to JSON format
+    let json_results: Vec<serde_json::Value> = results
+        .into_iter()
+        .map(|(hash, score)| {
+            serde_json::json!({
+                "hash": hash.to_string(),
+                "score": score
+            })
+        })
+        .collect();
+
+    let json_response = serde_json::to_string(&json_results).unwrap();
 
     Ok(Response::builder()
         .status(StatusCode::OK)

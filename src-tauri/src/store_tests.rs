@@ -109,10 +109,10 @@ fn test_query() {
     store.add_stack(content2, StackLockStatus::Unlocked);
     store.add_stack(content3, StackLockStatus::Unlocked);
 
-    let results = store.index.query("fzzy");
+    let results = store.index.query("fuzzy", None).unwrap();
     let results: Vec<_> = results
         .into_iter()
-        .map(|hash| store.cas_read(&hash).unwrap())
+        .map(|(hash, _score)| store.cas_read(&hash).unwrap())
         .collect();
     assert_eq!(results, vec![b"Hello, fuzzy world!".to_vec()]);
 }

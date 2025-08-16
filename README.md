@@ -109,10 +109,13 @@ ln -s /Applications/Stacks.app/Contents/MacOS/Stacks ~/.local/bin/stacks
   <tr><td>Delete specific item</td><td><code>stacks {id} --delete</code></td></tr>
   <tr><td>List all stacks (JSONL)</td><td><code>stacks list</code></td></tr>
   <tr><td>Raw packet stream (JSONL)</td><td><code>stacks stream</code></td></tr>
+  <tr><td>Search content*</td><td><code>stacks search {query} [--limit N]</code></td></tr>
   <tr><td>List CAS hashes</td><td><code>stacks cas list</code></td></tr>
   <tr><td>Get content by hash</td><td><code>stacks cas get {hash}</code></td></tr>
   <tr><td>Purge content by hash</td><td><code>stacks cas purge {hash}</code></td></tr>
 </table>
+
+*`stacks search` supports [Tantivy QueryParser](https://docs.rs/tantivy/latest/tantivy/query/struct.QueryParser.html) syntax: plain terms (`foo`), phrases (`"exact phrase"`), and boolean logic (`foo AND bar NOT baz`).*
 
 ## Development
 
