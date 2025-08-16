@@ -176,25 +176,42 @@ pub struct Index {
 }
 
 impl Index {
-    fn new(path: std::path::PathBuf) -> Index {
+    fn new(path: std::path::PathBuf) -> (Index, bool) {
         let mut schema_builder = tantivy::schema::Schema::builder();
         let content_field = schema_builder.add_text_field("content", tantivy::schema::TEXT);
-        let hash_field = schema_builder.add_bytes_field("hash", tantivy::schema::STORED);
+        let hash_field = schema_builder
+            .add_bytes_field("hash", tantivy::schema::STORED | tantivy::schema::INDEXED);
         let schema = schema_builder.build();
 
         std::fs::create_dir_all(&path).unwrap();
         let dir = tantivy::directory::MmapDirectory::open(&path).unwrap();
-        let index = tantivy::Index::open_or_create(dir, schema).unwrap();
+
+        let (index, needs_rebuild) = match tantivy::Index::open_or_create(dir, schema.clone()) {
+            Ok(index) => (index, false),
+            Err(tantivy::TantivyError::SchemaError(_)) => {
+                // Schema mismatch - delete old index and create new one
+                tracing::info!("Schema mismatch detected, recreating index with new schema");
+                std::fs::remove_dir_all(&path).unwrap();
+                std::fs::create_dir_all(&path).unwrap();
+                let new_index = tantivy::Index::create_in_dir(&path, schema).unwrap();
+                (new_index, true)
+            }
+            Err(e) => panic!("Failed to open/create index: {e}"),
+        };
+
         let writer = index.writer_with_num_threads(1, 15_000_000).unwrap();
         let reader = index.reader().unwrap();
 
-        Index {
-            content_field,
-            hash_field,
-            writer,
-            reader,
-            index,
-        }
+        (
+            Index {
+                content_field,
+                hash_field,
+                writer,
+                reader,
+                index,
+            },
+            needs_rebuild,
+        )
     }
 
     #[tracing::instrument(skip_all)]
@@ -205,6 +222,36 @@ impl Index {
         let bytes = bincode::serialize(&hash).unwrap();
         doc.add_bytes(self.hash_field, bytes);
         self.writer.add_document(doc).unwrap();
+        self.writer.commit().unwrap();
+        self.reader.reload().unwrap();
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn delete(&mut self, hash: &ssri::Integrity) {
+        let bytes = bincode::serialize(&hash).unwrap();
+        let term = tantivy::Term::from_field_bytes(self.hash_field, &bytes);
+        self.writer.delete_term(term);
+        self.writer.commit().unwrap();
+        self.reader.reload().unwrap();
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn clear(&mut self) {
+        self.writer.delete_all_documents().unwrap();
+        self.writer.commit().unwrap();
+        self.reader.reload().unwrap();
+    }
+
+    #[tracing::instrument(skip_all)]
+    fn write_batch(&mut self, items: &[(ssri::Integrity, Vec<u8>)]) {
+        for (hash, content) in items {
+            let content_str = String::from_utf8_lossy(content);
+            let mut doc = tantivy::TantivyDocument::new();
+            doc.add_text(self.content_field, &content_str);
+            let bytes = bincode::serialize(hash).unwrap();
+            doc.add_bytes(self.hash_field, bytes);
+            self.writer.add_document(doc).unwrap();
+        }
         self.writer.commit().unwrap();
         self.reader.reload().unwrap();
     }
@@ -267,6 +314,8 @@ impl Store {
 
         let (content_bus_tx, _rx) = tokio::sync::broadcast::channel(20);
 
+        let (index, needs_rebuild) = Index::new(path.join("index"));
+
         let mut store = Store {
             packets,
             content_meta,
@@ -282,9 +331,20 @@ impl Store {
             content_bus_tx,
             meta,
             cache_path,
-            index: Index::new(path.join("index")),
+            index,
         };
         store.content_meta_cache = store.scan_content_meta();
+
+        // Auto-rebuild index if schema migration occurred
+        if needs_rebuild {
+            tracing::info!("Auto-rebuilding search index after schema migration");
+            if let Err(e) = store.rebuild_index() {
+                tracing::error!("Failed to rebuild index after migration: {}", e);
+            } else {
+                tracing::info!("Search index rebuild completed successfully");
+            }
+        }
+
         store
     }
 
@@ -418,6 +478,13 @@ impl Store {
 
     #[tracing::instrument(skip_all)]
     pub fn purge(&mut self, hash: &Integrity) -> Result<(), Box<dyn std::error::Error>> {
+        // Remove from search index if it's text content
+        if let Some(meta) = self.content_meta_cache.get(hash) {
+            if meta.mime_type == MimeType::TextPlain {
+                self.index.delete(hash);
+            }
+        }
+
         // Remove from CAS storage
         cacache::remove_hash_sync(&self.cache_path, hash)?;
 
@@ -728,6 +795,35 @@ impl Store {
             let str = std::str::from_utf8(bytes.as_ref()).unwrap();
             serde_json::from_str(str).unwrap()
         })
+    }
+
+    #[tracing::instrument(skip_all)]
+    pub fn rebuild_index(&mut self) -> Result<(usize, usize), Box<dyn std::error::Error>> {
+        // Clear existing index
+        self.index.clear();
+
+        // Collect all text content for batch indexing
+        let all_hashes = self.enumerate_cas();
+        let mut items_to_index = Vec::new();
+
+        for hash in &all_hashes {
+            if let Some(meta) = self.content_meta_cache.get(hash) {
+                if meta.mime_type == MimeType::TextPlain {
+                    if let Some(content) = self.cas_read(hash) {
+                        items_to_index.push((hash.clone(), content));
+                    }
+                }
+            }
+        }
+
+        let indexed_count = items_to_index.len();
+
+        // Batch write all items (single commit)
+        if !items_to_index.is_empty() {
+            self.index.write_batch(&items_to_index);
+        }
+
+        Ok((all_hashes.len(), indexed_count))
     }
 }
 

@@ -63,6 +63,11 @@ async fn handle(
         return handle_search(req.uri().query(), state).await;
     }
 
+    // Handle search rebuild
+    if path == "/search/rebuild" && req.method() == Method::POST {
+        return handle_search_rebuild(state, app_handle).await;
+    }
+
     // Handle view routes
     if path == "/view" && req.method() == Method::GET {
         return get_view(state).await;
@@ -282,6 +287,32 @@ async fn handle_search(query_str: Option<&str>, state: SharedState) -> HTTPResul
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")
         .body(full(json_response))?)
+}
+
+async fn handle_search_rebuild(state: SharedState, app_handle: tauri::AppHandle) -> HTTPResult {
+    let result = state.with_lock(|state| state.store.rebuild_index());
+
+    match result {
+        Ok((total_items, indexed_count)) => {
+            let message =
+                format!("Rebuilt index: {total_items} total items, {indexed_count} indexed");
+
+            // Notify UI to refresh after rebuild
+            app_handle.emit_all("refresh-items", true).unwrap();
+
+            Ok(Response::builder()
+                .status(StatusCode::OK)
+                .header("Content-Type", "text/plain")
+                .body(full(message))?)
+        }
+        Err(e) => {
+            let error_message = format!("Failed to rebuild index: {e}");
+            Ok(Response::builder()
+                .status(StatusCode::INTERNAL_SERVER_ERROR)
+                .header("Content-Type", "text/plain")
+                .body(full(error_message))?)
+        }
+    }
 }
 
 async fn get_view(state: SharedState) -> HTTPResult {

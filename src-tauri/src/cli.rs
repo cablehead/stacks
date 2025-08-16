@@ -38,10 +38,13 @@ enum Commands {
     /// Search content using Tantivy QueryParser
     Search {
         /// Search query (supports Tantivy syntax: terms, phrases, boolean logic)
-        query: String,
+        query: Option<String>,
         /// Maximum number of results to return
         #[clap(long)]
         limit: Option<usize>,
+        /// Rebuild the search index from current CAS content
+        #[clap(long)]
+        rebuild: bool,
     },
     /// View complete structure (JSON)
     View {
@@ -98,8 +101,12 @@ pub async fn cli(db_path: &str) {
         Some(Commands::Stream) => {
             handle_stream_command(&mut request_sender).await;
         }
-        Some(Commands::Search { query, limit }) => {
-            handle_search_command(query, limit, &mut request_sender).await;
+        Some(Commands::Search {
+            query,
+            limit,
+            rebuild,
+        }) => {
+            handle_search_command(query, limit, rebuild, &mut request_sender).await;
         }
         Some(Commands::View { command }) => {
             handle_view_command(command, &mut request_sender).await;
@@ -213,8 +220,9 @@ async fn handle_stream_command(
 }
 
 async fn handle_search_command(
-    query: String,
+    query: Option<String>,
     limit: Option<usize>,
+    rebuild: bool,
     request_sender: &mut hyper::client::conn::http1::SendRequest<
         http_body_util::Empty<bytes::Bytes>,
     >,
@@ -222,6 +230,43 @@ async fn handle_search_command(
     use bytes::Bytes;
     use http_body_util::Empty;
     use hyper::{Method, Request, StatusCode};
+    use std::io::Write;
+
+    // Handle rebuild request separately
+    if rebuild {
+        let request = Request::builder()
+            .method(Method::POST)
+            .uri("/search/rebuild")
+            .body(Empty::<Bytes>::new())
+            .unwrap();
+
+        let mut res = request_sender.send_request(request).await.unwrap();
+
+        if res.status() != StatusCode::OK {
+            eprintln!("Request failed with status: {}", res.status());
+            return;
+        }
+
+        // Output the rebuild response
+        while let Some(next) = res.frame().await {
+            let frame = next.expect("Error reading frame");
+            if let Some(chunk) = frame.data_ref() {
+                std::io::stdout()
+                    .write_all(chunk)
+                    .expect("Error writing to stdout");
+            }
+        }
+        return;
+    }
+
+    // For regular search, query is required
+    let query = match query {
+        Some(q) => q,
+        None => {
+            eprintln!("Error: Query is required for search (or use --rebuild to rebuild index)");
+            return;
+        }
+    };
 
     let mut uri = format!(
         "/search?q={}",
