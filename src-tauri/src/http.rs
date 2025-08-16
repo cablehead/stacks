@@ -45,7 +45,7 @@ async fn handle(
 
     // Handle CAS routes
     if path.starts_with("/cas") {
-        return handle_cas(req.method(), path, state).await;
+        return handle_cas(req.method(), path, state, app_handle).await;
     }
 
     // Handle stacks routes
@@ -55,7 +55,7 @@ async fn handle(
 
     // Handle delete routes
     if path.starts_with("/delete") && req.method() == Method::DELETE {
-        return handle_delete(path, state).await;
+        return handle_delete(path, state, app_handle).await;
     }
 
     // Handle legacy routes
@@ -71,7 +71,12 @@ async fn handle(
     }
 }
 
-async fn handle_cas(method: &Method, path: &str, state: SharedState) -> HTTPResult {
+async fn handle_cas(
+    method: &Method,
+    path: &str,
+    state: SharedState,
+    app_handle: tauri::AppHandle,
+) -> HTTPResult {
     match (method, path) {
         (&Method::GET, "/cas") => get_cas_list(state).await,
         (&Method::GET, path) if path.starts_with("/cas/") => {
@@ -84,7 +89,7 @@ async fn handle_cas(method: &Method, path: &str, state: SharedState) -> HTTPResu
         (&Method::DELETE, path) if path.starts_with("/cas/") => {
             let hash_str = &path[5..]; // Remove "/cas/" prefix
             match ssri::Integrity::from_str(hash_str) {
-                Ok(hash) => delete_cas_content(state, hash).await,
+                Ok(hash) => delete_cas_content(state, hash, app_handle).await,
                 Err(_) => response_404(),
             }
         }
@@ -143,7 +148,11 @@ async fn get_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResul
     }
 }
 
-async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPResult {
+async fn delete_cas_content(
+    state: SharedState,
+    hash: ssri::Integrity,
+    app_handle: tauri::AppHandle,
+) -> HTTPResult {
     let result = state.with_lock(|state| {
         let purge_result = state.store.purge(&hash);
         if purge_result.is_ok() {
@@ -152,6 +161,11 @@ async fn delete_cas_content(state: SharedState, hash: ssri::Integrity) -> HTTPRe
         }
         purge_result
     });
+
+    // Notify UI to refresh after successful purge and rescan
+    if result.is_ok() {
+        app_handle.emit_all("refresh-items", true).unwrap();
+    }
 
     match result {
         Ok(_) => {
@@ -197,7 +211,7 @@ async fn get_stacks_list(state: SharedState) -> HTTPResult {
         .body(full(json_response))?)
 }
 
-async fn handle_delete(path: &str, state: SharedState) -> HTTPResult {
+async fn handle_delete(path: &str, state: SharedState, app_handle: tauri::AppHandle) -> HTTPResult {
     // Parse the ID from the path: /delete/{id} or /delete/ (empty for default)
     let id_str = path.strip_prefix("/delete/").unwrap_or("");
     let id_option = if id_str.is_empty() {
@@ -234,6 +248,11 @@ async fn handle_delete(path: &str, state: SharedState) -> HTTPResult {
 
         Ok(format!("Deleted item: {}", item.id))
     });
+
+    // Notify UI to refresh after successful deletion
+    if result.is_ok() {
+        app_handle.emit_all("refresh-items", true).unwrap();
+    }
 
     match result {
         Ok(message) => Ok(Response::builder()
