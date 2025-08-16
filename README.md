@@ -92,6 +92,8 @@ utilitarian design, give Stacks a try-- I'd love to hear your thoughts!
   <tr><td>New note</td><td><code>&#8984; &#x21E7; + n</code></td></tr>
 </table>
 
+**Note:** Items deleted through the UI are permanently removed on app restart.
+
 ## CLI
 
 Stacks includes a command-line interface for programmatic access. First, symlink the app binary to your PATH:
