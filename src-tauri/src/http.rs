@@ -53,6 +53,11 @@ async fn handle(
         return get_stacks_list(state).await;
     }
 
+    // Handle delete routes
+    if path.starts_with("/delete") && req.method() == Method::DELETE {
+        return handle_delete(path, state).await;
+    }
+
     // Handle legacy routes
     let id_option = match path.strip_prefix('/') {
         Some("") | None => None, // Path is "/" or empty
@@ -190,6 +195,56 @@ async fn get_stacks_list(state: SharedState) -> HTTPResult {
         .status(StatusCode::OK)
         .header("Content-Type", "application/json")
         .body(full(json_response))?)
+}
+
+async fn handle_delete(path: &str, state: SharedState) -> HTTPResult {
+    // Parse the ID from the path: /delete/{id} or /delete/ (empty for default)
+    let id_str = path.strip_prefix("/delete/").unwrap_or("");
+    let id_option = if id_str.is_empty() {
+        None
+    } else {
+        scru128::Scru128Id::from_str(id_str).ok()
+    };
+
+    let result = state.with_lock(|state| {
+        // Find the item to delete (either specific ID or default to first item)
+        let item = if let Some(id) = id_option {
+            state.view.items.get(&id).cloned()
+        } else {
+            state.view.first().map(|focus| focus.item.clone())
+        };
+
+        let Some(item) = item else {
+            return Err("Item not found".to_string());
+        };
+
+        // Get the item's hash for CAS cleanup
+        let hash = item.hash.clone();
+
+        // Delete the item (creates Delete packet)
+        let _packet = state.store.delete(item.id);
+
+        // Purge the CAS content
+        if let Err(e) = state.store.purge(&hash) {
+            tracing::warn!("Failed to purge CAS content for {}: {}", hash, e);
+        }
+
+        // Trigger rescan to clean up dangling references
+        state.rescan(None);
+
+        Ok(format!("Deleted item: {}", item.id))
+    });
+
+    match result {
+        Ok(message) => Ok(Response::builder()
+            .status(StatusCode::OK)
+            .header("Content-Type", "text/plain")
+            .body(full(message))?),
+        Err(error) => Ok(Response::builder()
+            .status(StatusCode::NOT_FOUND)
+            .header("Content-Type", "text/plain")
+            .body(full(error))?),
+    }
 }
 
 fn get_as_html(state: SharedState, hash: ssri::Integrity) -> HTTPResult {

@@ -12,7 +12,7 @@ struct Args {
     #[clap(subcommand)]
     command: Option<Commands>,
 
-    /// clip id to retrieve (when no subcommand is used)
+    /// clip id to retrieve (when no subcommand is used; defaults to top of most recent stack)
     #[clap(value_parser)]
     id: Option<String>,
 
@@ -23,6 +23,10 @@ struct Args {
     /// output in HTML format
     #[clap(long, action = clap::ArgAction::SetTrue)]
     html: bool,
+
+    /// delete the item instead of returning it
+    #[clap(long, action = clap::ArgAction::SetTrue)]
+    delete: bool,
 }
 
 #[derive(Subcommand, Debug, Clone)]
@@ -220,19 +224,45 @@ async fn handle_legacy_request(
     use http_body_util::Empty;
     use hyper::{Request, StatusCode};
 
-    let request = Request::builder()
-        .method("GET")
-        .uri(&format!(
-            "/{}{}",
-            args.id.unwrap_or_default(),
-            if args.html { "?as-html" } else { "" }
-        ))
-        .body(Empty::<Bytes>::new())
-        .unwrap();
+    let request = if args.delete {
+        Request::builder()
+            .method("DELETE")
+            .uri(&format!("/delete/{}", args.id.unwrap_or_default()))
+            .body(Empty::<Bytes>::new())
+            .unwrap()
+    } else {
+        Request::builder()
+            .method("GET")
+            .uri(&format!(
+                "/{}{}",
+                args.id.unwrap_or_default(),
+                if args.html { "?as-html" } else { "" }
+            ))
+            .body(Empty::<Bytes>::new())
+            .unwrap()
+    };
 
     let mut res = request_sender.send_request(request).await.unwrap();
-    assert!(res.status() == StatusCode::OK);
 
+    if res.status() != StatusCode::OK {
+        eprintln!("Request failed with status: {}", res.status());
+        return;
+    }
+
+    if args.delete {
+        // For delete requests, just output the response message
+        while let Some(next) = res.frame().await {
+            let frame = next.expect("Error reading frame");
+            if let Some(chunk) = frame.data_ref() {
+                std::io::stdout()
+                    .write_all(chunk)
+                    .expect("Error writing to stdout");
+            }
+        }
+        return;
+    }
+
+    // Handle non-delete responses (existing logic)
     if args.meta {
         if let Some(metadata) = res.headers().get("X-Stacks-Clip-Metadata") {
             println!("{}", metadata.to_str().unwrap());
